@@ -1,0 +1,88 @@
+/***************************************************************************
+ *   Copyright (C) 2017 by SWE team <sdl.window.engine@gmail.com>          *
+ *                                                                         *
+ *   Part of the SWE: SDL Window Engine:                                   *
+ *   https://github.com/AndreyBarmaley/sdl-window-engine                   *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 3 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this program; if not, write to the                         *
+ *   Free Software Foundation, Inc.,                                       *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ ***************************************************************************/
+
+#ifndef _SWE_CSTRING_
+#define _SWE_CSTRING_
+
+#include <string>
+
+#include "types.h"
+#include "sharedvector.h"
+#include "sharedlist.h"
+
+struct StringList : SharedList<std::string>
+{
+    StringList() {}
+    StringList(const SharedList<std::string> & list) : SharedList<std::string>(list) {}
+
+    size_t		maxStringWidth(void) const;
+
+    std::string         join(void) const;
+    std::string         join(const std::string &) const;
+
+    StringList &	append(const std::string &);
+    StringList &	append(const StringList &);
+
+    StringList &	operator<< (const std::string &);
+    StringList &	operator<< (const StringList &);
+};
+
+namespace String
+{
+    std::string         ucFirst(std::string);
+    std::string         toLower(std::string);
+    std::string         toUpper(std::string);
+    int                 toInt(const std::string &, bool* = NULL);
+    u64                 toInt64(const std::string &, bool* = NULL);
+    double              toDouble(const std::string &, bool* = NULL);
+    int			index(const std::string &, int);
+
+    std::string         trimmed(std::string);
+    std::string         time(void);
+    std::string         time(time_t);
+    std::string		strftime(const std::string &);
+
+    std::string         replace(const std::string &, const char*, const std::string &);
+    std::string         replace(const std::string &, const char*, int);
+    StringList          split(const std::string &, int);
+
+    std::string         hex(int value, int width = 8);
+    std::string         hex64(u64 value);
+
+    std::string         number(int);
+    std::string         number(double, int prec);
+}
+
+class StringFormat : public std::string
+{
+    int		cur;
+
+public:
+    StringFormat(const char* str, size_t reserver = 0);
+
+    StringFormat &	arg(const std::string &);
+    StringFormat &	arg(const char*);
+    StringFormat &	arg(int);
+    StringFormat &	arg(double, int prec);
+};
+
+#endif

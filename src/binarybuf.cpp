@@ -1,0 +1,83 @@
+/***************************************************************************
+ *   Copyright (C) 2017 by SWE team <sdl.window.engine@gmail.com>          *
+ *                                                                         *
+ *   Part of the SWE: SDL Window Engine:                                   *
+ *   https://github.com/AndreyBarmaley/sdl-window-engine                   *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 3 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this program; if not, write to the                         *
+ *   Free Software Foundation, Inc.,                                       *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ ***************************************************************************/
+
+#include <iomanip>
+#include <sstream>
+#include <algorithm>
+
+#include "cstring.h"
+#include "tools.h"
+
+BinaryBuf BinaryBuf::zlibUncompress(size_t real) const
+{
+    return Tools::zlibUncompress(data(), size(), real);
+}
+
+BinaryBuf BinaryBuf::zlibCompress(void) const
+{
+    return Tools::zlibCompress(data(), size());
+}
+
+BinaryBuf BinaryBuf::base64Decode(void) const
+{
+    return Tools::base64Decode(data(), size());
+}
+
+BinaryBuf BinaryBuf::base64Encode(void) const
+{
+    return Tools::base64Encode(data(), size());
+}
+
+int BinaryBuf::crc16b(void) const
+{
+    return Tools::crc16b(data(), size());
+}
+
+u32 BinaryBuf::crc32b(void) const
+{
+    return Tools::crc32b(data(), size());
+}
+
+std::string BinaryBuf::toString(void) const
+{
+    return std::string(begin(), std::find(begin(), end(), 0));
+}
+
+std::string BinaryBuf::toHexString(const std::string & sep, bool prefix) const
+{
+    if(size())
+    {
+	StringList list;
+
+	for(const_iterator it = begin(); it != end(); ++it)
+	{
+	    std::ostringstream os;
+	    if(prefix) os << "0x";
+	    os << std::setw(2) << std::setfill('0') << std::uppercase << std::hex << static_cast<int>(*it);
+	    list << os.str();
+	}
+
+	return list.join(sep);
+    }
+
+    return "";
+}
