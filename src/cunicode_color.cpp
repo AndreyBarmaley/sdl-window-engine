@@ -114,8 +114,11 @@ struct tagpos : std::pair<size_t, size_t>
     const size_t & len(void) const { return second; }
 };
 
+// [default:color1:color2] set default fg,bg
+// [colors:color1:color2] set current colors fg, bg
+// [color:color1] set current color fg
 // parse tocken string: "test [color:red]red[color:default] default [color:yellow:red]yellow_red"
-UCString UCString::parseUnicode(const UnicodeString & us, const FBColors & defcols)
+UCString UCString::parseUnicode(const UnicodeString & us, FBColors defcols)
 {
     UCString ucs;
     ucs.reserve(us.size());
@@ -156,22 +159,27 @@ UCString UCString::parseUnicode(const UnicodeString & us, const FBColors & defco
 	    {
 		if(tokens.front() == "color" && 2 == tokens.size())
 		{
-		    ucs << (tokens.back() == "default" ? defcols : FBColors(Color(tokens.back().toString()).toColorIndex()));
+		    if(tokens.back() == "default")
+			ucs << defcols;
+		    else
+			ucs << Color(tokens.back().toString()).toColorIndex();
 		}
 		else
-		if(tokens.front() == "colors")
+		if(tokens.front() == "colors" && 3 == tokens.size())
 		{
-		    if(3 == tokens.size())
-		    {
-			tokens.pop_front();
-			const Color & fgcol = Color(tokens.front().toString());
-			const Color & bgcol = Color(tokens.back().toString());
-			ucs << FBColors(fgcol.toColorIndex(), bgcol.toColorIndex());
-		    }
-		    else
-		    {
-			ucs << defcols;
-		    }
+		    tokens.pop_front();
+		    const ColorIndex & fg = Color(tokens.front().toString()).toColorIndex();
+		    const ColorIndex & bg = Color(tokens.back().toString()).toColorIndex();
+		    ucs << FBColors(fg, bg);
+		}
+		else
+		if(tokens.front() == "default" && 3 == tokens.size())
+		{
+		    tokens.pop_front();
+		    const ColorIndex & fg = Color(tokens.front().toString()).toColorIndex();
+		    const ColorIndex & bg = Color(tokens.back().toString()).toColorIndex();
+		    defcols = FBColors(fg, bg);
+		    ucs << defcols;
 		}
 		else
 		{
@@ -269,6 +277,12 @@ UCStringList UCString::splitWidth(const FontRender & frs, int width) const
     return res;
 }
 
+int UCString::index(int ch) const
+{
+    const_iterator it = std::find_if(begin(), end(), std::bind2nd(std::mem_fun_ref(&UnicodeColor::isUnicode), ch));
+    return it != end() ? std::distance(begin(), it) : -1;
+}
+
 UCString UCString::substr(size_t pos, int len) const
 {
     UCString res;
@@ -279,6 +293,33 @@ UCString UCString::substr(size_t pos, int len) const
         std::copy(begin() + pos, begin() + pos + pos2, res.begin());
     }
     return res;
+}
+
+UCStringList UCString::wrap(int width) const
+{
+    const int sep = 0x20;
+    size_t pos1 = 0;
+    size_t pos2 = pos1 + width - 1;
+    UCStringList list;
+
+    while(pos1 < size())
+    {
+        if(pos2 + 1 < size())
+        {
+            for(; pos2 > pos1; --pos2)
+                if(operator[](pos2).isUnicode(sep)) break;
+
+            list << substr(pos1, pos2 != pos1 ? pos2 - pos1 : width);
+        }
+        else
+            list << substr(pos1);
+
+        pos1 = pos2 + 1;
+        pos2 = pos1 + width - 1;
+        if(pos2 >= size()) pos2 = size() - 1;
+    }
+
+    return list;
 }
 
 UnicodeColor UCString::at(size_t pos) const

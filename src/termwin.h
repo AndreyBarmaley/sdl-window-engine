@@ -80,7 +80,7 @@ namespace cursor
 
     struct right : public move
     {
-	right(int count = 1) : move(MoveUp, count) {}
+	right(int count = 1) : move(MoveRight, count) {}
     };
 
     struct first : public move
@@ -142,7 +142,6 @@ namespace set
 
     struct rn {};
     struct flush {};
-    struct dirty {};
 }
 
 namespace reset
@@ -236,29 +235,49 @@ namespace draw
     };
 }
 
-class TermCharset : public UnicodeColor, public BitFlags
+struct TermPos : packshort
 {
-public:
-    enum { PropNone, PropDirty };
+    TermPos() {}
+    TermPos(int posx, int posy) : packshort(posx, posy) {}
+    TermPos(const Point & pt) : packshort(pt.x, pt.y) {}
 
-    TermCharset() : UnicodeColor(0x20, FBColors(Color::White)), BitFlags(TermCharset::PropDirty) {}
-    TermCharset(const UnicodeColor & uc) : UnicodeColor(uc), BitFlags(TermCharset::PropDirty) {}
+    int posx(void) const { return val1(); }
+    int posy(void) const { return val2(); }
 
-    int				prop(void) const { return BitFlags::value(); }
-    void			set(int v) { BitFlags::set(v); }
+    Point toPoint(void) const { return Point(posx(), posy()); }
 };
 
-class TermWindow : public Window
+struct TermSize : packshort
+{
+    TermSize() {}
+    TermSize(int cols, int rows) : packshort(cols, rows) {}
+    TermSize(const Size & sz) : packshort(sz.w, sz.h) {}
+
+    int cols(void) const { return val1(); }
+    int rows(void) const { return val2(); }
+
+    Size toSize(void) const { return Size(cols(), rows()); }
+};
+
+struct TermRect : TermPos, TermSize
+{
+    TermRect() {}
+    TermRect(int posx, int posy, int cols, int rows) : TermPos(posx, posy), TermSize(cols, rows) {}
+    TermRect(const Rect & rt) : TermPos(rt.x, rt.y), TermSize(rt.w, rt.h) {}
+
+    Rect toRect(void) const { return Rect(toPoint(), toSize()); }
+};
+
+class TermBase : public Window
 {
 protected:
-    std::vector<TermCharset>	chars;
     const FontRender*		fontRender;
-    Size			termsz;
-    ColorIndex			fgColor;
-    ColorIndex			bgColor;
     set::padding		padding;
-    int				align;
-    Point			curpos;
+    packshort			curpos;
+    packshort			termsz;
+    packshort			defcols;
+    packshort			termopt2; /* align, unused */
+
 /*
 protected:
     virtual bool        keyPressEvent(int) { return false; }
@@ -267,6 +286,7 @@ protected:
     virtual bool        mousePressEvent(const ButtonEvent &) { return false; }
     virtual bool        mouseReleaseEvent(const ButtonEvent &) { return false; }
     virtual bool        mouseClickEvent(const ButtonsEvent &) { return false; }
+    virtual void        mouseFocusEvent(void) {}
     virtual void        mouseLeaveEvent(void) {}
     virtual void        mouseMotionEvent(const Point &, u32 buttons) {}
     virtual bool        userEvent(int, void*) { return false; }
@@ -277,32 +297,55 @@ protected:
     virtual void        tickEvent(u32 ms) {}
     virtual void        renderPresentEvent(u32 ms) {}
     virtual void        displayResizeEvent(const Size &);
+    virtual void        windowVisibleEvent(bool);
 */
-    // protected: empty font render
-    TermWindow();
 
-    void		setCharset(int ch, const ColorIndex & fg = Color::Transparent, const ColorIndex & bg = Color::Transparent, int prop = 0);
+    // protected: empty font render
+    TermBase();
+    TermBase(TermBase &);
+
     bool		lineWrap(void) const;
 
     int			index(const Point &) const;
     int			index(void) const;
 
+
+
+    void		setFGColor(const ColorIndex & col) { defcols.set1(col()); }
+    void		setBGColor(const ColorIndex & col) { defcols.set2(col()); }
+
+    ColorIndex		fgColor(void) const { return ColorIndex(defcols.val1()); }
+    ColorIndex		bgColor(void) const { return ColorIndex(defcols.val2()); }
+    FBColors		colors(void) const { return FBColors(fgColor(), bgColor()); }
+
+    void		setAlign(align_t v) { termopt2.set1(v); }
+    int			align(void) const { return termopt2.val1(); }
+
+    void		setUnused8(int v) { termopt2.set2(v); }
+    int			unused8(void) const { return termopt2.val2(); }
+
+    const set::padding& paddings(void) const { return padding; }
+
 public:
-    TermWindow(TermWindow &);
-    TermWindow(const FontRender &);
-    TermWindow(const FontRender &, Window &);
-    TermWindow(const Point & gfxpt, const Size & gfxsz, const FontRender &, Window &);
+    TermBase(const FontRender &);
+    TermBase(const FontRender &, Window &);
+    TermBase(const Point & gfxpt, const Size & gfxsz, const FontRender &, Window &);
 
     void		setFontRender(const FontRender &);
     void                setSize(const Size &);
-    void		renderFlush(void);
 
-    const Point &	cursor(void) const;
-    FBColors		colors(void) const { return FBColors(fgColor, bgColor); }
-    size_t		cols(void) const { return termsz.w; }
-    size_t 		rows(void) const { return termsz.h; }
+    virtual void        setTermSize(int cols, int rows); // max 256 symbols
+    void		setCursorPos(int cx, int cy) { curpos.set1(cx); curpos.set2(cy); }
+    Point		cursor(void) const { return Point(curpos.val1(), curpos.val2()); }
+    virtual void	setCharset(int ch, const ColorIndex & fg = Color::Transparent, const ColorIndex & bg = Color::Transparent, int prop = 0) = 0;
+    virtual void	renderFlush(void) = 0;
+
+
+    inline int		cols(void) const { return termsz.val1(); }
+    inline int		rows(void) const { return termsz.val2(); }
+
+    Size		termSize(void) const { return Size(cols(), rows()); }
     const FontRender*	frs(void) const { return fontRender; }
-
 
     Point		sym2gfx(const Point &) const;   /* coord transformer: symbol to graphics (parent relative) */
     Point		gfx2sym(const Point &) const;   /* coord transformer: graphics to symbol (parent relative) */
@@ -311,78 +354,96 @@ public:
     Rect		sym2gfx(const Rect &) const;
     Rect		gfx2sym(const Rect &) const;
 
-    TermWindow &        operator<< (const cursor::set &);
-    TermWindow &        operator<< (const cursor::move &);
+    TermBase & operator<< (const fill::defaults &);
+    TermBase & operator<< (const fill::fgcolor &);
+    TermBase & operator<< (const fill::bgcolor &);
+    TermBase & operator<< (const fill::colors &);
+    TermBase & operator<< (const fill::charset &);
+    TermBase & operator<< (const fill::property &);
 
-    TermWindow &        operator<< (const fill::defaults &);
-    TermWindow &        operator<< (const fill::fgcolor &);
-    TermWindow &        operator<< (const fill::bgcolor &);
-    TermWindow &        operator<< (const fill::colors &);
-    TermWindow &        operator<< (const fill::charset &);
-    TermWindow &        operator<< (const fill::property &);
+    TermBase & operator<< (const cursor::set &);
+    TermBase& operator<< (const cursor::move &);
 
-    TermWindow &        operator<< (const set::colors &);
-    TermWindow &        operator<< (const set::fgcolor &);
-    TermWindow &        operator<< (const set::bgcolor &);
-    TermWindow &        operator<< (const set::align &);
-    TermWindow &        operator<< (const set::padding &);
-    TermWindow &        operator<< (const set::wrap &);
-    TermWindow &        operator<< (const set::rn &);
-    TermWindow &        operator<< (const set::dirty &);
-    TermWindow &        operator<< (const set::flush &);
+    TermBase & operator<< (const set::colors &);
+    TermBase & operator<< (const set::fgcolor &);
+    TermBase & operator<< (const set::bgcolor &);
+    TermBase & operator<< (const set::align &);
+    TermBase & operator<< (const set::padding &);
+    TermBase & operator<< (const set::wrap &);
+    TermBase & operator<< (const set::rn &);
+    TermBase & operator<< (const set::flush &);
 
-    TermWindow &        operator<< (const reset::defaults &);
-    TermWindow &        operator<< (const reset::colors &);
-    TermWindow &        operator<< (const reset::fgcolor &);
-    TermWindow &        operator<< (const reset::bgcolor &);
-    TermWindow &        operator<< (const reset::padding &);
-    TermWindow &        operator<< (const reset::wrap &);
+    TermBase & operator<< (const reset::defaults &);
+    TermBase & operator<< (const reset::colors &);
+    TermBase & operator<< (const reset::fgcolor &);
+    TermBase & operator<< (const reset::bgcolor &);
+    TermBase & operator<< (const reset::padding &);
+    TermBase & operator<< (const reset::wrap &);
 
-    TermWindow &        operator<< (const draw::hline &);
-    TermWindow &        operator<< (const draw::vline &);
-    TermWindow &        operator<< (const draw::rect &);
+    TermBase & operator<< (const draw::hline &);
+    TermBase & operator<< (const draw::vline &);
+    TermBase & operator<< (const draw::rect &);
 
-    TermWindow &        operator<< (int);
-    TermWindow &        operator<< (const char*);
-    TermWindow &        operator<< (const std::string &);
-    TermWindow &        operator<< (const UnicodeString &);
-    TermWindow &        operator<< (const UCString &);
-    TermWindow &        operator<< (const UnicodeList &);
+    TermBase & operator<< (int);
+    TermBase & operator<< (const char*);
+    TermBase & operator<< (const std::string &);
+    TermBase & operator<< (const UnicodeString &);
+    TermBase & operator<< (const UCString &);
+    TermBase & operator<< (const UnicodeList &);
+    TermBase & operator<< (const UCStringList &);
 
-    TermWindow &        operator<< (const UnicodeColor &);
-    TermWindow &        operator<< (const TermCharset &);
+    TermBase & operator<< (const UnicodeColor &);
 
     virtual void        renderWindow(void);
+};
+
+class TermWindow : public TermBase
+{
+protected:
+    std::vector<UnicodeColor>	chars;
+
+    TermWindow() {}
+    TermWindow(TermBase & term) : TermBase(term) {} // FIXED: remove
+
+public:
+    TermWindow(const FontRender & frs) : TermBase(frs) {}
+    TermWindow(const FontRender & frs, Window & win) : TermBase(frs, win) {}
+    TermWindow(const Point & gfxpos, const Size & gfxsz, const FontRender & frs, Window & win) : TermBase(gfxpos, gfxsz, frs, win) {}
+
+    void		setTermSize(int cols, int row);
+    void		setCharset(int ch, const ColorIndex & fg = Color::Transparent, const ColorIndex & bg = Color::Transparent, int prop = 0);
+
+    void		renderSymbol(int symx, int symy);
+    void		renderFlush(void);
+};
+
+class TermArea : public TermBase
+{
+protected:
+    packshort		termpos;
+
+public:
+    TermArea(TermWindow & term) : TermBase(term) {}
+    TermArea(int symx, int symy, int cols, int rows, TermWindow & term) : TermBase(term) { setTermArea(symx, symy, cols, rows); }
+
+    void		setTermPos(int symx, int symy);
+    void		setPosition(const Point &);
+    void		setTermArea(int symx, int symy, int cols, int rows);
+
+    inline int		posx(void) const { return termpos.val1(); }
+    inline int		posy(void) const { return termpos.val2(); }
+
+    void		setCharset(int ch, const ColorIndex & fg = Color::Transparent, const ColorIndex & bg = Color::Transparent, int prop = 0);
+    void		renderFlush(void);
 };
 
 class CenteredTerminal : public TermWindow
 {
 public:
-    CenteredTerminal(const Size & termsz, const FontRender &, Window &);
+    CenteredTerminal(int cols, int rows, const FontRender &, Window &);
 };
 
-class MessageWindow : public CenteredTerminal
-{
-    UnicodeString	header;
-    UnicodeString	content;
-
-    ColorIndex          headerColor;
-    ColorIndex          contentColor;
-    ColorIndex          backgroundColor;
-    ColorIndex          borderColor;
-
-protected:
-    bool                keyPressEvent(int);
-    bool                mouseClickEvent(const ButtonsEvent &);
-    bool                actionDialogClose(void);
-
-public:
-    MessageWindow(const std::string & header, const ColorIndex &, const std::string &, const ColorIndex &, const ColorIndex &, const ColorIndex &, const FontRender &, Window &);
-
-    void                renderWindow(void);
-};
-
-void DisplayError(const std::string & hdr, const std::string & msg);
-void MessageTop(const std::string & hdr, const std::string & msg);
+// void DisplayError(const std::string & hdr, const std::string & msg);
+// void MessageTop(const std::string & hdr, const std::string & msg);
 
 #endif

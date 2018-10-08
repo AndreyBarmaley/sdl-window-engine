@@ -244,7 +244,7 @@ void WindowListBox::signalReceive(int sig, const SignalMember* sm)
 
 	case Signal::ScrollBarMovedCursor:
 	{
-	    const WindowScrollBar* scroll = reinterpret_cast<const WindowScrollBar*>(sm);
+	    const WindowScrollBar* scroll = static_cast<const WindowScrollBar*>(sm);
 	    if(scroll)
 	    {
 		int pos = isVertical() ? scroll->cursorPosition().y : scroll->cursorPosition().x;
@@ -487,7 +487,7 @@ void WindowScrollBar::signalReceive(int sig, const SignalMember* sm)
 	case Signal::WindowScrolledNext:
 	case Signal::ListboxChangedList:
 	{
-	    const WindowListBox* list = reinterpret_cast<const WindowListBox*>(sm);
+	    const WindowListBox* list = static_cast<const WindowListBox*>(sm);
 	    if(list) setCursorPosition(*list);
 	}
 	break;
@@ -542,13 +542,13 @@ void WindowScrollBar::setCursorPosition(u32 count, u32 visible, s32 index)
 
 void WindowScrollBar::windowMoveEvent(const Point &)
 {
-    const WindowListBox* list = reinterpret_cast<const WindowListBox*>(parent());
+    const WindowListBox* list = static_cast<const WindowListBox*>(parent());
     if(list) setCursorPosition(*list);
 }
 
 void WindowScrollBar::windowResizeEvent(const Size &)
 {
-    const WindowListBox* list = reinterpret_cast<const WindowListBox*>(parent());
+    const WindowListBox* list = static_cast<const WindowListBox*>(parent());
     if(list) setCursorPosition(*list);
 }
 
@@ -567,7 +567,7 @@ bool WindowScrollBar::mouseClickEvent(const ButtonsEvent & coords)
 	if(! isVertical() && pos1.x > localArea.w - cursz)
 	    pos1.x = localArea.w - cursz;
 
-        const WindowListBox* list = reinterpret_cast<const WindowListBox*>(parent());
+        const WindowListBox* list = static_cast<const WindowListBox*>(parent());
 	if(list && list->itemsVisible() < list->itemsCount())
 	{
 	    textureCursor().setPosition(isVertical() ? Point(pos2.x, pos1.y) : Point(pos1.x, pos2.y));
@@ -613,7 +613,7 @@ bool WindowScrollBar::mouseMotionEvent(const Point & pos1, u32 buttons)
 	if((isVertical() && scroll.y < pos1.y && pos1.y < scroll.y + scroll.h - cursz) ||
 	    (! isVertical() && scroll.x < pos1.x && pos1.x < scroll.x + scroll.w - cursz))
 	{
-    	    const WindowListBox* list = reinterpret_cast<const WindowListBox*>(parent());
+    	    const WindowListBox* list = static_cast<const WindowListBox*>(parent());
 	    if(list && list->itemsVisible() < list->itemsCount())
 	    {
 		Point pos2 = cursorPosition();
@@ -644,8 +644,8 @@ const Point & WindowScrollBar::cursorPosition(void) const
 /* WindowButton */
 WindowButton::WindowButton(Window* win) : Window(Point(), Size(), win), hotkey(Key::NONE)
 {
-    state.reset(FlagModality);
-    state.set(FlagKeyHandle);
+    resetState(FlagModality);
+    setState(FlagKeyHandle);
 
     signalSubscribe(*this, Signal::ButtonTimerComplete);
 }
@@ -654,7 +654,7 @@ u32 WindowButton::renderButtonComplete(u32 tick, void* ptr)
 {
     if(ptr)
     {
-        WindowButton* win = reinterpret_cast<WindowButton*>(ptr);
+        WindowButton* win = static_cast<WindowButton*>(ptr);
         if(win) win->signalEmit(Signal::ButtonTimerComplete);
     }
 
@@ -677,7 +677,7 @@ void WindowButton::renderWindow(void)
     {
 	Point dst(0, 0);
 
-	if(state.check(FlagButtonCentered))
+	if(checkState(FlagButtonCentered))
     	    dst = dst + (size() - tx->size()) / 2;
 
 	renderTexture(*tx, dst);
@@ -688,13 +688,13 @@ void WindowButton::setPressed(bool f)
 {
     if(f && ! isPressed())
     {
-	state.set(FlagButtonPressed);
+	setState(FlagButtonPressed);
 	signalEmit(Signal::ButtonPressed);
     }
     else
     if(!f && isPressed())
     {
-	state.reset(FlagButtonPressed);
+	resetState(FlagButtonPressed);
 	signalEmit(Signal::ButtonReleased);
 	if(area() & Display::mouseCursorPosition())
 	    setClickedComplete();
@@ -705,7 +705,7 @@ void WindowButton::setPressed(bool f)
 
 void WindowButton::setReleased(void)
 {
-    state.reset(FlagButtonPressed);
+    resetState(FlagButtonPressed);
     signalEmit(Signal::ButtonReleased);
     renderWindow();
 }
@@ -722,8 +722,8 @@ void WindowButton::setClickedComplete(void)
 
 void WindowButton::setClicked(void)
 {
-    if(! state.check(FlagButtonDisabled) &&
-	! state.check(FlagButtonPressed))
+    if(! checkState(FlagButtonDisabled) &&
+	! checkState(FlagButtonPressed))
     {
 	setPressed(true);
 	SDL_AddTimer(100, renderButtonComplete, this);
@@ -732,7 +732,7 @@ void WindowButton::setClicked(void)
 
 void WindowButton::setDisabled(bool f)
 {
-    state.set(FlagButtonDisabled, f);
+    setState(FlagButtonDisabled, f);
     renderWindow();
 }
 
@@ -743,17 +743,17 @@ void WindowButton::setAction(int action)
 
 bool WindowButton::isOnMouse(void) const
 {
-    return state.check(FlagOnMouse);
+    return checkState(FlagOnMouse);
 }
 
 bool WindowButton::isDisabled(void) const
 {
-    return state.check(FlagButtonDisabled);
+    return checkState(FlagButtonDisabled);
 }
 
 bool WindowButton::isPressed(void) const
 {
-    return state.check(FlagButtonPressed);
+    return checkState(FlagButtonPressed);
 }
 
 bool WindowButton::isReleased(void) const
@@ -773,7 +773,7 @@ int WindowButton::action(void) const
 
 bool WindowButton::mousePressEvent(const ButtonEvent & st)
 {
-    if(! state.check(FlagButtonDisabled) && st.isButtonLeft() && ! state.check(FlagButtonPressed))
+    if(! checkState(FlagButtonDisabled) && st.isButtonLeft() && ! checkState(FlagButtonPressed))
     {
 	setPressed(true);
 	return true;
@@ -783,7 +783,7 @@ bool WindowButton::mousePressEvent(const ButtonEvent & st)
 
 bool WindowButton::mouseReleaseEvent(const ButtonEvent & st)
 {
-    if(! state.check(FlagButtonDisabled) && st.isButtonLeft() && state.check(FlagButtonPressed))
+    if(! checkState(FlagButtonDisabled) && st.isButtonLeft() && checkState(FlagButtonPressed))
     {
 	setPressed(false);
 	return true;
@@ -798,7 +798,7 @@ void WindowButton::mouseFocusEvent(void)
 
 void WindowButton::mouseLeaveEvent(void)
 {
-    if(! state.check(FlagButtonDisabled) && state.check(FlagButtonPressed))
+    if(! checkState(FlagButtonDisabled) && checkState(FlagButtonPressed))
 	setPressed(false);
     else
 	renderWindow();
@@ -895,9 +895,9 @@ void TextureButton::setSprites(const Texture & tx1, const Texture & tx2)
 /* WindowCheckBox */
 bool WindowCheckBox::mousePressEvent(const ButtonEvent & st)
 {
-    if(! state.check(FlagButtonDisabled) && st.isButtonLeft())
+    if(! checkState(FlagButtonDisabled) && st.isButtonLeft())
     {
-	setPressed(! state.check(FlagButtonPressed));
+	setPressed(! checkState(FlagButtonPressed));
         return true;
     }
     return false;

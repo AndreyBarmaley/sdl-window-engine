@@ -76,7 +76,7 @@ public:
 	Red, Fuchsia, Magenta, DeepPink, OrangeRed, Tomato, HotPink, Coral, DarkOrange, LightSalmon,
 	Orange, LightPink, Pink, Gold, PeachPuff, NavajoWhite, Moccasin, Bisque, MistyRose, BlanchedAlmond,
 	PapayaWhip, LavenderBlush, Seashell, Cornsilk, LemonChiffon, FloralWhite, Snow, Yellow, LightYellow, Ivory,
-	White, Transparent
+	White, Transparent /* ColorIndex: 141 */
     };
 
     Color() {}

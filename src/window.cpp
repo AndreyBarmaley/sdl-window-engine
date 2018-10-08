@@ -38,34 +38,71 @@ namespace Display
     extern bool		displayDirty;
 }
 
-Window* WindowChilds::findWindow(const WindowId & id)
+namespace DisplayScene
 {
-    iterator it = std::find_if(begin(), end(), std::bind2nd(std::mem_fun(&Window::isID), id));
-    return it != end() ? *it : NULL;
+    std::list<Window*> windows;
+
+    std::list<Window*> findChilds(const Window & parent)
+    {
+	std::list<Window*> childs;
+        for(auto it = windows.begin(); it != windows.end(); ++it)
+            if(*it && (*it)->parent() == & parent) childs.push_back(*it);
+	return childs;
+    }
+
+    int countChilds(const Window & parent)
+    {
+        return std::count_if(windows.begin(), windows.end(),
+		    std::bind2nd(std::mem_fun(&Window::isChild), parent));
+    }
+
+    void addWindow(Window & parent)
+    {
+	windows.push_back(&parent);
+    }
+
+    void removeWindow(Window & parent)
+    {
+	windows.remove(&parent);
+    }
+
+    void setVisible(const Window & parent, bool f)
+    {
+        for(auto it = windows.begin(); it != windows.end(); ++it)
+            if(*it && (*it)->parent() == & parent) (*it)->setVisible(f);
+    }
 }
 
-const Window* WindowChilds::findWindowConst(const WindowId & id) const
+Window::Window(Window* win) : prnt(NULL), result(0)
 {
-    const_iterator it = std::find_if(begin(), end(), std::bind2nd(std::mem_fun(&Window::isID), id));
-    return it != end() ? *it : NULL;
-}
-
-Window::Window(Window* win) : prnt(NULL), childs(NULL), result(0)
-{
-    state.reset(FlagVisible);
-    state.set(FlagModality);
+    resetState(FlagVisible);
+    setState(FlagModality);
 
     setParent(win);
+    DisplayScene::addWindow(*this);
+
 }
 
-Window::Window(const Point & pos, const Size & sz, Window* win) : prnt(NULL), childs(NULL), result(0)
+Window::Window(const Point & pos, const Size & sz, Window* win) : prnt(NULL), result(0)
 {
-    state.reset(FlagVisible);
-    state.set(FlagModality);
+    resetState(FlagVisible);
+    setState(FlagModality);
 
     setSize(sz);
     setPosition(pos);
     setParent(win);
+    DisplayScene::addWindow(*this);
+}
+
+Window::Window(const Window & win) : prnt(NULL), result(0)
+{
+    gfxpos = win.gfxpos;
+    state = win.state;
+    result = win.result;
+
+    setSize(win.size());
+    setParent(win.prnt);
+    DisplayScene::addWindow(*this);
 }
 
 Window & Window::operator= (const Window & win)
@@ -80,12 +117,6 @@ Window & Window::operator= (const Window & win)
 
 	setSize(win.size());
 	setParent(win.prnt);
-
-	if(win.childs)
-	{
-	    childs = new WindowChilds();
-	    childs->assign(win.childs->begin(), win.childs->end());
-	}
     }
 
     return *this;
@@ -94,26 +125,19 @@ Window & Window::operator= (const Window & win)
 Window::~Window()
 {
     destroy();
+
+    if(Display::mainWindow == this)
+	Display::mainWindow = NULL;
 }
 
 void Window::destroy(void)
 {
     setVisible(false);
 
-    if(childs)
-    std::for_each(childs->begin(), childs->end(), std::mem_fun(&Window::destroy));
+    auto childs = DisplayScene::findChilds(*this);
+    std::for_each(childs.begin(), childs.end(), std::mem_fun(&Window::destroy));
 
-    if(parent() && parent()->childs)
-        parent()->childs->remove(this);
-    else
-    if(Display::mainWindow == this)
-	Display::mainWindow = NULL;
-
-    if(childs)
-    {
-	childs->clear();
-	delete childs;
-    }
+    DisplayScene::removeWindow(*this);
 
     prnt = NULL;
     result = 0;
@@ -121,9 +145,6 @@ void Window::destroy(void)
 
 void Window::setParent(Window* win)
 {
-    if(parent() && parent()->childs)
-        parent()->childs->remove(this);
-
     prnt = win;
 
     if(! win)
@@ -132,13 +153,6 @@ void Window::setParent(Window* win)
 	    Display::mainWindow = this;
 	else
 	    prnt = Display::mainWindow;
-    }
-
-    if(parent())
-    {
-	if(! parent()->childs)
-	    parent()->childs = new WindowChilds();
-	parent()->childs->push_back(this);
     }
 }
 
@@ -161,28 +175,33 @@ void Window::setPosition(const Point & pos)
     // absolute position
         gfxpos.setPoint(pos);
 
-    if(childs)
-    for(WindowChilds::iterator it = childs->begin(); it != childs->end(); ++it)
+    auto childs = DisplayScene::findChilds(*this);
+    for(auto it = childs.begin(); it != childs.end(); ++it)
 	(*it)->setPosition((*it)->position() - diff);
 
     if(isVisible())
     {
 	bool focus = area() & Display::mouseCursorPosition();
 
-	if(focus && !state.check(FlagOnMouse))
+	if(focus && ! checkState(FlagOnMouse))
 	{
-	    state.set(FlagOnMouse);
+	    setState(FlagOnMouse);
 	    mouseFocusEvent();
 	}
 
-	if(!focus && state.check(FlagOnMouse))
+	if(!focus && checkState(FlagOnMouse))
 	{
-	    state.reset(FlagOnMouse);
+	    resetState(FlagOnMouse);
 	    mouseLeaveEvent();
 	}
     }
 
     windowMoveEvent(pos);
+}
+
+bool Window::isChild(const Window & win) const
+{
+    return parent() == & win;
 }
 
 bool Window::isID(const WindowId & wid) const
@@ -192,34 +211,35 @@ bool Window::isID(const WindowId & wid) const
 
 bool Window::isVisible(void) const
 {
-    return state.check(FlagVisible);
+    return checkState(FlagVisible);
 }
 
 void Window::setVisible(bool f)
 {
-    if((state.check(FlagVisible) && !f) ||
-	(!state.check(FlagVisible) && f))
+    if((checkState(FlagVisible) && !f) ||
+	(! checkState(FlagVisible) && f))
     {
-	state.set(FlagVisible, f);
+	setState(FlagVisible, f);
 
 	// set for all childrens
-	if(childs)
-	std::for_each(childs->begin(), childs->end(), std::bind2nd(std::mem_fun(&Window::setVisible), f));
+	auto childs = DisplayScene::findChilds(*this);
+	std::for_each(childs.begin(), childs.end(), std::bind2nd(std::mem_fun(&Window::setVisible), f));
 
 	if(f)
 	{
 	    bool focus = area() & Display::mouseCursorPosition();
 
-	    if(focus && !state.check(FlagOnMouse))
+	    if(focus && ! checkState(FlagOnMouse))
 	    {
-		state.set(FlagOnMouse);
+		setState(FlagOnMouse);
 		mouseFocusEvent();
 	    }
 	}
 	else
-	    state.reset(FlagOnMouse);
+	    resetState(FlagOnMouse);
 
 	Display::displayDirty = true;
+	windowVisibleEvent(f);
     }
 }
 
@@ -230,18 +250,17 @@ void Window::redraw(void)
 	//bool redraw = force;
 	renderWindow();
 
-	if(childs)
-	{
-	    // redraw childs: order background
-	    for(WindowChilds::iterator it = childs->begin(); it != childs->end(); ++it)
-		if((*it)->checkState(FlagOrderBackground)) (*it)->redraw();
-	    // redraw childs: order normal
-	    for(WindowChilds::iterator it = childs->begin(); it != childs->end(); ++it)
-		if(! (*it)->checkState(FlagOrderBackground | FlagOrderForeground)) (*it)->redraw();
-	    // redraw childs: order foreground
-	    for(WindowChilds::iterator it = childs->begin(); it != childs->end(); ++it)
-		if((*it)->checkState(FlagOrderForeground)) (*it)->redraw();
-	}
+	auto childs = DisplayScene::findChilds(*this);
+
+	// redraw childs: order background
+	for(auto it = childs.begin(); it != childs.end(); ++it)
+	    if((*it)->checkState(FlagOrderBackground)) (*it)->redraw();
+	// redraw childs: order normal
+	for(auto it = childs.begin(); it != childs.end(); ++it)
+	    if(! (*it)->checkState(FlagOrderBackground | FlagOrderForeground)) (*it)->redraw();
+	// redraw childs: order foreground
+	for(auto it = childs.begin(); it != childs.end(); ++it)
+	    if((*it)->checkState(FlagOrderForeground)) (*it)->redraw();
     }
 }
 
@@ -314,50 +333,56 @@ void Window::setResultCode(int code)
     result = code;
 }
 
-bool Window::checkState(int v) const
+bool Window::checkState(size_t v) const
 {
     return state.check(v);
 }
 
-void Window::setState(int v)
+void Window::setState(size_t v, bool f)
 {
-    state.set(v);
+    state.set(v, f);
 }
 
-void Window::resetState(int v)
+void Window::resetState(size_t v)
 {
     state.reset(v);
 }
 
+void Window::switchedState(size_t v)
+{
+    state.switched(v);
+}
+
 bool Window::findChild(const Window* win) const
 {
-    if(childs)
-    {
-	if(childs->end() != std::find(childs->begin(), childs->end(), win))
-	    return true;
+    auto childs = DisplayScene::findChilds(*this);
 
-	if(childs->end() != std::find_if(childs->begin(), childs->end(), std::bind2nd(std::mem_fun(&Window::findChild), win)))
-    	    return true;
-    }
+    if(childs.end() != std::find(childs.begin(), childs.end(), win))
+	return true;
+
+    if(childs.end() != std::find_if(childs.begin(), childs.end(), std::bind2nd(std::mem_fun(&Window::findChild), win)))
+    	return true;
 
     return false;
 }
 
 bool Window::keyPressHandle(int key)
 {
-    if(childs && childs->rend() != std::find_if(childs->rbegin(), childs->rend(), std::bind2nd(std::mem_fun(&Window::keyPressHandle), key)))
+    auto childs = DisplayScene::findChilds(*this);
+
+    if(childs.rend() != std::find_if(childs.rbegin(), childs.rend(), std::bind2nd(std::mem_fun(&Window::keyPressHandle), key)))
 	return true;
 
     if(isVisible())
     {
-	if(state.check(FlagModality))
+	if(checkState(FlagModality))
 	{
 	    keyPressEvent(key);
 	    return true;
 	}
 	else
 	// focus
-	if(area() & Display::mouseCursorPosition() || state.check(FlagKeyHandle))
+	if((area() & Display::mouseCursorPosition()) || checkState(FlagKeyHandle))
 	    return keyPressEvent(key);
     }
 
@@ -366,19 +391,21 @@ bool Window::keyPressHandle(int key)
 
 bool Window::keyReleaseHandle(int key)
 {
-    if(childs && childs->rend() != std::find_if(childs->rbegin(), childs->rend(), std::bind2nd(std::mem_fun(&Window::keyReleaseHandle), key)))
+    auto childs = DisplayScene::findChilds(*this);
+
+    if(childs.rend() != std::find_if(childs.rbegin(), childs.rend(), std::bind2nd(std::mem_fun(&Window::keyReleaseHandle), key)))
 	return true;
 
     if(isVisible())
     {
-	if(state.check(FlagModality))
+	if(checkState(FlagModality))
 	{
 	    keyReleaseEvent(key);
 	    return true;
 	}
 	else
 	// focus
-	if(area() & Display::mouseCursorPosition() || state.check(FlagKeyHandle))
+	if((area() & Display::mouseCursorPosition()) || checkState(FlagKeyHandle))
 	    return keyReleaseEvent(key);
     }
 
@@ -387,36 +414,40 @@ bool Window::keyReleaseHandle(int key)
 
 bool Window::textInputHandle(const std::string & str)
 {
-    if(childs && childs->rend() != std::find_if(childs->rbegin(), childs->rend(), std::bind2nd(std::mem_fun(&Window::textInputEvent), str)))
+    auto childs = DisplayScene::findChilds(*this);
+
+    if(childs.rend() != std::find_if(childs.rbegin(), childs.rend(), std::bind2nd(std::mem_fun(&Window::textInputEvent), str)))
 	return true;
 
-    return isVisible() && (textInputEvent(str) || state.check(FlagModality));
+    return isVisible() && (textInputEvent(str) || checkState(FlagModality));
 }
 
 bool Window::mousePressHandle(const ButtonEvent & coord)
 {
-    if(childs && childs->rend() != std::find_if(childs->rbegin(), childs->rend(), std::bind2nd(std::mem_fun(&Window::mousePressHandle), coord)))
+    auto childs = DisplayScene::findChilds(*this);
+
+    if(childs.rend() != std::find_if(childs.rbegin(), childs.rend(), std::bind2nd(std::mem_fun(&Window::mousePressHandle), coord)))
 	return true;
 
     if(isVisible())
     {
 	bool focus = area() & coord.position();
 
-	if(focus && !state.check(FlagOnMouse))
+	if(focus && !checkState(FlagOnMouse))
 	{
-	    state.set(FlagOnMouse);
+	    setState(FlagOnMouse);
 	    mouseFocusEvent();
 	}
 
-	if(!focus && state.check(FlagOnMouse))
+	if(!focus && checkState(FlagOnMouse))
 	{
-	    state.reset(FlagOnMouse);
+	    resetState(FlagOnMouse);
 	    mouseLeaveEvent();
 	}
 
-	return (state.check(FlagOnMouse) &&
+	return (checkState(FlagOnMouse) &&
 		mousePressEvent(ButtonEvent(coord.button(), coord.position() - position()))) ||
-		state.check(FlagModality);
+		checkState(FlagModality);
     }
 
     return false;
@@ -424,28 +455,30 @@ bool Window::mousePressHandle(const ButtonEvent & coord)
 
 bool Window::mouseReleaseHandle(const ButtonEvent & coord)
 {
-    if(childs && childs->rend() != std::find_if(childs->rbegin(), childs->rend(), std::bind2nd(std::mem_fun(&Window::mouseReleaseHandle), coord)))
+    auto childs = DisplayScene::findChilds(*this);
+
+    if(childs.rend() != std::find_if(childs.rbegin(), childs.rend(), std::bind2nd(std::mem_fun(&Window::mouseReleaseHandle), coord)))
 	return true;
 
     if(isVisible())
     {
 	bool focus = area() & coord.position();
 
-	if(focus && !state.check(FlagOnMouse))
+	if(focus && !checkState(FlagOnMouse))
 	{
-	    state.set(FlagOnMouse);
+	    setState(FlagOnMouse);
 	    mouseFocusEvent();
 	}
 
-	if(!focus && state.check(FlagOnMouse))
+	if(!focus && checkState(FlagOnMouse))
 	{
-	    state.reset(FlagOnMouse);
+	    resetState(FlagOnMouse);
 	    mouseLeaveEvent();
 	}
 
-	return (state.check(FlagOnMouse) &&
+	return (checkState(FlagOnMouse) &&
 		mouseReleaseEvent(ButtonEvent(coord.button(), coord.position() - position()))) ||
-		state.check(FlagModality);
+		checkState(FlagModality);
     }
 
     return false;
@@ -453,29 +486,31 @@ bool Window::mouseReleaseHandle(const ButtonEvent & coord)
 
 bool Window::mouseClickHandle(const ButtonsEvent & st)
 {
-    if(childs && childs->rend() != std::find_if(childs->rbegin(), childs->rend(), std::bind2nd(std::mem_fun(&Window::mouseClickHandle), st)))
+    auto childs = DisplayScene::findChilds(*this);
+
+    if(childs.rend() != std::find_if(childs.rbegin(), childs.rend(), std::bind2nd(std::mem_fun(&Window::mouseClickHandle), st)))
 	return true;
 
     if(isVisible())
     {
 	bool focus = (area() & st.press().position()) && (area() & st.release().position());
 
-	if(focus && !state.check(FlagOnMouse))
+	if(focus && !checkState(FlagOnMouse))
 	{
-	    state.set(FlagOnMouse);
+	    setState(FlagOnMouse);
 	    mouseFocusEvent();
 	}
 
-	if(!focus && state.check(FlagOnMouse))
+	if(!focus && checkState(FlagOnMouse))
 	{
-	    state.reset(FlagOnMouse);
+	    resetState(FlagOnMouse);
 	    mouseLeaveEvent();
 	}
 
-	return (state.check(FlagOnMouse) &&
+	return (checkState(FlagOnMouse) &&
 		mouseClickEvent(ButtonsEvent(st.press().button(), st.press().position() - position(),
 						st.release().position() - position()))) ||
-		state.check(FlagModality);
+		checkState(FlagModality);
     }
 
     return false;
@@ -483,29 +518,30 @@ bool Window::mouseClickHandle(const ButtonsEvent & st)
 
 bool Window::mouseMotionHandle(const Point & pos, u32 buttons)
 {
-    if(childs)
-    for(auto it = childs->rbegin(); it != childs->rend(); ++it)
+    auto childs = DisplayScene::findChilds(*this);
+
+    for(auto it = childs.rbegin(); it != childs.rend(); ++it)
 	if((*it)->mouseMotionHandle(pos, buttons)) return true;
 
     if(isVisible())
     {
 	bool focus = area() & pos;
 
-	if(focus && !state.check(FlagOnMouse))
+	if(focus && !checkState(FlagOnMouse))
 	{
-	    state.set(FlagOnMouse);
+	    setState(FlagOnMouse);
 	    mouseFocusEvent();
 	}
 
-	if(!focus && state.check(FlagOnMouse))
+	if(!focus && checkState(FlagOnMouse))
 	{
-	    state.reset(FlagOnMouse);
+	    resetState(FlagOnMouse);
 	    mouseLeaveEvent();
 	}
 
-	return (state.check(FlagOnMouse) &&
+	return (checkState(FlagOnMouse) &&
 		mouseMotionEvent(pos - position(), buttons)) ||
-		state.check(FlagModality);
+		checkState(FlagModality);
     }
 
     return false;
@@ -513,7 +549,9 @@ bool Window::mouseMotionHandle(const Point & pos, u32 buttons)
 
 bool Window::scrollUpHandle(const Point & pos)
 {
-    if(childs && childs->rend() != std::find_if(childs->rbegin(), childs->rend(), std::bind2nd(std::mem_fun(&Window::scrollUpHandle), pos)))
+    auto childs = DisplayScene::findChilds(*this);
+
+    if(childs.rend() != std::find_if(childs.rbegin(), childs.rend(), std::bind2nd(std::mem_fun(&Window::scrollUpHandle), pos)))
 	return true;
 
     if(isVisible())
@@ -521,7 +559,7 @@ bool Window::scrollUpHandle(const Point & pos)
 	bool focus = area() & pos;
 
 	return (focus && scrollUpEvent(pos)) ||
-		state.check(FlagModality);
+		checkState(FlagModality);
     }
 
     return false;
@@ -529,7 +567,9 @@ bool Window::scrollUpHandle(const Point & pos)
 
 bool Window::scrollDownHandle(const Point & pos)
 {
-    if(childs && childs->rend() != std::find_if(childs->rbegin(), childs->rend(), std::bind2nd(std::mem_fun(&Window::scrollDownHandle), pos)))
+    auto childs = DisplayScene::findChilds(*this);
+
+    if(childs.rend() != std::find_if(childs.rbegin(), childs.rend(), std::bind2nd(std::mem_fun(&Window::scrollDownHandle), pos)))
 	return true;
 
     if(isVisible())
@@ -537,7 +577,7 @@ bool Window::scrollDownHandle(const Point & pos)
 	bool focus = area() & pos;
 
 	return (focus && scrollDownEvent(pos)) ||
-		state.check(FlagModality);
+		checkState(FlagModality);
     }
 
     return false;
@@ -545,7 +585,9 @@ bool Window::scrollDownHandle(const Point & pos)
 
 bool Window::scrollLeftHandle(const Point & pos)
 {
-    if(childs && childs->rend() != std::find_if(childs->rbegin(), childs->rend(), std::bind2nd(std::mem_fun(&Window::scrollLeftHandle), pos)))
+    auto childs = DisplayScene::findChilds(*this);
+
+    if(childs.rend() != std::find_if(childs.rbegin(), childs.rend(), std::bind2nd(std::mem_fun(&Window::scrollLeftHandle), pos)))
 	return true;
 
     if(isVisible())
@@ -553,7 +595,7 @@ bool Window::scrollLeftHandle(const Point & pos)
 	bool focus = area() & pos;
 
 	return (focus && scrollLeftEvent(pos)) ||
-		state.check(FlagModality);
+		checkState(FlagModality);
     }
 
     return false;
@@ -561,7 +603,9 @@ bool Window::scrollLeftHandle(const Point & pos)
 
 bool Window::scrollRightHandle(const Point & pos)
 {
-    if(childs && childs->rend() != std::find_if(childs->rbegin(), childs->rend(), std::bind2nd(std::mem_fun(&Window::scrollRightHandle), pos)))
+    auto childs = DisplayScene::findChilds(*this);
+
+    if(childs.rend() != std::find_if(childs.rbegin(), childs.rend(), std::bind2nd(std::mem_fun(&Window::scrollRightHandle), pos)))
 	return true;
 
     if(isVisible())
@@ -569,7 +613,7 @@ bool Window::scrollRightHandle(const Point & pos)
 	bool focus = area() & pos;
 
 	return (focus && scrollRightEvent(pos)) ||
-		state.check(FlagModality);
+		checkState(FlagModality);
     }
 
     return false;
@@ -586,7 +630,7 @@ bool Window::userHandle(const SDL_UserEvent & ev)
 	// receiver exists
 	if(ev.data1)
 	{
-	    Window* win = reinterpret_cast<Window*>(ev.data1);
+	    Window* win = static_cast<Window*>(ev.data1);
 
 	    if(win && Display::mainWindow &&
     		(Display::mainWindow == win || Display::mainWindow->findChild(win)))
@@ -597,8 +641,8 @@ bool Window::userHandle(const SDL_UserEvent & ev)
 	else
 	// broadcast: for all
 	{
-	    if(childs)
-		std::for_each(childs->begin(), childs->end(), std::bind2nd(std::mem_fun(&Window::userHandle), ev));
+	    auto childs = DisplayScene::findChilds(*this);
+	    std::for_each(childs.begin(), childs.end(), std::bind2nd(std::mem_fun(&Window::userHandle), ev));
 
 	    userEvent(ev.code, ev.data2);
 	    return true;
@@ -610,16 +654,16 @@ bool Window::userHandle(const SDL_UserEvent & ev)
 
 void Window::renderPresentHandle(u32 tick)
 {
-    if(childs)
-    std::for_each(childs->rbegin(), childs->rend(), std::bind2nd(std::mem_fun(&Window::renderPresentHandle), tick));
-
+    auto childs = DisplayScene::findChilds(*this);
+    std::for_each(childs.rbegin(), childs.rend(), std::bind2nd(std::mem_fun(&Window::renderPresentHandle), tick));
     renderPresentEvent(tick);
 }
 
 void Window::displayResizeHandle(const Size & sz, bool sdl)
 {
-    if(childs)
-    for(auto it = childs->rbegin(); it != childs->rend(); ++it)
+    auto childs = DisplayScene::findChilds(*this);
+
+    for(auto it = childs.rbegin(); it != childs.rend(); ++it)
 	(*it)->displayResizeHandle(sz, sdl);
 
     displayResizeEvent(sz, sdl);
@@ -627,23 +671,15 @@ void Window::displayResizeHandle(const Size & sz, bool sdl)
 
 void Window::displayFocusHandle(bool gain)
 {
-    if(childs)
-    std::for_each(childs->rbegin(), childs->rend(), std::bind2nd(std::mem_fun(&Window::displayFocusHandle), gain));
-
+    auto childs = DisplayScene::findChilds(*this);
+    std::for_each(childs.rbegin(), childs.rend(), std::bind2nd(std::mem_fun(&Window::displayFocusHandle), gain));
     displayFocusEvent(gain);
-}
-
-void Window::displayResizeEvent(const Size & sz, bool sdl)
-{
-    setSize(size());
-    renderWindow();
 }
 
 void Window::tickHandle(u32 tick)
 {
-    if(childs)
-    std::for_each(childs->rbegin(), childs->rend(), std::bind2nd(std::mem_fun(&Window::tickHandle), tick));
-
+    auto childs = DisplayScene::findChilds(*this);
+    std::for_each(childs.rbegin(), childs.rend(), std::bind2nd(std::mem_fun(&Window::tickHandle), tick));
     tickEvent(tick);
 }
 
@@ -776,11 +812,7 @@ Rect Window::renderText(const FontRender & fs, const UnicodeString & ustr, const
 
 std::string Window::toString(void) const
 {
-    std::ostringstream os;
-    os <<
-	"id" << "(" << String::hex(id()) << "), " <<
-	"childs" << "(" << (childs ? childs->size() : 0) << "), ";
-    return os.str();
+    return StringFormat("id(%1), childs(%2), parent(%3)").arg(String::hex(id())).arg(DisplayScene::countChilds(*this)).arg(parent() ? String::hex(parent()->id()) : "null");
 }
 
 CenteredWindow::CenteredWindow(const Size & sz, Window & win)
@@ -791,6 +823,7 @@ CenteredWindow::CenteredWindow(const Size & sz, Window & win)
 DisplayWindow::DisplayWindow(const Color & col) : Window(Point(0, 0), Display::size(), NULL), backcolor(col)
 {
     setState(FlagOrderBackground);
+    renderWindow();
     setVisible(true);
 }
 

@@ -180,12 +180,12 @@ bool Engine::init(void)
     }
     else
     {
+	if(0 > Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 1024))
+    	    ERROR("MIX_OpenAudio" << ": " << Mix_GetError());
+
 	const SDL_version* sdlver = Mix_Linked_Version();
 	if(sdlver)
 	    VERBOSE("usage " << "SDL_mixer version: " << static_cast<int>(sdlver->major) << "." << static_cast<int>(sdlver->minor) << "." << static_cast<int>(sdlver->patch));
-
-	if(0 > Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 1024))
-    	    ERROR("MIX_Init" << ": " << Mix_GetError());
     }
 #endif
 
@@ -386,6 +386,11 @@ bool Display::renderInit(const Size & win, bool accel)
     displayDirty = false;
 
     return true;
+}
+
+namespace DisplayScene
+{
+    extern std::list<Window*> windows;
 }
 
 void Display::closeWindow(void)

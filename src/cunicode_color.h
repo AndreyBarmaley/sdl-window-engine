@@ -54,6 +54,7 @@ public:
     Color 		bgcolor(void) const { return bgindex().toColor(); }
 
     void		unicode(int sym) { second = sym; }
+    void		colors(const FBColors & fbc) { first = fbc; }
     void		fgindex(const ColorIndex & col) { first.setfg(col); }
     void		bgindex(const ColorIndex & col) { first.setbg(col); }
 };
@@ -82,11 +83,14 @@ public:
     UCString &		append(const UCString &);
     UCStringList	split(int sep) const;
     UCStringList	splitWidth(const FontRender &, int width) const;
-    UCString		substr(size_t pos, int len) const;
+    UCStringList	wrap(int) const;
+
+    int                 index(int) const;
+    UCString		substr(size_t pos, int len = -1) const;
     UnicodeString	toUnicodeString(void) const;
     std::string 	toString(void) const;
 
-    static UCString	parseUnicode(const UnicodeString &, const FBColors & def = FBColors());
+    static UCString	parseUnicode(const UnicodeString &, FBColors def = FBColors());
 
     UnicodeColor	at(size_t) const;
     size_t		length(void) const;

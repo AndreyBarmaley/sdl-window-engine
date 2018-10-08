@@ -43,6 +43,7 @@ namespace Display
     void		handleFocusEvent(bool);
     void		handleEvents(void);
     bool		resizeWindow(const Size &, bool);
+    void		closeWindow(void);
     void		redraw(void);
 #ifdef OLDENGINE
     void                handleMouseWheel(int, int);
@@ -58,16 +59,11 @@ class Window;
 class WindowAction;
 typedef std::uintptr_t	WindowId;
 
-struct WindowChilds : std::list<Window*>
-{
-    Window*		findWindow(const WindowId &);
-    const Window*	findWindowConst(const WindowId &) const;
-};
-
 enum { FlagVisible = 0x80000000, FlagKeyHandle = 0x40000000, FlagModality = 0x20000000, FlagOnMouse = 0x10000000,
 	FlagButtonPressed = 0x08000000, FlagButtonCentered = 0x04000000, FlagButtonDisabled = 0x02000000, FlagButtonFocused = 0x01000000,
 	FlagSelected = 0x00800000, FlagOrderBackground = 0x00400000, FlagOrderForeground = 0x00200000, FlagVertical = 0x00100000,
-	FlagWrap = 0x00080000, FlagTermCursor = 0x00040000, FlagDebug = 0x00010000 };
+	FlagWrap = 0x00080000, FlagUnused04 = 0x00040000, FlagUnused02 = 0x00020000, FlagDebug = 0x00010000,
+	FlagFreeMask = 0x0000FFFF };
 
 class Window : public SignalMember
 {
@@ -80,6 +76,7 @@ class Window : public SignalMember
     friend void		Display::redraw(void);
     friend void		Display::handleEvents(void);
     friend bool		Display::resizeWindow(const Size &, bool);
+    friend void		Display::closeWindow(void);
 #ifdef OLDENGINE
     friend void         Display::handleMouseWheel(int, int);
 #else
@@ -113,14 +110,17 @@ class Window : public SignalMember
 protected:
     Rect            	gfxpos;
     Window*         	prnt;
-    WindowChilds*	childs;
     BitFlags		state;
     int             	result;
 
+    Window &		operator= (const Window &);
+
+    void		destroy(void);
     void		redraw(void);
 
     virtual void	windowMoveEvent(const Point &) {}
     virtual void	windowResizeEvent(const Size &) {}
+    virtual void	windowVisibleEvent(bool) {}
     virtual bool	keyPressEvent(int) { return false; }
     virtual bool	keyReleaseEvent(int) { return false; }
     virtual bool	textInputEvent(const std::string &) { return false; }
@@ -137,7 +137,7 @@ protected:
     virtual bool	scrollRightEvent(const Point &) { return false; }
     virtual void	tickEvent(u32 ms) {}
     virtual void	renderPresentEvent(u32 ms) {}
-    virtual void	displayResizeEvent(const Size &, bool);
+    virtual void	displayResizeEvent(const Size &, bool) {}
     virtual void	displayFocusEvent(bool gain) {}
 
     bool		findChild(const Window*) const;
@@ -145,13 +145,12 @@ protected:
 public:
     Window(Window*);
     Window(const Point &, const Size &, Window*);
-    //Window(const Window &);
+    Window(const Window &);
     virtual ~Window();
-
-    Window &		operator= (const Window &);
 
     bool		isID(const WindowId &) const;
     bool		isVisible(void) const;
+    bool		isChild(const Window &) const;
     WindowId		id(void) const;
     const Point	&	position(void) const;
     const Size &	size(void) const;
@@ -169,12 +168,12 @@ public:
     void		setSize(const Size &);
     void		setPosition(const Point &);
 
-    bool		checkState(int) const;
-    void		setState(int);
-    void		resetState(int);
+    bool		checkState(size_t) const;
+    void		setState(size_t, bool f = true);
+    void		resetState(size_t);
+    void		switchedState(size_t);
 
     int			exec(void);
-    void		destroy(void);
     void		pushEventAction(int, Window*, void*);
     static void		pushEventActionBroadcast(int, void*);
 

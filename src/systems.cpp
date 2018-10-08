@@ -200,9 +200,9 @@ std::string Systems::dirname(const std::string & str)
         size_t pos = str.rfind(SEPARATOR);
 
         if(std::string::npos == pos)
-            return std::string(".");
-        else if(pos == 0)
             return std::string("./");
+        else if(pos == 0)
+            return std::string("/");
         else if(pos == str.size() - 1)
             return dirname(str.substr(0, str.size() - 1));
         else
@@ -218,8 +218,8 @@ std::string Systems::basename(const std::string & str)
     {
         size_t pos = str.rfind(SEPARATOR);
 
-        if(std::string::npos == pos ||
-           pos == 0) return str;
+        if(std::string::npos == pos)
+	    return str;
         else if(pos == str.size() - 1)
             return basename(str.substr(0, str.size() - 1));
         else
@@ -449,7 +449,7 @@ bool findFilterContent(const std::string & content, const std::string & filter, 
     return true;
 }
 
-StringList Systems::readDir(const std::string & path, const std::string & filter, bool sensitive)
+StringList Systems::findFiles(const std::string & path, const std::string & filter, bool sensitive)
 {
     StringList res;
 
@@ -463,13 +463,13 @@ StringList Systems::readDir(const std::string & path, const std::string & filter
     struct dirent* ep;
     while(NULL != (ep = readdir(dp)))
     {
-        const std::string fullname = Systems::concatePath(path, ep->d_name);
+        const std::string fullname = concatePath(path, ep->d_name);
 
         if(Systems::isDirectory(fullname))
 	{
 	    // skip /. and /..
 	    if(ep->d_name[0] != '.' || (ep->d_name[1] && ep->d_name[1] != '.'))
-		res << Systems::readDir(fullname, filter, sensitive);
+		res << findFiles(fullname, filter, sensitive);
         }
 	else
 	if(Systems::isFile(fullname))
@@ -479,6 +479,26 @@ StringList Systems::readDir(const std::string & path, const std::string & filter
         	res.push_back(fullname);
 	}
     }
+
+    closedir(dp);
+    return res;
+}
+
+StringList Systems::readDir(const std::string & path, bool fullpath)
+{
+    StringList res;
+
+    DIR* dp = opendir(path.c_str());
+    if(! dp)
+    {
+	ERROR("can't read directory: " << path);
+	return res;
+    }
+
+    struct dirent* ep;
+    while(NULL != (ep = readdir(dp)))
+	if(0 != strcmp(ep->d_name, "."))
+	    res.push_back(fullpath ? concatePath(path, ep->d_name) : ep->d_name);
 
     closedir(dp);
     return res;

@@ -33,6 +33,7 @@
 #include "sharedlist.h"
 #include "sharedmap.h"
 #include "colors.h"
+#include "cunicode_color.h"
 #include "cstring.h"
 #include "rect.h"
 #include "jsmn.h"
@@ -223,6 +224,7 @@ public:
     Size		getSize(Size def = Size()) const;
     Rect		getRect(Rect def = Rect()) const;
     Color		getColor(Color def = Color()) const;
+    FBColors		getFBColors(FBColors def = FBColors()) const;
 
     void		addInteger(const int &);
     void		addString(const std::string &);
@@ -251,9 +253,34 @@ public:
     }
 
     template<typename T>
+    std::vector<T>     toStdVector(void) const
+    {
+        std::vector<T> res;
+        res.reserve(content.size());
+        for(auto it = content.begin(); it != content.end(); ++it)
+        {
+	    const JsonValue* jv = *it;
+	    if(jv) { res.push_back(T()); *jv >> res.back(); }
+        }
+        return res;
+    }
+
+    template<typename T>
     SharedList<T>	toList(void) const
     {
         SharedList<T> res;
+        for(auto it = content.begin(); it != content.end(); ++it)
+        {
+	    const JsonValue* jv = *it;
+	    if(jv) { res.push_back(T()); *jv >> res.back(); }
+        }
+        return res;
+    }
+
+    template<typename T>
+    std::list<T>	toStdList(void) const
+    {
+        std::list<T> res;
         for(auto it = content.begin(); it != content.end(); ++it)
         {
 	    const JsonValue* jv = *it;
@@ -326,6 +353,8 @@ public:
     ZPoint		getZPoint(ZPoint def = ZPoint()) const;
     Size		getSize(Size def = Size()) const;
     Rect		getRect(Rect def = Rect()) const;
+    FBColors		getFBColors(FBColors def = FBColors()) const;
+    UnicodeColor	getUnicodeColor(UnicodeColor def = UnicodeColor()) const;
 
     Point		getPoint(const std::string &, Point def = Point()) const;
     ZPoint		getZPoint(const std::string &, ZPoint def = ZPoint()) const;
@@ -349,7 +378,9 @@ public:
     Points		getPoints(const std::string &) const;
     Rects		getRects(const std::string &) const;
     StringList		getStringList(const std::string &) const;
+
     FBColors		getFBColors(const std::string &) const;
+    UnicodeColor	getUnicodeColor(const std::string &) const;
 
     template<typename T>
     SharedVector<T>     getArray(const std::string & key) const
@@ -363,6 +394,20 @@ public:
     {
 	const JsonArray* jarr = getArray(key);
         return jarr ? jarr->toList<T>() : SharedList<T>();
+    }
+
+    template<typename T>
+    std::vector<T>     getStdVector(const std::string & key) const
+    {
+	const JsonArray* jarr = getArray(key);
+        return jarr ? jarr->toStdVector<T>() : std::vector<T>();
+    }
+
+    template<typename T>
+    std::list<T>      getStdList(const std::string & key) const
+    {
+	const JsonArray* jarr = getArray(key);
+        return jarr ? jarr->toStdList<T>() : std::list<T>();
     }
 };
 

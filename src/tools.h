@@ -91,9 +91,8 @@ namespace Tools
     {
 	size_t getMaxWeight(void) const
 	{
-	    typename std::vector< std::pair<T, size_t> >::iterator it;
 	    size_t max = 0;
-	    for(it = this->begin(); it != this->end(); ++it)
+	    for(auto it = this->begin(); it != this->end(); ++it)
 		max += (*it).second;
 	    return max;
 	}
@@ -115,29 +114,28 @@ namespace Tools
 	{
 	    if(this->size())
 	    {
-		std::vector<float> percents;
+		std::vector<size_t> percents;
 		percents.reserve(this->size());
 
-	        float max = getMaxWeight();
+		// get max
+	        size_t max = getMaxWeight();
 
 		// set weights
-		typename std::vector< std::pair<T, float> >::iterator it;
-		for(it = this->begin(); it != this->end(); ++it)
+		for(auto it = this->begin(); it != this->end(); ++it)
 		    percents.push_back(100 * (*it).second / max);
+
 		// calc max
 		max = 0;
-		for(std::vector<float>::iterator
-		    itf = percents.begin(); itf != percents.end(); ++itf)
+		for(auto itf = percents.begin(); itf != percents.end(); ++itf)
 		    max += *itf;
 
-		float rnd = randf(0, max);
-		float amount = 0;
+		size_t rnd = rand(0, max);
+		size_t amount = 0;
 
 		// get rnd
-		for(std::vector<float>::iterator
-		    itf = percents.begin(); itf != percents.end(); ++itf)
+		for(auto itf = percents.begin(); itf != percents.end(); ++itf)
 		{
-    		    amount += *it;
+    		    amount += *itf;
     		    if(rnd <= amount)
 			return this->at(std::distance(percents.begin(), itf)).first;
 		}

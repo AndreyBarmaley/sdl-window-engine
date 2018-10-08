@@ -703,6 +703,48 @@ Rect JsonObject::getRect(Rect def) const
     return def;
 }
 
+FBColors JsonObject::getFBColors(FBColors def) const
+{
+    const JsonValue* val = NULL;
+
+    val = getValue("fg");
+    if(! val) val = getValue("foreground");
+    if(val) def.setfg(val->getColor(def.fgcolor()).toColorIndex());
+
+    val = getValue("bg");
+    if(! val) val = getValue("background");
+    if(val) def.setbg(val->getColor(def.bgcolor()).toColorIndex());
+
+    return def;
+}
+
+UnicodeColor JsonObject::getUnicodeColor(UnicodeColor def) const
+{
+    const JsonValue* val = NULL;
+
+    val = getValue("symbol");
+    if(! val) val = getValue("sym");
+    if(val) def.unicode(val->getInteger());
+
+    val = getValue("colors");
+    if(val)
+    {
+	if(val->isArray())
+	{
+	    const JsonArray* ja = static_cast<const JsonArray*>(val);
+	    def.colors(ja->getFBColors(def.colors()));
+	}
+	else
+	if(val->isObject())
+	{
+	    const JsonObject* jo = static_cast<const JsonObject*>(val);
+	    def.colors(jo->getFBColors(def.colors()));
+	}
+    }
+
+    return def;
+}
+
 Points JsonObject::getPoints(const std::string & key) const
 {
     return getArray<Point>(key);
@@ -723,17 +765,52 @@ FBColors JsonObject::getFBColors(const std::string & key) const
     FBColors res;
     const JsonValue* val = NULL;
 
-    val = getValue("fg");
-    if(! val) val = getValue("foreground");
-    if(val) res.setfg(val->getColor(res.fgcolor()).toColorIndex());
-
-    val = getValue("bg");
-    if(! val) val = getValue("background");
-    if(val) res.setbg(val->getColor(res.bgcolor()).toColorIndex());
+    val = getValue(key);
+    if(val)
+    {
+	if(val->isArray())
+	{
+	    const JsonArray* ja = static_cast<const JsonArray*>(val);
+	    res = ja->getFBColors();
+	}
+	else
+	if(val->isObject())
+	{
+	    const JsonObject* jo = static_cast<const JsonObject*>(val);
+	    res = jo->getFBColors();
+	}
+    }
 
     return res;
 }
 
+UnicodeColor JsonObject::getUnicodeColor(const std::string & key) const
+{
+    UnicodeColor res;
+    const JsonValue* val = NULL;
+
+    val = getValue("symbol");
+    if(! val) val = getValue("sym");
+    if(val) res.unicode(val->getInteger());
+
+    val = getValue("colors");
+    if(val)
+    {
+	if(val->isArray())
+	{
+	    const JsonArray* ja = static_cast<const JsonArray*>(val);
+	    res.colors(ja->getFBColors());
+	}
+	else
+	if(val->isObject())
+	{
+	    const JsonObject* jo = static_cast<const JsonObject*>(val);
+	    res.colors(jo->getFBColors());
+	}
+    }
+
+    return res;
+}
 
 void JsonObject::addInteger(const std::string & key, const int & val)
 {
@@ -868,7 +945,7 @@ Points JsonArray::toPoints(void) const
     Points res;
     res.resize(count());
 
-    for(size_t it = 0; it < count(); ++it)
+    for(int it = 0; it < count(); ++it)
     {
 	const JsonValue* jv = getValue(it);
 	if(jv)  *jv >> res[it];
@@ -882,7 +959,7 @@ Rects JsonArray::toRects(void) const
     Rects res;
     res.resize(count());
 
-    for(size_t it = 0; it < count(); ++it)
+    for(int it = 0; it < count(); ++it)
     {
 	const JsonValue* jv = getValue(it);
 	if(jv) *jv >> res[it];
@@ -966,6 +1043,19 @@ Color JsonArray::getColor(Color def) const
 
     val = getValue(3);
     return val ? Color(rv, gv, bv, val->getInteger(def.a())) : Color(rv, gv, bv);
+}
+
+FBColors JsonArray::getFBColors(FBColors def) const
+{
+    const JsonValue* val = NULL;
+
+    val = getValue(0);
+    if(val) def.setfg(val->getColor(def.fgcolor()).toColorIndex());
+
+    val = getValue(1);
+    if(val) def.setbg(val->getColor(def.bgcolor()).toColorIndex());
+
+    return def;
 }
 
 void JsonArray::addInteger(const int & val)

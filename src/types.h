@@ -86,7 +86,7 @@ protected:
     u16 val;
 
 public:
-    packshort(int v) : val(v) {}
+    packshort(int v = 0) : val(v) {}
     packshort(int val1, int val2) : val((0xFF00 & (val1 << 8)) | (0x00FF & val2)) {}
 
     int operator() (void) const { return val; }
@@ -115,7 +115,7 @@ protected:
     friend StreamBase & operator>> (StreamBase &, packint &);
 
 public:
-    packint(int v) : val(v) {}
+    packint(int v = 0) : val(v) {}
 
     int operator() (void) const { return val; }
     int value(void) const { return val; }
@@ -133,7 +133,7 @@ StreamBase & operator>> (StreamBase &, packint &);
 
 struct packint4 : public packint
 {
-    packint4(int val) : packint(val) {}
+    packint4(int val = 0) : packint(val) {}
     packint4(int val1, int val2, int val3, int val4) : packint((0xFF000000 & (val1 << 24)) | (0x00FF0000 & (val2 << 16))  | (0x0000FF00 & (val3 << 8)) | (0x000000FF & val4)) {}
 
     int val1(void) const { return 0xFF & (value() >> 24); }
@@ -149,7 +149,7 @@ struct packint4 : public packint
 
 struct packint2 : public packint
 {
-    packint2(int val) : packint(val) {}
+    packint2(int val = 0) : packint(val) {}
     packint2(int val1, int val2) : packint((0xFFFF0000 & (val1 << 16)) | (0x0000FFFF & val2)) {}
 
     int val1(void) const { return 0xFFFF & (value() >> 16); }

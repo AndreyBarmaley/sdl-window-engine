@@ -32,11 +32,8 @@ struct UnicodeAll : UnicodeColor
     UnicodeAll() : UnicodeColor(0, FBColors(Color::Transparent)) {}
 };
 
-struct CharsetID : std::pair<FontID, UnicodeColor>
+class CharsetID : public std::pair<FontID, UnicodeColor>
 {
-    CharsetID() : std::pair<FontID, UnicodeColor>() {}
-    CharsetID(const FontID & fi, const UnicodeColor & uc) : std::pair<FontID, UnicodeColor>(fi, uc) {}
-
     const FontID & fs(void) const
     {
 	return first;
@@ -46,6 +43,11 @@ struct CharsetID : std::pair<FontID, UnicodeColor>
     {
 	return second;
     }
+
+public:
+    CharsetID() : std::pair<FontID, UnicodeColor>() {}
+    CharsetID(const FontID & fi, const UnicodeColor & uc) : std::pair<FontID, UnicodeColor>(fi, uc) {}
+
 
     bool operator< (const CharsetID & ci) const
     {
@@ -63,6 +65,23 @@ struct CharsetID : std::pair<FontID, UnicodeColor>
     {
 	return fs() == ci.fs() && (uc() == ci.uc() || UnicodeAll() == ci.uc());
     }
+
+    u64 value(void) const
+    {
+	u64 v1 = fs().value();
+	u64 v2 = uc().value();
+
+	return (v1 << 32) | v2;
+    }
+    
+    std::string toString(void) const
+    {
+        return StringFormat("fontid: %1, fontsz: %2, chars: %3, color: %4").
+                arg(String::hex(fs().font())).
+                arg(fs().size()).
+                arg(String::hex(uc().unicode(), 2)).
+                arg(uc().fgcolor().toString());
+    }
 };
 
 namespace
@@ -71,10 +90,7 @@ namespace
     {
 	size_t operator() (const CharsetID & cid) const
 	{
-	    unsigned long long v1 = cid.fs().value();
-	    unsigned long long v2 = cid.uc().value();
-
-	    return std::hash<unsigned long long>()((v1 << 32) | v2);
+	    return std::hash<u64>()(cid.value());
 	}
     };
 
@@ -88,15 +104,9 @@ void FontsCache::clear(void)
 
 void FontsCache::dump(void)
 {
+    VERBOSE("size: " << fontsCache.size());
     for(auto it = fontsCache.begin(); it != fontsCache.end(); ++it)
-    {
-	    const CharsetID & cid = (*it).first;
-
-	    VERBOSE("fontid: " << String::hex(cid.fs().font()) << ", " <<
-		    "fontsz: " << cid.fs().size() << ", " <<
-		    "chars: " << String::hex(cid.uc().unicode(), 2) << ", " <<
-		    "color: " << cid.uc().fgcolor().toString());
-    }
+	VERBOSE((*it).first.toString());
 }
 
 void FontsCache::erase(void)
@@ -244,6 +254,7 @@ FontRenderTTF::~FontRenderTTF()
 void FontRenderTTF::reset(void)
 {
     ptr.reset();
+    FontRender::fsz = Size(0, 0);
 }
 
 bool FontRenderTTF::load(const BinaryBuf & raw, int size, bool blend, int style, int hinting)
@@ -260,6 +271,7 @@ bool FontRenderTTF::load(const BinaryBuf & raw, int size, bool blend, int style,
 	    fid = FontID(raw.crc16b(), size, blend, style, hinting);
 	    TTF_SetFontStyle(toSDLFont(), style);
 	    TTF_SetFontHinting(toSDLFont(), hinting);
+	    FontRender::fsz = Size(symbolAdvance(0x20), lineSkipHeight());
 	    return true;
 	}
     }
@@ -279,6 +291,7 @@ bool FontRenderTTF::open(const std::string & fn, int size, bool blend, int style
 	fid = FontID(Tools::crc16b(fn.c_str()), size, blend, style, hinting);
 	TTF_SetFontStyle(toSDLFont(), style);
 	TTF_SetFontHinting(toSDLFont(), hinting);
+	FontRender::fsz = Size(symbolAdvance(0x20), lineSkipHeight());
 	return true;
     }
 
@@ -400,44 +413,37 @@ Surface FontRenderTTF::renderCharset(int ch, const Color & col) const
 	TTF_RenderUNICODE_Solid(toSDLFont(), buf, col.toSDLColor()));
 }
 
-FontRenderPSF::FontRenderPSF(const std::string & fn, const Size & sz) : buf(Systems::readFile(fn)), fsz(sz)
+FontRenderPSF::FontRenderPSF(const std::string & fn, const Size & sz) : FontRender(sz), buf(Systems::readFile(fn))
 {
     fid = FontID(Tools::crc16b(fn.c_str()), sz.h, false, StyleNormal, HintingNormal);
 }
 
-FontRenderPSF::FontRenderPSF(const u8* ptr, size_t len, const Size & sz) : buf(BinaryBuf(ptr, len)), fsz(sz)
+FontRenderPSF::FontRenderPSF(const u8* ptr, size_t len, const Size & sz) : FontRender(sz), buf(BinaryBuf(ptr, len))
 {
     fid = FontID(Tools::crc16b(ptr, len), sz.h, false, StyleNormal, HintingNormal);
 }
 
 int FontRenderPSF::lineSkipHeight(void) const
 {
-    return fsz.h;
+    return size().h;
 }
 
 
 int FontRenderPSF::symbolAdvance(int sym) const
 {
-    return fsz.w;
+    return size().w;
 }
 
 Size FontRenderPSF::fixedSize(size_t len, bool horizontal) const
 {
-    int w = 0;
-    int h = 0;
+    Size newSize = size();
 
     if(horizontal)
-    {
-	w = fsz.w * len;
-	h = fsz.h;
-    }
+	newSize.w *= len;
     else
-    {
-	w = fsz.w;
-	h = fsz.h * len;
-    }
+	newSize.h *= len;
 
-    return Size(w, h);
+    return newSize;
 }
 
 Size FontRenderPSF::stringSize(const std::string & str, bool horizontal) const

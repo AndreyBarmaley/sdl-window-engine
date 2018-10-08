@@ -157,77 +157,100 @@ int acs::plus(line_t type)
     return 197;
 }
 
-TermWindow::TermWindow() :
-    Window(Point(0,0), Display::size(), NULL), fontRender(NULL), align(AlignLeft)
+TermBase::TermBase() :
+    Window(Point(0,0), Display::size(), NULL), fontRender(NULL)
 {
-}
-
-TermWindow::TermWindow(TermWindow & win) :
-    Window(& win), fontRender(win.frs()), align(AlignLeft)
-{
-    if(! fontRender)
-	Engine::except(__FUNCTION__, "fontRender is null");
-
-    if(fontRender->size().isEmpty())
-	Engine::except(__FUNCTION__, "font size empty");
+    fontRender = & systemFont();
 
     *this << reset::defaults();
 }
 
-TermWindow::TermWindow(const FontRender & font) :
-    Window(Point(0,0), Display::size(), NULL), fontRender(& font), align(AlignLeft)
+TermBase::TermBase(TermBase & win) :
+    Window(& win), fontRender(win.frs())
 {
-    if(font.size().isEmpty())
-	Engine::except(__FUNCTION__, "font size empty");
+    if(! fontRender)
+    {
+	fontRender = & systemFont();
+	ERROR("fontRender is null" << ", " << "used system font");
+    }
+
+    if(fontRender->size().isEmpty())
+    {
+	fontRender = & systemFont();
+	ERROR("font size empty" << ", " << "used system font");
+    }
+
+    *this << reset::defaults();
+}
+
+TermBase::TermBase(const FontRender & font) :
+    Window(Point(0,0), Display::size(), NULL), fontRender(& font)
+{
+    if(fontRender->size().isEmpty())
+    {
+	fontRender = & systemFont();
+	ERROR("font size empty" << ", " << "used system font");
+    }
 
     *this << reset::defaults();
     setSize(Display::size());
 }
 
-TermWindow::TermWindow(const FontRender & font, Window & win) :
-    Window(& win), fontRender(& font), align(AlignLeft)
+TermBase::TermBase(const FontRender & font, Window & win) :
+    Window(& win), fontRender(& font)
 {
-    if(font.size().isEmpty())
-	Engine::except(__FUNCTION__, "font size empty");
+    if(fontRender->size().isEmpty())
+    {
+	fontRender = & systemFont();
+	ERROR("font size empty" << ", " << "used system font");
+    }
 
     *this << reset::defaults();
 }
 
-TermWindow::TermWindow(const Point & gfxpt, const Size & gfxsz, const FontRender & font, Window & win) :
-    Window(gfxpt, gfxsz, &win), fontRender(& font), align(AlignLeft)
+TermBase::TermBase(const Point & gfxpt, const Size & gfxsz, const FontRender & font, Window & win) :
+    Window(gfxpt, gfxsz, &win), fontRender(& font)
 {
-    if(font.size().isEmpty())
-	Engine::except(__FUNCTION__, "font size empty");
+    if(fontRender->size().isEmpty())
+    {
+	fontRender = & systemFont();
+	ERROR("font size empty" << ", " << "used system font");
+    }
 
     *this << reset::defaults();
     setSize(gfxsz);
 }
 
-void TermWindow::setFontRender(const FontRender & frs)
+void TermBase::setFontRender(const FontRender & frs)
 {
     if(frs.size().isEmpty())
-	Engine::except(__FUNCTION__, "font size empty");
-
-    fontRender = & frs;
-    setSize(termsz.isEmpty() ? Display::size() : termsz * fontRender->size());
+    {
+	ERROR("font size empty");
+    }
+    else
+    {
+	fontRender = & frs;
+	setSize(termSize().isEmpty() ? Display::size() : sym2gfx(termSize()));
+    }
 }
 
-void TermWindow::setSize(const Size & sz)
+void TermBase::setSize(const Size & sz)
 {
-    termsz = sz / fontRender->size();
-
-    chars.clear();
-    chars.resize(termsz.w * termsz.h, TermCharset(UnicodeColor(0x20, FBColors(fgColor, bgColor))));
-
-    // set dirty area
-    std::for_each(chars.begin(), chars.end(), std::bind2nd(std::mem_fun_ref(&BitFlags::set), static_cast<int>(TermCharset::PropDirty)));
-
-    Window::setSize(termsz * fontRender->size());
+    Size tsz = gfx2sym(sz);
+    setTermSize(tsz.w, tsz.h);
 }
 
-void TermWindow::setCharset(int ch, const ColorIndex & fg, const ColorIndex & bg, int prop)
+void TermBase::setTermSize(int tmw, int tmh)
 {
-    Rect win(Point(0,0), termsz);
+    termsz.set1(tmw);
+    termsz.set2(tmh);
+    Window::setSize(sym2gfx(termSize()));
+}
+
+/*
+void TermBase::setCharset(int ch, const ColorIndex & fg, const ColorIndex & bg, int prop)
+{
+    Rect win(Point(0,0), termSize());
 
     if(padding())
     {
@@ -237,66 +260,79 @@ void TermWindow::setCharset(int ch, const ColorIndex & fg, const ColorIndex & bg
 	win.h = rows() - win.y - padding.bottom();
     }
 
-    if(win.x <= curpos.x && curpos.x < win.x + win.w &&
-	win.y <= curpos.y && curpos.y < win.y + win.h)
+    if(win.x <= curx() && curx() < win.x + win.w &&
+	win.y <= cury() && cury() < win.y + win.h)
     {
 	int pos = index();
-	TermCharset & tc = chars[pos];
+	UnicodeColor & tc = chars[pos];
 
 	if(ch != -1) tc.unicode(ch);
 
 	if(! fg.isTransparent()) tc.fgindex(fg);
 	else
-	if(! fgColor.isTransparent()) tc.fgindex(fgColor);
+	if(! fgColor().isTransparent()) tc.fgindex(fgColor());
 
 	if(! bg.isTransparent()) tc.bgindex(bg);
 	else
-	if(! bgColor.isTransparent()) tc.bgindex(bgColor);
-
-	if(prop) tc.set(prop);
-	tc.set(TermCharset::PropDirty);
+	if(! bgColor().isTransparent()) tc.bgindex(bgColor());
     }
 
     Point curs = cursor();
     *this << cursor::set(curs.x + 1, curs.y);
 }
 
-const Point & TermWindow::cursor(void) const
+void TermBase::renderFlush(void)
 {
-    return curpos;
+    Size fontSize = fontRender->size();
+
+    for(auto it = chars.begin(); it != chars.end(); ++it)
+    {
+	int index = std::distance(chars.begin(), it);
+	int posx = (index % cols()) * fontSize.w;
+	int posy = (index / cols()) * fontSize.h;
+	Color bgcolor = (*it).bgcolor();
+	if(! bgcolor.isTransparent())
+	    renderColor(bgcolor, Rect(posx, posy, fontSize.w, fontSize.h));
+	renderTexture(FontsCache(fontRender).renderCharset((*it).unicode(), (*it).fgcolor()), Point(posx, posy));
+    }
+}
+*/
+
+bool TermBase::lineWrap(void) const
+{
+    return checkState(FlagWrap);
 }
 
-bool TermWindow::lineWrap(void) const
+int TermBase::index(const Point & pos) const
 {
-    return state.check(FlagWrap);
+    if(0 <= pos.x && 0 <= pos.y &&
+	pos.x < cols() && pos.y < rows())
+	return cols() * pos.y + pos.x;
+    return -1;
 }
 
-int TermWindow::index(const Point & pos) const
+int TermBase::index(void) const
 {
-    return cols() * pos.y + pos.x;
+    const Point & cur = cursor();
+    return cols() * cur.y + cur.x;
 }
 
-int TermWindow::index(void) const
-{
-    return index(curpos);
-}
-
-Point TermWindow::sym2gfx(const Point & sym) const /* coordinate from current win */
+Point TermBase::sym2gfx(const Point & sym) const /* coordinate from current win */
 {
     return position() + sym * fontRender->size();
 }
 
-Point TermWindow::gfx2sym(const Point & gfx) const /* coordinate from current win */
+Point TermBase::gfx2sym(const Point & gfx) const /* coordinate from current win */
 {
     return (gfx - position()) / fontRender->size();
 }
 
-Size TermWindow::sym2gfx(const Size & sym) const
+Size TermBase::sym2gfx(const Size & sym) const
 {
     return sym * fontRender->size();
 }
 
-Size TermWindow::gfx2sym(const Size & gfx) const
+Size TermBase::gfx2sym(const Size & gfx) const
 {
     Size res = gfx / fontRender->size();
     // fix float values
@@ -306,42 +342,23 @@ Size TermWindow::gfx2sym(const Size & gfx) const
     return res;
 }
 
-Rect TermWindow::sym2gfx(const Rect & sym) const
+Rect TermBase::sym2gfx(const Rect & sym) const
 {
     const Point & sympt = sym;
     const Size & symsz = sym;
     return Rect(sym2gfx(sympt), sym2gfx(symsz));
 }
 
-Rect TermWindow::gfx2sym(const Rect & gfx) const
+Rect TermBase::gfx2sym(const Rect & gfx) const
 {
     const Point & gfxpt = gfx;
     const Size & gfxsz = gfx;
     return Rect(gfx2sym(gfxpt), gfx2sym(gfxsz));
 }
 
-void TermWindow::renderWindow(void)
+void TermBase::renderWindow(void)
 {
-    // set all dirty area
-    *this << set::dirty() << set::flush();
-}
-
-void TermWindow::renderFlush(void)
-{
-    Size fontSize = fontRender->size();
-
-    for(auto it = chars.begin(); it != chars.end(); ++it)
-    if((*it).check(TermCharset::PropDirty))
-    {
-	int index = std::distance(chars.begin(), it);
-	int posx = (index % cols()) * fontSize.w;
-	int posy = (index / cols()) * fontSize.h;
-	Color bgcolor = (*it).bgcolor();
-	if(! bgcolor.isTransparent())
-	    renderColor(bgcolor, Rect(posx, posy, fontSize.w, fontSize.h));
-	renderTexture(FontsCache(fontRender).renderCharset((*it).unicode(), (*it).fgcolor()), Point(posx, posy));
-	(*it).reset(TermCharset::PropDirty);
-    }
+    *this << set::flush();
 }
 /*
 bool	keyPressHandle(int);
@@ -370,7 +387,7 @@ bool	scrollLeftEvent(const Point &) { return false; }
 bool	scrollRightEvent(const Point &) { return false; }
 */
 
-TermWindow & TermWindow::operator<< (const cursor::set & st)
+TermBase & TermBase::operator<< (const cursor::set & st)
 {
     Rect area = Rect(0, 0, cols(), rows());
 
@@ -382,19 +399,21 @@ TermWindow & TermWindow::operator<< (const cursor::set & st)
 	area.h = rows() - (padding.top() + padding.bottom());
     }
 
-    curpos.x = st.posx() < area.x ? area.x : st.posx();
-    curpos.y = st.posy() < area.y ? area.y : st.posy();
+    int cx = st.posx() < area.x ? area.x : st.posx();
+    int cy = st.posy() < area.y ? area.y : st.posy();
 
-    if(lineWrap() && curpos.x >= area.x + area.w)
+    if(lineWrap() && cx >= area.x + area.w)
     {
-	curpos.x = area.x + (curpos.x % area.w);
-	curpos.y = curpos.y + curpos.x / area.w;
+	cx = area.x + (cx % area.w);
+	cy = cy + cx / area.w;
     }
+
+    setCursorPos(cx, cy);
 
     return *this;
 }
 
-TermWindow & TermWindow::operator<< (const cursor::move & st)
+TermBase & TermBase::operator<< (const cursor::move & st)
 {
     if(st.count())
     {
@@ -419,17 +438,17 @@ TermWindow & TermWindow::operator<< (const cursor::move & st)
     return *this;
 }
 
-TermWindow & TermWindow::operator<< (const draw::hline & st)
+TermBase & TermBase::operator<< (const draw::hline & st)
 {
     return *this << fill::charset(st.charset(), Size(st.count(), 1));
 }
 
-TermWindow & TermWindow::operator<< (const draw::vline & st)
+TermBase & TermBase::operator<< (const draw::vline & st)
 {
     return *this << fill::charset(st.charset(), Size(1, st.count()));
 }
 
-TermWindow & TermWindow::operator<< (const draw::rect & st)
+TermBase & TermBase::operator<< (const draw::rect & st)
 {
     return *this << cursor::set(st.x, st.y) << acs::ulcorner(st.line) << draw::hline(st.w - 2, acs::hline(st.line)) << acs::urcorner(st.line) <<
 	cursor::move(MoveLowerLeft) << draw::vline(st.h - 2, acs::vline(st.line)) <<
@@ -437,23 +456,23 @@ TermWindow & TermWindow::operator<< (const draw::rect & st)
         cursor::set(st.x, st.h - 1) << acs::llcorner(st.line) << draw::hline(st.w - 2, acs::hline(st.line)) << acs::lrcorner(st.line);
 }
 
-TermWindow & TermWindow::operator<< (int ch)
+TermBase & TermBase::operator<< (int ch)
 {
     setCharset(ch);
     return *this;
 }
 
-TermWindow & TermWindow::operator<< (const char* st)
+TermBase & TermBase::operator<< (const char* st)
 {
     return *this << UnicodeString(st ? st : "(null)");
 }
 
-TermWindow & TermWindow::operator<< (const std::string & st)
+TermBase & TermBase::operator<< (const std::string & st)
 {
     return *this << UnicodeString(st);
 }
 
-TermWindow & TermWindow::operator<< (const UnicodeList & st)
+TermBase & TermBase::operator<< (const UnicodeList & st)
 {
     int curx = cursor().x;
 
@@ -466,7 +485,20 @@ TermWindow & TermWindow::operator<< (const UnicodeList & st)
     return *this;
 }
 
-TermWindow & TermWindow::operator<< (const UnicodeString & st)
+TermBase & TermBase::operator<< (const UCStringList & st)
+{
+    int curx = cursor().x;
+
+    for(auto it = st.begin(); it != st.end(); ++it)
+    {
+        *this << *it;
+	*this << cursor::set(curx, cursor().y + 1);
+    }
+
+    return *this;
+}
+
+TermBase & TermBase::operator<< (const UnicodeString & st)
 {
     if(0 < st.index('\n'))
 	return *this << st.split('\n');
@@ -480,10 +512,10 @@ TermWindow & TermWindow::operator<< (const UnicodeString & st)
 
     Point cur = cursor();
 
-    if(align == AlignCenter)
+    if(align() == AlignCenter)
         cur.x -= st.size() / 2;
     else
-    if(align == AlignRight)
+    if(align() == AlignRight)
         cur.x -= st.size() - 1;
 
     *this << cursor::set(cur.x, cur.y);
@@ -494,25 +526,24 @@ TermWindow & TermWindow::operator<< (const UnicodeString & st)
     return *this;
 }
 
-TermWindow & TermWindow::operator<< (const UCString & ucs)
+TermBase & TermBase::operator<< (const UCString & ucs)
 {
-/*
-    if(0 < st.index('\n'))
-	return *this << st.split('\n');
+    if(0 < ucs.index('\n'))
+	return *this << ucs.split('\n');
 
     if(lineWrap())
     {
         size_t wrapsz = cols() - (padding.left() + padding.right());
-        if(st.size() > wrapsz)
-	    return *this << st.wrap(wrapsz);
+        if(ucs.size() > wrapsz)
+	    return *this << ucs.wrap(wrapsz);
     }
-*/
+
     Point cur = cursor();
 
-    if(align == AlignCenter)
+    if(align() == AlignCenter)
         cur.x -= ucs.length() / 2;
     else
-    if(align == AlignRight)
+    if(align() == AlignRight)
         cur.x -= ucs.length() - 1;
 
     *this << cursor::set(cur.x, cur.y);
@@ -523,19 +554,13 @@ TermWindow & TermWindow::operator<< (const UCString & ucs)
     return *this;
 }
 
-TermWindow & TermWindow::operator<< (const UnicodeColor & st)
+TermBase & TermBase::operator<< (const UnicodeColor & st)
 {
     setCharset(st.unicode(), st.fgindex(), st.bgindex());
     return *this;
 }
 
-TermWindow & TermWindow::operator<< (const TermCharset & st)
-{
-    setCharset(st.unicode(), st.fgindex(), st.bgindex(), st.prop());
-    return *this;
-}
-
-TermWindow & TermWindow::operator<< (const fill::charset & st)
+TermBase & TermBase::operator<< (const fill::charset & st)
 {
     Point start = cursor();
 
@@ -551,7 +576,7 @@ TermWindow & TermWindow::operator<< (const fill::charset & st)
     return *this;
 }
 
-TermWindow & TermWindow::operator<< (const fill::defaults & st)
+TermBase & TermBase::operator<< (const fill::defaults & st)
 {
     for(size_t posy = 0; posy < rows(); ++posy)
     {
@@ -562,12 +587,12 @@ TermWindow & TermWindow::operator<< (const fill::defaults & st)
 	}
     }
 
-    curpos = Point(0, 0);
+    setCursorPos(0, 0);
 
     return *this;
 }
 
-TermWindow & TermWindow::operator<< (const fill::fgcolor & st)
+TermBase & TermBase::operator<< (const fill::fgcolor & st)
 {
     Point start = cursor();
 
@@ -583,7 +608,7 @@ TermWindow & TermWindow::operator<< (const fill::fgcolor & st)
     return *this;
 }
 
-TermWindow & TermWindow::operator<< (const fill::bgcolor & st)
+TermBase & TermBase::operator<< (const fill::bgcolor & st)
 {
     Point start = cursor();
 
@@ -599,7 +624,7 @@ TermWindow & TermWindow::operator<< (const fill::bgcolor & st)
     return *this;
 }
 
-TermWindow & TermWindow::operator<< (const fill::colors & st)
+TermBase & TermBase::operator<< (const fill::colors & st)
 {
     Point start = cursor();
 
@@ -615,7 +640,7 @@ TermWindow & TermWindow::operator<< (const fill::colors & st)
     return *this;
 }
 
-TermWindow & TermWindow::operator<< (const fill::property & st)
+TermBase & TermBase::operator<< (const fill::property & st)
 {
     Point start = cursor();
 
@@ -631,160 +656,241 @@ TermWindow & TermWindow::operator<< (const fill::property & st)
     return *this;
 }
 
-TermWindow & TermWindow::operator<< (const reset::defaults & st)
+TermBase & TermBase::operator<< (const reset::defaults & st)
 {
-    curpos = Point(0, 0);
-    fgColor = Color::Transparent;
-    bgColor = Color::Transparent;
-    align = AlignLeft;
+    setCursorPos(0, 0);
+    setFGColor(Color::Transparent);
+    setBGColor(Color::Transparent);
+    setAlign(AlignLeft);
     padding = set::padding(0, 0, 0, 0);
-    state.reset(FlagWrap);
+    resetState(FlagWrap);
 
     return *this;
 }
 
-TermWindow & TermWindow::operator<< (const reset::colors & st)
+TermBase & TermBase::operator<< (const reset::colors & st)
 {
     return *this << reset::fgcolor() << reset::bgcolor();
 }
 
-TermWindow & TermWindow::operator<< (const reset::fgcolor & st)
+TermBase & TermBase::operator<< (const reset::fgcolor & st)
 {
-    fgColor = Color::Transparent;
+    setFGColor(Color::Transparent);
     return *this;
 }
 
-TermWindow & TermWindow::operator<< (const reset::bgcolor & st)
+TermBase & TermBase::operator<< (const reset::bgcolor & st)
 {
-    bgColor = Color::Transparent;
+    setBGColor(Color::Transparent);
     return *this;
 }
 
-TermWindow & TermWindow::operator<< (const reset::padding & st)
+TermBase & TermBase::operator<< (const reset::padding & st)
 {
     padding = set::padding(0, 0, 0, 0);
     return *this;
 }
 
-TermWindow & TermWindow::operator<< (const reset::wrap & st)
+TermBase & TermBase::operator<< (const reset::wrap & st)
 {
-    state.reset(FlagWrap);
+    resetState(FlagWrap);
     return *this;
 }
 
-TermWindow & TermWindow::operator<< (const set::dirty & st)
-{
-    std::for_each(chars.begin(), chars.end(), std::bind2nd(std::mem_fun_ref(&BitFlags::set), static_cast<int>(TermCharset::PropDirty)));
-    return *this;
-}
-
-TermWindow & TermWindow::operator<< (const set::rn & st)
+TermBase & TermBase::operator<< (const set::rn & st)
 {
     return *this << cursor::first() << cursor::down();
 }
 
-TermWindow & TermWindow::operator<< (const set::flush & st)
+TermBase & TermBase::operator<< (const set::flush & st)
 {
     renderFlush();
     return *this;
 }
 
-TermWindow & TermWindow::operator<< (const set::colors & st)
+TermBase & TermBase::operator<< (const set::colors & st)
 {
-    fgColor = st.fgindex();
-    bgColor = st.bgindex();
+    setFGColor(st.fgindex());
+    setBGColor(st.bgindex());
     return *this;
 }
 
-TermWindow & TermWindow::operator<< (const set::fgcolor & st)
+TermBase & TermBase::operator<< (const set::fgcolor & st)
 {
-    fgColor = st.color;
+    setFGColor(st.color);
     return *this;
 }
 
-TermWindow & TermWindow::operator<< (const set::bgcolor & st)
+TermBase & TermBase::operator<< (const set::bgcolor & st)
 {
-    bgColor = st.color;
+    setBGColor(st.color);
     return *this;
 }
 
-TermWindow & TermWindow::operator<< (const set::align & st)
+TermBase & TermBase::operator<< (const set::align & st)
 {
-    align = st();
+    setAlign(st());
     return *this;
 }
 
-TermWindow & TermWindow::operator<< (const set::padding & st)
+TermBase & TermBase::operator<< (const set::padding & st)
 {
     padding = st;
     return *this;
 }
 
-TermWindow & TermWindow::operator<< (const set::wrap & st)
+TermBase & TermBase::operator<< (const set::wrap & st)
 {
-    state.set(FlagWrap);
+    setState(FlagWrap);
     return *this;
 }
 
-
-
-
-CenteredTerminal::CenteredTerminal(const Size & termsz, const FontRender & font, Window & win)
-    : TermWindow(Point(win.size() - font.size() * termsz) / 2, font.size() * termsz, font, win)
+/* TermWindow */
+void TermWindow::setTermSize(int tmw, int tmh)
 {
-}
-
-MessageWindow::MessageWindow(const std::string & hdr, const ColorIndex & hcol, const std::string & msg, const ColorIndex & mcol,
-    const ColorIndex & back, const ColorIndex & border, const FontRender & font, Window & win) : CenteredTerminal(Size(40, 8), font, win),
-    header(hdr), content(msg), headerColor(hcol), contentColor(mcol), backgroundColor(back), borderColor(border)
-{
-    renderWindow();
-    setVisible(true);
-}
-
-void MessageWindow::renderWindow(void)
-{
-    *this << reset::defaults() <<
-	fill::defaults(borderColor, backgroundColor) <<
-        draw::rect(0, 0, cols(), rows(), LineAscii) <<
-	set::fgcolor(headerColor) <<
-	cursor::set(cols() / 2, 2) << set::align(AlignCenter) << header <<
-	set::fgcolor(contentColor) << 
-	cursor::set(cols() / 2, 4) << set::wrap() << content <<
-	set::flush();
-}
-
-bool MessageWindow::keyPressEvent(int key)
-{
-    switch(key)
+    if(rows() != tmh || cols() != tmw)
     {
-        case Key::AC_BACK:
-        case Key::ESCAPE:
-            return actionDialogClose();
-
-        default: break;
+	chars.clear();
+	chars.resize(tmw * tmh, UnicodeColor(0x20, FBColors(fgColor(), bgColor())));
     }
 
-    return false;
+    TermBase::setTermSize(tmw, tmh);
 }
 
-bool MessageWindow::mouseClickEvent(const ButtonsEvent &)
+void TermWindow::setCharset(int ch, const ColorIndex & fg, const ColorIndex & bg, int prop)
 {
-    return actionDialogClose();
+    const Rect & termArea = Rect(padding.left(), padding.top(),
+			    cols() - (padding.left() + padding.right()), rows() - (padding.top() + padding.bottom()));
+
+    if(termArea & cursor())
+    {
+	int pos = index();
+	UnicodeColor & tc = chars[pos];
+
+	if(ch != -1) tc.unicode(ch);
+
+	if(! fg.isTransparent()) tc.fgindex(fg);
+	else
+	if(! fgColor().isTransparent()) tc.fgindex(fgColor());
+
+	if(! bg.isTransparent()) tc.bgindex(bg);
+	else
+	if(! bgColor().isTransparent()) tc.bgindex(bgColor());
+    }
+
+    *this << cursor::right(1);
 }
 
-bool MessageWindow::actionDialogClose(void)
+void TermWindow::renderSymbol(int symx, int symy)
 {
-    setVisible(false);
-    return true;
+    const Point sympt = Point(symx, symy);
+    int pos = index(sympt);
+
+    if(0 <= pos)
+    {
+	const UnicodeColor & uc = chars[pos];
+	const Color & bgcolor = uc.bgcolor();
+	const Point relPos = sym2gfx(sympt) - position();
+
+	if(! bgcolor.isTransparent())
+	    renderColor(bgcolor, Rect(relPos, sym2gfx(Size(1, 1))));
+
+	renderTexture(FontsCache(fontRender).renderCharset(uc.unicode(), uc.fgcolor()), relPos);
+    }
+    else
+    {
+	ERROR("out of range: " << "symx: " << symx << ", " << "symy: " << symy);
+    }
 }
 
+void TermWindow::renderFlush(void)
+{
+    for(int symy = 0; symy < rows(); ++symy)
+	for(int symx = 0; symx < cols(); ++symx) renderSymbol(symx, symy);
+}
+
+
+/* TermArea */
+void TermArea::setTermPos(int symx, int symy)
+{
+    termpos.set1(symx);
+    termpos.set2(symy);
+}
+
+void TermArea::setPosition(const Point & pos)
+{
+    TermWindow* term = static_cast<TermWindow*>(parent());
+
+    if(term)
+    {
+	Point sympos = term->gfx2sym(pos);
+	setTermPos(sympos.x, sympos.y);
+    }
+
+    Window::setPosition(pos);
+}
+
+void TermArea::setTermArea(int symx, int symy, int cols, int rows)
+{
+    setTermPos(symx, symy);
+    setTermSize(cols, rows);
+}
+
+void TermArea::setCharset(int ch, const ColorIndex & fg, const ColorIndex & bg, int prop)
+{
+    TermWindow* term = static_cast<TermWindow*>(parent());
+
+    if(term)
+    {
+	const Point savePos = term->cursor();
+	const Point & curs = cursor();
+	term->setCursorPos(posx() + curs.x, posy() + curs.y);
+
+	ColorIndex fgcol = ! fgColor().isTransparent() ? fgColor() : fg;
+	ColorIndex bgcol = ! bgColor().isTransparent() ? bgColor() : bg;
+
+	if(padding())
+	{
+	    const Rect & termArea = Rect(padding.left(), padding.left(),
+			    cols() - (padding.left() + padding.right()), rows() - (padding.left() + padding.bottom()));
+
+	    if(termArea & cursor())
+		term->setCharset(ch, fgcol, bgcol, prop);
+	}
+	else
+	    term->setCharset(ch, fgcol, bgcol, prop);
+
+	term->setCursorPos(savePos.x, savePos.y);
+	*this << cursor::right(1);
+    }
+}
+
+void TermArea::renderFlush(void)
+{
+    TermWindow* term = static_cast<TermWindow*>(parent());
+
+    if(term)
+    {
+       for(int py = 0; py < rows(); ++py)
+           for(int px = 0; px < cols(); ++px)
+               term->renderSymbol(posx() + px, posy() + py);
+    }
+}
+
+/* CenteredTerminal */
+CenteredTerminal::CenteredTerminal(int cols, int rows, const FontRender & font, Window & win)
+    : TermWindow(Point(win.size() - Size(cols, rows) * font.size()) / 2, Size(cols, rows) * font.size(), font, win)
+{
+}
+
+/*
+#include "termwin_gui.h"
 void DisplayError(const std::string & hdr, const std::string & msg)
 {
     if(Display::init("Error", Size(640, 480), false))
     {
         DisplayWindow win1(Color::DarkSlateGray);
-	MessageWindow win2(hdr, Color::IndianRed, msg, Color::LightCyan, Color::RoyalBlue, Color::Yellow, systemFont(), win1);
+	TermGUI::MessageBox win2(hdr, msg, TermGUI::ButtonOk, systemFont(), win1);
 
 	win2.exec();
     }
@@ -792,11 +898,12 @@ void DisplayError(const std::string & hdr, const std::string & msg)
 
 void MessageTop(const std::string & hdr, const std::string & msg)
 {
-    Window* win = const_cast<Window*>(Display::window());
+    Window* win1 = const_cast<Window*>(Display::window());
 
-    if(win)
+    if(win1)
     {
-	MessageWindow mw(hdr, Color::IndianRed, msg, Color::LightCyan, Color::RoyalBlue, Color::Yellow, systemFont(), *win);
+	TermGUI::MessageBox win2(hdr, msg, 0, systemFont(), *win1);
 	Display::redraw();
     }
 }
+*/

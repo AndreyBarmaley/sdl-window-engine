@@ -81,7 +81,8 @@ namespace Systems
     std::string	concatePath(const std::string &, const std::string &);
     std::string	concatePath(const std::string &, const std::string &, const std::string &);
     std::string	concatePath2(std::string, const char*);
-    StringList  readDir(const std::string &, const std::string & = "", bool sensitive = false);
+    StringList  findFiles(const std::string &, const std::string & = "", bool sensitive = false);
+    StringList  readDir(const std::string &, bool fullpath = true);
 
     std::string dirname(const std::string &);
     std::string basename(const std::string &);

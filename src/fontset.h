@@ -52,8 +52,14 @@ struct FontID : packint2 /* font id 16 bit, font blend 1 bit, style 4 bit, hinti
 
 class FontRender
 {
+protected:
+    Size	fsz;
+
 public:
+    FontRender() {}
+    FontRender(const Size & sz) : fsz(sz) {}
     virtual ~FontRender() {}
+
     virtual const FontID &
 			id(void) const = 0;
     virtual bool	isValid(void) const = 0;
@@ -71,7 +77,7 @@ public:
     UnicodeList		splitUnicodeWidth(const UnicodeString &, int) const;
     StringList		splitStringWidth(const std::string &, int) const;
 
-    Size		size(void) const { return Size(symbolAdvance(0x20), lineSkipHeight()); }
+    const Size &	size(void) const { return fsz; }
 
     static void		clearCache(void);
     static void		dumpCache(void);
@@ -135,7 +141,6 @@ public:
 class FontRenderPSF : public FontRender
 {
     BinaryBuf	buf;
-    Size	fsz;
     FontID	fid;
 
     Size	fixedSize(size_t, bool) const;
