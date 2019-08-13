@@ -24,24 +24,28 @@
 #define _SWE_CUNICODE_
 
 #include <string>
+#include <vector>
+#include <list>
 
 #include "types.h"
-#include "sharedvector.h"
-#include "sharedlist.h"
 
 class UnicodeList;
 class FontRender;
 
-class UnicodeString : public SharedVector<u16>
+class UnicodeString : public std::u16string
 {
-
 public:
     UnicodeString() {}
-    UnicodeString(size_t len, int ch) : SharedVector<u16>(len, ch) {}
-    UnicodeString(const_iterator it1, const_iterator it2) : SharedVector<u16>(it1, it2) {}
-    UnicodeString(const SharedVector<u16> & v) : SharedVector<u16>(v) {}
-    UnicodeString(const std::string &);
-    UnicodeString(const char*);
+    UnicodeString(size_t len, int ch) { reserve(len + 1); std::u16string::assign(len, ch); }
+    UnicodeString(const std::u16string & v) : std::u16string(v) {}
+    UnicodeString(const UnicodeString & v) : std::u16string(v) {}
+    UnicodeString(const_iterator it1, const_iterator it2) : std::u16string(it1, it2) {}
+    UnicodeString(UnicodeString && v) { swap(v); }
+    UnicodeString(const std::string & v) { assign(v); }
+    UnicodeString(const char* v) { if(v) assign(v); }
+
+    UnicodeString &	operator= (const UnicodeString & v) { std::u16string::assign(v.begin(), v.end()); return *this; }
+    UnicodeString &	operator= (UnicodeString && v) { swap(v); return *this; }
 
     bool		operator== (const std::string &) const;
     bool		operator!= (const std::string &) const;
@@ -52,6 +56,10 @@ public:
     UnicodeList		split(int sep) const;
     UnicodeList		splitWidth(const FontRender &, int width) const;
     UnicodeList		wrap(int) const;
+
+    static std::list<UnicodeString>
+			split(const UnicodeString & str, const UnicodeString & sep);
+
 
     int			index(int) const;
     UnicodeString	substr(size_t, int = -1) const;
@@ -78,12 +86,17 @@ public:
     UnicodeFormat &	arg(double, int prec);
 };
 
-class UnicodeList : public SharedList<UnicodeString>
+class UnicodeList : public std::list<UnicodeString>
 {
 public:
     UnicodeList() {}
-    UnicodeList(const StringList &);
-    UnicodeList(const SharedList<UnicodeString> & list) : SharedList<UnicodeString>(list) {}
+    UnicodeList(const StringList & v) { append(v); }
+    UnicodeList(const std::list<UnicodeString> & v) : std::list<UnicodeString>(v) {}
+    UnicodeList(const UnicodeList & v) : std::list<UnicodeString>(v) {}
+    UnicodeList(UnicodeList && v) { swap(v); }
+
+    UnicodeList		operator= (const UnicodeList & v) { assign(v.begin(), v.end()); return *this; }
+    UnicodeList		operator= (UnicodeList && v) { swap(v); return *this; }
 
     size_t		maxStringWidth(void) const;
     size_t		totalStringsWidth(void) const;
@@ -91,8 +104,9 @@ public:
     UnicodeString       join(void) const;
     UnicodeString       join(const UnicodeString &) const;
 
-    void		append(const StringList &);
-    void		append(const UnicodeList &);
+    UnicodeList &	append(const UnicodeString & v) { push_back(v); return *this; }
+    UnicodeList &	append(const StringList &);
+    UnicodeList &	append(const UnicodeList &);
 
     UnicodeList &	operator<< (const UnicodeString &);
     UnicodeList &	operator<< (const StringList &);

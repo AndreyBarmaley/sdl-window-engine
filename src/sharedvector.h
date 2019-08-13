@@ -68,6 +68,7 @@ public:
     void		swap(SharedVector & v) { ptr.swap(v.ptr); }
 
     SharedVector<T> &   push_back(const T & t) { ptr->push_back(t); return *this; }
+    SharedVector<T> &   push_back(const SharedVector<T> & v) { ptr->insert(ptr->end(), v.begin(), v.end()); return *this; }
     SharedVector<T> &   pop_back(void) { ptr->pop_back(); return *this; }
 
     template<class InputIterator>

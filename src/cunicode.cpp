@@ -27,19 +27,10 @@
 #include <iomanip>
 #include <algorithm>
 
+#include "tools.h"
 #include "systems.h"
 #include "fontset.h"
 #include "cunicode.h"
-
-UnicodeString::UnicodeString(const char* str)
-{
-    if(str) assign(str);
-}
-
-UnicodeString::UnicodeString(const std::string & utf8)
-{
-    assign(utf8);
-}
 
 void UnicodeString::assign(const std::string & utf8)
 {
@@ -183,6 +174,12 @@ UnicodeString & UnicodeString::append(const UnicodeString & src)
     return *this;
 }
 
+std::list<UnicodeString>
+UnicodeString::split(const UnicodeString & str, const UnicodeString & sep)
+{
+    return Tools::AdvancedSplit<UnicodeString>(str, sep);
+}
+
 UnicodeList UnicodeString::split(int sep) const
 {
     UnicodeList list;
@@ -288,7 +285,7 @@ UnicodeString UnicodeString::substr(size_t pos, int len) const
     if(len && pos < size())
     {
 	size_t pos2 = 0 < len && pos + len < size() ? len : size() - pos;
-	res.resize(pos2, 0);
+	res = UnicodeString(pos2, 0);
 	std::copy(begin() + pos, begin() + pos + pos2, res.begin());
     }
     return res;
@@ -365,6 +362,7 @@ UnicodeFormat & UnicodeFormat::arg(double val, int prec)
     return arg(String::number(val, prec));
 }
 
+/* UnicodeList */
 size_t UnicodeList::maxStringWidth(void) const
 {
     size_t res = 0;
@@ -379,11 +377,6 @@ size_t UnicodeList::totalStringsWidth(void) const
     for(const_iterator it = begin(); it != end(); ++it)
 	res += (*it).size();
     return res;
-}
-
-UnicodeList::UnicodeList(const StringList & list)
-{
-    *this << list;
 }
 
 UnicodeString UnicodeList::join(void) const
@@ -416,32 +409,31 @@ UnicodeString UnicodeList::join(const UnicodeString & sep) const
 
 UnicodeList & UnicodeList::operator<< (const UnicodeString & us)
 {
-    push_back(us);
-    return *this;
+    return append(us);
 }
 
 UnicodeList & UnicodeList::operator<< (const StringList & sl)
 {
-    append(sl);
-    return *this;
+    return append(sl);
 }
 
 UnicodeList & UnicodeList::operator<< (const UnicodeList & ul)
 {
-    append(ul);
-    return *this;
+    return append(ul);
 }
 
-void UnicodeList::append(const StringList & list)
+UnicodeList & UnicodeList::append(const StringList & list)
 {
     for(StringList::const_iterator
 	it = list.begin(); it != list.end(); ++it)
 	push_back(*it);
+    return *this;
 }
 
-void UnicodeList::append(const UnicodeList & list)
+UnicodeList & UnicodeList::append(const UnicodeList & list)
 {
     insert(end(), list.begin(), list.end());
+    return *this;
 }
 
 StringList UnicodeList::toStringList(void) const

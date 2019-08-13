@@ -23,89 +23,29 @@
 #ifndef _SWE_WINDOW_
 #define _SWE_WINDOW_
 
-#include <list>
-
 #include "types.h"
 #include "tools.h"
 #include "rect.h"
 #include "surface.h"
-#include "display.h"
 #include "fontset.h"
 #include "events.h"
 
-namespace Display
-{
-    void                handleMouseButton(const SDL_MouseButtonEvent &);
-    void                handleMouseMotion(const SDL_MouseMotionEvent &);
-    void		handleKeyboard(const SDL_KeyboardEvent &);
-    void		handleUserEvent(const SDL_UserEvent &);
-    void		handleScrollEvent(int, const Point &);
-    void		handleFocusEvent(bool);
-    void		handleEvents(void);
-    bool		resizeWindow(const Size &, bool);
-    void		closeWindow(void);
-    void		redraw(void);
-#ifdef OLDENGINE
-    void                handleMouseWheel(int, int);
-#else
-    void                handleMouseWheel(const SDL_MouseWheelEvent &);
-    void		handleTextInput(const SDL_TextInputEvent &);
-    void		handleFingerTap(const SDL_TouchFingerEvent &);
-    void		handleFingerMotion(const SDL_TouchFingerEvent &);
-#endif
-}
-
-class Window;
-class WindowAction;
 typedef std::uintptr_t	WindowId;
 
-enum { FlagVisible = 0x80000000, FlagKeyHandle = 0x40000000, FlagModality = 0x20000000, FlagOnMouse = 0x10000000,
-	FlagButtonPressed = 0x08000000, FlagButtonCentered = 0x04000000, FlagButtonDisabled = 0x02000000, FlagButtonFocused = 0x01000000,
-	FlagSelected = 0x00800000, FlagOrderBackground = 0x00400000, FlagOrderForeground = 0x00200000, FlagVertical = 0x00100000,
-	FlagWrap = 0x00080000, FlagUnused04 = 0x00040000, FlagUnused02 = 0x00020000, FlagDebug = 0x00010000,
+enum { FlagVisible = 0x80000000, FlagModality = 0x40000000, FlagFocused = 0x20000000, FlagAllocated = 0x10000000,
+
+	FlagKeyHandle = 0x08000000, FlagMouseTracking = 0x04000000,
+	FlagLayoutBackground = 0x02000000, FlagLayoutForeground = 0x01000000,
+
+	FlagButtonPressed = 0x00800000, FlagButtonCentered = 0x00400000, FlagButtonDisabled = 0x00200000, FlagButtonFocused = 0x00100000,
+	FlagButtonInformed = 0x00080000, FlagSelected = 0x00040000, FlagWrap = 0x00020000, FlagVertical = 0x00010000,
 	FlagFreeMask = 0x0000FFFF };
+
+// KeyHandle, MouseButtonHandle, MouseTrackingHandle, SystemTickHandle
 
 class Window : public SignalMember
 {
-    friend void         Display::handleMouseButton(const SDL_MouseButtonEvent &);
-    friend void         Display::handleMouseMotion(const SDL_MouseMotionEvent &);
-    friend void		Display::handleKeyboard(const SDL_KeyboardEvent &);
-    friend void		Display::handleUserEvent(const SDL_UserEvent &);
-    friend void		Display::handleScrollEvent(int, const Point &);
-    friend void		Display::handleFocusEvent(bool);
-    friend void		Display::redraw(void);
-    friend void		Display::handleEvents(void);
-    friend bool		Display::resizeWindow(const Size &, bool);
-    friend void		Display::closeWindow(void);
-#ifdef OLDENGINE
-    friend void         Display::handleMouseWheel(int, int);
-#else
-    friend void         Display::handleMouseWheel(const SDL_MouseWheelEvent &);
-    friend void		Display::handleTextInput(const SDL_TextInputEvent &);
-    friend void		Display::handleFingerTap(const SDL_TouchFingerEvent &);
-    friend void		Display::handleFingerMotion(const SDL_TouchFingerEvent &);
-#endif
-
-    bool		keyPressHandle(int);
-    bool		keyReleaseHandle(int);
-    bool		textInputHandle(const std::string &);
-    bool		mousePressHandle(const ButtonEvent &);
-    bool		mouseReleaseHandle(const ButtonEvent &);
-    bool		mouseClickHandle(const ButtonsEvent &);
-    bool		mouseMotionHandle(const Point &, u32 buttons);
-#ifdef OLDENGINE
-    bool		userHandle(const UserEvent &);
-#else
-    bool		userHandle(const SDL_UserEvent &);
-#endif
-    bool		scrollUpHandle(const Point &);
-    bool		scrollDownHandle(const Point &);
-    bool		scrollLeftHandle(const Point &);
-    bool		scrollRightHandle(const Point &);
-    void		tickHandle(u32);
-    void		renderPresentHandle(u32);
-    void		displayResizeHandle(const Size &, bool);
-    void		displayFocusHandle(bool);
+    friend class DisplayScene;
 
 protected:
     Rect            	gfxpos;
@@ -113,14 +53,18 @@ protected:
     BitFlags		state;
     int             	result;
 
-    Window &		operator= (const Window &);
-
     void		destroy(void);
     void		redraw(void);
 
+    // SignalMember
+    // virtual void	signalReceive(int, const SignalMember*) {}
+
+    // Window
     virtual void	windowMoveEvent(const Point &) {}
     virtual void	windowResizeEvent(const Size &) {}
     virtual void	windowVisibleEvent(bool) {}
+    virtual void	windowCreateEvent(void) {}
+    virtual bool	keyDebugEvent(const SDL_KeyboardEvent &) { return false; }
     virtual bool	keyPressEvent(int) { return false; }
     virtual bool	keyReleaseEvent(int) { return false; }
     virtual bool	textInputEvent(const std::string &) { return false; }
@@ -129,6 +73,7 @@ protected:
     virtual bool	mouseClickEvent(const ButtonsEvent &) { return false; }
     virtual void	mouseFocusEvent(void) {}
     virtual void	mouseLeaveEvent(void) {}
+    virtual void	mouseTrackingEvent(const Point &, u32 buttons) {}
     virtual bool	mouseMotionEvent(const Point &, u32 buttons) { return false; }
     virtual bool	userEvent(int, void*) { return false; }
     virtual bool	scrollUpEvent(const Point &) { return false; }
@@ -140,17 +85,22 @@ protected:
     virtual void	displayResizeEvent(const Size &, bool) {}
     virtual void	displayFocusEvent(bool gain) {}
 
-    bool		findChild(const Window*) const;
+    virtual const Texture*
+		        tooltipTexture(void) const { return NULL; }
 
 public:
     Window(Window*);
     Window(const Point &, const Size &, Window*);
-    Window(const Window &);
     virtual ~Window();
+
+    Window(Window &&);
+    Window(const Window &);
+    Window &		operator= (const Window &);
 
     bool		isID(const WindowId &) const;
     bool		isVisible(void) const;
-    bool		isChild(const Window &) const;
+    bool		isFocused(void) const;
+    virtual bool	isAreaPoint(const Point &) const;
     WindowId		id(void) const;
     const Point	&	position(void) const;
     const Size &	size(void) const;
@@ -166,7 +116,8 @@ public:
     void		setVisible(bool);
     void		setResultCode(int);
     void		setSize(const Size &);
-    void		setPosition(const Point &);
+    virtual void	setPosition(const Point &);
+    void		setLayerTop(void);
 
     bool		checkState(size_t) const;
     void		setState(size_t, bool f = true);
@@ -175,25 +126,24 @@ public:
 
     int			exec(void);
     void		pushEventAction(int, Window*, void*);
-    static void		pushEventActionBroadcast(int, void*);
 
-    void                renderSurface(const Surface &, const Point &);
-    void		renderSurface(const Surface &, const Rect &, const Rect &);
-    void                renderTexture(const Texture &, const Point &);
-    void		renderTexture(const Texture &, const Rect &, const Rect &);
-    void                renderTexture(const TexturePos &);
+    void                renderSurface(const Surface &, const Point &) const;
+    void		renderSurface(const Surface &, const Rect &, const Rect &) const;
+    void                renderTexture(const Texture &, const Point &) const;
+    void		renderTexture(const Texture &, const Rect &, const Rect &) const;
+    void                renderTexture(const TexturePos &) const;
 
-    Rect		renderText(const FontRender &, const UnicodeString &, const Color &, const Point &, int halign = AlignLeft, int valign = AlignTop, bool horizontal = true);
+    Rect		renderText(const FontRender &, const UnicodeString &, const Color &, const Point &, int halign = AlignLeft, int valign = AlignTop, bool horizontal = true) const;
 
-    void                renderClear(const Color &);
-    void                renderColor(const Color &, const Rect &);
-    void                renderRect(const Color &, const Rect &);
-    void                renderLine(const Color &, const Point &, const Point &);
-    void                renderPoint(const Color &, const Point &);
+    virtual void        renderClear(const Color &) const;
+    void                renderColor(const Color &, const Rect &) const;
+    void                renderRect(const Color &, const Rect &) const;
+    void                renderLine(const Color &, const Point &, const Point &) const;
+    void                renderPoint(const Color &, const Point &) const;
 
     virtual void	renderWindow(void) = 0;
 
-    std::string		toString(void) const;
+    virtual std::string	toString(void) const;
 };
 
 class DisplayWindow : public Window

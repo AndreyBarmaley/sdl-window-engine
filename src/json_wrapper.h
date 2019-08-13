@@ -59,6 +59,10 @@ public:
 
 enum JsonType { TypeNull, TypeInteger, TypeDouble, TypeString, TypeBoolean, TypeObject, TypeArray };
 
+class JsonContent;
+class JsonObject;
+class JsonArray;
+
 class JsonValue
 {
 public:
@@ -87,6 +91,17 @@ public:
     virtual ZPoint	getZPoint(ZPoint def = ZPoint()) const { return def; }
     virtual Size	getSize(Size def = Size()) const { return def; }
     virtual Rect	getRect(Rect def = Rect()) const { return def; }
+
+    virtual void	addInteger(const int &) {}
+    virtual void	addString(const std::string &) {}
+    virtual void	addDouble(const double &) {}
+    virtual void	addBoolean(const bool &) {}
+
+    virtual void	addColor(const Color &) {}
+    virtual void	addPoint(const Point &) {}
+    virtual void	addZPoint(const ZPoint &) {}
+    virtual void	addSize(const Size &) {}
+    virtual void	addRect(const Rect &) {}
 };
 
 const JsonValue & operator>> (const JsonValue &, int &);
@@ -99,6 +114,17 @@ const JsonValue & operator>> (const JsonValue &, ZPoint &);
 const JsonValue & operator>> (const JsonValue &, Size &);
 const JsonValue & operator>> (const JsonValue &, Rect &);
 const JsonValue & operator>> (const JsonValue &, Color &);
+
+JsonValue & operator<< (JsonValue &, const int &);
+JsonValue & operator<< (JsonValue &, const std::string &);
+JsonValue & operator<< (JsonValue &, const double &);
+JsonValue & operator<< (JsonValue &, const bool &);
+
+JsonValue & operator<< (JsonValue &, const Color &);
+JsonValue & operator<< (JsonValue &, const Point &);
+JsonValue & operator<< (JsonValue &, const ZPoint &);
+JsonValue & operator<< (JsonValue &, const Size &);
+JsonValue & operator<< (JsonValue &, const Rect &);
 
 template<typename T1, typename T2>
 const JsonValue & operator>> (const JsonValue & jv, std::pair<T1, T2> & val)
@@ -191,9 +217,6 @@ public:
     virtual int		count(void) const = 0;
     virtual void	clear(void) = 0;
 };
-
-class JsonContent;
-class JsonObject;
 
 class JsonArray : public JsonContainer
 {
@@ -417,6 +440,42 @@ namespace JsonPack
     JsonArray rects(const Rects &);
     JsonArray stringList(const StringList &);
     JsonObject fbColors(const FBColors &);
+
+    template<typename T>
+    JsonArray stdList(const std::list<T> & v)
+    {
+	JsonArray ja;
+	for(auto it = v.begin(); it != v.end(); ++it)
+    	    ja << *it;
+	return ja;
+    }
+
+    template<typename T>
+    JsonArray stdVector(const std::vector<T> & v)
+    {
+	JsonArray ja;
+	for(auto it = v.begin(); it != v.end(); ++it)
+    	    ja << *it;
+	return ja;
+    }
+
+    template<typename T>
+    JsonArray sharedVector(const SharedVector<T> & v)
+    {
+	JsonArray ja;
+	for(auto it = v.begin(); it != v.end(); ++it)
+    	    ja << *it;
+	return ja;
+    }
+
+    template<typename T>
+    JsonArray sharedList(const SharedList<T> & v)
+    {
+	JsonArray ja;
+	for(auto it = v.begin(); it != v.end(); ++it)
+    	    ja << *it;
+	return ja;
+    }
 }
 
 class JsonContent : protected SharedVector<JsmnToken>
@@ -427,7 +486,7 @@ protected:
     std::string		stringTocken(const JsmnToken &) const;
     jsmntok_t*		toJsmnTok(void);
     std::pair<JsonValue*, int>
-			getValue(const const_iterator &, JsonContainer* cont = NULL) const;
+    			getValue(const const_iterator &, JsonContainer* cont = NULL) const;
 
 public:
     JsonContent() {}

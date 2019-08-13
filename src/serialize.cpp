@@ -306,6 +306,18 @@ StreamBase & StreamBase::operator<< (const BinaryBuf & v)
     return *this;
 }
 
+bool StreamBase::wait(const std::string & marker)
+{
+rep:
+    for(auto it = marker.begin(); it != marker.end(); ++it)
+    {
+	if(fail()) return false;
+	if(*it != get8()) goto rep;
+    }
+
+    return true;
+}
+
 StreamBuf::StreamBuf(size_t sz) : itbeg(NULL), itget(NULL), itput(NULL), itend(NULL)
 {
     if(sz) realloc(sz);
@@ -870,6 +882,8 @@ StreamNetwork::StreamNetwork() : sd(NULL), sdset(NULL)
 #endif
 }
 
+size_t StreamNetwork::timeout = 100;
+
 StreamNetwork::StreamNetwork(const std::string & name, int port) : sd(NULL), sdset(NULL)
 {
     if(!open(name, port))
@@ -889,7 +903,17 @@ StreamNetwork::~StreamNetwork()
 
 bool StreamNetwork::ready(void) const
 {
-    return sd && sdset && 0 < SDLNet_CheckSockets(sdset, 1) && 0 < SDLNet_SocketReady(sd);
+    const size_t chunk = 10;
+
+    for(size_t it = 0; it < timeout; it += chunk)
+    {
+	bool res = sd && sdset && 0 < SDLNet_CheckSockets(sdset, 1) && 0 < SDLNet_SocketReady(sd);
+	if(res) return true;
+
+	Tools::delay(chunk);
+    }
+
+    return false;
 }
 
 bool StreamNetwork::open(const std::string & name, int port)
@@ -935,35 +959,38 @@ void StreamNetwork::close(void)
     }
 }
 
-bool StreamNetwork::recv(char *buf, int len)
+int StreamNetwork::recv(char *buf, int len)
 {
+    int total = 0;
+
     if(sd && buf && 0 < len)
     {
-        int rcv = 0;
+	int rcv;
+	int bufsz = len;
 
-        while((rcv = SDLNet_TCP_Recv(sd, buf, len)) > 0 && rcv < len)
+        while((rcv = SDLNet_TCP_Recv(sd, buf, bufsz)) > 0 && rcv <= bufsz)
         {
-            buf += rcv;
-            len -= rcv;
+            buf   += rcv;
+            bufsz -= rcv;
+	    total += rcv;
         }
 
-        if(rcv == len) return true;
-        setfail(true);
+        if(total != len) setfail(true);
     }
 
-    return false;
+    return total;
 }
 
-bool StreamNetwork::send(const char* buf, int len)
+int StreamNetwork::send(const char* buf, int len)
 {
+    int snd = 0;
     if(sd && buf && 0 < len)
     {
-	int snd = SDLNet_TCP_Send(sd, buf, len);
-	if(snd == len) return true;
-        setfail(true);
+	snd = SDLNet_TCP_Send(sd, buf, len);
+	if(snd != len) setfail(true);
     }
 
-    return false;
+    return snd;
 }
 
 int StreamNetwork::get8(void)
@@ -1076,15 +1103,24 @@ BinaryBuf StreamNetwork::get(size_t sz)
     if(sz)
     {
 	res.resize(sz);
-	recv(reinterpret_cast<char*>(res.data()), res.size());
+	int rcv = recv(reinterpret_cast<char*>(res.data()), res.size());
+	res.resize(rcv);
     }
     else
     {
 	while(ready())
 	{
-	    int byte = get8();
+	    const size_t packet = 1024;
+	    size_t bufsz = res.size();
+	    res.resize(bufsz + packet);
+
+	    int rcv = recv(reinterpret_cast<char*>(res.data() + bufsz), packet);
+	    if(rcv < packet)
+	    {
+		res.resize(0 < rcv ? bufsz + rcv : bufsz);
+	    }
+
 	    if(fail()) break;
-	    res.push_back(byte);
 	}
     }
 

@@ -42,8 +42,13 @@ protected:
     virtual void	signalReceive(int, const SignalMember*) {}
 };
 
+#ifdef OLDENGINE
+enum { ButtonNone, ButtonLeft = SDL_BUTTON(SDL_BUTTON_LEFT), ButtonRight = SDL_BUTTON(SDL_BUTTON_RIGHT), ButtonMiddle = SDL_BUTTON(SDL_BUTTON_MIDDLE),
+        ButtonX1 = SDL_BUTTON(SDL_BUTTON_WHEELUP), ButtonX2 = SDL_BUTTON(SDL_BUTTON_WHEELDOWN), FingerTap = SDL_BUTTON(ButtonLeft) };
+#else
 enum { ButtonNone, ButtonLeft = SDL_BUTTON(SDL_BUTTON_LEFT), ButtonRight = SDL_BUTTON(SDL_BUTTON_RIGHT), ButtonMiddle = SDL_BUTTON(SDL_BUTTON_MIDDLE),
         ButtonX1 = SDL_BUTTON(SDL_BUTTON_X1), ButtonX2 = SDL_BUTTON(SDL_BUTTON_X2), FingerTap = SDL_BUTTON(ButtonLeft) };
+#endif
 
 class MouseButton
 {
@@ -117,56 +122,10 @@ struct UserEvent
     }
 };
 
-/*
-struct RegionEvent : protected Rect
-{
-    RegionEvent() {}
-    RegionEvent(const Point & pt, const Size & sz) : Rect(pt, sz) {}
-
-protected:
-    bool		handleKeyPress(int);
-    bool		handleKeyRelease(int);
-    bool		handleTextInput(const std::string &);
-    bool		handleMousePress(const ButtonEvent &);
-    bool		handleMouseRelease(const ButtonEvent &);
-    bool		handleMouseClick(const ButtonsEvent &);
-    bool		handleMouseMotion(const Point &, u32 buttons);
-    bool		handleScrollUp(const Point &);
-    bool		handleScrollDown(const Point &);
-    bool		handleScrollLeft(const Point &);
-    bool		handleScrollRight(const Point &);
-    bool		handleUser(const UserEvent &);
-    void		handleTick(u32);
-    void		handleTextureResetHandle(void);
-    void		handleRenderPresent(u32);
-    void		handleDisplayResize(const Size &);
-
-protected:
-    virtual bool	isValid(void) { return true; }
-    virtual bool        eventKeyPress(int) { return false; }
-    virtual bool        eventKeyRelease(int) { return false; }
-    virtual bool        eventTextInput(const std::string &) { return false; }
-    virtual bool        eventMousePress(const ButtonEvent &) { return false; }
-    virtual bool        eventMouseRelease(const ButtonEvent &) { return false; }
-    virtual bool        eventMouseClick(const ButtonsEvent &) { return false; }
-    virtual void        eventMouseFocus(void) {}
-    virtual void        eventMouseLeave(void) {}
-    virtual bool        eventMouseMotion(const Point &, u32 buttons) { return false; }
-    virtual bool        eventScrollUp(const Point &) { return false; }
-    virtual bool        eventScrollDown(const Point &) { return false; }
-    virtual bool        eventScrollLeft(const Point &) { return false; }
-    virtual bool        eventScrollRight(const Point &) { return false; }
-    virtual bool        eventUser(int, void*) { return false; }
-    virtual void        eventTick(u32 ms) {}
-    virtual void        eventRenderPresent(u32 ms) {}
-    virtual void        eventDisplayResize(const Size &);
-};
-*/
-
 enum Signal
 {
     EventNone = 0x00FF0000,
-    WindowScrolledPrev, WindowScrolledNext, WindowPageUp, WindowPageDown,
+    WindowCreated, WindowScrolledPrev, WindowScrolledNext, WindowPageUp, WindowPageDown,
     ListboxChangedList, ListboxSelectedItem,
     ScrollBarScrolledPrev, ScrollBarScrolledNext, ScrollBarMovedCursor,
     ButtonPressed, ButtonReleased, ButtonClicked, ButtonSetFocus, ButtonResetFocus, ButtonTimerComplete

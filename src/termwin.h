@@ -43,12 +43,53 @@ namespace acs
     int         plus(line_t);
 }
 
+struct TermSize : packshort
+{
+    TermSize() {}
+    TermSize(int cols, int rows) : packshort(cols, rows) {}
+    TermSize(const Size & sz) : packshort(sz.w, sz.h) {}
+
+    int cols(void) const { return val1(); }
+    int rows(void) const { return val2(); }
+
+    TermSize operator+ (const TermSize & ts) const { return TermSize(cols() + ts.cols(), rows() + ts.rows()); }
+    TermSize operator- (const TermSize & ts) const { return TermSize(cols() - ts.cols(), rows() - ts.rows()); }
+
+    Size toSize(void) const { return Size(cols(), rows()); }
+};
+
+struct TermPos : packshort
+{
+    TermPos() {}
+    TermPos(int posx, int posy) : packshort(posx, posy) {}
+    TermPos(const Point & pt) : packshort(pt.x, pt.y) {}
+
+    int posx(void) const { return val1(); }
+    int posy(void) const { return val2(); }
+
+    TermPos operator+ (const TermPos & tp) const { return TermPos(posx() + tp.posx(), posy() + tp.posy()); }
+    TermPos operator- (const TermPos & tp) const { return TermPos(posx() - tp.posx(), posy() - tp.posy()); }
+    TermPos operator+ (const TermSize & ts) const { return TermPos(posx() + ts.cols(), posy() + ts.rows()); }
+    TermPos operator- (const TermSize & ts) const { return TermPos(posx() - ts.cols(), posy() - ts.rows()); }
+
+    Point toPoint(void) const { return Point(posx(), posy()); }
+};
+
+struct TermRect : TermPos, TermSize
+{
+    TermRect() {}
+    TermRect(int posx, int posy, int cols, int rows) : TermPos(posx, posy), TermSize(cols, rows) {}
+    TermRect(const TermPos & tp, const TermSize & ts) : TermPos(tp), TermSize(ts) {}
+    TermRect(const Rect & rt) : TermPos(rt.x, rt.y), TermSize(rt.w, rt.h) {}
+
+    Rect toRect(void) const { return Rect(toPoint(), toSize()); }
+};
 
 namespace cursor
 {
     struct set : public packint2
     {
-	set(const Point & pt) : packint2(pt.x, pt.y) {}
+	set(const TermPos & tp) : packint2(tp.posx(), tp.posy()) {}
 	set(int x, int y) : packint2(x, y) {}
 
 	int posx(void) const { return val1(); }
@@ -158,7 +199,7 @@ namespace fill
 {
     struct area : public std::pair<int, packint2>
     {
-	area(int val, const Size & sz) : std::pair<int, packint2>(val, packint2(sz.w, sz.h)) {}
+	area(int val, const TermSize & sz) : std::pair<int, packint2>(val, packint2(sz.cols(), sz.rows())) {}
 
 	int 		value(void) const { return first; }
 	int		width(void) const { return second.val1(); }
@@ -167,7 +208,7 @@ namespace fill
 
     struct charset : public area
     {
-	charset(int ch, const Size & sz = Size(1, 1)) : area(ch, sz) {}
+	charset(int ch, const TermSize & sz = TermSize(1, 1)) : area(ch, sz) {}
     };
 
     struct space : public charset
@@ -177,25 +218,25 @@ namespace fill
 
     struct fgcolor : public area
     {
-	fgcolor(const ColorIndex & col, const Size & sz = Size(1, 1)) : area(col(), sz) {}
+	fgcolor(const ColorIndex & col, const TermSize & sz = TermSize(1, 1)) : area(col(), sz) {}
     };
 
     struct bgcolor : public area
     {
-	bgcolor(const ColorIndex & col, const Size & sz = Size(1, 1)) : area(col(), sz) {}
+	bgcolor(const ColorIndex & col, const TermSize & sz = TermSize(1, 1)) : area(col(), sz) {}
     };
 
     struct colors : public area
     {
-	colors(const FBColors & fbc, const Size & sz = Size(1, 1)) : area(packshort(fbc.bg(), fbc.fg()).value(), sz) {}
-	colors(const ColorIndex & fg, const ColorIndex & bg, const Size & sz = Size(1, 1)) : area(packshort(bg(), fg()).value(), sz) {}
+	colors(const FBColors & fbc, const TermSize & sz = TermSize(1, 1)) : area(packshort(fbc.bg(), fbc.fg()).value(), sz) {}
+	colors(const ColorIndex & fg, const ColorIndex & bg, const TermSize & sz = TermSize(1, 1)) : area(packshort(bg(), fg()).value(), sz) {}
 	ColorIndex	fgindex(void) const { return ColorIndex(packshort(value()).val2()); }
 	ColorIndex	bgindex(void) const { return ColorIndex(packshort(value()).val1()); }
     };
 
     struct property : public area
     {
-	property(int prop, const Size & sz = Size(1, 1)) : area(prop, sz) {}
+	property(int prop, const TermSize & sz = TermSize(1, 1)) : area(prop, sz) {}
     };
 
     struct defaults : public UnicodeColor
@@ -226,60 +267,31 @@ namespace draw
 	int charset(void) const { return val2(); }
     };
 
-    struct rect : public Rect
+    struct rect : public TermRect
     {
 	line_t line;
 
-	rect(const Rect & rt, line_t type) : Rect(rt), line(type) {}
-	rect(int px, int py, int pw, int ph, line_t type) : Rect(px, py, pw, ph), line(type) {}
+	rect(const TermRect & rt, line_t type) : TermRect(rt), line(type) {}
+	rect(int px, int py, int pw, int ph, line_t type) : TermRect(px, py, pw, ph), line(type) {}
     };
 }
 
-struct TermPos : packshort
-{
-    TermPos() {}
-    TermPos(int posx, int posy) : packshort(posx, posy) {}
-    TermPos(const Point & pt) : packshort(pt.x, pt.y) {}
-
-    int posx(void) const { return val1(); }
-    int posy(void) const { return val2(); }
-
-    Point toPoint(void) const { return Point(posx(), posy()); }
-};
-
-struct TermSize : packshort
-{
-    TermSize() {}
-    TermSize(int cols, int rows) : packshort(cols, rows) {}
-    TermSize(const Size & sz) : packshort(sz.w, sz.h) {}
-
-    int cols(void) const { return val1(); }
-    int rows(void) const { return val2(); }
-
-    Size toSize(void) const { return Size(cols(), rows()); }
-};
-
-struct TermRect : TermPos, TermSize
-{
-    TermRect() {}
-    TermRect(int posx, int posy, int cols, int rows) : TermPos(posx, posy), TermSize(cols, rows) {}
-    TermRect(const Rect & rt) : TermPos(rt.x, rt.y), TermSize(rt.w, rt.h) {}
-
-    Rect toRect(void) const { return Rect(toPoint(), toSize()); }
-};
 
 class TermBase : public Window
 {
 protected:
     const FontRender*		fontRender;
     set::padding		padding;
-    packshort			curpos;
-    packshort			termsz;
+    TermPos			curpos;
+    TermSize			termsz;
     packshort			defcols;
     packshort			termopt2; /* align, unused */
 
 /*
 protected:
+    virtual void        windowMoveEvent(const Point &) {}
+    virtual void        windowResizeEvent(const Size &) {}
+    virtual void        windowVisibleEvent(bool) {}
     virtual bool        keyPressEvent(int) { return false; }
     virtual bool        keyReleaseEvent(int) { return false; }
     virtual bool        textInputEvent(const std::string &) { return false; }
@@ -288,7 +300,7 @@ protected:
     virtual bool        mouseClickEvent(const ButtonsEvent &) { return false; }
     virtual void        mouseFocusEvent(void) {}
     virtual void        mouseLeaveEvent(void) {}
-    virtual void        mouseMotionEvent(const Point &, u32 buttons) {}
+    virtual bool        mouseMotionEvent(const Point &, u32 buttons) { return false; }
     virtual bool        userEvent(int, void*) { return false; }
     virtual bool        scrollUpEvent(const Point &) { return false; }
     virtual bool        scrollDownEvent(const Point &) { return false; }
@@ -296,9 +308,10 @@ protected:
     virtual bool        scrollRightEvent(const Point &) { return false; }
     virtual void        tickEvent(u32 ms) {}
     virtual void        renderPresentEvent(u32 ms) {}
-    virtual void        displayResizeEvent(const Size &);
-    virtual void        windowVisibleEvent(bool);
+    virtual void        displayResizeEvent(const Size &, bool) {}
+    virtual void        displayFocusEvent(bool gain) {}
 */
+    virtual void        termResizeEvent(void) {}
 
     // protected: empty font render
     TermBase();
@@ -308,8 +321,6 @@ protected:
 
     int			index(const Point &) const;
     int			index(void) const;
-
-
 
     void		setFGColor(const ColorIndex & col) { defcols.set1(col()); }
     void		setBGColor(const ColorIndex & col) { defcols.set2(col()); }
@@ -333,26 +344,28 @@ public:
 
     void		setFontRender(const FontRender &);
     void                setSize(const Size &);
+    void		setTermSize(const TermSize &);
 
-    virtual void        setTermSize(int cols, int rows); // max 256 symbols
-    void		setCursorPos(int cx, int cy) { curpos.set1(cx); curpos.set2(cy); }
-    Point		cursor(void) const { return Point(curpos.val1(), curpos.val2()); }
+    void		setCursorPos(const TermPos & tp) { curpos = tp; }
+    void		resetCursorPos(void) { curpos = TermPos(); }
+    const TermPos &	cursor(void) const { return curpos; }
+
     virtual void	setCharset(int ch, const ColorIndex & fg = Color::Transparent, const ColorIndex & bg = Color::Transparent, int prop = 0) = 0;
     virtual void	renderFlush(void) = 0;
 
 
-    inline int		cols(void) const { return termsz.val1(); }
-    inline int		rows(void) const { return termsz.val2(); }
+    inline int		cols(void) const { return termsz.cols(); }
+    inline int		rows(void) const { return termsz.rows(); }
 
-    Size		termSize(void) const { return Size(cols(), rows()); }
+    const TermSize &	termSize(void) const { return termsz; }
     const FontRender*	frs(void) const { return fontRender; }
 
-    Point		sym2gfx(const Point &) const;   /* coord transformer: symbol to graphics (parent relative) */
-    Point		gfx2sym(const Point &) const;   /* coord transformer: graphics to symbol (parent relative) */
-    Size		sym2gfx(const Size &) const;    /* size transformer: symbol to graphics */
-    Size		gfx2sym(const Size &) const;    /* size transformer: graphics to symbol */
-    Rect		sym2gfx(const Rect &) const;
-    Rect		gfx2sym(const Rect &) const;
+    Point		sym2gfx(const TermPos &) const;   /* coord transformer: symbol to graphics (parent relative) */
+    TermPos		gfx2sym(const Point &) const;   /* coord transformer: graphics to symbol (parent relative) */
+    Size		sym2gfx(const TermSize &) const;    /* size transformer: symbol to graphics */
+    TermSize		gfx2sym(const Size &) const;    /* size transformer: graphics to symbol */
+    Rect		sym2gfx(const TermRect &) const;
+    TermRect		gfx2sym(const Rect &) const;
 
     TermBase & operator<< (const fill::defaults &);
     TermBase & operator<< (const fill::fgcolor &);
@@ -405,12 +418,13 @@ protected:
     TermWindow() {}
     TermWindow(TermBase & term) : TermBase(term) {} // FIXED: remove
 
+    void		termResizeEvent(void);
+
 public:
     TermWindow(const FontRender & frs) : TermBase(frs) {}
     TermWindow(const FontRender & frs, Window & win) : TermBase(frs, win) {}
     TermWindow(const Point & gfxpos, const Size & gfxsz, const FontRender & frs, Window & win) : TermBase(gfxpos, gfxsz, frs, win) {}
 
-    void		setTermSize(int cols, int row);
     void		setCharset(int ch, const ColorIndex & fg = Color::Transparent, const ColorIndex & bg = Color::Transparent, int prop = 0);
 
     void		renderSymbol(int symx, int symy);
@@ -420,18 +434,20 @@ public:
 class TermArea : public TermBase
 {
 protected:
-    packshort		termpos;
+    TermPos		termpos;
 
 public:
     TermArea(TermWindow & term) : TermBase(term) {}
     TermArea(int symx, int symy, int cols, int rows, TermWindow & term) : TermBase(term) { setTermArea(symx, symy, cols, rows); }
 
-    void		setTermPos(int symx, int symy);
+    void		setTermPos(const TermPos & tp) { termpos = tp; }
     void		setPosition(const Point &);
+
+    void		setTermArea(const TermRect &);
     void		setTermArea(int symx, int symy, int cols, int rows);
 
-    inline int		posx(void) const { return termpos.val1(); }
-    inline int		posy(void) const { return termpos.val2(); }
+    inline int		posx(void) const { return termpos.posx(); }
+    inline int		posy(void) const { return termpos.posy(); }
 
     void		setCharset(int ch, const ColorIndex & fg = Color::Transparent, const ColorIndex & bg = Color::Transparent, int prop = 0);
     void		renderFlush(void);
@@ -442,8 +458,5 @@ class CenteredTerminal : public TermWindow
 public:
     CenteredTerminal(int cols, int rows, const FontRender &, Window &);
 };
-
-// void DisplayError(const std::string & hdr, const std::string & msg);
-// void MessageTop(const std::string & hdr, const std::string & msg);
 
 #endif

@@ -325,12 +325,12 @@ UCStringList UCString::wrap(int width) const
 UnicodeColor UCString::at(size_t pos) const
 {
     //UnicodeColor res;
-    return pos < size() ? SharedVector<UnicodeColor>::at(pos) : UnicodeColor();
+    return pos < size() ? std::vector<UnicodeColor>::at(pos) : UnicodeColor();
 }
 
 size_t UCString::length(void) const
 {
-    return SharedVector<UnicodeColor>::size();
+    return std::vector<UnicodeColor>::size();
 }
 
 void UCString::assign(const UnicodeString & us, const FBColors & fbc)
@@ -394,30 +394,31 @@ UCString UCStringList::join(const UCString & sep) const
     return res;
 }
 
-void UCStringList::append(const UnicodeList & ul, const ColorIndex & col)
+UCStringList & UCStringList::append(const UnicodeList & ul, const ColorIndex & col)
 {
     append(ul, FBColors(col));
+    return *this;
 }
 
-void UCStringList::append(const UnicodeList & ul, const FBColors & fbc)
+UCStringList & UCStringList::append(const UnicodeList & ul, const FBColors & fbc)
 {
     for(auto it = ul.begin(); it != ul.end(); ++it)
         push_back(UCString(*it, fbc));
+    return *this;
 }
 
-void UCStringList::append(const UCStringList & ucsl)
+UCStringList & UCStringList::append(const UCStringList & ucsl)
 {
     insert(end(), ucsl.begin(), ucsl.end());
+    return *this;
 }
 
 UCStringList & UCStringList::operator<< (const UCString & ucs)
 {
-    push_back(ucs);
-    return *this;
+    return append(ucs);
 }
 
 UCStringList & UCStringList::operator<< (const UCStringList & ucsl)
 {
-    append(ucsl);
-    return *this;
+    return append(ucsl);
 }

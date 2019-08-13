@@ -24,17 +24,25 @@
 #define _SWE_BINARYBUF_
 
 #include <string>
+#include <vector>
 
 #include "types.h"
-#include "sharedvector.h"
 
-class BinaryBuf : public SharedVector<u8>
+class BinaryBuf : public std::vector<u8>
 {
+protected:
+    BinaryBuf(const_iterator it1, const_iterator it2) : std::vector<u8>(it1, it2) {}
+
 public:
     BinaryBuf() {}
-    BinaryBuf(size_t len, int ch = 0) : SharedVector<u8>(len, ch) {}
-    BinaryBuf(const u8* ptr, size_t len) : SharedVector<u8>(ptr, ptr + len) {}
-    BinaryBuf(const std::vector<u8> & v) : SharedVector<u8>(v) {}
+    BinaryBuf(size_t len, int ch = 0) : std::vector<u8>(len, ch) {}
+    BinaryBuf(const u8* ptr, size_t len) : std::vector<u8>(ptr, ptr + len) {}
+    BinaryBuf(const std::vector<u8> & v) : std::vector<u8>(v) {}
+    BinaryBuf(const BinaryBuf & v) : std::vector<u8>(v) {}
+    BinaryBuf(BinaryBuf && v) { swap(v); }
+
+    BinaryBuf &		operator= (const BinaryBuf & v) { assign(v.begin(), v.end()); return *this; }
+    BinaryBuf &		operator= (BinaryBuf && v) { swap(v); return *this; }
 
     BinaryBuf		zlibUncompress(size_t real = 0) const;
     BinaryBuf		zlibCompress(void) const;
@@ -46,6 +54,8 @@ public:
     int			crc16b(void) const;
     std::string		toString(void) const;
     std::string		toHexString(const std::string & sep = ", ", bool prefix = true) const;
+
+    BinaryBuf &		append(const BinaryBuf & v) { insert(end(), v.begin(), v.end()); return *this; }
 };
 
 #endif

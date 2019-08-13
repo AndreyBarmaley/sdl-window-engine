@@ -63,6 +63,7 @@ public:
     virtual const FontID &
 			id(void) const = 0;
     virtual bool	isValid(void) const = 0;
+    virtual bool	isTTF(void) const = 0;
 
     virtual Size	stringSize(const std::string &, bool horizontal = true) const = 0;
     virtual Size	unicodeSize(const UnicodeString &, bool horizontal = true) const = 0;
@@ -85,7 +86,7 @@ public:
     void 		renderString(const std::string &, const Color &, const Point &, Surface &) const;
 };
 
-struct CharsetID;
+class CharsetID;
 
 class FontsCache
 {
@@ -102,6 +103,15 @@ public:
 };
 
 struct SDLFont;
+
+#if (SDL_VERSIONNUM(SDL_TTF_MAJOR_VERSION, SDL_TTF_MINOR_VERSION, SDL_TTF_PATCHLEVEL) <= SDL_VERSIONNUM(2, 0, 10))
+#define TTF_STYLE_STRIKETHROUGH 0x08
+#define TTF_HINTING_NORMAL 0
+#define TTF_HINTING_LIGHT  1
+#define TTF_HINTING_MONO   2
+#define TTF_HINTING_NONE   3
+#endif
+
 enum { StyleNormal = TTF_STYLE_NORMAL, StyleBold = TTF_STYLE_BOLD, StyleItalic = TTF_STYLE_ITALIC, StyleUnderLine = TTF_STYLE_UNDERLINE, StyleStrikeThrough = TTF_STYLE_STRIKETHROUGH };
 enum { HintingNormal = TTF_HINTING_NORMAL, HintingLight = TTF_HINTING_LIGHT, HintingMono = TTF_HINTING_MONO, HintingNone = TTF_HINTING_NONE };
 
@@ -125,17 +135,18 @@ public:
     bool        load(const BinaryBuf &, int, bool blend = false, int style = StyleNormal, int hinting = HintingNormal);
 
     const FontID &
-		id(void) const { return fid; }
-    bool	isValid(void) const { return toSDLFont(); }
+		id(void) const override { return fid; }
+    bool	isValid(void) const override { return toSDLFont(); }
+    bool	isTTF(void) const override { return true; }
     TTF_Font*	toSDLFont(void) const;
 
-    Size	stringSize(const std::string &, bool horizontal = true) const;
-    Size	unicodeSize(const UnicodeString &, bool horizontal = true) const;
+    Size	stringSize(const std::string &, bool horizontal = true) const override;
+    Size	unicodeSize(const UnicodeString &, bool horizontal = true) const override;
 
-    int		symbolAdvance(int sym) const;
-    int		lineSkipHeight(void) const;
+    int		symbolAdvance(int sym) const override;
+    int		lineSkipHeight(void) const override;
 
-    Surface	renderCharset(int, const Color &) const;
+    Surface	renderCharset(int, const Color &) const override;
 };
 
 class FontRenderPSF : public FontRender
@@ -150,16 +161,17 @@ public:
     FontRenderPSF(const std::string &, const Size &);
 
     const FontID &
-		id(void) const { return fid; }
-    bool	isValid(void) const { return buf.size(); }
+		id(void) const override { return fid; }
+    bool	isValid(void) const override { return buf.size(); }
+    bool	isTTF(void) const override { return false; }
 
-    Size	stringSize(const std::string &, bool horizontal = true) const;
-    Size	unicodeSize(const UnicodeString &, bool horizontal = true) const;
+    Size	stringSize(const std::string &, bool horizontal = true) const override;
+    Size	unicodeSize(const UnicodeString &, bool horizontal = true) const override;
 
-    int		symbolAdvance(int sym) const;
-    int		lineSkipHeight(void) const;
+    int		symbolAdvance(int sym) const override;
+    int		lineSkipHeight(void) const override;
 
-    Surface	renderCharset(int, const Color &) const;
+    Surface	renderCharset(int, const Color &) const override;
 };
 
 class FontAltC8x16 : public FontRenderPSF

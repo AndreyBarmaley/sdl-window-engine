@@ -23,16 +23,20 @@
 #ifndef _SWE_CSTRING_
 #define _SWE_CSTRING_
 
+#include <list>
 #include <string>
 
 #include "types.h"
-#include "sharedvector.h"
-#include "sharedlist.h"
 
-struct StringList : SharedList<std::string>
+struct StringList : std::list<std::string>
 {
     StringList() {}
-    StringList(const SharedList<std::string> & list) : SharedList<std::string>(list) {}
+    StringList(const std::list<std::string> & v) : std::list<std::string>(v) {}
+    StringList(const StringList & v) : std::list<std::string>(v) {}
+    StringList(StringList && v) { swap(v); }
+
+    StringList		operator= (const StringList & v) { assign(v.begin(), v.end()); return *this; }
+    StringList		operator= (StringList && v) { swap(v); return *this; }
 
     size_t		maxStringWidth(void) const;
 
@@ -64,6 +68,8 @@ namespace String
     std::string         replace(const std::string &, const char*, const std::string &);
     std::string         replace(const std::string &, const char*, int);
     StringList          split(const std::string &, int);
+
+    std::list<std::string> split(const std::string & str, const std::string & sep);
 
     std::string         hex(int value, int width = 8);
     std::string         hex64(u64 value);

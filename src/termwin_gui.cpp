@@ -20,6 +20,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#ifndef DISABLE_TERMGUI
+
 #include <algorithm> 
 
 #include "engine.h"
@@ -112,13 +114,13 @@ const ThemeColors & CurrentTheme::theme(void) const
 }
 
 /* LabelAction */
-LabelAction::LabelAction(const std::string & str, int action, const Point & pos, TermWindow & term, const ThemeColors* theme)
+LabelAction::LabelAction(const std::string & str, int action, const TermPos & pos, TermWindow & term, const ThemeColors* theme)
     : TermWindow(term), CurrentTheme(theme), hotkey(Key::NONE)
 {
     resetState(FlagModality);
     setState(FlagKeyHandle);
     setAction(action);
-    setPosition(pos);
+    setPosition(term.sym2gfx(pos));
     setLabel(str);
 
     setVisible(true);
@@ -151,7 +153,7 @@ bool LabelAction::setLabelHotKey(const std::string & str)
 void LabelAction::setLabel(const std::string & str)
 {
     bool blockPresent = setLabelHotKey(str);
-    setTermSize(str.size() - (blockPresent ? 2 : 0), 1);
+    setTermSize(TermSize(str.size() - (blockPresent ? 2 : 0), 1));
     renderWindow();
 }
 
@@ -335,7 +337,7 @@ void LabelAction::clickAction(void)
 }
 
 /* LabelActionGroup */
-LabelAction* LabelActionGroup::addLabel(const std::string & label, int action, const Point & pos, TermWindow & term, const ThemeColors* theme)
+LabelAction* LabelActionGroup::addLabel(const std::string & label, int action, const TermPos & pos, TermWindow & term, const ThemeColors* theme)
 {
     push_back(LabelActionPtr(label, action, pos, term, theme));
     return back().get();
@@ -394,8 +396,7 @@ LabelAction* LabelActionGroup::findSelected(void) const
 
 LabelAction* LabelActionGroup::findIndex(size_t dist) const
 {
-    auto it = begin();
-    std::advance(it, dist);
+    auto it = std::next(begin(), dist);
     return it != end() ? (*it).get() : NULL;
 }
 
@@ -544,10 +545,10 @@ size_t LabelActionGroup::cols(void) const
 }
 
 /* TextButton */
-TextButton::TextButton(const std::string & str, int action, const Point & pos, TermWindow & term, const ThemeColors* theme) : LabelAction(term, theme)
+TextButton::TextButton(const std::string & str, int action, const TermPos & pos, TermWindow & term, const ThemeColors* theme) : LabelAction(term, theme)
 {
     setAction(action);
-    setPosition(pos);
+    setPosition(term.sym2gfx(pos));
     setLabel(str);
     setVisible(true);
 }
@@ -561,7 +562,7 @@ TextButton::TextButton(const buttons_t & type, TermWindow & term, const ThemeCol
 void TextButton::setLabel(const std::string & str)
 {
     bool blockPresent = setLabelHotKey(str);
-    setTermSize(label().size() + (blockPresent ? 0 : 2), 1);
+    setTermSize(TermSize(label().size() + (blockPresent ? 0 : 2), 1));
     renderWindow();
 }
 
@@ -614,19 +615,19 @@ ButtonsGroup::ButtonsGroup(int buttons, TermWindow & term, const ThemeColors* de
 }
 
 /* HeaderAreaBox */
-HeaderAreaBox::HeaderAreaBox(const UnicodeString & str, int cols1, int rows1, TermWindow & term, const ThemeColors* defcols)
+HeaderAreaBox::HeaderAreaBox(const UnicodeString & str, const TermSize & tsz, TermWindow & term, const ThemeColors* defcols)
     : TermWindow(term), CurrentTheme(defcols), header(str, theme().headerText())
 {
-    initHeaderAreaBox(cols1, rows1);
+    initHeaderAreaBox(tsz);
 
     renderWindow();
     setVisible(true);
 }
 
-HeaderAreaBox::HeaderAreaBox(const UCString & str, int cols1, int rows1, TermWindow & term, const ThemeColors* defcols)
+HeaderAreaBox::HeaderAreaBox(const UCString & str, const TermSize & tsz, TermWindow & term, const ThemeColors* defcols)
     : TermWindow(term), CurrentTheme(defcols), header(str)
 {
-    initHeaderAreaBox(cols1, rows1);
+    initHeaderAreaBox(tsz);
 
     renderWindow();
     setVisible(true);
@@ -652,9 +653,9 @@ HeaderAreaBox::HeaderAreaBox(const UCString & str, const FontRender & frs, Windo
 {
 }
 
-void HeaderAreaBox::initHeaderAreaBox(int cols1, int rows1)
+void HeaderAreaBox::initHeaderAreaBox(const TermSize & tsz)
 {
-    setTermSize(cols1 + 2, rows1 + 2); // border reserved
+    setTermSize(tsz + TermSize(2, 2)); // border reserved
     if(parent()) setPosition((parent()->size() - size()) / 2);
 
     *this << set::colors(theme().borderLine(), theme().background()) <<
@@ -712,24 +713,24 @@ ButtonsAreaBox::ButtonsAreaBox(const UCString & str, int buttons, const FontRend
 {
 }
 
-ButtonsAreaBox::ButtonsAreaBox(const UnicodeString & str, int cols1, int rows1, int buttons, TermWindow & term, const ThemeColors* defcols)
+ButtonsAreaBox::ButtonsAreaBox(const UnicodeString & str, const TermSize & tsz, int buttons, TermWindow & term, const ThemeColors* defcols)
     : HeaderAreaBox(str, term, defcols), buttonsGroup(buttons, *this, defcols)
 {
-    initButtonsAreaBox(cols1, rows1);
+    initButtonsAreaBox(tsz);
     renderWindow();
 }
 
-ButtonsAreaBox::ButtonsAreaBox(const UCString & str, int cols1, int rows1, int buttons, TermWindow & term, const ThemeColors* defcols)
+ButtonsAreaBox::ButtonsAreaBox(const UCString & str, const TermSize & tsz, int buttons, TermWindow & term, const ThemeColors* defcols)
     : HeaderAreaBox(str, term, defcols), buttonsGroup(buttons, *this, defcols)
 {
-    initButtonsAreaBox(cols1, rows1);
+    initButtonsAreaBox(tsz);
     renderWindow();
 }
 
-void ButtonsAreaBox::initButtonsAreaBox(int cols1, int rows1)
+void ButtonsAreaBox::initButtonsAreaBox(const TermSize & tsz)
 {
-    int cols2 = std::max(cols1, maxColumns()) + 2 /* 2 space */;
-    initHeaderAreaBox(cols2, rows1 + 2) /* 2 button section */;
+    int cols = std::max(tsz.cols(), maxColumns()) + 2 /* 2 space */;
+    initHeaderAreaBox(TermSize(cols, tsz.rows() + 2)) /* 2 button section */;
 
     setButtonsPosition();
     setButtonsSubscribe(Signal::ButtonClicked);
@@ -776,16 +777,16 @@ void ButtonsAreaBox::setHotKeyDisabled(bool f)
 void ButtonsAreaBox::setButtonsPosition(void)
 {
     size_t width = buttonsGroup.cols() + (buttonsGroup.count() - 1);
-    Point pos = sym2gfx(Point((cols() - width) / 2, rows() - 2)) - position();
-
+    Point pos = sym2gfx(TermPos((cols() - width) / 2, rows() - 2)) - position();
+ 
     for(size_t it = 0; it < buttonsGroup.count(); ++it)
     {
-	LabelAction* btn = buttonsGroup.findIndex(it);
-	if(btn)
-	{
+        LabelAction* btn = buttonsGroup.findIndex(it);
+        if(btn)
+        {
 	    btn->setPosition(pos);
-	    btn->setVisible(true);
-	    pos += sym2gfx(Size(btn->cols() + 1, 0));
+            btn->setVisible(true);
+	    pos += sym2gfx(TermSize(btn->cols() + 1, 0));
 	}
     }
 }
@@ -888,7 +889,7 @@ MessageBox::MessageBox(const UCString & header, const UCString & message, int bu
 void MessageBox::initMessageBox(const UCString & message)
 {
     content = message.split('\n');
-    initButtonsAreaBox(content.maxStringWidth(), content.size());
+    initButtonsAreaBox(TermSize(content.maxStringWidth(), content.size()));
 }
 
 void MessageBox::renderWindowLine(const line_t & line)
@@ -906,7 +907,7 @@ InputBox::InputBox(const UnicodeString & header, size_t cols, const std::string 
     setFlagTermCursor(true);
     setInputFocused(true);
     setHotKeyDisabled(true);
-    initButtonsAreaBox(std::max(header.size(), cols), 1);
+    initButtonsAreaBox(TermSize(std::max(header.size(), cols), 1));
 
     renderWindow();
     setVisible(true);
@@ -918,7 +919,7 @@ InputBox::InputBox(const UnicodeString & header, size_t cols, const std::string 
     setFlagTermCursor(true);
     setInputFocused(true);
     setHotKeyDisabled(true);
-    initButtonsAreaBox(std::max(header.size(), cols), 1);
+    initButtonsAreaBox(TermSize(std::max(header.size(), cols), 1));
 
     renderWindow();
     setVisible(true);
@@ -1054,7 +1055,7 @@ void InputBox::renderWindowLine(const line_t & line)
 ListBox::ListBox(const UnicodeString & header, const UCStringList & ucsl, size_t rows, TermWindow & term, const ThemeColors* defcols)
     : ButtonsAreaBox(header, ButtonYes | ButtonNo | ButtonSelected, term, defcols), content(ucsl), selected(-1), skipped(0)
 {
-    initButtonsAreaBox(std::max(header.size(), content.maxStringWidth()), rows);
+    initButtonsAreaBox(TermSize(std::max(header.size(), content.maxStringWidth()), rows));
 
     renderWindow();
     setVisible(true);
@@ -1063,7 +1064,7 @@ ListBox::ListBox(const UnicodeString & header, const UCStringList & ucsl, size_t
 ListBox::ListBox(const UnicodeString & header, const UCStringList & ucsl, size_t rows, const FontRender & frs, Window & win, const ThemeColors* defcols)
     : ButtonsAreaBox(header, ButtonYes | ButtonNo | ButtonSelected, frs, win, defcols), content(ucsl), selected(-1), skipped(0)
 {
-    initButtonsAreaBox(std::max(header.size(), content.maxStringWidth()), rows);
+    initButtonsAreaBox(TermSize(std::max(header.size(), content.maxStringWidth()), rows));
 
     renderWindow();
     setVisible(true);
@@ -1073,10 +1074,9 @@ void ListBox::renderWindowLine(const line_t & line)
 {
     ButtonsAreaBox::renderWindowLine(line);
 
-    auto it = content.begin();
     int max = rows() - 4;
     skipped = (max <= selected ? (selected - max + 1) : 0);
-    std::advance(it, skipped);
+    auto it = std::next(content.begin(), skipped);
 
     for(; it != content.end(); ++it)
     {
@@ -1108,7 +1108,7 @@ void ListBox::windowVisibleEvent(bool show)
 
 	if(ButtonYes == resultCode())
 	{
-	    auto it = content.index(selected);
+	    auto it = std::next(content.begin(), selected);
 	    if(it != content.end())
 		sResult = (*it).toString();
 	}
@@ -1117,7 +1117,7 @@ void ListBox::windowVisibleEvent(bool show)
 
 bool ListBox::mouseClickEvent(const ButtonsEvent & be)
 {
-    Rect rt = sym2gfx(Rect(1, 1, cols() - 2, rows() - 4));
+    Rect rt = sym2gfx(TermRect(1, 1, cols() - 2, rows() - 4));
     Point cur = be.press().position() + position();
 
     if(rt & cur)
@@ -1169,7 +1169,7 @@ bool ListBox::scrollDownContent(void)
 
 bool ListBox::scrollUpEvent(const Point & cur)
 {
-    Rect rt = sym2gfx(Rect(1, 1, cols() - 2, rows() - 4));
+    Rect rt = sym2gfx(TermRect(1, 1, cols() - 2, rows() - 4));
 
     if(rt & cur)
 	return scrollUpContent();
@@ -1179,7 +1179,7 @@ bool ListBox::scrollUpEvent(const Point & cur)
 
 bool ListBox::scrollDownEvent(const Point & cur)
 {
-    Rect rt = sym2gfx(Rect(1, 1, cols() - 2, rows() - 4));
+    Rect rt = sym2gfx(TermRect(1, 1, cols() - 2, rows() - 4));
 
     if(rt & cur)
 	return scrollDownContent();
@@ -1208,3 +1208,5 @@ bool ListBox::keyPressEvent(int key)
 }
 
 } // namespace TermGUI
+
+#endif

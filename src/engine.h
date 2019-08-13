@@ -54,7 +54,10 @@
 
 namespace Engine
 {
-    bool		init(void);
+    bool		init(bool debug = true);
+    bool		debugMode(void);
+    void		setDebugMode(bool);
+    int			version(void);
     void		quit(void);
 
     class		exception {};

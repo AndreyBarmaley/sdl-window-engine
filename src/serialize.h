@@ -75,6 +75,8 @@ public:
     virtual BinaryBuf	get(size_t = 0 /* all data */) = 0;
     virtual void	put(const char*, size_t) = 0;
 
+    bool		wait(const std::string &);
+
     virtual int		get8(void) = 0;
     int			get16(void);
     int			get32(void);
@@ -344,6 +346,7 @@ public:
 
     BinaryBuf		get(size_t = 0 /* all data */);
     void		put(const char*, size_t);
+    static void		setReadyTimeout(size_t ms) { timeout = ms; }
 
 protected:
     size_t		sizeg(void) const { return 0; }
@@ -352,9 +355,11 @@ protected:
     size_t		tellp(void) const { return 0; }
 
 
-    bool		recv(char*, int);
-    bool		send(const char*, int);
+    int			recv(char*, int);
+    int			send(const char*, int);
     bool		ready(void) const;
+
+    static size_t	timeout;
 };
 
 #endif

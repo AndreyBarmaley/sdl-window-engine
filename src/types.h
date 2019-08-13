@@ -38,7 +38,10 @@
 #include "SDL.h"
 #include "SDL_ttf.h"
 #include "SDL_image.h"
+
+#ifndef DISABLE_AUDIO
 #include "SDL_mixer.h"
+#endif
 
 #ifndef DISABLE_NETWORK
 #include "SDL_net.h"
@@ -55,7 +58,12 @@ typedef Uint32          u32;
 typedef Sint64          s64;
 typedef Uint64          u64;
 
+#ifndef PATH_MAX
+#define PATH_MAX	4096
+#endif
+
 #if defined __SYMBIAN32__
+#undef PATH_MAX
 #define PATH_MAX FILENAME_MAX
 namespace std
 {

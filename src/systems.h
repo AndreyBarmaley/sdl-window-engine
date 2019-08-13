@@ -27,6 +27,12 @@
 #include <string>
 #include <vector>
 
+#if defined(__MINGW32CE__)
+#include <locale.h>
+#else
+#include <clocale>
+#endif
+
 class LogWrapper
 {
 protected:
@@ -37,7 +43,7 @@ public:
     LogWrapper();
     ~LogWrapper();
 
-    static	void init(const std::string &);
+    static	void init(const std::string &, const char* = NULL);
 
     template<class T>
     LogWrapper & operator<< (const T & t)
@@ -49,6 +55,11 @@ public:
 
 std::string shortPrettyName(const std::string &);
 
+namespace Engine
+{
+    bool	debugMode(void);
+}
+
 #define COUT(x) LogWrapper() << x << "\n";
 #define PRETTY(x, y) COUT(String::time() << ": [" << x << "]\t" << shortPrettyName(__PRETTY_FUNCTION__) << ": " << y)
 
@@ -56,8 +67,8 @@ std::string shortPrettyName(const std::string &);
 #define ERROR(x) PRETTY("ERROR", x)
 #define FIXME(x) PRETTY("FIXME", x)
 
-#ifdef BUILD_DEBUG
-#define DEBUG(x) PRETTY("DEBUG", x)
+#ifdef BUILD_DEBUG_MESSAGES
+#define DEBUG(x) if(Engine::debugMode()){PRETTY("DEBUG", x)}
 #else
 #define DEBUG(x)   ;
 #endif
@@ -108,6 +119,7 @@ namespace Systems
     char*	GetOptionsArgument(void);
 
     bool	isEmbeded(void);
+    size_t	memoryUsage(void);
 }
 
 #endif

@@ -24,7 +24,14 @@
 #include <iterator>
 
 #include "inputs_keys.h"
+#include "display.h"
+#include "display_scene.h"
 #include "window_gui.h"
+
+WindowTexture::WindowTexture(const Texture & tx, Window* win) : Window(win), texture(tx)
+{
+    setSize(tx.size());
+}
 
 void WindowTexture::setTexture(const Texture & tx)
 {
@@ -37,7 +44,7 @@ void WindowTexture::renderWindow(void)
     renderTexture(texture, Point(0, 0));
 }
 
-WindowListItem::WindowListItem(Window & parent) : Window(&parent)
+WindowListItem::WindowListItem(Window & parent) : WindowToolTipArea(& parent)
 {
     resetState(FlagModality);
 }
@@ -310,7 +317,7 @@ bool WindowListBox::selectedNext(void)
     return false;
 }
 
-void WindowListBox::renderItems(void)
+void WindowListBox::renderItems(void) const
 {
     if(items.size())
     {
@@ -552,11 +559,17 @@ void WindowScrollBar::windowResizeEvent(const Size &)
     if(list) setCursorPosition(*list);
 }
 
-bool WindowScrollBar::mouseClickEvent(const ButtonsEvent & coords)
+bool WindowScrollBar::mousePressEvent(const ButtonEvent & be)
 {
-    if(coords.isButtonLeft() && coords.press().position() == coords.release().position())
+    if(be.isButtonLeft() && (textureCursor().area() & be.position()))
     {
-	Point pos1 = coords.release().position();
+	setState(FlagButtonPressed);
+	return true;
+    }
+    else
+    if(be.isButtonLeft() && (scrollArea() & be.position()))
+    {
+	Point pos1 = be.position();
 	Point pos2 = cursorPosition();
 	const Rect & localArea = rect();
 	int cursz = cursorSize();
@@ -573,11 +586,21 @@ bool WindowScrollBar::mouseClickEvent(const ButtonsEvent & coords)
 	    textureCursor().setPosition(isVertical() ? Point(pos2.x, pos1.y) : Point(pos1.x, pos2.y));
 	    signalEmit(Signal::ScrollBarMovedCursor);
 	    renderWindow();
-
-	    return true;
 	}
+
+	return true;
     }
 
+    return false;
+}
+
+bool WindowScrollBar::mouseReleaseEvent(const ButtonEvent & be)
+{
+    if(be.isButtonLeft() && (textureCursor().area() & be.position()))
+    {
+	resetState(FlagButtonPressed);
+	return true;
+    }
     return false;
 }
 
@@ -605,7 +628,8 @@ bool WindowScrollBar::scrollNext(void)
 
 bool WindowScrollBar::mouseMotionEvent(const Point & pos1, u32 buttons)
 {
-    if(buttons & ButtonLeft)
+    if((buttons & ButtonLeft) &&
+	checkState(FlagButtonPressed))
     {
 	int cursz = cursorSize();
 	const Rect & scroll = scrollArea();
@@ -620,6 +644,8 @@ bool WindowScrollBar::mouseMotionEvent(const Point & pos1, u32 buttons)
 		textureCursor().setPosition(isVertical() ? Point(pos2.x, pos1.y) : Point(pos1.x, pos2.y));
 		signalEmit(Signal::ScrollBarMovedCursor);
 	    }
+
+	    return true;
 	}
     }
 
@@ -642,13 +668,19 @@ const Point & WindowScrollBar::cursorPosition(void) const
 }
 
 /* WindowButton */
-WindowButton::WindowButton(Window* win) : Window(Point(), Size(), win), hotkey(Key::NONE)
+WindowButton::WindowButton(Window* win) : WindowToolTipArea(win), hotkey(Key::NONE)
 {
     resetState(FlagModality);
     setState(FlagKeyHandle);
 
     signalSubscribe(*this, Signal::ButtonTimerComplete);
 }
+
+WindowButton::WindowButton(const WindowButton & win) : WindowToolTipArea(win), hotkey(win.hotkey)
+{
+    signalSubscribe(*this, Signal::ButtonTimerComplete);
+}
+
 
 u32 WindowButton::renderButtonComplete(u32 tick, void* ptr)
 {
@@ -661,6 +693,11 @@ u32 WindowButton::renderButtonComplete(u32 tick, void* ptr)
     return 0;
 }
 
+void WindowButton::setInformed(bool f)
+{
+    setState(FlagButtonInformed, f);
+}
+
 void WindowButton::renderWindow(void)
 {
     const Texture* tx = NULL;
@@ -671,7 +708,13 @@ void WindowButton::renderWindow(void)
     if(isPressed())
 	tx = texturePressed();
     else
-	tx = isOnMouse() && textureOnMouse() && textureOnMouse()->isValid() ? textureOnMouse() : textureReleased();
+    if(isFocused() && textureFocused() && textureFocused()->isValid())
+	tx = textureFocused();
+    else
+    if(checkState(FlagButtonInformed) && textureInformed() && textureInformed()->isValid())
+	tx = textureInformed();
+    else
+	tx = textureReleased();
 
     if(tx && tx->isValid() && ! size().isEmpty())
     {
@@ -696,7 +739,7 @@ void WindowButton::setPressed(bool f)
     {
 	resetState(FlagButtonPressed);
 	signalEmit(Signal::ButtonReleased);
-	if(area() & Display::mouseCursorPosition())
+	if(isAreaPoint(Display::mouseCursorPosition()))
 	    setClickedComplete();
     }
 
@@ -739,11 +782,6 @@ void WindowButton::setDisabled(bool f)
 void WindowButton::setAction(int action)
 {
     setResultCode(action);
-}
-
-bool WindowButton::isOnMouse(void) const
-{
-    return checkState(FlagOnMouse);
 }
 
 bool WindowButton::isDisabled(void) const
@@ -855,6 +893,12 @@ int WindowButton::hotKey(void) const
     return hotkey;
 }
 
+std::string WindowButton::toString(void) const
+{
+    return StringFormat("%1, disabled(%2), pressed(%3), released(%4)").arg(Window::toString()).
+	    arg(isDisabled() ? 1 : 0).arg(isPressed() ? 1 : 0).arg(isReleased() ? 1 : 0);
+}
+
 /* TextureButton */
 TextureButton::TextureButton(Window & win) : WindowButton(& win)
 {
@@ -913,57 +957,18 @@ bool WindowCheckBox::mouseReleaseEvent(const ButtonEvent & st)
     return true;
 }
 
-/* WindowToolTip */
-WindowToolTip::WindowToolTip(u32 timeout, Window* win)
-    : WindowTexture(NULL), realParent(win), mouseTimeout(timeout), mouseIdle(0), disabled(false)
+/* WindowToolTipArea */
+void WindowToolTipArea::toolTipInit(const std::string & str)
 {
-    resetState(FlagModality);
-    setState(FlagOrderForeground);
+    toolTipInit(str, FontRenderSystem(), Color::Black, Color::Wheat, Color::MidnightBlue);
 }
 
-void WindowToolTip::tickEvent(u32 ms)
+void WindowToolTipArea::toolTipInit(const std::string & str, const FontRender & frs, const Color & fncolor, const Color & bgcolor, const Color & rtcolor)
 {
-    if(disabled)
-    {
-	mouseIdle = ms;
-    	setVisible(false);
-    }
-    else
-    if(mouseTimeout && realParent)
-    {
-    	const Point & cursorPos = Display::mouseCursorPosition();
+    Texture text = Display::renderText(frs, str, fncolor);
+    tooltip = Display::renderRect(rtcolor, bgcolor, text.size() + Size(6, 6));
 
-	if(realParent->checkState(FlagOnMouse) &&
-	    (hotArea.isEmpty() || (hotArea & cursorPos)))
-	{
-    	    if(mousePos != cursorPos)
-    	    {
-    		mousePos = cursorPos;
-    		mouseIdle = ms;
-
-    		if(isVisible())
-            	    setVisible(false);
-    	    }
-    	    else
-    	    if(! isVisible() &&
-    		ms - mouseIdle > mouseTimeout)
-    	    {
-    		setPosition(fixPosition(mousePos, size(), Display::size()));
-    		setVisible(true);
-	    }
-	}
-	else
-	if(isVisible())
-    	    setVisible(false);
-    }
-}
-
-Point WindowToolTip::fixPosition(const Point & mousepos, const Size & winsz, const Size & displaysz)
-{
-    const int offset = 2;
-    int posx = mousepos.x + winsz.w + offset > displaysz.w ? mousepos.x - winsz.w - offset : mousepos.x + offset;
-    int posy = mousepos.y - winsz.h - offset;
-    return Point(posx, posy);
+    Display::renderTexture(text, text.rect(), tooltip, Rect(Point(3, 3), text.size()));
 }
 
 /* WindowTextAreaItem */

@@ -38,21 +38,21 @@ class UnicodeString;
 
 namespace Display
 {
-    bool		init(const std::string &, const Size & win, bool fullscreen);
+    bool		init(const std::string &, const Size & win, bool fullscreen, bool accel = true);
     bool		init(const std::string &, const Size & win, const Size & render, bool fullscreen, bool accel, bool resized);
     bool		resize(const Size &);
-    bool		dirty(void);
 
     const Size &	device(void);
     const Size &	size(void);
-    const Window*	window(void);
 
     bool		scaleUsed(void);
     Point		scaleValue(const Point &);
 
     void		hardwareCursorHide(void);
     void		hardwareCursorShow(void);
+    std::list<Size>	hardwareVideoModes(void);
 
+    void		redraw(void);
     void 		renderSurface(const Surface &, const Rect &, Texture &, const Rect &, int flip = FlipNone);
     void 		renderTexture(const Texture &, const Point &);
     void 		renderTexture(const Texture &, const Rect &, Texture &, const Rect &, int flip = FlipNone);
@@ -62,14 +62,13 @@ namespace Display
     void		renderRect(const Color &, Texture &, const Rect &);
     void		renderLine(const Color &, Texture &, const Point &, const Point &);
     void		renderPoint(const Color &, Texture &, const Point &);
+    void		renderPolygon(const Color &, Texture &, const Points &, bool closure = true);
 
     Rect		renderText(const FontRender &, const UnicodeString &, const Color &, Texture &, const Point &, int halign, int valign, bool horizontal = true);
     bool		renderScreenshot(const std::string &);
 
-    void		renderCursor(const Texture &);
-    const Texture &	cursor(void);
     Texture &		texture(void);
-
+    void		renderCursor(const Texture &);
     u32			timeStart(void);
 
     Point		mouseCursorPosition(void);

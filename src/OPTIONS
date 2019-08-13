@@ -7,3 +7,4 @@ WITH_XML - add tinyxml2 support
 WITH_ICONV - usage iconv for Tools::stringEncode
 DISABLE_NETWORK - disable network
 DISABLE_AUDIO - disable audio
+DEBUG_MESSAGES - DEBUG works

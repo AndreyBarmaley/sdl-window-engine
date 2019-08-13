@@ -27,6 +27,8 @@
 #include <vector>
 #include <memory>
 #include <iterator>
+#include <algorithm>
+#include <bitset>
 
 #include "types.h"
 #include "binarybuf.h"
@@ -67,7 +69,7 @@ namespace Tools
     BinaryBuf	base64Encode(const char*);
     BinaryBuf	base64Encode(const u8*, size_t);
 
-    Points	renderCircle(const Point &, int, bool fill = false, bool sort = false);
+    Points	renderCircle(const Point &, int, bool fill = false);
     Points	renderLine(const Point &, const Point &, int step = 1);
 
     template<typename T>
@@ -145,6 +147,77 @@ namespace Tools
 	    return T();
 	}
     };
+
+    class RandomChance
+    {
+	unsigned int chance;
+	unsigned int index;
+	std::bitset<100> seeds;
+
+	void fill(void)
+	{
+    	    seeds.reset();
+
+    	    const int min = 0;
+    	    const int max = seeds.size() - 1;
+
+    	    while(seeds.count() < chance)
+    	    {
+        	int rnd = rand(min, max);
+        	seeds.set(rnd);
+    	    }
+	}
+
+    public:
+	RandomChance(unsigned int v/* 1 .. 99 chance */) : chance(v), index(0)
+	{
+    	    if(chance < 1 || chance > 99) chance = 50;
+    	    fill();
+	}
+
+	bool check(void)
+	{
+    	    if(index < seeds.size())
+        	return seeds.test(index++);
+    	    else
+    	    {
+        	fill();
+        	index = 0;
+		return check();
+    	    }
+	}
+    
+	bool last(void) const
+	{
+    	    return seeds.test(index);
+	}
+
+	std::string toString(void) const
+	{
+    	    return seeds.to_string();
+	}
+    };
+
+    template<typename T>
+    std::list<T> AdvancedSplit(const T & buf, const T & sep)
+    {
+	std::list<T> list;
+
+	auto itbeg = buf.begin();
+
+	for(;;)
+	{
+    	    auto itend = std::search(itbeg, buf.end(), sep.begin(), sep.end());
+    	    list.push_back(T(itbeg, itend));
+
+	    if(itend >= buf.end()) break;
+
+    	    itbeg = itend;
+    	    std::advance(itbeg, sep.size());
+	}
+
+	return list;
+    }
 }
 
 class Timer

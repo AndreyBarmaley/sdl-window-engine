@@ -28,6 +28,7 @@
 #include <algorithm>
 #include <climits>
 
+#include "tools.h"
 #include "systems.h"
 #include "cstring.h"
 
@@ -170,6 +171,8 @@ std::string String::strftime(const std::string & format)
 
 std::string String::number(int value)
 {
+    // return std::to_string(value);
+
     std::ostringstream os;
     os << value;
     return os.str();
@@ -193,6 +196,12 @@ std::string String::replace(const std::string & src, const char* pred, const std
 std::string String::replace(const std::string & src, const char* pred, int val)
 {
     return replace(src, pred, number(val));
+}
+
+std::list<std::string>
+split(const std::string & str, const std::string & sep) 
+{
+    return Tools::AdvancedSplit<std::string>(str, sep);
 }
 
 StringList String::split(const std::string & str, int sep)
@@ -275,14 +284,12 @@ StringFormat & StringFormat::arg(double val, int prec)
 
 StringList & StringList::operator<< (const std::string & str)
 {
-    push_back(str);
-    return *this;
+    return append(str);
 }
 
 StringList & StringList::operator<< (const StringList & sl)
 {
-    insert(end(), sl.begin(), sl.end());
-    return *this;
+    return append(sl);
 }
 
 size_t StringList::maxStringWidth(void) const

@@ -20,6 +20,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#ifndef DISABLE_TERMGUI
+
 #ifndef _SWE_TERMWIN_GUI_
 #define _SWE_TERMWIN_GUI_
 
@@ -105,7 +107,7 @@ protected:
     void	clickAction(void);
 
 public:
-    LabelAction(const std::string &, int action, const Point &, TermWindow &, const ThemeColors* = NULL);
+    LabelAction(const std::string &, int action, const TermPos &, TermWindow &, const ThemeColors* = NULL);
     LabelAction(TermWindow &, const ThemeColors* = NULL);
 
     virtual void setLabel(const std::string &);
@@ -135,7 +137,7 @@ public:
 class TextButton : public LabelAction
 {
 public:
-    TextButton(const std::string &, int action, const Point &, TermWindow &, const ThemeColors* = NULL);
+    TextButton(const std::string &, int action, const TermPos &, TermWindow &, const ThemeColors* = NULL);
     TextButton(const buttons_t &, TermWindow &, const ThemeColors* = NULL);
     TextButton(TermWindow & term, const ThemeColors* theme = NULL) : LabelAction(term, theme) {}
 
@@ -152,7 +154,7 @@ struct LabelActionPtr : std::shared_ptr<LabelAction>
     LabelActionPtr(TermWindow & term, const ThemeColors* theme = NULL)
 	: std::shared_ptr<LabelAction>(std::make_shared<LabelAction>(term, theme)) {}
 
-    LabelActionPtr(const std::string & str, int action, const Point & pos, TermWindow & term, const ThemeColors* theme = NULL)
+    LabelActionPtr(const std::string & str, int action, const TermPos & pos, TermWindow & term, const ThemeColors* theme = NULL)
 	: std::shared_ptr<LabelAction>(std::make_shared<LabelAction>(str, action, pos, term, theme)) {}
 };
 
@@ -161,7 +163,7 @@ class LabelActionGroup : protected std::list<LabelActionPtr>
 public:
     LabelActionGroup() {}
 
-    LabelAction*	addLabel(const std::string &, int action, const Point &, TermWindow &, const ThemeColors* = NULL);
+    LabelAction*	addLabel(const std::string &, int action, const TermPos &, TermWindow &, const ThemeColors* = NULL);
     LabelAction*	addLabel(TermWindow &, const ThemeColors* = NULL);
     LabelAction*	addLabel(LabelAction*);
 
@@ -203,11 +205,11 @@ protected:
     bool                keyPressEvent(int);
     virtual void	renderWindowLine(const line_t &);
 
-    void		initHeaderAreaBox(int cols, int rows);
+    void		initHeaderAreaBox(const TermSize &);
 
 public:
-    HeaderAreaBox(const UnicodeString &, int cols, int rows, TermWindow &, const ThemeColors* = NULL);
-    HeaderAreaBox(const UCString &, int cols, int rows, TermWindow &, const ThemeColors* = NULL);
+    HeaderAreaBox(const UnicodeString &, const TermSize &, TermWindow &, const ThemeColors* = NULL);
+    HeaderAreaBox(const UCString &, const TermSize &, TermWindow &, const ThemeColors* = NULL);
     //
     HeaderAreaBox(const UnicodeString &, TermWindow &, const ThemeColors* = NULL);
     HeaderAreaBox(const UCString &, TermWindow &, const ThemeColors* = NULL);
@@ -232,11 +234,11 @@ protected:
     void		setHotKeyDisabled(bool);
     void		setButtonsSubscribe(int);
     int			maxColumns(void) const;
-    void		initButtonsAreaBox(int cols, int rows);
+    void		initButtonsAreaBox(const TermSize &);
 
 public:
-    ButtonsAreaBox(const UnicodeString &, int cols, int rows, int buttons, TermWindow &, const ThemeColors* = NULL);
-    ButtonsAreaBox(const UCString &, int cols, int rows, int buttons, TermWindow &, const ThemeColors* = NULL);
+    ButtonsAreaBox(const UnicodeString &, const TermSize &, int buttons, TermWindow &, const ThemeColors* = NULL);
+    ButtonsAreaBox(const UCString &, const TermSize &, int buttons, TermWindow &, const ThemeColors* = NULL);
     //
     ButtonsAreaBox(const UnicodeString &, int buttons, TermWindow &, const ThemeColors* = NULL);
     ButtonsAreaBox(const UCString &, int buttons, TermWindow &, const ThemeColors* = NULL);
@@ -308,5 +310,7 @@ public:
 };
 
 } // namespace TermGUI
+
+#endif
 
 #endif

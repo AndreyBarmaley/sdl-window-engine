@@ -51,7 +51,8 @@ struct SDLTexture
     ~SDLTexture()
     {
 #ifdef OLDENGINE
-	if(raw) SDL_FreeSurface(raw);
+	if(raw && raw != SDL_GetVideoSurface())
+	    SDL_FreeSurface(raw);
 #else
 	if(raw) SDL_DestroyTexture(raw);
 #endif
@@ -68,14 +69,21 @@ Texture::Texture(const Surface & sf)
         src->refcount += 1;
     }
 }
-#else
+#endif
+
 Texture::Texture(SDL_Texture* tx) : ptr(std::make_shared<SDLTexture>(tx))
 {
     if(! tx)
 	ERROR(SDL_GetError());
 }
-#endif
 
+#ifdef OLDENGINE
+void Texture::convertToDisplayFormat(void)
+{
+    if(isValid())
+	ptr = std::make_shared<SDLTexture>(SDL_DisplayFormat(toSDLTexture()));
+}
+#endif
 
 void Texture::reset(void)
 {
@@ -90,6 +98,7 @@ void Texture::setTexture(const Texture & tx)
 void Texture::setBlendMode(int mode)
 {
 #ifdef OLDENGINE
+	ERROR("not supported");
 #else
     SDL_BlendMode val = static_cast<SDL_BlendMode>(mode);
     if(isValid())
@@ -103,6 +112,7 @@ void Texture::setBlendMode(int mode)
 void Texture::setColorMod(const Color & col)
 {
 #ifdef OLDENGINE
+	ERROR("not supported");
 #else
     if(isValid())
     {
@@ -117,6 +127,8 @@ void Texture::setAlphaMod(int alpha)
     if(isValid())
     {
 #ifdef OLDENGINE
+        if(0 != SDL_SetAlpha(toSDLTexture(), (alpha ? SDL_SRCALPHA : 0), alpha))
+            ERROR(SDL_GetError());
 	Display::createSurface(*this).setAlphaMod(alpha);
 #else
 	if(0 != SDL_SetTextureAlphaMod(toSDLTexture(), alpha))
@@ -170,6 +182,7 @@ Color Texture::colorMod(void) const
     if(isValid())
     {
 #ifdef OLDENGINE
+	ERROR("not supported");
 #else
 	if(0 != SDL_GetTextureColorMod(toSDLTexture(), &r, &g, &b))
 	    ERROR(SDL_GetError());
@@ -259,4 +272,10 @@ std::string Texture::toString(void) const
 std::string Texture::toStringID(void) const
 {
     return String::hex64(reinterpret_cast<std::uintptr_t>(toSDLTexture()));
+}
+
+void TexturePos::swap(TexturePos & tp)
+{
+    Texture::swap(tp);
+    std::swap(pos, tp.pos);
 }

@@ -39,6 +39,8 @@ struct Size
 
     bool	operator== (const Size &) const;
     bool	operator!= (const Size &) const;
+    bool	operator<= (const Size &) const;
+    bool	operator>= (const Size &) const;
 
     Size &	operator+= (const Size &);
     Size &	operator-= (const Size &);
@@ -52,6 +54,7 @@ struct Size
     Size	operator/ (int) const;
 
     bool	operator< (const Size &) const;
+    bool	operator> (const Size &) const;
 
     std::string	toString(void) const;
 };
@@ -63,6 +66,8 @@ struct Point
     Point() : x(0), y(0) {}
     Point(const Size & sz) : x(sz.w), y(sz.h) {}
     Point(int px, int py) : x(px), y(py) {}
+
+    bool	isNull(void) const;
 
     bool	operator== (const Point &) const;
     bool	operator!= (const Point &) const;
@@ -78,11 +83,10 @@ struct Point
     Point	operator* (int) const;
     Point	operator/ (int) const;
 
-    bool	operator< (const Point &) const;
-
+    Size	toSize(void) const { return Size(x, y); }
     std::string	toString(void) const;
 
-    static int	approximateDistance(const Point &, const Point &);
+    static int	distance(const Point &, const Point &);
 };
 
 struct ZPoint : public Point
@@ -106,8 +110,6 @@ struct ZPoint : public Point
     ZPoint	operator/ (const ZPoint &) const;
     ZPoint	operator* (int) const;
     ZPoint	operator/ (int) const;
-
-    bool	operator< (const ZPoint &) const;
 
     std::string	toString(void) const;
 };
@@ -152,23 +154,51 @@ struct Rect : public Point, public Size
     std::string	toString(void) const;
 };
 
-struct Points : SharedVector<Point>
+struct Points : std::vector<Point>
 {
     Points() {}
-    Points(const SharedVector<Point> & v) : SharedVector<Point>(v) {}
+    Points(const std::vector<Point> & v) : std::vector<Point>(v) {}
+    Points(const Points & v) : std::vector<Point>(v) {}
+    Points(Points && v) { swap(v); }
+
+    Points & operator= (const Points & v) { assign(v.begin(), v.end()); return *this; }
+    Points & operator= (Points && v) { swap(v); return *this; }
 
     Rect	around(void) const;
+
+    Points &	push_back(const Point &);
+    Points &	push_back(const Points &);
+
     Points &	operator<< (const Point &);
+    Points &	operator<< (const Points &);
 };
 
-struct Rects : SharedVector<Rect>
+struct Rects : std::vector<Rect>
 {
     Rects() {}
-    Rects(const SharedVector<Rect> & v) : SharedVector<Rect>(v) {}
+    Rects(const std::vector<Rect> & v) : std::vector<Rect>(v) {}
+    Rects(const Rects & v) : std::vector<Rect>(v) {}
+    Rects(Rects && v) { swap(v); }
+
+    Rects & operator= (const Rects & v) { assign(v.begin(), v.end()); return *this; }
+    Rects & operator= (Rects && v) { swap(v); return *this; }
 
     int 	index(const Point &) const;
     Rect	around(void) const;
+
+    Rects &	push_back(const Rect &);
+    Rects &	push_back(const Rects &);
+
     Rects &	operator<< (const Rect &);
+    Rects &	operator<< (const Rects &);
+};
+
+struct Polygon : Points
+{
+    Polygon() {}
+    Polygon(const Points &);
+
+    bool	operator& (const Point &) const;
 };
 
 Point operator+ (const Point &, const Size &);

@@ -29,10 +29,13 @@
 #include <iterator>
 #include <list>
 
+#define SWE_VERSION 20190804
+
 #ifdef OLDENGINE
 #include "SDL_rotozoom.h"
 #endif
 
+#include "display_scene.h"
 #include "engine.h"
 
 namespace Engine
@@ -43,6 +46,8 @@ namespace Engine
 
 namespace Display
 {
+    bool		debug = false;
+
 #ifdef OLDENGINE
     SDL_Surface*	_window = NULL;
 #else
@@ -52,10 +57,7 @@ namespace Display
 #endif
     bool		accelval = false;
 
-    Texture		cursorTexture;
     Texture		displayTexture;
-    bool		displayDirty = false;
-    Window*		mainWindow;
 
     ButtonsEvent	mouseButtons[6]; /* FingerTap, ButtonLeft, ButtonRight, ButtonMiddle, ButtonX1, ButtonX2 */
     int			fingerIndex = 0;
@@ -80,7 +82,7 @@ namespace Display
     void                renderPresent(void);
     void		renderCopyEx(const Texture &, const Rect &, Texture &, const Rect &, int);
 
-    void		handleEvents(void);
+    bool		handleEvents(void);
 
     void                handleMouseButton(const SDL_MouseButtonEvent &);
     void                handleMouseMotion(const SDL_MouseMotionEvent &);
@@ -111,10 +113,13 @@ void Engine::except(const char* func, const char* message)
 #endif
 }
 
-bool Engine::init(void)
+bool Engine::init(bool debug)
 {
+    Display::debug = debug;
     int init_flags = SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER;
     std::srand((u32) std::time(0));
+
+    DEBUG("SDL Window Engine: " << "version: " << version());
 
     if(SDL_Init(init_flags) != 0)
     {
@@ -125,11 +130,11 @@ bool Engine::init(void)
     {
 #ifdef OLDENGINE
 	const SDL_version* sdlver = SDL_Linked_Version();
-	VERBOSE("usage " << "SDL version: " << static_cast<int>(sdlver->major) << "." << static_cast<int>(sdlver->minor) << "." << static_cast<int>(sdlver->patch));
+	DEBUG("usage " << "SDL" << ", " << "version: " << static_cast<int>(sdlver->major) << "." << static_cast<int>(sdlver->minor) << "." << static_cast<int>(sdlver->patch));
 #else
 	SDL_version sdlver;
 	SDL_GetVersion(&sdlver);
-	VERBOSE("usage " << "SDL version: " << static_cast<int>(sdlver.major) << "." << static_cast<int>(sdlver.minor) << "." << static_cast<int>(sdlver.patch) <<
+	DEBUG("usage " << "SDL" << ", " << "version: " << static_cast<int>(sdlver.major) << "." << static_cast<int>(sdlver.minor) << "." << static_cast<int>(sdlver.patch) <<
 		", revision: " << SDL_GetRevision());
 #endif
     }
@@ -144,7 +149,7 @@ bool Engine::init(void)
     {
 	const SDL_version* sdlver = SDLNet_Linked_Version();
 	if(sdlver)
-	    VERBOSE("usage " << "SDL_net version: " << static_cast<int>(sdlver->major) << "." << static_cast<int>(sdlver->minor) << "." << static_cast<int>(sdlver->patch));
+	    DEBUG("usage " << "SDL_net" << ", " << "version: " << static_cast<int>(sdlver->major) << "." << static_cast<int>(sdlver->minor) << "." << static_cast<int>(sdlver->patch));
     }
 #endif
 
@@ -157,7 +162,7 @@ bool Engine::init(void)
     {
 	const SDL_version* sdlver = IMG_Linked_Version();
 	if(sdlver)
-	    VERBOSE("usage " << "SDL_image version: " << static_cast<int>(sdlver->major) << "." << static_cast<int>(sdlver->minor) << "." << static_cast<int>(sdlver->patch));
+	    DEBUG("usage " << "SDL_image" << ", " << "version: " << static_cast<int>(sdlver->major) << "." << static_cast<int>(sdlver->minor) << "." << static_cast<int>(sdlver->patch));
     }
 
     if(TTF_Init() != 0)
@@ -169,23 +174,25 @@ bool Engine::init(void)
     {
 	const SDL_version* sdlver = TTF_Linked_Version();
 	if(sdlver)
-	    VERBOSE("usage " << "SDL_ttf version: " << static_cast<int>(sdlver->major) << "." << static_cast<int>(sdlver->minor) << "." << static_cast<int>(sdlver->patch));
+	    DEBUG("usage " << "SDL_ttf" << ", " << "version: " << static_cast<int>(sdlver->major) << "." << static_cast<int>(sdlver->minor) << "." << static_cast<int>(sdlver->patch));
     }
 
 #ifndef DISABLE_AUDIO
+#if (SDL_VERSIONNUM(SDL_MIXER_MAJOR_VERSION, SDL_MIXER_MINOR_VERSION, SDL_MIXER_PATCHLEVEL) > SDL_VERSIONNUM(1,2,8))
     if((Mix_Init(MIX_INIT_OGG) & MIX_INIT_OGG) != MIX_INIT_OGG)
     {
         ERROR("MIX_Init" << ": " << Mix_GetError());
         return false;
     }
     else
+#endif
     {
 	if(0 > Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 1024))
     	    ERROR("MIX_OpenAudio" << ": " << Mix_GetError());
 
 	const SDL_version* sdlver = Mix_Linked_Version();
 	if(sdlver)
-	    VERBOSE("usage " << "SDL_mixer version: " << static_cast<int>(sdlver->major) << "." << static_cast<int>(sdlver->minor) << "." << static_cast<int>(sdlver->patch));
+	    DEBUG("usage " << "SDL_mixer" << ", " << "version: " << static_cast<int>(sdlver->major) << "." << static_cast<int>(sdlver->minor) << "." << static_cast<int>(sdlver->patch));
     }
 #endif
 
@@ -195,6 +202,21 @@ bool Engine::init(void)
 #endif
 #endif
     return true;
+}
+
+int Engine::version(void)
+{
+    return SWE_VERSION;
+}
+
+void Engine::setDebugMode(bool f)
+{
+    Display::debug = f;
+}
+
+bool Engine::debugMode(void)
+{
+    return Display::debug;
 }
 
 void Engine::quit(void)
@@ -210,7 +232,9 @@ void Engine::quit(void)
 #ifndef DISABLE_AUDIO
     Music::reset();
     Mix_CloseAudio();
+#if (SDL_VERSIONNUM(SDL_MIXER_MAJOR_VERSION, SDL_MIXER_MINOR_VERSION, SDL_MIXER_PATCHLEVEL) > SDL_VERSIONNUM(1,2,8))
     Mix_Quit();
+#endif
 #endif
     IMG_Quit();
 #ifndef DISABLE_NETWORK
@@ -220,9 +244,9 @@ void Engine::quit(void)
     SDL_Quit();
 }
 
-bool Display::init(const std::string & title, const Size & win, bool fullscreen)
+bool Display::init(const std::string & title, const Size & win, bool fullscreen, bool accel)
 {
-    return init(title, win, win, fullscreen, true, false);
+    return init(title, win, win, fullscreen, accel, false);
 }
 
 bool Display::init(const std::string & title, const Size & win, const Size & render, bool fullscreen, bool accel, bool resized)
@@ -235,9 +259,21 @@ bool Display::init(const std::string & title, const Size & win, const Size & ren
     int flags = 0;
 #endif
 
-#if (defined ANDROID)
-    fullscreen = true;
-#endif
+    if(Systems::isEmbeded())
+	fullscreen = true;
+
+    Size winsz = win;
+
+    // not found winsz
+    auto modes = hardwareVideoModes();
+    if(modes.end() == std::find_if(modes.begin(), modes.end(),
+            std::bind2nd(std::greater_equal<Size>(), winsz)))
+    {
+        // set max resolution and fullscreen
+        winsz = modes.back();
+	DEBUG("set win size: " << winsz.w << "x" << winsz.h);
+        fullscreen = true;
+    }
 
 #ifdef OLDENGINE
     if(fullscreen)
@@ -251,7 +287,7 @@ bool Display::init(const std::string & title, const Size & win, const Size & ren
 	flags |= SDL_WINDOW_RESIZABLE;
 #endif
 
-    return createWindow(title, win, flags) ? Display::renderInit(render, accel) : false;
+    return createWindow(title, winsz, flags) ? Display::renderInit(render, accel) : false;
 }
 
 bool Display::createWindow(const std::string & title, const Size & newsz, int flags)
@@ -280,7 +316,10 @@ bool Display::createWindow(const std::string & title, const Size & newsz, int fl
     	return false;
     }
 
-    VERBOSE(winsz.w << "x" << winsz.h);
+    if(Systems::isEmbeded())
+        Display::hardwareCursorHide();
+
+    DEBUG(winsz.w << "x" << winsz.h);
     tickStart = Tools::ticks();
 
     return true;
@@ -300,8 +339,7 @@ bool Display::resizeWindow(const Size & newsz, bool sdl)
 
 	if(renderInit(newsz, accelval))
 	{
-	    if(mainWindow) mainWindow->displayResizeHandle(newsz, sdl);
-	    //displayDirty = true;
+	    DisplayScene::displayResizeHandle(newsz, sdl);
 	    return true;
 	}
     }
@@ -314,9 +352,6 @@ bool Display::renderInit(const Size & win, bool accel)
     accelval = accel;
     rendersz = win;
 
-    if(cursorTexture.isValid())
-	cursorTexture.reset();
-
     if(displayTexture.isValid())
 	displayTexture.reset();
 
@@ -326,6 +361,7 @@ bool Display::renderInit(const Size & win, bool accel)
     winsz.h = _window->h;
 
     displayTexture = Display::createTexture(rendersz, false);
+    displayTexture.convertToDisplayFormat();
 #else
     SDL_GetWindowSize(_window, &winsz.w, &winsz.h);
 
@@ -341,7 +377,7 @@ bool Display::renderInit(const Size & win, bool accel)
 	if(accel)
 	{
     	    ERROR(SDL_GetError());
-    	    VERBOSE("switch to render software");
+    	    DEBUG("switch to render software");
 	    _renderer = SDL_CreateRenderer(_window, -1, SDL_RENDERER_SOFTWARE);
 	    accel = false;
 	}
@@ -353,10 +389,13 @@ bool Display::renderInit(const Size & win, bool accel)
 	}
     }
 
-    VERBOSE("render: " << (accel ? "hardware" : "software"));
+    DEBUG("render: " << (accel ? "hardware" : "software"));
 
     if(! renderReset(NULL))
         return false;
+
+    // default: alpha blending enabled
+    SDL_SetRenderDrawBlendMode(_renderer, SDL_BLENDMODE_BLEND);
 
     displayTexture = Texture(SDL_CreateTexture(_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, rendersz.w, rendersz.h));
 #endif
@@ -368,14 +407,14 @@ bool Display::renderInit(const Size & win, bool accel)
     }
 
     renderClear(Color::Black, displayTexture);
-    VERBOSE(rendersz.w << "x" << rendersz.h);
+    DEBUG(rendersz.w << "x" << rendersz.h);
 
     if(winsz != rendersz)
     {
 	float scaleX = rendersz.w / static_cast<float>(winsz.w);
 	float scaleY = rendersz.h / static_cast<float>(winsz.h);
 	float factor = scaleY > scaleX ? scaleY : scaleX;
-	VERBOSE("scale factor: " << factor);
+	DEBUG("scale factor: " << factor);
 
 	scale.w = rendersz.w / factor;
 	scale.h = rendersz.h / factor;
@@ -383,26 +422,17 @@ bool Display::renderInit(const Size & win, bool accel)
 	scale.y = (winsz.h - scale.h) / 2;
     }
 
-    displayDirty = false;
+    DisplayScene::setDirty(false);
 
     return true;
 }
 
-namespace DisplayScene
-{
-    extern std::list<Window*> windows;
-}
-
 void Display::closeWindow(void)
 {
-    if(cursorTexture.isValid())
-	cursorTexture.reset();
+    DisplayScene::sceneDestroy();
 
     if(displayTexture.isValid())
 	displayTexture.reset();
-
-    if(mainWindow)
-        mainWindow->destroy();
 
 #ifdef OLDENGINE
     if(_window)
@@ -531,6 +561,21 @@ void Display::renderRect(const Color & cl, Texture & dtx, const Rect & drt)
 #endif
 }
 
+void Display::renderPolygon(const Color & cl, Texture & dtx, const Points & v, bool closure)
+{
+    const Point* pt1 = NULL;
+    const Point* pt2 = NULL;
+
+    for(size_t it = 0; it < v.size(); ++it)
+    {
+        pt1 = & v[it];
+        pt2 = it + 1 < v.size() ? & v[it + 1] :
+		(closure ? & v[0] : NULL);
+
+	if(pt2) renderLine(cl, dtx, *pt1, *pt2);
+    }
+}
+
 void Display::renderLine(const Color & cl, Texture & dtx, const Point & pt1, const Point & pt2)
 {
 #ifdef OLDENGINE
@@ -594,8 +639,7 @@ void Display::renderTexture(const Texture & stx, const Rect & srt, Texture & dtx
 
 void Display::renderCursor(const Texture & tx)
 {
-    cursorTexture = tx;
-    displayDirty = true;
+    DisplayScene::setCursor(tx, Point(0, 0));
 }
 
 #ifdef OLDENGINE
@@ -628,11 +672,11 @@ void Display::renderCopyEx(const Texture & stx, const Rect & srt, Texture & dtx,
     SDL_Surface* src = stx.toSDLTexture();
     SDL_Surface* dst = dtx.toSDLTexture();
 
-    if(0 > compat_blit(src, & srcrt, dst, & dstrt))
+    if(0 > SDL_BlitSurface(src, & srcrt, dst, & dstrt))
         ERROR(SDL_GetError() << ", " << stx.toStringID());
 
     if(dtx == displayTexture)
-        displayDirty = true;
+        DisplayScene::setDirty(true);
 #else
     const SDL_Rect srcrt = srt.toSDLRect();
     const SDL_Rect dstrt = drt.toSDLRect();
@@ -647,7 +691,7 @@ void Display::renderCopyEx(const Texture & stx, const Rect & srt, Texture & dtx,
 	    ERROR(SDL_GetError() << ", " << stx.toStringID());
 
 	if(dtx == displayTexture)
-	    displayDirty = true;
+	    DisplayScene::setDirty(true);
     }
     SDL_AtomicUnlock(& renderLock);
 #endif
@@ -719,7 +763,7 @@ void Display::renderPresent(void)
     }
     SDL_AtomicUnlock(& renderLock);
 #endif
-    displayDirty = false;
+    DisplayScene::setDirty(false);
 }
 
 bool Display::renderScreenshot(const std::string & file)
@@ -751,16 +795,13 @@ void Display::redraw(void)
 {
     u32 tickCurrent = Tools::ticks();
 
-    if(displayDirty)
+    if(DisplayScene::isDirty())
     {
-	if(mainWindow)
-	    mainWindow->redraw();
-
-	renderTexture(cursorTexture, mouseCursorPosition());
+	DisplayScene::sceneRedraw();
 	renderPresent();
     
-	if(mainWindow)
-	    mainWindow->renderPresentHandle(Tools::ticks() - tickCurrent);
+	DisplayScene::renderPresentHandle(Tools::ticks() - tickCurrent);
+	DisplayScene::setDirty(false);
     }
 }
 
@@ -820,11 +861,6 @@ Texture Display::createTexture(const Texture & tx, int flip)
     return res;
 }
 
-const Texture & Display::cursor(void)
-{
-    return cursorTexture;
-}
-
 Texture & Display::texture(void)
 {
     return displayTexture;
@@ -853,7 +889,7 @@ Surface Display::createSurface(const Texture & tx)
 #endif
 }
 
-void Display::handleEvents(void)
+bool Display::handleEvents(void)
 {
     while(SDL_PollEvent(& current))
     {
@@ -924,16 +960,33 @@ void Display::handleEvents(void)
 		handleUserEvent(current.user);
                 break;
 
+	    case SDL_JOYAXISMOTION:
+		FIXME("SDL_JoyAxisMotion");
+		break;
+	    case SDL_JOYBALLMOTION:
+		FIXME("SDL_JoyBallMotion");
+		break;
+	    case SDL_JOYHATMOTION:
+		FIXME("SDL_JoyHatMotion");
+		break;
+	    case SDL_JOYBUTTONDOWN:
+		FIXME("SDL_JoyButtonDown");
+		break;
+	    case SDL_JOYBUTTONUP:
+		FIXME("SDL_JoyButtonUp");
+		break;
+
             case SDL_QUIT:
-                Engine::except(__FUNCTION__, "SDL_QUIT");
-                break;
+		DEBUG("SDL_QUIT");
+                // Engine::except(__FUNCTION__, "SDL_QUIT");
+		return false;
 
 	    default: break;
 	}
     }
 
-    if(mainWindow)
-	mainWindow->tickHandle(Tools::ticks() - tickStart);
+    DisplayScene::tickHandle(Tools::ticks() - tickStart);
+    return true;
 }
 
 enum { ScrollNone, ScrollUp, ScrollDown, ScrollLeft, ScrollRight };
@@ -942,14 +995,16 @@ void Display::handleKeyboard(const SDL_KeyboardEvent & ev)
 {
     int key = Key::toKey(ev.keysym.sym, ev.keysym.mod);
 
+    DisplayScene::keyDebugHandle(ev);
+
     switch(ev.type)
     {
         case SDL_KEYDOWN:
-            if(mainWindow) mainWindow->keyPressHandle(key);
+            DisplayScene::keyPressHandle(key);
             break;
 
         case SDL_KEYUP:
-            if(mainWindow) mainWindow->keyReleaseHandle(key);
+            DisplayScene::keyReleaseHandle(key);
             break;
 
 	default: break;
@@ -974,16 +1029,17 @@ void Display::handleMouseButton(const SDL_MouseButtonEvent & ev)
         case SDL_BUTTON_WHEELDOWN:
                 handleMouseWheel(ev.button, ev.type);
                 break;
+#else
+	case SDL_BUTTON_X1:	coords = &mouseButtons[4]; break;
+	case SDL_BUTTON_X2:	coords = &mouseButtons[5]; break;
 #endif
 	case SDL_BUTTON_LEFT:	coords = &mouseButtons[1]; break;
 	case SDL_BUTTON_RIGHT:	coords = &mouseButtons[2]; break;
 	case SDL_BUTTON_MIDDLE:	coords = &mouseButtons[3]; break;
-	case SDL_BUTTON_X1:	coords = &mouseButtons[4]; break;
-	case SDL_BUTTON_X2:	coords = &mouseButtons[5]; break;
 	default: break;
     }
 
-    if(coords && mainWindow)
+    if(coords)
     {
 	Point real(ev.x, ev.y);
 	if(Display::scaleUsed())
@@ -994,15 +1050,15 @@ void Display::handleMouseButton(const SDL_MouseButtonEvent & ev)
 	    case SDL_MOUSEBUTTONDOWN:
 	    	coords->setPress(real);
 		// generate press
-        	mainWindow->mousePressHandle(coords->press());
+        	DisplayScene::mousePressHandle(coords->press());
 		break;
 
 	    case SDL_MOUSEBUTTONUP:
 		coords->setRelease(real);
 		// generate release
-		mainWindow->mouseReleaseHandle(coords->release());
+		DisplayScene::mouseReleaseHandle(coords->release());
 		// generate click
-		mainWindow->mouseClickHandle(*coords);
+		DisplayScene::mouseClickHandle(*coords);
 		break;
 
 	    default: break;
@@ -1012,23 +1068,16 @@ void Display::handleMouseButton(const SDL_MouseButtonEvent & ev)
 
 void Display::handleMouseMotion(const SDL_MouseMotionEvent & ev)
 {
-    if(mainWindow)
-    {
-	Point real(ev.x, ev.y);
-	if(Display::scaleUsed())
-    	    real = Display::scaleValue(real);
+    Point real(ev.x, ev.y);
+    if(Display::scaleUsed())
+    	real = Display::scaleValue(real);
 
-	mainWindow->mouseMotionHandle(real, ev.state);
-
-	if(cursorTexture.isValid())
-	    displayDirty = true;
-    }
+    DisplayScene::mouseMotionHandle(real, ev.state);
 }
 
 void Display::handleFocusEvent(bool gain)
 {
-    if(mainWindow)
-	mainWindow->displayFocusHandle(gain);
+    DisplayScene::displayFocusHandle(gain);
 }
 
 #ifdef OLDENGINE
@@ -1069,7 +1118,7 @@ void Display::handleMouseWheel(const SDL_MouseWheelEvent & ev)
 
 void Display::handleTextInput(const SDL_TextInputEvent & ev)
 {
-    if(mainWindow) mainWindow->textInputHandle(ev.text);
+    DisplayScene::textInputHandle(ev.text);
 }
 
 void Display::handleFingerTap(const SDL_TouchFingerEvent & ev)
@@ -1087,24 +1136,23 @@ void Display::handleFingerTap(const SDL_TouchFingerEvent & ev)
         case SDL_FINGERDOWN:
 	    coords.setPress(real);
 	    // generate press
-	    if(mainWindow) mainWindow->mousePressHandle(coords.press());
+	    DisplayScene::mousePressHandle(coords.press());
 	    break;
 
         case SDL_FINGERUP:
-	    coords.setRelease(real);
-	    // generate release
-	    if(mainWindow)
 	    {
-		mainWindow->mouseReleaseHandle(coords.release());
+		coords.setRelease(real);
+		// generate release
+		DisplayScene::mouseReleaseHandle(coords.release());
 #if (defined ANDROID)
 		// fix finger motion
 		Point delta = coords.press().position() - coords.release().position();
 		const int val = 5;
 		if(val > std::abs(delta.x) && val > std::abs(delta.y))
-		    mainWindow->mouseClickHandle(coords);
+		    DisplayScene::mouseClickHandle(coords);
 #else
 		// generate click
-		mainWindow->mouseClickHandle(coords);
+		DisplayScene::mouseClickHandle(coords);
 #endif
 	    }
 	    break;
@@ -1122,8 +1170,7 @@ void Display::handleFingerMotion(const SDL_TouchFingerEvent & ev)
     if(Display::scaleUsed())
         real = Display::scaleValue(real);
 
-    if(mainWindow)
-	mainWindow->mouseMotionHandle(real, FingerTap);
+    DisplayScene::mouseMotionHandle(real, FingerTap);
 
     float dx = dsz.w * ev.dx;
     float dy = dsz.h * ev.dy;
@@ -1138,19 +1185,17 @@ void Display::handleFingerMotion(const SDL_TouchFingerEvent & ev)
 
 void Display::handleUserEvent(const SDL_UserEvent & ev)
 {
-    if(mainWindow)
-	mainWindow->userHandle(ev);
+    DisplayScene::userHandle(ev);
 }
 
 void Display::handleScrollEvent(int dir, const Point & pos)
 {
-    if(mainWindow)
     switch(dir)
     {
-	case ScrollUp:    mainWindow->scrollUpHandle(pos); break;
-	case ScrollDown:  mainWindow->scrollDownHandle(pos); break;
-	case ScrollLeft:  mainWindow->scrollLeftHandle(pos); break;
-	case ScrollRight: mainWindow->scrollRightHandle(pos); break;
+	case ScrollUp:    DisplayScene::scrollUpHandle(pos); break;
+	case ScrollDown:  DisplayScene::scrollDownHandle(pos); break;
+	case ScrollLeft:  DisplayScene::scrollLeftHandle(pos); break;
+	case ScrollRight: DisplayScene::scrollRightHandle(pos); break;
 	default: break;
     }
 }
@@ -1175,11 +1220,6 @@ Point Display::mouseCursorPosition(void)
 u32 Display::mouseButtonState(void)
 {
     return SDL_GetMouseState(NULL, NULL);
-}
-
-const Window* Display::window(void)
-{
-    return mainWindow;
 }
 
 Rect Display::renderTextHorizontal(const FontRender & frs, const UnicodeString & ustr, const Color & col, Texture & dtx, const Point & dpt, int halign, int valign)
@@ -1319,12 +1359,52 @@ Texture Display::renderText(const FontRender & frs, const UnicodeString & ustr, 
     return renderText(frs, UCString(ustr, FBColors(fg.toColorIndex(), bg.toColorIndex())));
 }
 
-bool Display::dirty(void)
-{
-    return displayDirty;
-}
-
 bool Display::resize(const Size & winsz)
 {
     return resizeWindow(winsz, false);
+}
+
+std::list<Size> Display::hardwareVideoModes(void)
+{
+    std::list<Size> result;
+
+#ifdef OLDENGINE
+    SDL_Rect** modes = SDL_ListModes(NULL, SDL_FULLSCREEN | SDL_HWSURFACE);
+
+    if(modes == (SDL_Rect **) 0)
+    {
+        ERROR("no modes available");
+	return result;
+    }
+    else
+    if(modes == (SDL_Rect **) -1)
+    {
+        ERROR("all resolutions available");
+	return result;
+    }
+    else
+    {
+        for(int ii = 0; modes[ii]; ++ii)
+	{
+	    Size mode(modes[ii]->w, modes[ii]->h);
+	    if(mode.h > mode.w) std::swap(mode.w, mode.h);
+	    result.push_back(mode);
+	}
+    }
+#else
+    SDL_DisplayMode mode;
+    int displayIndex = 0;
+    int modeIndex = 0;
+
+    while(0 == SDL_GetDisplayMode(displayIndex, modeIndex++, & mode))
+    {
+	if(mode.h > mode.w) std::swap(mode.w, mode.h);
+	result.push_back(Size(mode.w, mode.h));
+    }
+#endif
+
+    result.sort();
+    result.unique();
+
+    return result;
 }

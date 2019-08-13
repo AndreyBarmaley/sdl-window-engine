@@ -31,17 +31,34 @@ class WindowScrollBar;
 
 class WindowTexture : public Window
 {
+protected:
     Texture			texture;
 
 public:
     WindowTexture(Window* win) : Window(win) {}
-    WindowTexture(const Texture & tx, Window* win) : Window(win), texture(tx) {}
+    WindowTexture(const Texture &, Window*);
 
     void			setTexture(const Texture & tx);
     void			renderWindow(void);
 };
 
-class WindowListItem : public Window
+class WindowToolTipArea : public Window
+{
+    Texture			tooltip;
+
+protected:
+    const Texture*      	tooltipTexture(void) const override { return & tooltip; }
+
+public:
+    WindowToolTipArea(Window* win) : Window(win) {}
+    WindowToolTipArea(const Rect & area, Window & win) : Window(area, area, & win) {}
+    WindowToolTipArea(const WindowToolTipArea & win) : Window(win), tooltip(win.tooltip) {}
+
+    void			toolTipInit(const std::string &, const FontRender &, const Color & fn, const Color & bg, const Color & rt);
+    void			toolTipInit(const std::string &);
+};
+
+class WindowListItem : public WindowToolTipArea
 {
 public:
     WindowListItem(Window &);
@@ -69,7 +86,7 @@ public:
     WindowListBox(const Point &, const Size &, bool vertical, Window &);
     ~WindowListBox();
 
-    void			renderItems(void);
+    void			renderItems(void) const;
 
     void			insertItem(WindowListItem*, bool render = true);
     bool			removeItem(const WindowId &);
@@ -117,7 +134,8 @@ protected:
 protected:
     void			windowMoveEvent(const Point &);
     void			windowResizeEvent(const Size &);
-    bool			mouseClickEvent(const ButtonsEvent &);
+    bool			mousePressEvent(const ButtonEvent &);
+    bool			mouseReleaseEvent(const ButtonEvent &);
     bool			mouseMotionEvent(const Point &, u32 buttons);
     bool			scrollUpEvent(const Point &);
     bool			scrollDownEvent(const Point &);
@@ -140,15 +158,16 @@ public:
 };
 
 
-class WindowButton : public Window
+class WindowButton : public WindowToolTipArea
 {
     int         hotkey;
 
 protected:
-    virtual const Texture* 	textureOnMouse(void) const { return NULL; }
+    virtual const Texture* 	textureFocused(void) const { return NULL; }
     virtual const Texture* 	textureDisabled(void) const { return NULL; }
     virtual const Texture* 	texturePressed(void) const { return NULL; }
     virtual const Texture* 	textureReleased(void) const { return NULL; }
+    virtual const Texture* 	textureInformed(void) const { return NULL; } // second sprite, if informed mode
 
     bool        		mousePressEvent(const ButtonEvent &);
     bool        		mouseReleaseEvent(const ButtonEvent &);
@@ -165,6 +184,7 @@ protected:
 
 public:
     WindowButton(Window* win = NULL);
+    WindowButton(const WindowButton &);
 
     void        		renderWindow(void);
 
@@ -172,6 +192,7 @@ public:
     void       			setDisabled(bool);
     void			setPressed(bool);
     void			setClicked(void);
+    void			setInformed(bool);
     void       			setHotKey(int);
     void       			setHotKey(const std::string &);
 
@@ -179,11 +200,12 @@ public:
     bool        		isDisabled(void) const;
     bool       			isPressed(void) const;
     bool        		isReleased(void) const;
-    bool        		isOnMouse(void) const;
     bool        		isHotKey(int) const;
 
     int         		action(void) const;
     int         		hotKey(void) const;
+
+    std::string			toString(void) const;
 };
 
 class WindowCheckBox : public WindowButton
@@ -217,27 +239,6 @@ public:
     void			setSprites(const Texture & release, const Texture & press);
 };
 
-class WindowToolTip : public WindowTexture
-{
-    Window*			realParent;
-    Point       		mousePos;
-    u32         		mouseTimeout;
-    u32         		mouseIdle;
-    Rect			hotArea;
-    bool			disabled;
-
-protected:
-    void			tickEvent(u32 ms);
-    virtual Point		fixPosition(const Point & mousepos, const Size & winsz, const Size & displaysz);
-
-public:
-    WindowToolTip(u32 timeout, Window*);
-
-    void			setParent(Window* win) { realParent = win; }
-    void			setHotArea(const Rect & rt) { hotArea = rt; }
-    void			setDisabled(bool f) { disabled = f; }
-};
-
 class WindowTextAreaItem : public WindowListItem
 {
     TexturePos			content;
@@ -263,7 +264,7 @@ public:
     
     void			clear(void) { removeAllItems(); }
 
-    virtual void		renderBackground(void) { if(checkState(FlagDebug)) renderRect(Color::Red, rect()); }
+    virtual void		renderBackground(void) {}
     void			renderWindow(void);
 };
 

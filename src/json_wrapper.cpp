@@ -97,6 +97,60 @@ const char* JsmnToken::typeString(void) const
 }
 
 /* JsonValue */
+JsonValue & operator<< (JsonValue & jv, const int & st)
+{
+    jv.addInteger(st);
+    return jv;
+}
+
+JsonValue & operator<< (JsonValue & jv, const std::string & st)
+{
+    jv.addString(st);
+    return jv;
+}
+
+JsonValue & operator<< (JsonValue & jv, const double & st)
+{
+    jv.addDouble(st);
+    return jv;
+}
+
+JsonValue & operator<< (JsonValue & jv, const bool & st)
+{
+    jv.addBoolean(st);
+    return jv;
+}
+
+JsonValue & operator<< (JsonValue & jv, const Color & st)
+{
+    jv.addColor(st);
+    return jv;
+}
+
+JsonValue & operator<< (JsonValue & jv, const Point & st)
+{
+    jv.addPoint(st);
+    return jv;
+}
+
+JsonValue & operator<< (JsonValue & jv, const ZPoint & st)
+{
+    jv.addZPoint(st);
+    return jv;
+}
+
+JsonValue & operator<< (JsonValue & jv, const Size & st)
+{
+    jv.addSize(st);
+    return jv;
+}
+
+JsonValue & operator<< (JsonValue & jv, const Rect & st)
+{
+    jv.addRect(st);
+    return jv;
+}
+
 const JsonValue & operator>> (const JsonValue & jv, int & val)
 {
     val = jv.getInteger();
@@ -394,7 +448,8 @@ JsonContent::getValue(const const_iterator & it, JsonContainer* cont) const
 	while(counts-- && itval != end())
 	{
 	    auto valp = getValue(itval);
-	    arr->content.push_back(valp.first);
+	    if(valp.first)
+		arr->content.push_back(valp.first);
 	    skip += valp.second;
 	    itval = it + skip;
 	}
@@ -416,10 +471,12 @@ JsonContent::getValue(const const_iterator & it, JsonContainer* cont) const
 
 	    std::string key = stringTocken(*itkey);
 	    auto valp = getValue(itval);
-	    obj->content.insert(key, valp.first);
+	    if(valp.first)
+		obj->content.insert(key, valp.first);
 	    skip += 1 + valp.second;
 	    itkey = it + skip;
 	    itval = itkey + 1;
+	    
 	}
 
 	res = obj;
@@ -476,7 +533,10 @@ JsonObject JsonContent::toObject(void) const
     JsonObject res;
 
     if(isObject())
-	getValue(begin(), & res);
+    {
+	auto valp = getValue(begin(), & res);
+	if(valp.first && valp.first != & res) delete valp.first;
+    }
 
     return res;
 }
@@ -487,7 +547,10 @@ JsonArray JsonContent::toArray(void) const
     JsonArray res;
 
     if(isArray())
-	getValue(begin(), & res);
+    {
+	auto valp = getValue(begin(), & res);
+	if(valp.first && valp.first != & res) delete valp.first;
+    }
 
     return res;
 }
@@ -747,17 +810,17 @@ UnicodeColor JsonObject::getUnicodeColor(UnicodeColor def) const
 
 Points JsonObject::getPoints(const std::string & key) const
 {
-    return getArray<Point>(key);
+    return getStdVector<Point>(key);
 }
 
 Rects JsonObject::getRects(const std::string & key) const
 {
-    return getArray<Rect>(key);
+    return getStdVector<Rect>(key);
 }
 
 StringList JsonObject::getStringList(const std::string & key) const
 {
-    return getList<std::string>(key);
+    return getStdList<std::string>(key);
 }
 
 FBColors JsonObject::getFBColors(const std::string & key) const
@@ -1041,8 +1104,11 @@ Color JsonArray::getColor(Color def) const
     val = getValue(2);
     if(val) bv = val->getInteger(def.b());
 
+    if(3 >= count())
+	return Color(rv, gv, bv);
+
     val = getValue(3);
-    return val ? Color(rv, gv, bv, val->getInteger(def.a())) : Color(rv, gv, bv);
+    return Color(rv, gv, bv, val->getInteger(def.a()));
 }
 
 FBColors JsonArray::getFBColors(FBColors def) const
@@ -1157,26 +1223,17 @@ JsonContentString::JsonContentString(const std::string & str)
 /* JsonPack */
 JsonArray JsonPack::points(const Points & st)
 {
-    JsonArray ja;
-    for(auto it = st.begin(); it != st.end(); ++it)
-        ja.addPoint(*it);
-    return ja;
+    return sharedVector<Point>(st);
 }
 
 JsonArray JsonPack::rects(const Rects & st)
 {
-    JsonArray ja;
-    for(auto it = st.begin(); it != st.end(); ++it)
-        ja.addRect(*it);
-    return ja;
+    return sharedVector<Rect>(st);
 }
 
 JsonArray JsonPack::stringList(const StringList & v)
 {
-    JsonArray ja;
-    for(auto it = v.begin(); it != v.end(); ++it)
-	ja.addString(*it);
-    return ja;
+    return sharedList<std::string>(v);
 }
 
 JsonObject JsonPack::fbColors(const FBColors & v)

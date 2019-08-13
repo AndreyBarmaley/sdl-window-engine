@@ -260,7 +260,6 @@ void FontRenderTTF::reset(void)
 bool FontRenderTTF::load(const BinaryBuf & raw, int size, bool blend, int style, int hinting)
 {
     fid.reset();
-
     SDL_RWops *rw = SDL_RWFromConstMem(raw.data(), raw.size());
     if(rw)
     {
@@ -270,7 +269,9 @@ bool FontRenderTTF::load(const BinaryBuf & raw, int size, bool blend, int style,
 	    ptr = std::make_shared<SDLFont>(ttf);
 	    fid = FontID(raw.crc16b(), size, blend, style, hinting);
 	    TTF_SetFontStyle(toSDLFont(), style);
+#ifndef OLDENGINE
 	    TTF_SetFontHinting(toSDLFont(), hinting);
+#endif
 	    FontRender::fsz = Size(symbolAdvance(0x20), lineSkipHeight());
 	    return true;
 	}
@@ -290,7 +291,9 @@ bool FontRenderTTF::open(const std::string & fn, int size, bool blend, int style
 	ptr = std::make_shared<SDLFont>(ttf);
 	fid = FontID(Tools::crc16b(fn.c_str()), size, blend, style, hinting);
 	TTF_SetFontStyle(toSDLFont(), style);
+#ifndef OLDENGINE
 	TTF_SetFontHinting(toSDLFont(), hinting);
+#endif
 	FontRender::fsz = Size(symbolAdvance(0x20), lineSkipHeight());
 	return true;
     }
@@ -385,11 +388,26 @@ Size FontRenderTTF::unicodeSize(const UnicodeString & ustr, bool horizontal) con
     {
 	if(horizontal)
 	{
-	    UnicodeString tmp;
-	    tmp.append(ustr).append(0);
+	    if(ustr.capacity() > ustr.size())
+	    {
+		UnicodeString & ustr2 = const_cast<UnicodeString &>(ustr);
+		ustr2.push_back(0);
+		const char16_t* ptr = & ustr2[0];
 
-	    if(0 != TTF_SizeUNICODE(toSDLFont(), & tmp[0], & w, & h))
-		ERROR(SDL_GetError());
+		if(0 != TTF_SizeUNICODE(toSDLFont(), reinterpret_cast<const Uint16*>(ptr), & w, & h))
+		    ERROR(SDL_GetError());
+
+		ustr2.pop_back();
+	    }
+	    else
+	    {
+		UnicodeString ustr2;
+		ustr2.append(ustr).append(0);
+		const char16_t* ptr = & ustr2[0];
+
+		if(0 != TTF_SizeUNICODE(toSDLFont(), reinterpret_cast<const Uint16*>(ptr), & w, & h))
+		    ERROR(SDL_GetError());
+	    }
 	}
 	else
 	{
@@ -408,7 +426,6 @@ Size FontRenderTTF::unicodeSize(const UnicodeString & ustr, bool horizontal) con
 Surface FontRenderTTF::renderCharset(int ch, const Color & col) const
 {
     u16 buf[2] = { L'\0', L'\0' }; buf[0] = ch;
-
     return Surface(fid.blend() ? TTF_RenderUNICODE_Blended(toSDLFont(), buf, col.toSDLColor()) :
 	TTF_RenderUNICODE_Solid(toSDLFont(), buf, col.toSDLColor()));
 }

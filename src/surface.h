@@ -110,14 +110,17 @@ public:
     Texture() {}
 #ifdef OLDENGINE
     Texture(const Surface &);
-#else
-    Texture(SDL_Texture*);
 #endif
+    Texture(SDL_Texture*);
 
     Texture		copy(void) const;
 
     bool		operator== (const Texture & tx) const { return toSDLTexture() == tx.toSDLTexture(); }
     bool		operator!= (const Texture & tx) const { return toSDLTexture() != tx.toSDLTexture(); }
+
+#ifdef OLDENGINE
+    void		convertToDisplayFormat(void);
+#endif
 
     void		setTexture(const Texture &);
     void		setAlphaMod(int);
@@ -161,6 +164,7 @@ public:
     const Point &	position(void) const { return pos; }
     const Texture &	texture(void) const { return *this; }
     Rect		area(void) const { return Rect(pos, size()); }
+    void		swap(TexturePos &);
 };
 
 #endif

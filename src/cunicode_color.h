@@ -62,16 +62,25 @@ public:
 class UCStringList;
 class FontRender;
 
-class UCString : protected SharedVector<UnicodeColor>
+class UCString : protected std::vector<UnicodeColor>
 {
     FBColors		defcols;
 
+protected:
+    UCString(const_iterator it1, const_iterator it2) : std::vector<UnicodeColor>(it1, it2) {}
+
 public:
     UCString(const FBColors & fbc = FBColors(Color::Black)) : defcols(fbc) {}
-    UCString(const_iterator it1, const_iterator it2) : SharedVector<UnicodeColor>(it1, it2) {}
 
     UCString(const UnicodeString &, const FBColors & fbc = FBColors(Color::Black));
     UCString(const UnicodeString &, const ColorIndex &);
+
+    UCString(const std::vector<UnicodeColor> & v) : std::vector<UnicodeColor>(v) {}
+    UCString(const UCString & v) : std::vector<UnicodeColor>(v) {}
+    UCString(UCString && v) { swap(v); }
+
+    UCString & operator= (const UCString & v) { std::vector<UnicodeColor>::assign(v.begin(), v.end()); return *this; }
+    UCString & operator= (UCString && v) { swap(v); return *this; }
 
     UCString & operator<< (const FBColors &);
     UCString & operator<< (const ColorIndex &);
@@ -97,13 +106,18 @@ public:
     size_t		size(void) const { return length(); }
 };
 
-class UCStringList : public SharedList<UCString>
+class UCStringList : public std::list<UCString>
 {
 public:
     UCStringList() {}
-    UCStringList(const SharedList<UCString> & list) : SharedList<UCString>(list) {}
     UCStringList(const UnicodeList & ul, const FBColors & fbc) { append(ul, fbc); }
     UCStringList(const UnicodeList & ul, const ColorIndex & col) { append(ul, col); }
+    UCStringList(const std::list<UCString> & v) : std::list<UCString>(v) {}
+    UCStringList(const UCStringList & v) : std::list<UCString>(v) {}
+    UCStringList(UCStringList && v) { swap(v); }
+
+    UCStringList &	operator= (const UCStringList & v) { assign(v.begin(), v.end()); return *this; }
+    UCStringList &	operator= (UCStringList && v) { swap(v); return *this; }
 
     size_t              maxStringWidth(void) const;
     size_t              totalStringsWidth(void) const;
@@ -111,9 +125,10 @@ public:
     UCString		join(void) const;
     UCString		join(const UCString &) const;
 
-    void                append(const UnicodeList &, const FBColors &);
-    void                append(const UnicodeList &, const ColorIndex &);
-    void                append(const UCStringList &);
+    UCStringList &      append(const UCString & v) { push_back(v); return *this; }
+    UCStringList &      append(const UnicodeList &, const FBColors &);
+    UCStringList &      append(const UnicodeList &, const ColorIndex &);
+    UCStringList &      append(const UCStringList &);
 
     UCStringList &	operator<< (const UCString &);
     UCStringList &	operator<< (const UCStringList &);

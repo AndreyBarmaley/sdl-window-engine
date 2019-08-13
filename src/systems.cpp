@@ -73,7 +73,7 @@ std::ostream* LogWrapper::os = NULL;
 std::string   LogWrapper::id;
 
 #if defined(__SYMBIAN32__)
-LogWrapper::init(const std::string & app){}
+LogWrapper::init(const std::string & app, const char* arg0){}
 LogWrapper::LogWrapper(){}
 LogWrapper::~LogWrapper(){}
 #elif defined(ANDROID)
@@ -83,7 +83,7 @@ namespace
     static std::ostringstream oslog;
 }
 
-void LogWrapper::init(const std::string & app)
+void LogWrapper::init(const std::string & app, const char* arg0)
 {
     id = app;
 }
@@ -104,9 +104,11 @@ namespace
     static std::ofstream osfile;
 }
 
-void LogWrapper::init(const std::string & app)
+void LogWrapper::init(const std::string & app, const char* arg0)
 {
-    id = std::string(app).append(".log");
+    id = arg0 ?
+	Systems::concatePath(Systems::dirname(arg0), app).append(".txt") :
+	std::string(app).append(".txt");
     osfile.open(id.c_str(), std::fstream::app);
 }
 
@@ -118,7 +120,7 @@ LogWrapper::LogWrapper()
 
 LogWrapper::~LogWrapper(){}
 #else
-void LogWrapper::init(const std::string & app)
+void LogWrapper::init(const std::string & app, const char* arg0)
 {
     id = app;
 }
@@ -343,6 +345,8 @@ void Systems::setLocale(int category, const char* locale)
 {
 #if defined(ANDROID)
     setlocale(category, locale);
+#elif defined(__MINGW32CE__)
+    // setlocale(category, locale);
 #else
     std::setlocale(category, locale);
 #endif
@@ -360,10 +364,10 @@ std::string Systems::nulFile(void)
 std::string Systems::messageLocale(int length /* 1, 2, 3 */)
 {
     std::string locname;
-#if defined(__MINGW32CE__) || defined(__MINGW32__)
-    char* clocale = std::setlocale(LC_MONETARY, NULL);
-#elif defined(ANDROID)
+#if defined(ANDROID)
     char* clocale = setlocale(LC_MESSAGES, NULL);
+#elif defined(__MINGW32CE__)
+    char* clocale = NULL;
 #else
     char* clocale = std::setlocale(LC_MESSAGES, NULL);
 #endif
@@ -578,3 +582,67 @@ const char* Systems::suffixLib(void)
 #endif
 }
 #endif // WITH_DLL
+
+/* fix char */
+#if defined(__MINGW32CE__)
+
+#define is_ll_hh(a, ll, hh) (ll <= a && hh >= a)
+
+#define is_00_08(a) is_ll_hh(a, 0x00, 0x08)
+#define is_09_0d(a) is_ll_hh(a, 0x09, 0x0d)
+#define is_0e_1f(a) is_ll_hh(a, 0x0e, 0x1f)
+#define is_21_2f(a) is_ll_hh(a, 0x21, 0x2f)
+#define is_30_39(a) is_ll_hh(a, 0x30, 0x39)
+#define is_3a_40(a) is_ll_hh(a, 0x3a, 0x40)
+#define is_41_46(a) is_ll_hh(a, 0x41, 0x46)
+#define is_47_5a(a) is_ll_hh(a, 0x47, 0x5a)
+#define is_5b_60(a) is_ll_hh(a, 0x5b, 0x60)
+#define is_61_66(a) is_ll_hh(a, 0x61, 0x66)
+#define is_67_7a(a) is_ll_hh(a, 0x67, 0x7a)
+#define is_7b_7e(a) is_ll_hh(a, 0x7b, 0x7e)
+
+#define is_20(a)    (0x20 == a)
+#define is_7f(a)    (0x7f == a)
+
+ int iscntrl(int a) { return (is_00_08(a) || is_09_0d(a) || is_0e_1f(a) || is_7f(a)); }
+ int isspace(int a) { return (is_09_0d(a) || is_20(a)); }
+ int isupper(int a) { return (is_41_46(a) || is_47_5a(a)); }
+ int isslower(int a){ return (is_61_66(a) || is_67_7a(a)); }
+ int isalpha(int a) { return (is_41_46(a) || is_47_5a(a) || is_61_66(a) || is_67_7a(a)); }
+ int isdigit(int a) { return (is_30_39(a)); }
+ int isxdigit(int a){ return (is_30_39(a) || is_41_46(a) || is_61_66(a)); }
+ int isalnum(int a) { return (isalpha(a) || isdigit(a)); }
+ int ispunct(int a) { return (is_21_2f(a) || is_3a_40(a) || is_5b_60(a) || is_7b_7e(a)); }
+ int isgraph(int a) { return (ispunct(a) || isalnum(a)); }
+ int isprint(int a) { return (isgraph(a) || is_20(a)); }
+#endif
+
+size_t Systems::memoryUsage(void)
+{
+#if defined(__SYMBIAN32__)
+    return 0;
+#elif defined(__WIN32__)
+    static MEMORYSTATUS ms;
+
+    ZeroMemory(&ms, sizeof(ms));
+    ms.dwLength = sizeof(MEMORYSTATUS);
+    GlobalMemoryStatus(&ms);
+
+    return (ms.dwTotalVirtual - ms.dwAvailVirtual);
+#elif defined(__LINUX__)
+    unsigned int size = 0;
+    std::ostringstream os;
+    os << "/proc/" << getpid() << "/statm";
+
+    std::ifstream fs(os.str().c_str());
+    if(fs.is_open())
+    {
+        fs >> size;
+        fs.close();
+    }
+    
+    return size * getpagesize();
+#else
+    return 0;
+#endif
+}

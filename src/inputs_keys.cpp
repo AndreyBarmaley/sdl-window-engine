@@ -20,11 +20,185 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include <iterator>
 #include <algorithm>
 
 #include "types.h"
 #include "systems.h"
 #include "inputs_keys.h"
+
+bool KeyName::iskey(int v) const { return key == v; }
+bool KeyName::isname(const std::string & v) const { return name && 0 == v.compare(name); }
+
+const KeyName _allkeys[] = {
+    { Key::ESCAPE, "ESCAPE" },
+    { Key::F1, "F1" },
+    { Key::F2, "F2" },
+    { Key::F3, "F3" },
+    { Key::F4, "F4" },
+    { Key::F5, "F5" },
+    { Key::F6, "F6" },
+    { Key::F7, "F7" },
+    { Key::F8, "F8" },
+    { Key::F9, "F9" },
+    { Key::F10, "F10" },
+    { Key::F11, "F11" },
+    { Key::F12, "F12" },
+    { Key::INSERT, "INSERT" },
+    { Key::HOME, "HOME" },
+    { Key::END, "END" },
+    { Key::DELETE, "DELETE" },
+    { Key::PAGEUP, "PAGEUP" },
+    { Key::PAGEDOWN, "PAGEDOWN" },
+    { Key::LEFT, "LEFT" },
+    { Key::RIGHT, "RIGHT" },
+    { Key::UP, "UP" },
+    { Key::DOWN, "DOWN" },
+    { Key::RETURN, "RETURN" },
+    { Key::BACKQUOTE, "BACKQUOTE" },
+    { Key::K1, "K1" },
+    { Key::K2, "K2" },
+    { Key::K3, "K3" },
+    { Key::K4, "K4" },
+    { Key::K5, "K5" },
+    { Key::K6, "K6" },
+    { Key::K7, "K7" },
+    { Key::K8, "K8" },
+    { Key::K9, "K9" },
+    { Key::K0, "K0" },
+    { Key::MINUS, "MINUS" },
+    { Key::EQUALS, "EQUALS" },
+    { Key::BACKSPACE, "BACKSPACE" },
+    { Key::TAB, "TAB" },
+    { Key::LEFTBRACKET, "LEFTBRACKET" },
+    { Key::RIGHTBRACKET, "RIGHTBRACKET" },
+    { Key::BACKSLASH, "BACKSLASH" },
+    { Key::SEMICOLON, "SEMICOLON" },
+    { Key::QUOTE, "QUOTE" },
+    { Key::COMMA, "COMMA" },
+    { Key::PERIOD, "PERIOD" },
+    { Key::SLASH, "SLASH" },
+    { Key::SPACE, "SPACE" },
+    { Key::a, "a" },
+    { Key::b, "b" },
+    { Key::c, "c" },
+    { Key::d, "d" },
+    { Key::e, "e" },
+    { Key::f, "f" },
+    { Key::g, "g" },
+    { Key::h, "h" },
+    { Key::i, "i" },
+    { Key::j, "j" },
+    { Key::k, "k" },
+    { Key::l, "l" },
+    { Key::m, "m" },
+    { Key::n, "n" },
+    { Key::o, "o" },
+    { Key::p, "p" },
+    { Key::q, "q" },
+    { Key::r, "r" },
+    { Key::s, "s" },
+    { Key::t, "t" },
+    { Key::u, "u" },
+    { Key::v, "v" },
+    { Key::w, "w" },
+    { Key::x, "x" },
+    { Key::y, "y" },
+    { Key::z, "z" },
+    { Key::CTRL, "CTRL" },
+    { Key::ALT, "ALT" },
+    { Key::SHIFT, "SHIFT" },
+    { Key::TILDE, "TILDE" },
+    { Key::EXCLAIM, "EXCLAIM" },
+    { Key::AT, "AT" },
+    { Key::HASH, "HASH" },
+    { Key::DOLLAR, "DOLLAR" },
+    { Key::PERCENT, "PERCENT" },
+    { Key::CARET, "CARET" },
+    { Key::AMPERSAND, "AMPERSAND" },
+    { Key::ASTERISK, "ASTERISK" },
+    { Key::LEFTPAREN, "LEFTPAREN" },
+    { Key::RIGHTPAREN, "RIGHTPAREN" },
+    { Key::UNDERSCORE, "UNDERSCORE" },
+    { Key::PLUS, "PLUS" },
+    { Key::LEFTCURLY, "LEFTCURLY" },
+    { Key::RIGHTCURLY, "RIGHTCURLY" },
+    { Key::VERTLINE, "VERTLINE" },
+    { Key::COLON, "COLON" },
+    { Key::QUOTEDBL, "QUOTEDBL" },
+    { Key::LESS, "LESS" },
+    { Key::GREATER, "GREATER" },
+    { Key::QUESTION, "QUESTION" },
+    { Key::A, "A" },
+    { Key::B, "B" },
+    { Key::C, "C" },
+    { Key::D, "D" },
+    { Key::E, "E" },
+    { Key::F, "F" },
+    { Key::G, "G" },
+    { Key::H, "H" },
+    { Key::I, "I" },
+    { Key::J, "J" },
+    { Key::K, "K" },
+    { Key::L, "L" },
+    { Key::M, "M" },
+    { Key::N, "N" },
+    { Key::O, "O" },
+    { Key::P, "P" },
+    { Key::Q, "Q" },
+    { Key::R, "R" },
+    { Key::S, "S" },
+    { Key::T, "T" },
+    { Key::U, "U" },
+    { Key::V, "V" },
+    { Key::W, "W" },
+    { Key::X, "X" },
+    { Key::Y, "Y" },
+    { Key::Z, "Z" },
+    { Key::AC_SEARCH, "AC_SEARCH" },
+    { Key::AC_HOME, "AC_HOME" },
+    { Key::AC_BACK, "AC_BACK" },
+    { Key::AC_FORWARD, "AC_FORWARD" },
+    { Key::AC_STOP, "AC_STOP" },
+    { Key::AC_REFRESH, "AC_REFRESH" },
+    { Key::AC_BOOKMARKS, "AC_BOOKMARKS" },
+    { Key::CAPSLOCK, "CAPSLOCK" },
+    { Key::SCROLLOCK, "SCROLLOCK" },
+    { Key::RSHIFT, "RSHIFT" },
+    { Key::LSHIFT, "LSHIFT" },
+    { Key::RCTRL, "RCTRL" },
+    { Key::LCTRL, "LCTRL" },
+    { Key::RALT, "RALT" },
+    { Key::LALT, "LALT" },
+    { Key::RMETA, "RMETA" },
+    { Key::LMETA, "LMETA" },
+    { Key::LSUPER, "LSUPER" },
+    { Key::RSUPER, "RSUPER" },
+    { Key::MODE, "MODE" },
+    { Key::HELP, "HELP" },
+    { Key::PRINT, "PRINT" },
+    { Key::SYSREQ, "SYSREQ" },
+    { Key::MENU, "MENU" },
+    { Key::POWER, "POWER" },
+    { Key::UNDO, "UNDO" },
+    { Key::NONE, NULL }
+};
+
+const KeyName* Key::allKeys(void)
+{
+    return _allkeys;
+}
+
+const char* Key::toName(int key)
+{
+    auto _allkeys_end = std::end(_allkeys);
+    auto _allkeys_it = std::find_if(std::begin(_allkeys), _allkeys_end,
+		std::bind2nd(std::mem_fun_ref(& KeyName::iskey), key));
+    if(_allkeys_it != _allkeys_end) return (*_allkeys_it).name;
+
+    ERROR("key not found: " << key);
+    return NULL;
+}
 
 SDL_Keycode Key::toSDLKeyCode(int key)
 {
@@ -126,12 +300,6 @@ SDL_Keycode Key::toSDLKeyCode(int key)
         case y:            return SDLK_y;
         case z:            return SDLK_z;
 
-#ifdef OLDENGINE
-        case PRINT:        return SDLK_PRINT;
-#else
-        case PRINT:        return SDLK_PRINTSCREEN;
-#endif
-
 /*
         case KP0:          return SDLK_KP_0;
         case KP1:          return SDLK_KP_1;
@@ -160,6 +328,38 @@ SDL_Keycode Key::toSDLKeyCode(int key)
         case AC_REFRESH:   return SDLK_AC_REFRESH;
         case AC_BOOKMARKS: return SDLK_AC_BOOKMARKS;
 #endif
+
+	case CAPSLOCK:     return SDLK_CAPSLOCK;
+#ifdef OLDENGINE
+	case SCROLLOCK:	   return SDLK_SCROLLOCK;
+#else
+	case SCROLLOCK:	   return SDLK_SCROLLLOCK;
+#endif
+	case RSHIFT:       return SDLK_RSHIFT;
+	case LSHIFT:       return SDLK_LSHIFT;
+	case RCTRL:        return SDLK_RCTRL;
+	case LCTRL:        return SDLK_LCTRL;
+	case RALT:         return SDLK_RALT;
+	case LALT:         return SDLK_LALT;
+#ifdef OLDENGINE
+	case RMETA:        return SDLK_RMETA;
+	case LMETA:        return SDLK_LMETA;
+	case LSUPER:       return SDLK_LSUPER;
+	case RSUPER:       return SDLK_RSUPER;
+#endif
+	case MODE:         return SDLK_MODE;
+	case HELP:         return SDLK_HELP;
+#ifdef OLDENGINE
+	case PRINT:        return SDLK_PRINT;
+#else
+	case PRINT:        return SDLK_PRINTSCREEN;
+#endif
+	case SYSREQ:       return SDLK_SYSREQ;
+	case MENU:         return SDLK_MENU;
+	case POWER:        return SDLK_POWER;
+	case UNDO:         return SDLK_UNDO;
+
+	default: break;
     }
 
     return SDLK_UNKNOWN;
@@ -267,12 +467,6 @@ int Key::toKey(const SDL_Keycode & sym, int mod)
         case SDLK_y:		res = y; break;
         case SDLK_z:		res = z; break;
 
-#ifdef OLDENGINE
-        case SDLK_PRINT:	res = PRINT; break;
-#else
-        case SDLK_PRINTSCREEN:	res = PRINT; break;
-#endif
-
 /*
         case SDLK_KP_0:		res = KP0; break;
         case SDLK_KP_1:		res = KP1; break;
@@ -301,7 +495,38 @@ int Key::toKey(const SDL_Keycode & sym, int mod)
         case SDLK_AC_REFRESH:   res = AC_REFRESH; break;
         case SDLK_AC_BOOKMARKS: res = AC_BOOKMARKS; break;
 #endif
-	default: break;
+
+	case SDLK_CAPSLOCK:     res = CAPSLOCK; break;
+#ifdef OLDENGINE
+	case SDLK_SCROLLOCK:	res = SCROLLOCK; break;
+#else
+	case SDLK_SCROLLLOCK:	res = SCROLLOCK; break;
+#endif
+	case SDLK_RSHIFT:       res = RSHIFT; break;
+	case SDLK_LSHIFT:       res = LSHIFT; break;
+	case SDLK_RCTRL:        res = RCTRL; break;
+	case SDLK_LCTRL:        res = LCTRL; break;
+	case SDLK_RALT:         res = RALT; break;
+	case SDLK_LALT:         res = LALT; break;
+#ifdef OLDENGINE
+	case SDLK_RMETA:        res = RMETA; break;
+	case SDLK_LMETA:        res = LMETA; break;
+	case SDLK_LSUPER:       res = LSUPER; break;
+	case SDLK_RSUPER:       res = RSUPER; break;
+#endif
+	case SDLK_MODE:         res = MODE; break;
+	case SDLK_HELP:         res = HELP; break;
+#ifdef OLDENGINE
+	case SDLK_PRINT:        res = PRINT; break;
+#else
+	case SDLK_PRINTSCREEN:  res = PRINT; break;
+#endif
+	case SDLK_SYSREQ:       res = SYSREQ; break;
+	case SDLK_MENU:         res = MENU; break;
+	case SDLK_POWER:        res = POWER; break;
+	case SDLK_UNDO:         res = UNDO; break;
+
+	default: ERROR("unknown SDL_keycode: " << sym << ", " << String::hex(sym)); break;
     }
 
 
@@ -426,35 +651,17 @@ int Key::toChar(int key)
 
 int Key::toKey(const std::string & name)
 {
-#ifdef OLDENGINE
-    if(1 == name.size())
-	return toKey(name[0]);
+    if(name.size())
+    {
+	auto _allkeys_end = std::end(_allkeys);
+	auto _allkeys_it = std::find_if(std::begin(_allkeys), _allkeys_end,
+		std::bind2nd(std::mem_fun_ref(& KeyName::isname), name));
+	if(_allkeys_it != _allkeys_end) return (*_allkeys_it).key;
 
-    const char* _names1[] = { "NONE", "ESCAPE", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12", "PRINT", "INSERT", "HOME", "END",
-	"DELETE", "PAGEUP", "PAGEDOWN", "LEFT", "RIGHT", "UP", "DOWN", "RETURN",
-	"BACKQUOTE", "K1", "K2", "K3", "K4", "K5", "K6", "K7", "K8", "K9", "K0", "MINUS", "EQUALS", "BACKSPACE", "TAB", "LEFTBRACKET", "RIGHTBRACKET",
-	"BACKSLASH", "SEMICOLON", "QUOTE", "COMMA", "PERIOD", "SLASH", "SPACE" };
+	ERROR("key not found: " << name);
+    }
 
-    const char* _names2[] = { "TILDE", "EXCLAIM", "AT", "HASH", "DOLLAR", "PERCENT", "CARET", "AMPERSAND", "ASTERISK", "LEFTPAREN", "RIGHTPAREN",
-	"UNDERSCORE", "PLUS", "LEFTCURLY", "RIGHTCURLY", "VERTLINE", "COLON", "QUOTEDBL", "LESS", "GREATER", "QUESTION" };
-
-    const char** _names1_end = ARRAY_COUNT_END(_names1);
-    const char** _names1_its = std::find(_names1, _names1_end, name);
-
-    if(_names1_its != _names1_end)
-	return NONE + (_names1_its - _names1);
-
-    const char** _names2_end = ARRAY_COUNT_END(_names2);
-    const char** _names2_its = std::find(_names2, _names2_end, name);
-
-    if(_names2_its != _names2_end)
-	return TILDE + (_names2_its - _names2);
-
-    ERROR("key not found: " << name);
-    return 0;
-#else
-    return toKey(SDL_GetKeyFromName(name.c_str()), 0);
-#endif
+    return Key::NONE;
 }
 
 int Key::toKey(int ch)
@@ -637,4 +844,3 @@ int Key::upper(int key)
 
     return key;
 }
-

@@ -22,6 +22,7 @@
 
 #include <sstream>
 #include <algorithm>
+#include <iterator>
 #include <iomanip>
 
 #include "types.h"
@@ -81,18 +82,18 @@ namespace
 
     int names2index(const std::string & str)
     {
-	const char** _names_end = ARRAY_COUNT_END(_names);
-	const char** _names_its = std::find(_names, _names_end, str);
+	auto _names_end = std::end(_names);
+	auto _names_its = std::find(std::begin(_names), _names_end, str);
 
-	return _names_its != _names_end ? _names_its - _names : -1;
+	return _names_its != _names_end ? std::distance(std::begin(_names), _names_its) : -1;
     }
 
     int colors2index(int color)
     {
-	const int* _colors_end = ARRAY_COUNT_END(_colors);
-	const int* _colors_its = std::find(_colors, _colors_end, color);
+	auto _colors_end = std::end(_colors);
+	auto _colors_its = std::find(std::begin(_colors), _colors_end, color);
 
-	return _colors_its != _colors_end ? _colors_its - _colors : -1;
+	return _colors_its != _colors_end ? std::distance(std::begin(_colors), _colors_its) : -1;
     }
 
     ARGB index2argb(int index)
@@ -210,6 +211,11 @@ std::string Color::toString(void) const
            std::setw(2) << std::setfill('0') << b();
 
     return os.str();
+}
+
+const char* Color::name(color_t col)
+{
+    return _names[col];
 }
 
 ColorIndex::ColorIndex(int color_t) : val(color_t)

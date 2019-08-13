@@ -26,7 +26,6 @@
 #include <string>
 #include <utility>
 
-#include "sharedvector.h"
 #include "types.h"
 #include "tools.h"
 
@@ -99,6 +98,7 @@ public:
 
     static Color	transparent(void) { return Color(0, 0, 0, SDL_ALPHA_TRANSPARENT); }
     static Color	colorKey(void) { return Color(254, 0, 254); }
+    static const char*	name(color_t);
 };
 
 class ColorIndex

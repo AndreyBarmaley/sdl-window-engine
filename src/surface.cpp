@@ -150,7 +150,12 @@ void Surface::reset(void)
     	}
 	else
     	{
+#ifdef OLDENGINE
+	    if(ptr != SDL_GetVideoSurface())
+    		SDL_FreeSurface(ptr);
+#else
     	    SDL_FreeSurface(ptr);
+#endif
     	    ptr = NULL;
 	}
     }
@@ -263,7 +268,8 @@ void Surface::setAlphaMod(int val)
     if(ptr)
     {
 #ifdef OLDENGINE
-	SDL_SetAlpha(ptr, (val ? SDL_SRCALPHA : 0), val);
+	if(0 != SDL_SetAlpha(ptr, (val ? SDL_SRCALPHA : 0), val))
+            ERROR(SDL_GetError());
 #else
         if(0 != SDL_SetSurfaceAlphaMod(ptr, val))
             ERROR(SDL_GetError());

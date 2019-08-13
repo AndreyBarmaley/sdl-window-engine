@@ -23,273 +23,132 @@
 #ifndef _SWE_LUAWRAPPER_
 #define _SWE_LUAWRAPPER_
 
-#ifdef WITH_LUA
 #include <string>
-#include <utility>
-#include <memory>
 #include <unordered_map>
 
 #include <lua.hpp>
 
-namespace Lua
+class LuaState
 {
-    enum Type
-    {
-	TypeNil			= LUA_TNIL,
-	TypeNumber		= LUA_TNUMBER,
-	TypeBool 		= LUA_TBOOLEAN,
-	TypeString		= LUA_TSTRING,
-	TypeTable		= LUA_TTABLE,
-	TypeFunction		= LUA_TFUNCTION,
-	TypeUserData		= LUA_TUSERDATA,
-	TypeThread		= LUA_TTHREAD,
-	TypeLightUserData	= LUA_TLIGHTUSERDATA
-    };
+    lua_State*		ptr;
 
-    const char* typeString(int);
+    void		dump(const char* label = NULL);
+    int			dumpTable(int index);
+    std::string		dumpValue(int index);
 
-    struct UserDataWrapper
-    {
-	void*	data;
-	UserDataWrapper(void* v = NULL) : data(NULL) {}
-    };
+public:
+    LuaState(lua_State*);
 
-    class BaseValue
-    {
-    protected:
-	int	luaType;
-	void*	luaValue;
+    static LuaState	newState(void);
+    static void		closeState(LuaState &);
 
-    public:
-	BaseValue() : luaType(Lua::TypeNil), luaValue(NULL) {}
-	BaseValue(int t, void* v = NULL) : luaType(t), luaValue(v) {}
-	virtual ~BaseValue() {}
+    int			doFile(const std::string &);
+    int			doString(const std::string &);
 
-	bool			isNil(void) const { return type() == Lua::TypeNil; }
-	bool			isValid(void) const { return ! isNil(); }
-	bool			isNumber(void) const { return type() == Lua::TypeNumber; }
-	bool			isBool(void) const { return type() == Lua::TypeBool; }
-	bool			isString(void) const { return type() == Lua::TypeString; }
-	bool			isFunction(void) const { return type() == Lua::TypeFunction; }
-	bool			isTable(void) const { return type() == Lua::TypeTable; }
-	bool			isThread(void) const { return type() == Lua::TypeThread; }
-	bool			isUserData(void) const { return type() == Lua::TypeUserData; }
-	bool			isLightUserData(void) const { return type() == Lua::TypeLightUserData; }
+    lua_State*		L(void) { return ptr; }
+    LuaState & 		callFunction(int nargs, int nresults);
 
-	int			type(void) const { return luaType; }
-	void			setType(int val) { luaType = val; }
+    // lib
+    bool		registerLibrary(const char*, const luaL_Reg[]);
+    bool		registerDirectory(const std::string &);
 
-	virtual void		destroy(void) {}
-        virtual std::string	getString(void) const;
-	virtual s32		getInt(void) const { return 0; }
-	virtual s64		getInt64(void) const { return 0; }
-	virtual bool		getBool(void) const { return false; }
-	virtual double		getDouble(void) const { return 0; }
-	virtual lua_CFunction	getFunction(void) const { return NULL; }
-	virtual void*		getUserData(void) const { return NULL; }
-    };
+    // check type
+    bool		isNilIndex(int) const;
+    bool		isBooleanIndex(int) const;
+    bool		isNumberIndex(int) const;
+    bool		isIntegerIndex(int) const;
+    bool		isStringIndex(int) const;
+    bool		isTableIndex(int) const;
+    bool		isUserDataIndex(int) const;
+    bool		isLightUserDataIndex(int) const;
+    bool		isFunctionIndex(int) const;
+    bool		isThreadIndex(int) const;
 
-    struct StringValue : public BaseValue
-    {
-	StringValue(const std::string &);
-	~StringValue() { destroy(); }
+    bool		isTopNil(void) const { return isNilIndex(-1); }
+    bool		isTopBoolean(void) const { return isBooleanIndex(-1); }
+    bool		isTopNumber(void) const { return isNumberIndex(-1); }
+    bool		isTopInteger(void) const { return isIntegerIndex(-1); }
+    bool		isTopString(void) const { return isStringIndex(-1); }
+    bool		isTopTable(void) const { return isTableIndex(-1); }
+    bool		isTopUserData(void) const { return isUserDataIndex(-1); }
+    bool		isTopLightUserData(void) const { return isLightUserDataIndex(-1); }
+    bool		isTopFunction(void) const { return isFunctionIndex(-1); }
+    bool		isTopThread(void) const { return isThreadIndex(-1); }
 
-	void			setString(const std::string &);
+    // convert type
+    bool		toBooleanIndex(int) const;
+    double		toNumberIndex(int) const;
+    int			toIntegerIndex(int) const;
+    std::string		toStringIndex(int) const;
+    void*		toUserDataIndex(int) const;
+    const void* 	toPointerIndex(int) const;
+    lua_CFunction	toFunctionIndex(int) const;
+    lua_State*		toThreadIndex(int) const;
 
-	void			destroy(void);
-	std::string		getString(void) const;
-	s32			getInt(void) const;
-	s64			getInt64(void) const;
-	bool			getBool(void) const;
-	double			getDouble(void) const;
-    };
+    bool		getTopBoolean(void) { return toBooleanIndex(-1); }
+    double		getTopNumber(void) { return toNumberIndex(-1); }
+    int			getTopInteger(void) { return toIntegerIndex(-1); }
+    std::string		getTopString(void) { return toStringIndex(-1); }
+    void*		getTopUserData(void) { return toUserDataIndex(-1); }
+    const void* 	getTopPointer(void) { return toPointerIndex(-1); }
+    lua_CFunction	getTopFunction(void) { return toFunctionIndex(-1); }
+    lua_State*		getTopThread(void) { return toThreadIndex(-1); }
 
-    struct FunctionValue : public BaseValue
-    {
-	FunctionValue(lua_CFunction);
+    // push value: push().push().push()
+    LuaState &		pushNil(void);
+    LuaState &		pushBoolean(const bool &);
+    LuaState &		pushInteger(const int &);
+    LuaState &		pushNumber(const double &);
+    LuaState &		pushString(const std::string &);
+    LuaState &		pushString(const char*);
+    LuaState &		pushFunction(lua_CFunction);
+    LuaState &		pushLightUserData(void*);
+    LuaState &		pushValueIndex(int);
 
-	void                    setFunction(lua_CFunction);
-	lua_CFunction		getFunction(void) const;
-    };
+    void*		pushUserData(size_t);
 
-    struct UserDataValue : public BaseValue
-    {
-	UserDataValue(void* val) : BaseValue(TypeUserData) { setUserData(val); }
+    // global
+    LuaState &		getGlobalName(const std::string &);
+    LuaState &		setGlobalName(const std::string &);
 
-	void                    setUserData(void* val) { luaValue = val; }
-	void*			getUserData(void) const { return luaValue; }
-    };
+    // return type
+    int			getTypeIndex(int) const;
+    const char* 	getTypeName(int type) const;
 
-    struct NumberValue : public BaseValue
-    {
-	NumberValue(double);
-	~NumberValue() { destroy(); }
+    int			getTopType(void) const { return getTypeIndex(-1); }
+    const char*		getTopTypeName(void) const { return getTypeName(getTopType()); }
 
-	void			setNumber(double);
+    // table manip
+    int			nextTableIndex(int);
+    LuaState &		getIndexTableIndex(int, int);
+    LuaState &		getFieldTableIndex(const std::string &, int, bool verboseNil = true);
+    LuaState &		setFieldTableIndex(const std::string &, int);
 
-	void			destroy(void);
-	std::string		getString(void) const;
-	s32			getInt(void) const;
-	s64			getInt64(void) const;
-	bool			getBool(void) const;
-	double			getDouble(void) const;
-    };
+    LuaState &		getFieldTableIndex(const char*, int, bool verboseNil = true);
+    LuaState &		setFieldTableIndex(const char*, int);
 
-    struct BoolValue : public BaseValue
-    {
-	BoolValue(bool);
-	~BoolValue() { destroy(); }
+    std::string		popFieldTableIndex(const std::string &, int);
+    std::string		popFieldTableIndex(const char*, int);
 
-	void			setBool(bool);
+    LuaState &		setTableIndex(int);
+    LuaState &		setMetaTableIndex(int);
+    LuaState &		setFunctionsTableIndex(const luaL_Reg[], int);
 
-	std::string		getString(void) const;
-	s32			getInt(void) const;
-	s64			getInt64(void) const;
-	bool			getBool(void) const;
-	double			getDouble(void) const;
-    };
+    LuaState & 		pushTable(void);
+    LuaState & 		pushTable(int narr, int nrec);
+    LuaState & 		pushTable(const std::string & path);
 
-    const BaseValue & operator>> (const BaseValue &, std::string &);
-    const BaseValue & operator>> (const BaseValue &, s32 &);
-    const BaseValue & operator>> (const BaseValue &, s64 &);
-    const BaseValue & operator>> (const BaseValue &, bool &);
-    const BaseValue & operator>> (const BaseValue &, double &);
+    // stack manipulation
+    size_t		stackSize(void) const;
+    int			stackTopIndex(void) const;
+    void		stackClear(void);
+    LuaState &		stackReplaceIndex(int);
+    LuaState &		stackInsertIndex(int);
+    LuaState &		stackRemoveIndex(int);
+    LuaState &		stackTopIndex(int);
+    LuaState &		stackDump(const std::string &);
+    LuaState &		stackDump(void);
+    LuaState &		stackPop(size_t num = 1);
+};
 
-    class TableValue : protected std::unordered_map<std::string, BaseValue*>
-    {
-    public:
-	TableValue() {}
-	~TableValue()
-	{
-	    for(auto it = begin(); it != end(); ++it)
-		delete (*it).second;
-	}
-
-	void push(const std::string & key, BaseValue* val);
-
-	const BaseValue* value(const std::string & key) const
-	{
-    	    auto it = find(key);
-    	    return it != end() ? (*it).second : NULL;
-	}
-
-	template<typename T>
-	T get(const std::string & key) const
-	{
-    	    T val;
-	    const BaseValue* baseVal = value(key);
-            if(baseVal) *baseVal >> val;
-	    return val;
-	}
-    };
-
-    void StackDump(lua_State*, const char* label = NULL);
-
-    class State
-    {
-    protected:
-	std::shared_ptr<lua_State>
-                    		ptr;
-	bool			isconst;
-	int			next(int);
-
-    public:
-        State();
-
-	int			doFile(const std::string &);
-	int			doString(const std::string &);
-	void			loadDirectory(const std::string &);
-	void			call(int, int);
-
-
-	BaseValue*		getValue(int index) const;
-	void			tableDump(const std::string &) const;
-	StringList		tableKeys(const std::string &) const;
-	//std::string		tableValue(const std::string &, const std::string &) const;
-	TableValue		findTable(const std::string &);
-
-	template<typename T>
-	T getField(const std::string & global, const std::string & field)
-	{
-	    T res;
-	    pushGlobal(global);
-	    getField(field);
-	    BaseValue* bval = NULL;
-	    switch(typeIndex(-1))
-	    {
-		case TypeString:	bval = new StringValue(toStringIndex(-1)); break;
-		case TypeNumber:	bval = new NumberValue(toNumberIndex(-1)); break;
-		case TypeBool:		bval = new BoolValue(toBoolIndex(-1)); break;
-		case TypeFunction:	bval = new FunctionValue(toFunctionIndex(-1)); break;
-		case TypeUserData:	bval = new UserDataValue(toUserDataIndex(-1)); break;
-		case TypeTable:		bval = new BaseValue(Type::TypeTable); break;
-		case TypeThread:	bval = new BaseValue(Type::TypeThread); break;
-		case TypeLightUserData:	bval = new BaseValue(Type::TypeLightUserData); break;
-	        case TypeNil:		bval = new BaseValue(); break;
-		default: break;
-	    }
-	    if(bval)
-	    {
-		*bval >> res;
-		delete bval;
-	    }
-	    stackPopElements(2);
-	    return res;
-	}
-
-	/* stack manipulation */
-	int			stackTopIndex(void) const;
-	void			stackTopIndex(int);
-        size_t			stackSize(void) const;
-	bool			stackCheckFreeSlots(int) const;
-	void			stackDump(const std::string &) const;
-	void			stackDump(void) const;
-	void			stackClear(void);
-	void			stackRemoveIndex(int);
-	void			stackTopMoveIndex(int);
-	void			stackTopReplaceIndex(int);
-	void			stackPopElement(void);
-	void			stackPopElements(int count);
-
-	void			getField(const std::string &, int index = -1) const;
-	void			setField(const std::string &, int index = -1);
-
-	void			pushValueIndex(int);
-	void			pushGlobal(const std::string &);
-	void			pushNil(void);
-	void			pushBool(bool);
-	void			pushInteger(int);
-	void			pushNumber(double);
-	void			pushString(const std::string &);
-
-        bool			isNil(int) const;
-        bool			isBool(int) const;
-        bool			isNumber(int) const;
-        bool			isString(int) const;
-        bool			isTable(int) const;
-        bool			isFunction(int) const;
-        bool			isCFunction(int) const;
-        bool			isUserData(int) const;
-	bool			isLightUserData(int) const;
-
-	int			typeIndex(int) const;
-	std::string 		typeName(int) const;
-
-	bool			isEqual(int, int) const;
-        bool			isRawEqual(int, int) const;
-	bool			isLessThan(int, int) const;
-
-	s64			toIntegerIndex(int) const;
-	bool			toBoolIndex(int) const;
-	double			toNumberIndex(int) const;
-	std::string		toStringIndex(int) const;
-	void*			toUserDataIndex(int) const;
-	const void* 		toPointerIndex(int) const;
-	lua_CFunction		toFunctionIndex(int) const;
-	lua_State*		toThreadIndex(int) const;
-	lua_State*		toLuaState(void);
-    };
-}
-
-#endif
 #endif

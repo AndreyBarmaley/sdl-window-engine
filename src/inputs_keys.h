@@ -27,8 +27,20 @@
 #include "types.h"
 
 #ifdef OLDENGINE
-typedef int SDL_Keycode;
+typedef SDLKey SDL_Keycode;
 #endif
+
+struct KeyName
+{
+    int key;
+    const char* name;
+
+    bool iskey(int v) const;
+    bool isname(const std::string &) const;
+
+    KeyName() : key(0), name(NULL) {}
+    KeyName(int k, const char* v) : key(k), name(v) {}
+};
 
 namespace Key
 {
@@ -36,7 +48,7 @@ namespace Key
     {
         NONE = 0,
 
-        ESCAPE, F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12, PRINT, INSERT, HOME, END, DELETE, PAGEUP, PAGEDOWN, LEFT, RIGHT, UP, DOWN, RETURN,
+        ESCAPE, F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12, INSERT, HOME, END, DELETE, PAGEUP, PAGEDOWN, LEFT, RIGHT, UP, DOWN, RETURN,
 	BACKQUOTE, K1, K2, K3, K4, K5, K6, K7, K8, K9, K0, MINUS, EQUALS, BACKSPACE,
 	TAB, LEFTBRACKET, RIGHTBRACKET, BACKSLASH, SEMICOLON, QUOTE, COMMA, PERIOD, SLASH, SPACE,
         a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z,
@@ -62,6 +74,26 @@ namespace Key
 	AC_REFRESH,
 	AC_BOOKMARKS,
 
+        CAPSLOCK,
+        SCROLLOCK,
+        RSHIFT,
+        LSHIFT,
+        RCTRL,
+        LCTRL,
+        RALT,
+        LALT,
+        RMETA,
+        LMETA,
+        LSUPER,
+        RSUPER,
+        MODE,
+        HELP,
+        PRINT,
+        SYSREQ,
+        MENU,
+        POWER,
+        UNDO,
+
 	ANY,
 	LAST
     };
@@ -70,10 +102,13 @@ namespace Key
     int		toKey(const SDL_Keycode &, int mod);
     int		toKey(int ch);
     int		toKey(const std::string &);
+    const char* toName(int);
     int		toChar(int key);
 
     int		lower(int key);
     int		upper(int key);
+
+    const KeyName* allKeys(void);
 }
 
 #endif
