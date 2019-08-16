@@ -227,7 +227,6 @@ void Engine::quit(void)
     SDL_StopTextInput();
 #endif
 #endif
-    FontRender::clearCache();
     Display::closeWindow();
 #ifndef DISABLE_AUDIO
     Music::reset();
@@ -329,7 +328,7 @@ bool Display::resizeWindow(const Size & newsz, bool sdl)
 {
     if(_window && winsz != newsz)
     {
-	FontsCache::clear();
+	FontRender::clearCache();
 
 #ifdef OLDENGINE
 	_window = SDL_SetVideoMode(newsz.w, newsz.h, _window->format->BitsPerPixel, _window->flags);
@@ -429,6 +428,7 @@ bool Display::renderInit(const Size & win, bool accel)
 
 void Display::closeWindow(void)
 {
+    FontRender::clearCache();
     DisplayScene::sceneDestroy();
 
     if(displayTexture.isValid())

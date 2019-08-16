@@ -366,7 +366,7 @@ std::string Systems::messageLocale(int length /* 1, 2, 3 */)
     std::string locname;
 #if defined(ANDROID)
     char* clocale = setlocale(LC_MESSAGES, NULL);
-#elif defined(__MINGW32CE__)
+#elif defined(__MINGW32CE__) || defined(__MINGW32__)
     char* clocale = NULL;
 #else
     char* clocale = std::setlocale(LC_MESSAGES, NULL);

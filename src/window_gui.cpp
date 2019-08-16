@@ -335,7 +335,6 @@ void WindowListBox::renderItems(void) const
 		items[it]->resetState(FlagSelected);
 
 	    items[it]->setPosition(currentPos);
-	    items[it]->renderWindow();
 	    items[it]->setVisible(true);
 
 	    if(isVertical())

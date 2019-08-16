@@ -99,9 +99,6 @@ bool LuaState::registerDirectory(const std::string & dir)
 bool LuaState::registerLibrary(const char* name, const luaL_Reg funcs[])
 {
     lua_newtable(ptr);
-    lua_pushstring(ptr, name);
-    lua_setfield(ptr, -2, "__name");
-
     lua_setglobal(ptr, name);
     lua_getglobal(ptr, name);
 
@@ -404,8 +401,8 @@ LuaState & LuaState::pushTable(const std::string & path)
 	    lua_pop(ptr, 1);
 
 	    lua_newtable(ptr);
-	    lua_pushstring(ptr, tables.front().c_str());
-	    lua_setfield(ptr, -2, "__name");
+	    //lua_pushstring(ptr, tables.front().c_str());
+	    //lua_setfield(ptr, -2, "__name");
 
 	    lua_setglobal(ptr, tables.front().c_str());
 	    lua_getglobal(ptr, tables.front().c_str());
@@ -438,9 +435,9 @@ LuaState & LuaState::pushTable(const std::string & path)
 		lua_pop(ptr, 1);
 		lua_pushstring(ptr, tables.front().c_str());
 		lua_newtable(ptr);
-		std::string name = objects.join(".").append(".").append(tables.front());
-		lua_pushstring(ptr, name.c_str());
-		lua_setfield(ptr, -2, "__name");
+		//std::string name = objects.join(".").append(".").append(tables.front());
+		//lua_pushstring(ptr, name.c_str());
+		//lua_setfield(ptr, -2, "__name");
 		lua_settable(ptr, -3);
 	    }
 	    else
@@ -462,8 +459,8 @@ LuaState & LuaState::pushTable(const std::string & path)
 	lua_pop(ptr, 1);
 
 	lua_newtable(ptr);
-	lua_pushstring(ptr, path.c_str());
-	lua_setfield(ptr, -2, "__name");
+	//lua_pushstring(ptr, path.c_str());
+	//lua_setfield(ptr, -2, "__name");
 
 	lua_setglobal(ptr, path.c_str());
 	lua_getglobal(ptr, path.c_str());
@@ -614,6 +611,20 @@ const char* LuaState::getTypeName(int type) const
 int LuaState::nextTableIndex(int index)
 {
     return lua_next(ptr, index);
+}
+
+int LuaState::countFieldsTableIndex(int index)
+{
+    int res = 0;
+
+    lua_pushnil(ptr);
+    while(lua_next(ptr, index - 1))
+    {
+	lua_pop(ptr, 1);
+        res++;
+    }
+
+    return res;
 }
 
 int LuaState::stackTopIndex(void) const

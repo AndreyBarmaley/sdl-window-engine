@@ -120,6 +120,8 @@ public:
 
     // table manip
     int			nextTableIndex(int);
+    int			countFieldsTableIndex(int);
+
     LuaState &		getIndexTableIndex(int, int);
     LuaState &		getFieldTableIndex(const std::string &, int, bool verboseNil = true);
     LuaState &		setFieldTableIndex(const std::string &, int);
