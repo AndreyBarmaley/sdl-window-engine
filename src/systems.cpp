@@ -177,6 +177,11 @@ bool Systems::makeDirectory(const std::string & path)
     return ret == 0;
 }
 
+std::string Systems::concatePath(const StringList & list)
+{
+    return list.join(std::string(1, SEPARATOR));
+}
+
 std::string Systems::concatePath(const std::string & str1, const std::string & str2)
 {
     if(! str1.empty() && str1[str1.size() - 1] == SEPARATOR)

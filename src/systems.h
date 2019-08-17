@@ -91,6 +91,7 @@ namespace Systems
     bool	makeDirectory(const std::string &);
     std::string	concatePath(const std::string &, const std::string &);
     std::string	concatePath(const std::string &, const std::string &, const std::string &);
+    std::string	concatePath(const StringList &);
     std::string	concatePath2(std::string, const char*);
     StringList  findFiles(const std::string &, const std::string & = "", bool sensitive = false);
     StringList  readDir(const std::string &, bool fullpath = true);
