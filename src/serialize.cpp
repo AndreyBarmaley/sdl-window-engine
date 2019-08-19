@@ -884,10 +884,35 @@ StreamNetwork::StreamNetwork() : sd(NULL), sdset(NULL)
 
 size_t StreamNetwork::timeout = 100;
 
+StreamNetwork::StreamNetwork(TCPsocket sock) : sd(sock), sdset(NULL)
+{
+    if(sd)
+    {
+	sdset = SDLNet_AllocSocketSet(1);
+	if(sdset)
+	{
+	    SDLNet_TCP_AddSocket(sdset, sd);
+	}
+	else
+	{
+	    ERROR(SDLNet_GetError());
+	}
+    }
+    else
+    {
+	ERROR(SDLNet_GetError());
+    }
+
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+    setbigendian(true); /* default: hardware endian */
+#else
+    setbigendian(false); /* default: hardware endian */
+#endif
+}
+
 StreamNetwork::StreamNetwork(const std::string & name, int port) : sd(NULL), sdset(NULL)
 {
-    if(!open(name, port))
-        Engine::except(__FUNCTION__, "create error");
+    open(name, port);
 
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
     setbigendian(true); /* default: hardware endian */
@@ -899,6 +924,28 @@ StreamNetwork::StreamNetwork(const std::string & name, int port) : sd(NULL), sds
 StreamNetwork::~StreamNetwork()
 {
     close();
+}
+
+StreamNetwork::StreamNetwork(StreamNetwork && sn)
+{
+    sd = sn.sd;
+    sdset = sn.sdset;
+
+    sn.sd = NULL;
+    sn.sdset = NULL;
+}
+
+StreamNetwork & StreamNetwork::operator= (StreamNetwork && sn)
+{
+    close();
+
+    sd = sn.sd;
+    sdset = sn.sdset;
+
+    sn.sd = NULL;
+    sn.sdset = NULL;
+
+    return *this;
 }
 
 bool StreamNetwork::ready(void) const
@@ -957,6 +1004,12 @@ void StreamNetwork::close(void)
     	SDLNet_TCP_Close(sd);
     	sd = NULL;
     }
+}
+
+StreamNetwork StreamNetwork::accept(void)
+{
+    TCPsocket sock = SDLNet_TCP_Accept(sd);
+    return StreamNetwork(sock);
 }
 
 int StreamNetwork::recv(char *buf, int len)

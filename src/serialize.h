@@ -312,17 +312,24 @@ protected:
 #ifndef DISABLE_NETWORK
 class StreamNetwork : public StreamBase
 {
+    StreamNetwork(const StreamNetwork &) {}
+    StreamNetwork &	operator= (const StreamNetwork &){ return *this; }
+
+protected:
     TCPsocket		sd;
     SDLNet_SocketSet	sdset;
 
-    StreamNetwork(const StreamNetwork &) {}
-    StreamNetwork &	operator= (const StreamNetwork &){ return *this; }
+    StreamNetwork(TCPsocket);
 
 public:
     StreamNetwork();
     StreamNetwork(const std::string &, int);
     ~StreamNetwork();
 
+    StreamNetwork(StreamNetwork &&);
+    StreamNetwork &	operator=(StreamNetwork &&);
+
+    StreamNetwork	accept(void);
     bool		open(const std::string &, int);
     void		close(void);
 

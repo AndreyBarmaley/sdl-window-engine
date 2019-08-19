@@ -5,6 +5,6 @@ WITH_LUA - add lua support
 WITH_DLL - add load shared libs support, with -ldl
 WITH_XML - add tinyxml2 support
 WITH_ICONV - usage iconv for Tools::stringEncode
-DISABLE_NETWORK - disable network
-DISABLE_AUDIO - disable audio
-DEBUG_MESSAGES - DEBUG works
+DISABLE_NETWORK - disable SDL_net
+DISABLE_AUDIO - disable SDL_mixer
+BUILD_DEBUG_MESSAGES - DEBUG works
