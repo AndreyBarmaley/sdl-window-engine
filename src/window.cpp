@@ -29,12 +29,6 @@
 #include "inputs_keys.h"
 #include "window.h"
 
-namespace Display
-{
-    bool		handleEvents(void);
-    void                redraw(void);
-}
-
 Window::Window(Window* win) : prnt(NULL), result(0)
 {
     resetState(FlagVisible);

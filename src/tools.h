@@ -175,6 +175,8 @@ namespace Tools
     	    fill();
 	}
 
+	int getChance(void) const { return chance; }
+
 	bool check(void)
 	{
     	    if(index < seeds.size())

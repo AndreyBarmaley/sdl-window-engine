@@ -82,8 +82,6 @@ namespace Display
     void                renderPresent(void);
     void		renderCopyEx(const Texture &, const Rect &, Texture &, const Rect &, int);
 
-    bool		handleEvents(void);
-
     void                handleMouseButton(const SDL_MouseButtonEvent &);
     void                handleMouseMotion(const SDL_MouseMotionEvent &);
     void                handleKeyboard(const SDL_KeyboardEvent &);
@@ -263,15 +261,19 @@ bool Display::init(const std::string & title, const Size & win, const Size & ren
 
     Size winsz = win;
 
-    // not found winsz
-    auto modes = hardwareVideoModes();
-    if(modes.end() == std::find_if(modes.begin(), modes.end(),
-            std::bind2nd(std::greater_equal<Size>(), winsz)))
+    if(fullscreen)
     {
-        // set max resolution and fullscreen
-        winsz = modes.back();
-	DEBUG("set win size: " << winsz.w << "x" << winsz.h);
-        fullscreen = true;
+	if(win.h > win.w) std::swap(winsz.w, winsz.h);
+
+	auto modes = hardwareVideoModes();
+	if(modes.end() == std::find_if(modes.begin(), modes.end(),
+            std::bind2nd(std::greater_equal<Size>(), winsz)))
+	{
+    	    // set max resolution and fullscreen
+    	    winsz = modes.back();
+	    if(win.h > win.w) std::swap(winsz.w, winsz.h);
+	    DEBUG("set win size: " << winsz.w << "x" << winsz.h);
+	}
     }
 
 #ifdef OLDENGINE
@@ -1334,10 +1336,8 @@ Texture Display::renderText(const FontRender & frs, const UCString & ustr)
         Point dst(0, 0);
 
         for(size_t pos = 0; pos < ustr.length(); ++pos)
-        //for(auto it = ustr.begin(); it != ustr.end(); ++it)
         {
 	    UnicodeColor us = ustr.at(pos);
-
             Texture tx = FontsCache(& frs).renderCharset(us.unicode(), us.fgcolor());
     
             if(tx.isValid())

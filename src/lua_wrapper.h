@@ -42,6 +42,7 @@ public:
     static LuaState	newState(void);
     static void		closeState(LuaState &);
 
+    int			version(void);
     int			doFile(const std::string &);
     int			doString(const std::string &);
 
@@ -84,6 +85,7 @@ public:
     const void* 	toPointerIndex(int) const;
     lua_CFunction	toFunctionIndex(int) const;
     lua_State*		toThreadIndex(int) const;
+    BinaryBuf		toBinaryIndex(int) const;
 
     bool		getTopBoolean(void) { return toBooleanIndex(-1); }
     double		getTopNumber(void) { return toNumberIndex(-1); }

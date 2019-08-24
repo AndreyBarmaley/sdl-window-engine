@@ -319,19 +319,37 @@ protected:
     TCPsocket		sd;
     SDLNet_SocketSet	sdset;
 
-    StreamNetwork(TCPsocket);
+    size_t		sizeg(void) const { return 0; }
+    size_t		sizep(void) const { return 0; }
+    size_t		tellg(void) const { return 0; }
+    size_t		tellp(void) const { return 0; }
+
+    int			recv(char*, int);
+    int			send(const char*, int);
+
+    static size_t	timeout;
 
 public:
     StreamNetwork();
+    StreamNetwork(TCPsocket);
     StreamNetwork(const std::string &, int);
     ~StreamNetwork();
 
     StreamNetwork(StreamNetwork &&);
     StreamNetwork &	operator=(StreamNetwork &&);
 
-    StreamNetwork	accept(void);
-    bool		open(const std::string &, int);
+    static StringList   localAddresses(void);
+    static std::pair<std::string, int>
+			peerAddress(TCPsocket);
+    TCPsocket		accept(void);
+
+    bool		isValid(void) const { return sd; }
+
+    bool		open(TCPsocket);
+    bool		connect(const std::string &, int);
+    bool		listen(int port);
     void		close(void);
+    bool		ready(void) const;
 
     void		skip(size_t);
 
@@ -354,19 +372,6 @@ public:
     BinaryBuf		get(size_t = 0 /* all data */);
     void		put(const char*, size_t);
     static void		setReadyTimeout(size_t ms) { timeout = ms; }
-
-protected:
-    size_t		sizeg(void) const { return 0; }
-    size_t		sizep(void) const { return 0; }
-    size_t		tellg(void) const { return 0; }
-    size_t		tellp(void) const { return 0; }
-
-
-    int			recv(char*, int);
-    int			send(const char*, int);
-    bool		ready(void) const;
-
-    static size_t	timeout;
 };
 
 #endif

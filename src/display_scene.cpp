@@ -429,10 +429,7 @@ bool DisplayScene::userHandle(const SDL_UserEvent & ev)
     // broadcast: for all
     {
 	for(auto it = sceneItems.begin(); it != sceneItems.end(); ++it)
-	{
-    	    if(*it && (*it)->isVisible())
-		(*it)->userEvent(ev.code, ev.data2);
-	}
+    	    if(*it) (*it)->userEvent(ev.code, ev.data2);
 
 	return true;
     }

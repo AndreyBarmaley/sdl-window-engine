@@ -52,7 +52,9 @@ namespace Display
     void		hardwareCursorShow(void);
     std::list<Size>	hardwareVideoModes(void);
 
+    bool		handleEvents(void);
     void		redraw(void);
+
     void 		renderSurface(const Surface &, const Rect &, Texture &, const Rect &, int flip = FlipNone);
     void 		renderTexture(const Texture &, const Point &);
     void 		renderTexture(const Texture &, const Rect &, Texture &, const Rect &, int flip = FlipNone);

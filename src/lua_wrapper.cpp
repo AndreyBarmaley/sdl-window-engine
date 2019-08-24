@@ -60,6 +60,12 @@ LuaState::LuaState(lua_State* L) : ptr(L)
     }
 }
 
+int LuaState::version(void)
+{
+    const lua_Number* num = lua_version(ptr);
+    return num ? *num : 0;
+}
+
 int LuaState::doFile(const std::string & file)
 {
     return luaL_dofile(ptr, file.c_str());
@@ -182,6 +188,17 @@ std::string LuaState::toStringIndex(int index) const
     return lua_tostring(ptr, index);
 }
 
+BinaryBuf LuaState::toBinaryIndex(int index) const
+{
+    const char* data = lua_tostring(ptr, index);
+
+    lua_len(ptr, index);
+    int size = lua_tointeger(ptr, -1);
+    lua_pop(ptr, 1);
+
+    return BinaryBuf(reinterpret_cast<const u8*>(data), size);
+}
+
 void* LuaState::toUserDataIndex(int index) const
 {
     return lua_touserdata(ptr, index);
@@ -281,7 +298,7 @@ int LuaState::dumpTable(int index)
     {
         std::string name = "table";
 
-        if(getFieldTableIndex("__name", index, false).isTopString())
+        if(getFieldTableIndex("__type", index, false).isTopString())
 	    name = getTopString();
 
         // iterate
@@ -330,7 +347,7 @@ std::string LuaState::dumpValue(int index)
         {
 	    std::string name = "[]";
 
-	    if(getFieldTableIndex("__name", index, false).isTopString())
+	    if(getFieldTableIndex("__type", index, false).isTopString())
         	name = getTopString();
 
     	    std::string str = StringFormat("%1(%2,%3)").arg(typeName).arg(name).arg(luaL_getn(L(), index));
@@ -402,7 +419,7 @@ LuaState & LuaState::pushTable(const std::string & path)
 
 	    lua_newtable(ptr);
 	    //lua_pushstring(ptr, tables.front().c_str());
-	    //lua_setfield(ptr, -2, "__name");
+	    //lua_setfield(ptr, -2, "__type");
 
 	    lua_setglobal(ptr, tables.front().c_str());
 	    lua_getglobal(ptr, tables.front().c_str());
@@ -437,7 +454,7 @@ LuaState & LuaState::pushTable(const std::string & path)
 		lua_newtable(ptr);
 		//std::string name = objects.join(".").append(".").append(tables.front());
 		//lua_pushstring(ptr, name.c_str());
-		//lua_setfield(ptr, -2, "__name");
+		//lua_setfield(ptr, -2, "__type");
 		lua_settable(ptr, -3);
 	    }
 	    else
@@ -460,7 +477,7 @@ LuaState & LuaState::pushTable(const std::string & path)
 
 	lua_newtable(ptr);
 	//lua_pushstring(ptr, path.c_str());
-	//lua_setfield(ptr, -2, "__name");
+	//lua_setfield(ptr, -2, "__type");
 
 	lua_setglobal(ptr, path.c_str());
 	lua_getglobal(ptr, path.c_str());

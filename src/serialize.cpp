@@ -884,24 +884,9 @@ StreamNetwork::StreamNetwork() : sd(NULL), sdset(NULL)
 
 size_t StreamNetwork::timeout = 100;
 
-StreamNetwork::StreamNetwork(TCPsocket sock) : sd(sock), sdset(NULL)
+StreamNetwork::StreamNetwork(TCPsocket sock) : sd(NULL), sdset(NULL)
 {
-    if(sd)
-    {
-	sdset = SDLNet_AllocSocketSet(1);
-	if(sdset)
-	{
-	    SDLNet_TCP_AddSocket(sdset, sd);
-	}
-	else
-	{
-	    ERROR(SDLNet_GetError());
-	}
-    }
-    else
-    {
-	ERROR(SDLNet_GetError());
-    }
+    open(sock);
 
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
     setbigendian(true); /* default: hardware endian */
@@ -912,7 +897,7 @@ StreamNetwork::StreamNetwork(TCPsocket sock) : sd(sock), sdset(NULL)
 
 StreamNetwork::StreamNetwork(const std::string & name, int port) : sd(NULL), sdset(NULL)
 {
-    open(name, port);
+    connect(name, port);
 
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
     setbigendian(true); /* default: hardware endian */
@@ -920,6 +905,7 @@ StreamNetwork::StreamNetwork(const std::string & name, int port) : sd(NULL), sds
     setbigendian(false); /* default: hardware endian */
 #endif
 }
+
 
 StreamNetwork::~StreamNetwork()
 {
@@ -963,7 +949,7 @@ bool StreamNetwork::ready(void) const
     return false;
 }
 
-bool StreamNetwork::open(const std::string & name, int port)
+bool StreamNetwork::connect(const std::string & name, int port)
 {
     IPaddress ip;
 
@@ -973,9 +959,14 @@ bool StreamNetwork::open(const std::string & name, int port)
         return false;
     }
 
-    close();
+    return open(SDLNet_TCP_Open(&ip));
+}
 
-    sd = SDLNet_TCP_Open(&ip);
+bool StreamNetwork::open(TCPsocket sock)
+{
+    close();
+    sd = sock;
+
     if(sd)
     {
 	sdset = SDLNet_AllocSocketSet(1);
@@ -988,6 +979,28 @@ bool StreamNetwork::open(const std::string & name, int port)
 
     ERROR(SDLNet_GetError());
     return false;
+}
+
+bool StreamNetwork::listen(int port)
+{
+    IPaddress ip;
+
+    if(0 > SDLNet_ResolveHost(&ip, NULL, port))
+    {
+        ERROR(SDLNet_GetError());
+        return false;
+    }
+
+    close();
+    sd = SDLNet_TCP_Open(&ip);
+
+    if(! sd)
+    {
+	ERROR(SDLNet_GetError());
+	return false;
+    }
+
+    return true;
 }
 
 void StreamNetwork::close(void)
@@ -1006,10 +1019,45 @@ void StreamNetwork::close(void)
     }
 }
 
-StreamNetwork StreamNetwork::accept(void)
+TCPsocket StreamNetwork::accept(void)
 {
     TCPsocket sock = SDLNet_TCP_Accept(sd);
-    return StreamNetwork(sock);
+    return sock;
+}
+
+StringList StreamNetwork::localAddresses(void)
+{
+    IPaddress addresses[4];
+    StringList res;
+
+    int count = SDLNet_GetLocalAddresses(addresses, 4);
+    for(int it = 0; it < count; ++it)
+    {
+	res << StringFormat("%4.%3.%2.%1").
+			arg(0xFF & (addresses[it].host >> 24)).
+			arg(0xFF & (addresses[it].host >> 16)).
+			arg(0xFF & (addresses[it].host >> 8)).
+			arg(0xFF & addresses[it].host);
+    }
+
+    return res;
+}
+
+std::pair<std::string, int>
+StreamNetwork::peerAddress(TCPsocket sock)
+{
+    std::pair<std::string, int> res;
+    IPaddress* ipa = sock ? SDLNet_TCP_GetPeerAddress(sock) : NULL;
+    if(ipa)
+    {
+	res.second = ipa->port;
+	res.first = StringFormat("%4.%3.%2.%1").
+			arg(0xFF & (ipa->host >> 24)).
+			arg(0xFF & (ipa->host >> 16)).
+			arg(0xFF & (ipa->host >> 8)).
+			arg(0xFF & ipa->host);
+    }
+    return res;
 }
 
 int StreamNetwork::recv(char *buf, int len)
@@ -1042,7 +1090,6 @@ int StreamNetwork::send(const char* buf, int len)
 	snd = SDLNet_TCP_Send(sd, buf, len);
 	if(snd != len) setfail(true);
     }
-
     return snd;
 }
 
@@ -1180,8 +1227,8 @@ BinaryBuf StreamNetwork::get(size_t sz)
     return res;
 }
 
-void StreamNetwork::put(const char* ptr, size_t sz)
+void StreamNetwork::put(const char* data, size_t sz)
 {
-    send(ptr, sz);
+    send(data, sz);
 }
 #endif
