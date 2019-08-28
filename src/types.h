@@ -81,6 +81,13 @@ using namespace std;
 #if defined __MINGW32CE__
 #undef PATH_MAX
 #define PATH_MAX	255
+
+#define S_IROTH 00004
+#define S_IWOTH 00002
+#define S_IXOTH 00001
+#define S_IRGRP 00040
+#define S_IWGRP 00020
+#define S_IXGRP 00010
 #endif
 
 #define _(s)            Translation::gettext(s)

@@ -35,19 +35,15 @@ struct Point;
 struct Rect;
 struct Size;
 
+/* StreamBase */
 class StreamBase : protected BitFlags
 {
 protected:
-    virtual size_t	sizeg(void) const = 0;
-    virtual size_t	sizep(void) const = 0;
-    virtual size_t	tellg(void) const = 0;
-    virtual size_t	tellp(void) const = 0;
-
     void		setconstbuf(bool);
-    void		setfail(bool);
+    void		setfail(bool) const;
 
 public:
-    StreamBase() {}
+    StreamBase();
     virtual ~StreamBase() {}
 
     void		setbigendian(bool);
@@ -56,14 +52,12 @@ public:
     bool		fail(void) const;
     bool		bigendian(void) const;
 
-    virtual void	skip(size_t) = 0;
-
-    virtual int		getBE16(void) = 0;
-    virtual int		getLE16(void) = 0;
-    virtual int		getBE32(void) = 0;
-    virtual int		getLE32(void) = 0;
-    virtual s64		getBE64(void) = 0;
-    virtual s64		getLE64(void) = 0;
+    virtual int		getBE16(void) const = 0;
+    virtual int		getLE16(void) const = 0;
+    virtual int		getBE32(void) const = 0;
+    virtual int		getLE32(void) const = 0;
+    virtual s64		getBE64(void) const = 0;
+    virtual s64		getLE64(void) const = 0;
 
     virtual void	putBE64(u64) = 0;
     virtual void	putLE64(u64) = 0;
@@ -72,15 +66,15 @@ public:
     virtual void	putBE16(u16) = 0;
     virtual void	putLE16(u16) = 0;
 
-    virtual BinaryBuf	get(size_t = 0 /* all data */) = 0;
+    virtual BinaryBuf	get(size_t = 0 /* all data */) const = 0;
     virtual void	put(const char*, size_t) = 0;
 
     bool		wait(const std::string &);
 
-    virtual int		get8(void) = 0;
-    int			get16(void);
-    int			get32(void);
-    s64			get64(void);
+    virtual int		get8(void) const = 0;
+    int			get16(void) const;
+    int			get32(void) const;
+    s64			get64(void) const;
 
     virtual void	put8(char) = 0;
     void		put16(u16);
@@ -195,184 +189,50 @@ public:
     }
 };
 
-class StreamBuf : public StreamBase
+/* StreamRWops */
+class StreamRWops
 {
-public:
-    StreamBuf(size_t = 0);
-    StreamBuf(const StreamBuf &);
-    StreamBuf(const BinaryBuf &, int endian = 2 /* 0: litle, 1: big, 2: platform */);
-    StreamBuf(const u8*, size_t, int endian = 2 /* 0: litle, 1: big, 2: platform */);
-
-    ~StreamBuf();
-
-    StreamBuf &		operator= (const StreamBuf &);
-
-    const u8*		data(void) const;
-    size_t		size(void) const;
-    size_t		capacity(void) const;
-
-    void		seek(size_t);
-    void		skip(size_t);
-
-    int			get8(void);
-    int			getBE16(void);
-    int			getLE16(void);
-    int			getBE32(void);
-    int			getLE32(void);
-    s64			getBE64(void);
-    s64			getLE64(void);
-
-    void		put8(char);
-    void		putBE64(u64);
-    void		putLE64(u64);
-    void		putBE32(u32);
-    void		putLE32(u32);
-    void		putBE16(u16);
-    void		putLE16(u16);
-
-    BinaryBuf		get(size_t = 0 /* all data */);
-    void		put(const char*, size_t);
+    StreamRWops(const StreamRWops &) : rw(NULL) {}
+    StreamRWops & operator=(const StreamRWops &) { return *this; }
 
 protected:
-    void		reset(void);
-
-    size_t		tellg(void) const;
-    size_t		tellp(void) const;
-    size_t		sizeg(void) const;
-    size_t		sizep(void) const;
-
-    void		copy(const StreamBuf &);
-    void		realloc(size_t);
-
-    u8*			itbeg;
-    u8*			itget;
-    u8*			itput;
-    u8*			itend;
-};
-
-class ZStreamBuf : public StreamBuf
-{
-public:
-    bool		read(const std::string &, size_t offset = 0);
-    bool		write(const std::string &, bool append = false) const;
-};
-
-class StreamFile : public StreamBase
-{
-    std::string		filename;
-    const char*		filemode;
     SDL_RWops*		rw;
 
 public:
-    StreamFile() : filemode(NULL), rw(NULL) {}
-    StreamFile(const std::string &, const char* mode);
-    StreamFile(const StreamFile &);
-    ~StreamFile();
+    ~StreamRWops() { close(); }
 
-    StreamFile &	operator= (const StreamFile &);
+    StreamRWops(SDL_RWops* val = NULL) : rw(val) {}
+    StreamRWops(StreamRWops && srw) : rw(NULL) { rw = srw.rw; srw.rw = NULL; }
+
+    StreamRWops & operator=(StreamRWops && srw) { rw = srw.rw; srw.rw = NULL; return *this; }
+
+    void		close(void);
 
     size_t		size(void) const;
-    size_t		tell(void) const;
+    size_t              last(void) const;
+    size_t              tell(void) const;
+    bool                seek(size_t);
+    bool                skip(size_t);
 
-    bool		open(const std::string &, const char* mode);
-    void		close(void);
     bool		isValid(void) const { return rw; }
 
-    StreamBuf		toStreamBuf(size_t = 0 /* all data */);
+    int                 get8(void) const;
+    int                 getBE16(void) const;
+    int                 getLE16(void) const;
+    int                 getBE32(void) const;
+    int                 getLE32(void) const;
+    s64                 getBE64(void) const;
+    s64                 getLE64(void) const;
+    BinaryBuf           get(size_t = 0 /* all data */) const;
 
-    void		seek(size_t);
-    void		skip(size_t);
-
-    int			get8(void);
-    int			getBE16(void);
-    int			getLE16(void);
-    int			getBE32(void);
-    int			getLE32(void);
-    s64			getBE64(void);
-    s64			getLE64(void);
-
-    void		put8(char);
-    void		putBE64(u64);
-    void		putLE64(u64);
-    void		putBE32(u32);
-    void		putLE32(u32);
-    void		putBE16(u16);
-    void		putLE16(u16);
-
-    BinaryBuf		get(size_t = 0 /* all data */);
-    void		put(const char*, size_t);
-
-protected:
-    size_t		sizeg(void) const;
-    size_t		sizep(void) const;
-    size_t		tellg(void) const;
-    size_t		tellp(void) const;
+    bool		put8(char);
+    bool		putBE16(u16);
+    bool		putLE16(u16);
+    bool		putBE32(u32);
+    bool		putLE32(u32);
+    bool		putBE64(u64);
+    bool		putLE64(u64);
+    bool		put(const char*, size_t);
 };
 
-#ifndef DISABLE_NETWORK
-class StreamNetwork : public StreamBase
-{
-    StreamNetwork(const StreamNetwork &) {}
-    StreamNetwork &	operator= (const StreamNetwork &){ return *this; }
-
-protected:
-    TCPsocket		sd;
-    SDLNet_SocketSet	sdset;
-
-    size_t		sizeg(void) const { return 0; }
-    size_t		sizep(void) const { return 0; }
-    size_t		tellg(void) const { return 0; }
-    size_t		tellp(void) const { return 0; }
-
-    int			recv(char*, int);
-    int			send(const char*, int);
-
-    static size_t	timeout;
-
-public:
-    StreamNetwork();
-    StreamNetwork(TCPsocket);
-    StreamNetwork(const std::string &, int);
-    ~StreamNetwork();
-
-    StreamNetwork(StreamNetwork &&);
-    StreamNetwork &	operator=(StreamNetwork &&);
-
-    static StringList   localAddresses(void);
-    static std::pair<std::string, int>
-			peerAddress(TCPsocket);
-    TCPsocket		accept(void);
-
-    bool		isValid(void) const { return sd; }
-
-    bool		open(TCPsocket);
-    bool		connect(const std::string &, int);
-    bool		listen(int port);
-    void		close(void);
-    bool		ready(void) const;
-
-    void		skip(size_t);
-
-    int			get8(void);
-    int			getBE16(void);
-    int			getLE16(void);
-    int			getBE32(void);
-    int			getLE32(void);
-    s64			getBE64(void);
-    s64			getLE64(void);
-
-    void		put8(char);
-    void		putBE64(u64);
-    void		putLE64(u64);
-    void		putBE32(u32);
-    void		putLE32(u32);
-    void		putBE16(u16);
-    void		putLE16(u16);
-
-    BinaryBuf		get(size_t = 0 /* all data */);
-    void		put(const char*, size_t);
-    static void		setReadyTimeout(size_t ms) { timeout = ms; }
-};
-
-#endif
 #endif

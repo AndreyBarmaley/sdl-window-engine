@@ -51,7 +51,7 @@ struct mofile
 	if(it == hash_offsets.end())
 	    return str;
 
-	buf.seek((*it).second.offset);
+	buf.seekg((*it).second.offset);
 	const u8* ptr = buf.data();
 
 	while(plural > 0)
@@ -107,14 +107,14 @@ struct mofile
 	    else
 	    {
 		buf >> count >> offset_strings1 >> offset_strings2 >> hash_size >> hash_offset;
-		buf.seek(0);
+		buf.seekg(0);
 	    }
 	}
 
 	// parse encoding and plural forms
 	if(count)
 	{
-	    buf.seek(offset_strings2);
+	    buf.seekg(offset_strings2);
 	    u32 length2 = buf.get32();
 	    u32 offset2 = buf.get32();
 
@@ -123,9 +123,9 @@ struct mofile
 	    const std::string tag2("Plural-Forms");
 	    const std::string sep2(": ");
 
-	    buf.seek(offset2);
+	    buf.seekg(offset2);
 	    SharedList<std::string> tags = String::split(std::string(buf.data(), buf.data() + length2), '\n');
-	    buf.skip(length2);
+	    buf.skipg(length2);
 
 	    for(auto it = tags.begin(); it != tags.end(); ++it)
 	    {
@@ -140,14 +140,14 @@ struct mofile
 	// generate hash table
 	for(u32 index = 0; index < count; ++index)
 	{
-	    buf.seek(offset_strings1 + index * 8 /* length, offset */);
+	    buf.seekg(offset_strings1 + index * 8 /* length, offset */);
 	    u32 length1 = buf.get32();
 	    u32 offset1 = buf.get32();
 	    if(length1)
 	    {
-		buf.seek(offset1);
+		buf.seekg(offset1);
 		u32 crc = Tools::crc32b(buf.data(), length1);
-		buf.seek(offset_strings2 + index * 8 /* length, offset */);
+		buf.seekg(offset_strings2 + index * 8 /* length, offset */);
 		u32 length2 = buf.get32();
 		u32 offset2 = buf.get32();
 		auto it = hash_offsets.find(crc);
@@ -155,7 +155,7 @@ struct mofile
 		    hash_offsets[crc] = chunk(offset2, length2);
 		else
 		{
-		    buf.seek(offset1);
+		    buf.seekg(offset1);
 		    ERROR("incorrect hash for: " << buf.data());
 		}
 	    }

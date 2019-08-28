@@ -20,51 +20,54 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef _SWE_ENGINE_
-#define _SWE_ENGINE_
+#ifndef _SWE_STREAMFILE_
+#define _SWE_STREAMFILE_
 
-#include <cstdlib>
-
-#include "types.h"
-#include "binarybuf.h"
-#include "tools.h"
-#include "rect.h"
-#include "display.h"
-#include "events.h"
-#include "surface.h"
-#include "cstring.h"
-#include "cunicode.h"
-#include "cunicode_color.h"
-#include "systems.h"
-#include "serialize.h"
 #include "streambuf.h"
-#include "streamfile.h"
-#include "streamnet.h"
-#include "translations.h"
-#include "window.h"
-#include "termwin.h"
-#include "termwin_gui.h"
-#include "fontset.h"
-#include "inputs_keys.h"
-#include "music.h"
-#include "window_gui.h"
-#include "json_wrapper.h"
-#include "lua_wrapper.h"
-#include "tinyxml2.h"
-#include "sharedlist.h"
-#include "sharedvector.h"
-#include "sharedmap.h"
 
-namespace Engine
+class StreamFile : public StreamBase
 {
-    bool		init(bool debug = true);
-    bool		debugMode(void);
-    void		setDebugMode(bool);
-    int			version(void);
-    void		quit(void);
+    std::string		filename;
+    const char*		filemode;
+    StreamRWops         rw;
 
-    class		exception {};
-    void		except(const char* func, const char* message);
-}
+public:
+    StreamFile() : filemode(NULL) {}
+    StreamFile(const std::string &, const char* mode);
+    StreamFile(const StreamFile &);
+    ~StreamFile();
+
+    StreamFile &	operator= (const StreamFile &);
+
+    size_t		size(void) const { return rw.size(); }
+    size_t		tell(void) const { return rw.tell(); }
+
+    bool		open(const std::string &, const char* mode);
+    void		close(void);
+    bool		isValid(void) const { return rw.isValid(); }
+
+    StreamBuf		toStreamBuf(size_t = 0 /* all data */);
+
+    bool		seek(size_t pos) { return rw.seek(pos); }
+    bool		skip(size_t len) { return rw.skip(len); }
+
+    int			get8(void) const override;
+    int			getBE16(void) const override;
+    int			getLE16(void) const override;
+    int			getBE32(void) const override;
+    int			getLE32(void) const override;
+    s64			getBE64(void) const override;
+    s64			getLE64(void) const override;
+    BinaryBuf		get(size_t = 0 /* all data */) const override;
+
+    void		put8(char) override;
+    void		putBE64(u64) override;
+    void		putLE64(u64) override;
+    void		putBE32(u32) override;
+    void		putLE32(u32) override;
+    void		putBE16(u16) override;
+    void		putLE16(u16) override;
+    void		put(const char*, size_t) override;
+};
 
 #endif

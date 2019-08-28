@@ -761,6 +761,13 @@ void TermWindow::setCharset(int ch, const ColorIndex & fg, const ColorIndex & bg
     if(termArea & cursor().toPoint())
     {
 	int pos = index();
+
+	if(pos >= chars.size())
+	{
+	    ERROR("out of range: " << ", " << "pos: " << pos << ", " << "size: " << chars.size());
+	    return;
+	}
+
 	UnicodeColor & tc = chars[pos];
 
 	if(ch != -1) tc.unicode(ch);
@@ -784,6 +791,12 @@ void TermWindow::renderSymbol(int symx, int symy)
 
     if(0 <= pos)
     {
+	if(pos >= chars.size())
+	{
+	    ERROR("out of range: " << ", " << "pos: " << pos << ", " << "size: " << chars.size());
+	    return;
+	}
+
 	const UnicodeColor & uc = chars[pos];
 	const Color & bgcolor = uc.bgcolor();
 	const Point relPos = sym2gfx(sympt) - position();

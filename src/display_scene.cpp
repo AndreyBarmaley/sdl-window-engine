@@ -86,6 +86,13 @@ namespace
     Point		cursorOffset;
 }
 
+Window* DisplayScene::rootWindow(void)
+{
+    for(auto it = sceneItems.begin(); it != sceneItems.end(); ++it)
+        if(*it && (*it)->parent() == NULL) return *it;
+    return NULL;
+}
+
 void DisplayScene::setCursor(const Texture & tx, const Point & off)
 {
     cursorTexture = tx;

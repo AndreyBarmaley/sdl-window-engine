@@ -236,9 +236,31 @@ std::string Systems::basename(const std::string & str)
     return str;
 }
 
+namespace
+{
+    StringList assetsList;
+}
+
+void Systems::assetsInit(void)
+{
+    const char* list = "assets.list";
+    std::string str;
+
+    Systems::readFile2String(list, str);
+
+    if(str.size())
+    {
+	assetsList << String::split(str, 0x0A);
+	DEBUG("items: " << assetsList.size());
+    }
+}
+
 bool Systems::isFile(const std::string & name, bool writable)
 {
 #if defined(ANDROID)
+    if(assetsList.end() != std::find(assetsList.begin(), assetsList.end(), name))
+	return true;
+
     return 0 == access(name.c_str(), writable ? W_OK : R_OK);
 #else
     struct stat fs;
@@ -320,15 +342,22 @@ bool Systems::readFile2String(const std::string & file, std::string & res)
     return false;
 }
 
-BinaryBuf Systems::readFile(const std::string & file)
+BinaryBuf Systems::readFile(const std::string & file, size_t offset, size_t size)
 {
     BinaryBuf buf;
     SDL_RWops* rw = SDL_RWFromFile(file.c_str(), "rb");
 
-    if(rw && SDL_RWseek(rw, 0, RW_SEEK_END) != -1)
+    if(rw)
     {
-        buf.resize(SDL_RWtell(rw));
-        SDL_RWseek(rw, 0, RW_SEEK_SET);
+	if(size == 0)
+	{
+	    SDL_RWseek(rw, 0, RW_SEEK_END);
+    	    buf.resize(SDL_RWtell(rw));
+	}
+    	else
+	    buf.resize(size);
+
+        SDL_RWseek(rw, offset, RW_SEEK_SET);
         SDL_RWread(rw, buf.data(), buf.size(), 1);
         SDL_RWclose(rw);
     }

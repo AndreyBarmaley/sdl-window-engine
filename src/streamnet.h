@@ -20,51 +20,68 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef _SWE_ENGINE_
-#define _SWE_ENGINE_
+#ifndef _SWE_STREAMNET_
+#define _SWE_STREAMNET_
 
-#include <cstdlib>
-
-#include "types.h"
-#include "binarybuf.h"
-#include "tools.h"
-#include "rect.h"
-#include "display.h"
-#include "events.h"
-#include "surface.h"
-#include "cstring.h"
-#include "cunicode.h"
-#include "cunicode_color.h"
-#include "systems.h"
+#ifndef DISABLE_NETWORK
 #include "serialize.h"
-#include "streambuf.h"
-#include "streamfile.h"
-#include "streamnet.h"
-#include "translations.h"
-#include "window.h"
-#include "termwin.h"
-#include "termwin_gui.h"
-#include "fontset.h"
-#include "inputs_keys.h"
-#include "music.h"
-#include "window_gui.h"
-#include "json_wrapper.h"
-#include "lua_wrapper.h"
-#include "tinyxml2.h"
-#include "sharedlist.h"
-#include "sharedvector.h"
-#include "sharedmap.h"
 
-namespace Engine
+class StreamNetwork : public StreamBase
 {
-    bool		init(bool debug = true);
-    bool		debugMode(void);
-    void		setDebugMode(bool);
-    int			version(void);
-    void		quit(void);
+    StreamNetwork(const StreamNetwork &) {}
+    StreamNetwork &	operator= (const StreamNetwork &){ return *this; }
 
-    class		exception {};
-    void		except(const char* func, const char* message);
-}
+protected:
+    TCPsocket		sd;
+    SDLNet_SocketSet	sdset;
 
+    int			recv(char*, int) const;
+    int			send(const char*, int);
+
+    static size_t	timeout;
+
+public:
+    StreamNetwork();
+    StreamNetwork(TCPsocket);
+    StreamNetwork(const std::string &, int);
+    ~StreamNetwork();
+
+    StreamNetwork(StreamNetwork &&);
+    StreamNetwork &	operator=(StreamNetwork &&);
+
+    static StringList   localAddresses(void);
+    static std::pair<std::string, int>
+			peerAddress(TCPsocket);
+    TCPsocket		accept(void);
+
+    bool		isValid(void) const { return sd; }
+
+    bool		open(TCPsocket);
+    bool		connect(const std::string &, int);
+    bool		listen(int port);
+    void		close(void);
+    bool		ready(void) const;
+
+    int			get8(void) const override;
+    int			getBE16(void) const override;
+    int			getLE16(void) const override;
+    int			getBE32(void) const override;
+    int			getLE32(void) const override;
+    s64			getBE64(void) const override;
+    s64			getLE64(void) const override;
+    BinaryBuf		get(size_t = 0 /* all data */) const override;
+
+    void		put8(char) override;
+    void		putBE64(u64) override;
+    void		putLE64(u64) override;
+    void		putBE32(u32) override;
+    void		putLE32(u32) override;
+    void		putBE16(u16) override;
+    void		putLE16(u16) override;
+    void		put(const char*, size_t) override;
+
+    static void		setReadyTimeout(size_t ms) { timeout = ms; }
+};
+
+#endif
 #endif

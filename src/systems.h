@@ -103,6 +103,7 @@ namespace Systems
     std::string homeDirectory(const std::string &);
     StringList	shareDirectories(const std::string &);
 
+    void	assetsInit(void);
     bool	isFile(const std::string &, bool writable = false);
     bool	isDirectory(const std::string &, bool writable = false);
     int		remove(const std::string &);
@@ -111,7 +112,7 @@ namespace Systems
     std::string messageLocale(int length /* 1, 2, 3 */);
 
     bool	saveFile(const BinaryBuf &, const std::string &);
-    BinaryBuf	readFile(const std::string &);
+    BinaryBuf	readFile(const std::string &, size_t offset = 0, size_t size = 0);
 
     bool	saveString2File(const std::string &, const std::string &);
     bool	readFile2String(const std::string &, std::string &);

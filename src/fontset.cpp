@@ -426,8 +426,22 @@ Size FontRenderTTF::unicodeSize(const UnicodeString & ustr, bool horizontal) con
 Surface FontRenderTTF::renderCharset(int ch, const Color & col) const
 {
     u16 buf[2] = { L'\0', L'\0' }; buf[0] = ch;
-    return Surface(fid.blend() ? TTF_RenderUNICODE_Blended(toSDLFont(), buf, col.toSDLColor()) :
-	TTF_RenderUNICODE_Solid(toSDLFont(), buf, col.toSDLColor()));
+    SDL_Surface* sf = NULL;
+
+    if(isValid())
+    {
+	if(fid.blend())
+	    sf = TTF_RenderUNICODE_Blended(toSDLFont(), buf, col.toSDLColor());
+	else
+	    sf = TTF_RenderUNICODE_Solid(toSDLFont(), buf, col.toSDLColor());
+
+	if(sf != NULL)
+	    return Surface(sf);
+	else
+	    ERROR(SDL_GetError());
+    }
+
+    return Surface();
 }
 
 FontRenderPSF::FontRenderPSF(const std::string & fn, const Size & sz) : FontRender(sz), buf(Systems::readFile(fn))

@@ -29,7 +29,7 @@
 #include <iterator>
 #include <list>
 
-#define SWE_VERSION 20190804
+#define SWE_VERSION 20190826
 
 #ifdef OLDENGINE
 #include "SDL_rotozoom.h"
@@ -249,6 +249,8 @@ bool Display::init(const std::string & title, const Size & win, bool fullscreen,
 bool Display::init(const std::string & title, const Size & win, const Size & render, bool fullscreen, bool accel, bool resized)
 {
     closeWindow();
+    DEBUG("window: " << win.toString());
+    DEBUG("render: " << render.toString());
 
 #ifdef OLDENGINE
     int flags = accel ? SDL_SWSURFACE | SDL_HWSURFACE | SDL_DOUBLEBUF : SDL_SWSURFACE;
@@ -260,20 +262,21 @@ bool Display::init(const std::string & title, const Size & win, const Size & ren
 	fullscreen = true;
 
     Size winsz = win;
+    Size rensz = render;
 
     if(fullscreen)
     {
-	if(win.h > win.w) std::swap(winsz.w, winsz.h);
-
 	auto modes = hardwareVideoModes();
-	if(modes.end() == std::find_if(modes.begin(), modes.end(),
-            std::bind2nd(std::greater_equal<Size>(), winsz)))
-	{
-    	    // set max resolution and fullscreen
-    	    winsz = modes.back();
-	    if(win.h > win.w) std::swap(winsz.w, winsz.h);
-	    DEBUG("set win size: " << winsz.w << "x" << winsz.h);
-	}
+
+	// modes sorting landscape
+	winsz = modes.back();
+
+	// rotate win
+	if((rensz.w < rensz.h && winsz.w > winsz.h) ||
+	    (rensz.w > rensz.h && winsz.w < winsz.h))
+	    std::swap(winsz.w, winsz.h);
+
+	DEBUG("fixed window: " << winsz.toString());
     }
 
 #ifdef OLDENGINE
@@ -288,7 +291,13 @@ bool Display::init(const std::string & title, const Size & win, const Size & ren
 	flags |= SDL_WINDOW_RESIZABLE;
 #endif
 
-    return createWindow(title, winsz, flags) ? Display::renderInit(render, accel) : false;
+#ifdef ANDROID
+	flags |= SDL_WINDOW_FULLSCREEN;
+	flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+	flags |= SDL_WINDOW_RESIZABLE;
+#endif
+
+    return createWindow(title, winsz, flags) ? Display::renderInit(rensz, accel) : false;
 }
 
 bool Display::createWindow(const std::string & title, const Size & newsz, int flags)
@@ -317,10 +326,10 @@ bool Display::createWindow(const std::string & title, const Size & newsz, int fl
     	return false;
     }
 
+    DEBUG("window: " << winsz.w << "x" << winsz.h);
     if(Systems::isEmbeded())
         Display::hardwareCursorHide();
 
-    DEBUG(winsz.w << "x" << winsz.h);
     tickStart = Tools::ticks();
 
     return true;
@@ -364,7 +373,6 @@ bool Display::renderInit(const Size & win, bool accel)
     displayTexture = Display::createTexture(rendersz, false);
     displayTexture.convertToDisplayFormat();
 #else
-    SDL_GetWindowSize(_window, &winsz.w, &winsz.h);
 
     if(_renderer)
     {
@@ -390,6 +398,16 @@ bool Display::renderInit(const Size & win, bool accel)
 	}
     }
 
+    if(_renderer)
+    {
+	SDL_Rect port;
+
+	SDL_RenderGetViewport(_renderer, &port);
+	DEBUG("viewport: " << Rect(port).toString());
+    }
+
+    SDL_GetWindowSize(_window, &winsz.w, &winsz.h);
+    DEBUG("window: " << winsz.w << "x" << winsz.h);
     DEBUG("render: " << (accel ? "hardware" : "software"));
 
     if(! renderReset(NULL))
@@ -408,7 +426,7 @@ bool Display::renderInit(const Size & win, bool accel)
     }
 
     renderClear(Color::Black, displayTexture);
-    DEBUG(rendersz.w << "x" << rendersz.h);
+    DEBUG("render: " << rendersz.w << "x" << rendersz.h);
 
     if(winsz != rendersz)
     {
@@ -920,6 +938,10 @@ bool Display::handleEvents(void)
 		    handleFocusEvent(false);
                 break;
 
+	    case SDL_WINDOWEVENT_SIZE_CHANGED:
+		DEBUG("SIZE: " << current.window.data1 << ", " << current.window.data2);
+		break;
+
 	    case SDL_TEXTINPUT:
 		handleTextInput(current.text);
 		break;
@@ -1386,7 +1408,7 @@ std::list<Size> Display::hardwareVideoModes(void)
     {
         for(int ii = 0; modes[ii]; ++ii)
 	{
-	    Size mode(modes[ii]->w, modes[ii]->h);
+	    Size mode(modes[ii]->w, modes[ii]->h)
 	    if(mode.h > mode.w) std::swap(mode.w, mode.h);
 	    result.push_back(mode);
 	}

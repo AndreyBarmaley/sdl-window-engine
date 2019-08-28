@@ -32,6 +32,7 @@ class Texture;
 class DisplayScene
 {
 public:
+    static Window*             rootWindow(void);
     static bool                keyDebugHandle(const SDL_KeyboardEvent &);
     static bool                keyPressHandle(int);
     static bool                keyReleaseHandle(int);

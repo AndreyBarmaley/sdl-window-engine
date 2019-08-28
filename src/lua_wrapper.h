@@ -23,6 +23,7 @@
 #ifndef _SWE_LUAWRAPPER_
 #define _SWE_LUAWRAPPER_
 
+#ifdef WITH_LUA
 #include <string>
 #include <unordered_map>
 
@@ -155,4 +156,5 @@ public:
     LuaState &		stackPop(size_t num = 1);
 };
 
+#endif
 #endif

@@ -20,15 +20,16 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <string>
-#include <sstream>
-#include <iomanip>
-#include <iostream>
-#include <algorithm>
-
 #include "engine.h"
 
-#define MINCAPACITY 1024
+StreamBase::StreamBase()
+{
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+    setbigendian(true); /* default: hardware endian */
+#else
+    setbigendian(false); /* default: hardware endian */
+#endif
+}
 
 void StreamBase::setconstbuf(bool f)
 {
@@ -50,9 +51,10 @@ bool StreamBase::bigendian(void) const
     return BitFlags::check(0x80000000);
 }
 
-void StreamBase::setfail(bool f)
+void StreamBase::setfail(bool f) const
 {
-    BitFlags::set(0x00000001, f);
+    const BitFlags & flags = *this;
+    const_cast<BitFlags &>(flags).set(0x00000001, f);
 }
 
 bool StreamBase::fail(void) const
@@ -60,17 +62,17 @@ bool StreamBase::fail(void) const
     return BitFlags::check(0x00000001);
 }
 
-int StreamBase::get16(void)
+int StreamBase::get16(void) const
 {
     return bigendian() ? getBE16() : getLE16();
 }
 
-int StreamBase::get32(void)
+int StreamBase::get32(void) const
 {
     return bigendian() ? getBE32() : getLE32();
 }
 
-s64 StreamBase::get64(void)
+s64 StreamBase::get64(void) const
 {
     return bigendian() ? getBE64() : getLE64();
 }
@@ -318,917 +320,140 @@ rep:
     return true;
 }
 
-StreamBuf::StreamBuf(size_t sz) : itbeg(NULL), itget(NULL), itput(NULL), itend(NULL)
+/* StreamRWops */
+void StreamRWops::close(void)
 {
-    if(sz) realloc(sz);
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-    setbigendian(true); /* default: hardware endian */
-#else
-    setbigendian(false); /* default: hardware endian */
-#endif
-}
-
-StreamBuf::~StreamBuf()
-{
-    if(itbeg && ! isconstbuf()) delete [] itbeg;
-}
-
-StreamBuf::StreamBuf(const StreamBuf & st) : itbeg(NULL), itget(NULL), itput(NULL), itend(NULL)
-{
-    if(st.isconstbuf())
+    if(rw)
     {
-	itbeg = st.itbeg;
-	itend = st.itend;
-	itget = itbeg;
-	itput = itend;
-	setconstbuf(true);
-	setbigendian(st.bigendian());
-    }
-    else
-	copy(st);
-}
-
-StreamBuf::StreamBuf(const BinaryBuf & buf, int endian) : itbeg(NULL), itget(NULL), itput(NULL), itend(NULL)
-{
-    itbeg = (u8*) buf.data();
-    itend = itbeg + buf.size();
-    itget = itbeg;
-    itput = itend;
-    setconstbuf(true);
-
-    if(endian == 0 || endian == 1)
-	setbigendian(endian);
-    else
-    {
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-	setbigendian(true); /* default: hardware endian */
-#else
-        setbigendian(false); /* default: hardware endian */
-#endif
+	SDL_RWclose(rw);
+	rw = NULL;
     }
 }
 
-StreamBuf::StreamBuf(const u8* buf, size_t bufsz, int endian) : itbeg(NULL), itget(NULL), itput(NULL), itend(NULL)
+bool StreamRWops::seek(size_t pos)
 {
-    itbeg = const_cast<u8*>(buf);
-    itend = itbeg + bufsz;
-    itget = itbeg;
-    itput = itend;
-    setconstbuf(true);
+    return rw ? 0 <= SDL_RWseek(rw, pos, RW_SEEK_SET) : false;
+}
+ 
+bool StreamRWops::skip(size_t len)
+{
+    return rw ? 0 <= SDL_RWseek(rw, len, RW_SEEK_CUR) : false;
+}
 
-    if(endian == 0 || endian == 1)
-	setbigendian(endian);
+size_t StreamRWops::size(void) const
+{
+    if(rw)
     {
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-	setbigendian(true); /* default: hardware endian */
-#else
-	setbigendian(false); /* default: hardware endian */
-#endif
+        size_t pos = SDL_RWtell(rw);
+        SDL_RWseek(rw, 0, RW_SEEK_SET);
+        size_t len = SDL_RWseek(rw, 0, SEEK_END);
+        SDL_RWseek(rw, pos, RW_SEEK_SET);
+        return len;
     }
+    return 0;
 }
 
-StreamBuf & StreamBuf::operator= (const StreamBuf & st)
+size_t StreamRWops::last(void) const
 {
-    if(&st != this)
+    if(rw)
     {
-	if(st.isconstbuf())
-	{
-	    itbeg = st.itbeg;
-	    itend = st.itend;
-	    itget = itbeg;
-	    itput = itend;
-	    setconstbuf(true);
-	    setbigendian(st.bigendian());
-	}
-	else
-	    copy(st);
+        size_t pos = SDL_RWtell(rw);
+        size_t len = SDL_RWseek(rw, 0, RW_SEEK_END);
+        SDL_RWseek(rw, pos, RW_SEEK_SET);
+        return len - pos;
     }
-    return *this;
+    return 0;
 }
+    
+size_t StreamRWops::tell(void) const
+{   
+    return rw ? SDL_RWtell(rw) : 0;
+}   
 
-size_t StreamBuf::capacity(void) const
+int StreamRWops::get8(void) const
 {
-    return itend - itbeg;
-}
-
-const u8* StreamBuf::data(void) const
-{
-    return itget;
-}
-
-size_t StreamBuf::size(void) const
-{
-    return sizeg();
-}
-
-void StreamBuf::reset(void)
-{
-    itput = itbeg;
-    itget = itbeg;
-}
-
-size_t StreamBuf::tellg(void) const
-{
-    return itget - itbeg;
-}
-
-size_t StreamBuf::tellp(void) const
-{
-    return itput - itbeg;
-}
-
-size_t StreamBuf::sizeg(void) const
-{
-    return itput - itget;
-}
-
-size_t StreamBuf::sizep(void) const
-{
-    return itend - itput;
-}
-
-void StreamBuf::realloc(size_t sz)
-{
-    if(isconstbuf())
-    {
-	FIXME("const buf reallocated");
-	setconstbuf(false);
-    }
-
-    if(! itbeg)
-    {
-	if(sz < MINCAPACITY) sz = MINCAPACITY;
-
-	itbeg = new u8 [sz];
-	itend = itbeg + sz;
-    	std::fill(itbeg, itend, 0);
-
-	reset();
-    }
-    else
-    if(sizep() < sz)
-    {
-	if(sz < MINCAPACITY) sz = MINCAPACITY;
-
-	u8* ptr = new u8 [sz];
-
-	std::fill(ptr, ptr + sz, 0);
-	std::copy(itbeg, itput, ptr);
-
-	itput = ptr + tellp();
-	itget = ptr + tellg();
-
-	delete [] itbeg;
-
-	itbeg = ptr;
-	itend = itbeg + sz;
-    }
-}
-
-void StreamBuf::copy(const StreamBuf & sb)
-{
-    if(capacity() < sb.size())
-	realloc(sb.size());
-
-    std::copy(sb.itget, sb.itput, itbeg);
-
-    itput = itbeg + sb.tellp();
-    itget = itbeg + sb.tellg();
-
-    BitFlags::reset();
-    setbigendian(sb.bigendian());
-}
-
-
-void StreamBuf::put8(char v)
-{
-    if(0 == sizep())
-	realloc(capacity() + capacity() / 2);
-
-    if(sizep())
-        *itput++ = v;
-    else
-	setfail(true);
-}
-
-int StreamBuf::get8(void)
-{
-    int res = 0;
-
-    if(sizeg())
-	res = 0x000000FF & *itget++;
-    else
-	setfail(true);
-
+    u8 res = 0;
+    if(rw) SDL_RWread(rw, & res, 1, 1);
+ 
     return res;
 }
 
-int StreamBuf::getBE16(void)
-{
-    return (get8() << 8) | get8();
-}
-
-int StreamBuf::getLE16(void)
-{
-    return get8() | (get8() << 8);
-}
-
-int StreamBuf::getBE32(void)
-{
-    int hh = getBE16();
-    int ll = getBE16();
-    return (hh << 16) | ll;
-}
-
-int StreamBuf::getLE32(void)
-{
-    int ll = getLE16();
-    int hh = getLE16();
-    return (hh << 16) | ll;
-}
-
-s64 StreamBuf::getBE64(void)
-{
-    s64 hh = getBE32();
-    s64 ll = getBE32();
-    return (hh << 32) | ll;
-}
-
-s64 StreamBuf::getLE64(void)
-{
-    s64 ll = getBE32();
-    s64 hh = getBE32();
-    return (hh << 32) | ll;
-}
-
-void StreamBuf::putBE16(u16 v)
-{
-    put8(v >> 8);
-    put8(v);
-}
-
-void StreamBuf::putLE16(u16 v)
-{
-    put8(v);
-    put8(v >> 8);
-}
-
-void StreamBuf::putBE32(u32 v)
-{
-    putBE16(v >> 16);
-    putBE16(v & 0xFFFF);
-}
-
-void StreamBuf::putLE32(u32 v)
-{
-    putLE16(v & 0xFFFF);
-    putLE16(v >> 16);
-}
-
-void StreamBuf::putBE64(u64 v)
-{
-    putBE32(v >> 32);
-    putBE32(v & 0xFFFFFFFF);
-}
-
-void StreamBuf::putLE64(u64 v)
-{
-    putLE32(v & 0xFFFFFFFF);
-    putLE32(v >> 32);
-}
-
-BinaryBuf StreamBuf::get(size_t sz)
-{
-    const u8* first = itget;
-
-    if(sz == 0 || sz > sizeg()) sz = sizeg(); 
-    skip(sz);
-
-    return BinaryBuf(first, sz);
-}
-
-void StreamBuf::put(const char* ptr, size_t sz)
-{
-    for(size_t it = 0; it < sz; ++it)
-	*this << ptr[it];
-}
-
-void StreamBuf::skip(size_t sz)
-{
-    itget += sz <= sizeg() ? sz : sizeg();
-}
-
-void StreamBuf::seek(size_t sz)
-{
-    itget = itbeg + sz < itend ? itbeg + sz : itend;
-}
-
-StreamFile::StreamFile(const std::string & fn, const char* mode) : filemode(NULL), rw(NULL)
-{
-    open(fn, mode);
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-    setbigendian(true); /* default: hardware endian */
-#else
-    setbigendian(false); /* default: hardware endian */
-#endif
-}
-
-StreamFile::StreamFile(const StreamFile & sf) : filemode(NULL), rw(NULL)
-{
-    if(sf.rw && open(sf.filename, sf.filemode))
-	seek(sf.tell());
-}
-
-StreamFile::~StreamFile()
-{
-    close();
-}
-
-StreamFile & StreamFile::operator= (const StreamFile & sf)
-{
-    if(sf.rw && open(sf.filename, sf.filemode))
-	seek(sf.tell());
-    return *this;
-}
-    
-bool StreamFile::open(const std::string & fn, const char* mode)
-{
-    close();
-
-    if(!fn.empty() && mode)
-    {
-	filename = fn;
-	filemode = mode;
-
-	rw = SDL_RWFromFile(fn.c_str(), mode);
-
-	if(! rw)
-	{
-	    filename.clear();
-	    filemode = NULL;
-	    ERROR(SDL_GetError());
-	}
-    }
-
-    return rw;
-}
-
-void StreamFile::close(void)
-{
-    if(rw) SDL_RWclose(rw);
-    rw = NULL;
-}
-
-size_t StreamFile::size(void) const
-{
-    if(rw)
-    {
-	size_t pos = SDL_RWtell(rw);
-	SDL_RWseek(rw, 0, RW_SEEK_END);
-	size_t len = SDL_RWseek(rw, 0, SEEK_END);
-	SDL_RWseek(rw, pos, RW_SEEK_SET);
-	return len;
-    }
-    return 0;
-}
-
-size_t StreamFile::tell(void) const
-{
-    return tellg();
-}
-
-void StreamFile::seek(size_t pos)
-{
-    if(rw) SDL_RWseek(rw, pos, RW_SEEK_SET);
-}
-
-size_t StreamFile::sizeg(void) const
-{
-    if(rw)
-    {
-	size_t pos = SDL_RWtell(rw);
-	size_t len = SDL_RWseek(rw, 0, RW_SEEK_END);
-	SDL_RWseek(rw, pos, RW_SEEK_SET);
-	return len - pos;
-    }
-    return 0;
-}
-
-size_t StreamFile::tellg(void) const
-{
-    return rw ? SDL_RWtell(rw) : 0;
-}
-
-size_t StreamFile::sizep(void) const
-{
-    return sizeg();
-}
-
-size_t StreamFile::tellp(void) const
-{
-    return tellg();
-}
-
-void StreamFile::skip(size_t pos)
-{
-    if(rw) SDL_RWseek(rw, pos, RW_SEEK_CUR);
-}
-
-int StreamFile::get8(void)
-{
-    u8 ch = 0;
-    if(rw) SDL_RWread(rw, & ch, 1, 1);
-    else setfail(true);
-    return ch;
-}
-
-void StreamFile::put8(char ch)
-{
-    if(rw) SDL_RWwrite(rw, & ch, 1, 1);
-    else setfail(true);
-}
-
-int StreamFile::getBE16(void)
-{
+int StreamRWops::getBE16(void) const
+{   
     return rw ? SDL_ReadBE16(rw) : 0;
 }
 
-int StreamFile::getLE16(void)
-{
+int StreamRWops::getLE16(void) const
+{   
     return rw ? SDL_ReadLE16(rw) : 0;
-}
-
-int StreamFile::getBE32(void)
-{
+}   
+    
+int StreamRWops::getBE32(void) const
+{   
     return rw ? SDL_ReadBE32(rw) : 0;
 }
-
-int StreamFile::getLE32(void)
-{
+    
+int StreamRWops::getLE32(void) const
+{   
     return rw ? SDL_ReadLE32(rw) : 0;
 }
-
-s64 StreamFile::getBE64(void)
-{
+    
+s64 StreamRWops::getBE64(void) const
+{   
     return rw ? SDL_ReadBE64(rw) : 0;
 }
 
-s64 StreamFile::getLE64(void)
-{
+s64 StreamRWops::getLE64(void) const
+{   
     return rw ? SDL_ReadLE64(rw) : 0;
 }
 
-void StreamFile::putBE64(u64 val)
+BinaryBuf StreamRWops::get(size_t sz) const
 {
-    if(rw) SDL_WriteBE64(rw, val);
-}
+    if(sz == 0) sz = last();
 
-void StreamFile::putLE64(u64 val)
-{
-    if(rw) SDL_WriteLE64(rw, val);
-}
-
-void StreamFile::putBE32(u32 val)
-{
-    if(rw) SDL_WriteBE32(rw, val);
-}
-
-void StreamFile::putLE32(u32 val)
-{
-    if(rw) SDL_WriteLE32(rw, val);
-}
-
-void StreamFile::putBE16(u16 val)
-{
-    if(rw) SDL_WriteBE16(rw, val);
-}
-
-void StreamFile::putLE16(u16 val)
-{
-    if(rw) SDL_WriteLE16(rw, val);
-}
-
-BinaryBuf StreamFile::get(size_t sz)
-{
-    BinaryBuf buf(sz ? sz : sizeg());
+    BinaryBuf buf(sz);
     if(rw) SDL_RWread(rw, buf.data(), buf.size(), 1);
+
     return buf;
-}
+}   
 
-void StreamFile::put(const char* ptr, size_t sz)
+bool StreamRWops::put8(char val)
 {
-    if(rw) SDL_RWwrite(rw, ptr, sz, 1);
+    return rw ? SDL_RWwrite(rw, & val, 1, 1) : false;
 }
 
-StreamBuf StreamFile::toStreamBuf(size_t sz)
+bool StreamRWops::putBE16(u16 val)
 {
-    StreamBuf sb;
-    BinaryBuf buf = get(sz);
-    sb.put(reinterpret_cast<const char*>(buf.data()), buf.size());
-    return sb;
+    return rw ? SDL_WriteBE16(rw, val) : false;
 }
 
-bool ZStreamBuf::read(const std::string & fn, size_t offset)
+bool StreamRWops::putLE16(u16 val)
 {
-    StreamFile sf;
-    sf.setbigendian(true);
-
-    if(! sf.open(fn, "rb"))
-    {
-        ERROR("open: " << fn);
-	return false;
-    }
-
-    if(offset) sf.seek(offset);
-
-    const u32 size0 = sf.get32(); // raw size
-    const u32 size1 = sf.get32(); // zip size
-    BinaryBuf raw = sf.get(size1).zlibUncompress(size0);
-
-    put(reinterpret_cast<const char*>(raw.data()), raw.size());
-    seek(0);
-
-    return ! fail();
+    return rw ? SDL_WriteLE16(rw, val) : false;
 }
 
-bool ZStreamBuf::write(const std::string & fn, bool append) const
+bool StreamRWops::putBE32(u32 val)
 {
-    StreamFile sf;
-    sf.setbigendian(true);
-
-    if(! sf.open(fn, append ? "ab" : "wb"))
-    {
-        ERROR("open: " << fn);
-	return false;
-    }
-
-    BinaryBuf zip = Tools::zlibCompress(data(), size());
-    if(zip.empty()) return false;
-
-    sf.put32(size());
-    sf.put32(zip.size());
-    sf.put(reinterpret_cast<const char*>(zip.data()), zip.size());
-
-    return ! sf.fail();
+    return rw ? SDL_WriteBE32(rw, val) : false;
 }
 
-#ifndef DISABLE_NETWORK
-StreamNetwork::StreamNetwork() : sd(NULL), sdset(NULL)
+bool StreamRWops::putLE32(u32 val)
 {
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-    setbigendian(true); /* default: hardware endian */
-#else
-    setbigendian(false); /* default: hardware endian */
-#endif
+    return rw ? SDL_WriteLE32(rw, val) : false;
 }
 
-size_t StreamNetwork::timeout = 100;
-
-StreamNetwork::StreamNetwork(TCPsocket sock) : sd(NULL), sdset(NULL)
+bool StreamRWops::putBE64(u64 val)
 {
-    open(sock);
-
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-    setbigendian(true); /* default: hardware endian */
-#else
-    setbigendian(false); /* default: hardware endian */
-#endif
+    return rw ? SDL_WriteBE64(rw, val) : false;
 }
 
-StreamNetwork::StreamNetwork(const std::string & name, int port) : sd(NULL), sdset(NULL)
+bool StreamRWops::putLE64(u64 val)
 {
-    connect(name, port);
-
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-    setbigendian(true); /* default: hardware endian */
-#else
-    setbigendian(false); /* default: hardware endian */
-#endif
+    return rw ? SDL_WriteLE64(rw, val) : false;
 }
 
-
-StreamNetwork::~StreamNetwork()
+bool StreamRWops::put(const char* data, size_t size)
 {
-    close();
+    return rw ? SDL_RWwrite(rw, data, size, 1) : false;
 }
-
-StreamNetwork::StreamNetwork(StreamNetwork && sn)
-{
-    sd = sn.sd;
-    sdset = sn.sdset;
-
-    sn.sd = NULL;
-    sn.sdset = NULL;
-}
-
-StreamNetwork & StreamNetwork::operator= (StreamNetwork && sn)
-{
-    close();
-
-    sd = sn.sd;
-    sdset = sn.sdset;
-
-    sn.sd = NULL;
-    sn.sdset = NULL;
-
-    return *this;
-}
-
-bool StreamNetwork::ready(void) const
-{
-    const size_t chunk = 10;
-
-    for(size_t it = 0; it < timeout; it += chunk)
-    {
-	bool res = sd && sdset && 0 < SDLNet_CheckSockets(sdset, 1) && 0 < SDLNet_SocketReady(sd);
-	if(res) return true;
-
-	Tools::delay(chunk);
-    }
-
-    return false;
-}
-
-bool StreamNetwork::connect(const std::string & name, int port)
-{
-    IPaddress ip;
-
-    if(0 > SDLNet_ResolveHost(&ip, name.size() ? name.c_str() : NULL, port))
-    {
-        ERROR(SDLNet_GetError());
-        return false;
-    }
-
-    return open(SDLNet_TCP_Open(&ip));
-}
-
-bool StreamNetwork::open(TCPsocket sock)
-{
-    close();
-    sd = sock;
-
-    if(sd)
-    {
-	sdset = SDLNet_AllocSocketSet(1);
-	if(sdset)
-	{
-	    SDLNet_TCP_AddSocket(sdset, sd);
-	    return true;
-	}
-    }
-
-    ERROR(SDLNet_GetError());
-    return false;
-}
-
-bool StreamNetwork::listen(int port)
-{
-    IPaddress ip;
-
-    if(0 > SDLNet_ResolveHost(&ip, NULL, port))
-    {
-        ERROR(SDLNet_GetError());
-        return false;
-    }
-
-    close();
-    sd = SDLNet_TCP_Open(&ip);
-
-    if(! sd)
-    {
-	ERROR(SDLNet_GetError());
-	return false;
-    }
-
-    return true;
-}
-
-void StreamNetwork::close(void)
-{
-    if(sdset)
-    {
-	if(sd) SDLNet_TCP_DelSocket(sdset, sd);
-    	SDLNet_FreeSocketSet(sdset);
-        sdset = NULL;
-    }
-
-    if(sd)
-    {
-    	SDLNet_TCP_Close(sd);
-    	sd = NULL;
-    }
-}
-
-TCPsocket StreamNetwork::accept(void)
-{
-    TCPsocket sock = SDLNet_TCP_Accept(sd);
-    return sock;
-}
-
-StringList StreamNetwork::localAddresses(void)
-{
-    IPaddress addresses[4];
-    StringList res;
-
-    int count = SDLNet_GetLocalAddresses(addresses, 4);
-    for(int it = 0; it < count; ++it)
-    {
-	res << StringFormat("%4.%3.%2.%1").
-			arg(0xFF & (addresses[it].host >> 24)).
-			arg(0xFF & (addresses[it].host >> 16)).
-			arg(0xFF & (addresses[it].host >> 8)).
-			arg(0xFF & addresses[it].host);
-    }
-
-    return res;
-}
-
-std::pair<std::string, int>
-StreamNetwork::peerAddress(TCPsocket sock)
-{
-    std::pair<std::string, int> res;
-    IPaddress* ipa = sock ? SDLNet_TCP_GetPeerAddress(sock) : NULL;
-    if(ipa)
-    {
-	res.second = ipa->port;
-	res.first = StringFormat("%4.%3.%2.%1").
-			arg(0xFF & (ipa->host >> 24)).
-			arg(0xFF & (ipa->host >> 16)).
-			arg(0xFF & (ipa->host >> 8)).
-			arg(0xFF & ipa->host);
-    }
-    return res;
-}
-
-int StreamNetwork::recv(char *buf, int len)
-{
-    int total = 0;
-
-    if(sd && buf && 0 < len)
-    {
-	int rcv;
-	int bufsz = len;
-
-        while((rcv = SDLNet_TCP_Recv(sd, buf, bufsz)) > 0 && rcv <= bufsz)
-        {
-            buf   += rcv;
-            bufsz -= rcv;
-	    total += rcv;
-        }
-
-        if(total != len) setfail(true);
-    }
-
-    return total;
-}
-
-int StreamNetwork::send(const char* buf, int len)
-{
-    int snd = 0;
-    if(sd && buf && 0 < len)
-    {
-	snd = SDLNet_TCP_Send(sd, buf, len);
-	if(snd != len) setfail(true);
-    }
-    return snd;
-}
-
-int StreamNetwork::get8(void)
-{
-    if(sd)
-    {
-	u8 ch = 0;
-
-	if(1 != SDLNet_TCP_Recv(sd, & ch, 1))
-	    setfail(true);
-
-	return ch;
-    }
-
-    return 0;
-}
-
-void StreamNetwork::put8(char ch)
-{
-    if(sd)
-    {
-	if(1 != SDLNet_TCP_Send(sd, & ch, 1))
-	    setfail(true);
-    }
-}
-
-void StreamNetwork::skip(size_t sz)
-{
-    for(size_t it = 0; it < sz; ++it) get8();
-}
-
-int StreamNetwork::getBE16(void)
-{
-    return (get8() << 8) | get8();
-}
-
-int StreamNetwork::getLE16(void)
-{
-    return get8() | (get8() << 8);
-}
-
-int StreamNetwork::getBE32(void)
-{
-    int hh = getBE16();
-    int ll = getBE16();
-    return (hh << 16) | ll;
-}
-
-int StreamNetwork::getLE32(void)
-{
-    int ll = getLE16();
-    int hh = getLE16();
-    return (hh << 16) | ll;
-}
-
-s64 StreamNetwork::getBE64(void)
-{
-    s64 hh = getBE32();
-    s64 ll = getBE32();
-    return (hh << 32) | ll;
-}
-
-s64 StreamNetwork::getLE64(void)
-{
-    s64 ll = getBE32();
-    s64 hh = getBE32();
-    return (hh << 32) | ll;
-}
-
-void StreamNetwork::putBE16(u16 v)
-{
-    put8(v >> 8);
-    put8(v);
-}
-
-void StreamNetwork::putLE16(u16 v)
-{
-    put8(v);
-    put8(v >> 8);
-}
-
-void StreamNetwork::putBE32(u32 v)
-{
-    putBE16(v >> 16);
-    putBE16(v & 0xFFFF);
-}
-
-void StreamNetwork::putLE32(u32 v)
-{
-    putLE16(v & 0xFFFF);
-    putLE16(v >> 16);
-}
-
-void StreamNetwork::putBE64(u64 v)
-{
-    putBE32(v >> 32);
-    putBE32(v & 0xFFFFFFFF);
-}
-
-void StreamNetwork::putLE64(u64 v)
-{
-    putLE32(v & 0xFFFFFFFF);
-    putLE32(v >> 32);
-}
-
-BinaryBuf StreamNetwork::get(size_t sz)
-{
-    BinaryBuf res;
-
-    if(sz)
-    {
-	res.resize(sz);
-	int rcv = recv(reinterpret_cast<char*>(res.data()), res.size());
-	res.resize(rcv);
-    }
-    else
-    {
-	while(ready())
-	{
-	    const size_t packet = 1024;
-	    size_t bufsz = res.size();
-	    res.resize(bufsz + packet);
-
-	    int rcv = recv(reinterpret_cast<char*>(res.data() + bufsz), packet);
-	    if(rcv < packet)
-	    {
-		res.resize(0 < rcv ? bufsz + rcv : bufsz);
-	    }
-
-	    if(fail()) break;
-	}
-    }
-
-    return res;
-}
-
-void StreamNetwork::put(const char* data, size_t sz)
-{
-    send(data, sz);
-}
-#endif
