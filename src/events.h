@@ -124,11 +124,12 @@ struct UserEvent
 
 enum Signal
 {
-    EventNone = 0x00FF0000,
+    EventNone = 0x01000000,
     WindowCreated, WindowScrolledPrev, WindowScrolledNext, WindowPageUp, WindowPageDown,
     ListboxChangedList, ListboxSelectedItem,
     ScrollBarScrolledPrev, ScrollBarScrolledNext, ScrollBarMovedCursor,
-    ButtonPressed, ButtonReleased, ButtonClicked, ButtonSetFocus, ButtonResetFocus, ButtonTimerComplete
+    ButtonPressed, ButtonReleased, ButtonClicked, ButtonSetFocus, ButtonResetFocus, ButtonTimerComplete,
+    LuaUnrefAction
 };
 
 #endif

@@ -44,6 +44,7 @@ namespace Display
 
     const Size &	device(void);
     const Size &	size(void);
+    bool		fullscreen(void);
 
     bool		scaleUsed(void);
     Point		scaleValue(const Point &);

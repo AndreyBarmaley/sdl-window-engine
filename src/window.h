@@ -115,7 +115,7 @@ public:
     void		setParent(Window*);
     void		setVisible(bool);
     void		setResultCode(int);
-    void		setSize(const Size &);
+    virtual void	setSize(const Size &);
     virtual void	setPosition(const Point &);
     void		setLayerTop(void);
 

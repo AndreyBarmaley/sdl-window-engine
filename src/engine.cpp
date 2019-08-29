@@ -811,6 +811,21 @@ const Size & Display::size(void)
     return rendersz;
 }
 
+bool Display::fullscreen(void)
+{
+#ifdef OLDENGINE
+    SDL_Surface* sf = SDL_GetVideoSurface();
+    return sf ? sf->flags & SDL_FULLSCREEN : false;
+#else
+    if(_window)
+    {
+	u32 flags = SDL_GetWindowFlags(_window);
+	return flags & SDL_WINDOW_FULLSCREEN;
+    }
+    return false;
+#endif
+}
+
 void Display::redraw(void)
 {
     u32 tickCurrent = Tools::ticks();
@@ -929,7 +944,15 @@ bool Display::handleEvents(void)
                     Display::renderPresent();
                 else
 		if(SDL_WINDOWEVENT_RESIZED == current.window.event)
+		{
+		    DEBUG("resize: " << current.window.data1 << ", " << current.window.data2);
                     Display::resizeWindow(Size(current.window.data1, current.window.data2), true);
+		}
+		else
+		if(SDL_WINDOWEVENT_SIZE_CHANGED == current.window.event)
+		{
+		    DEBUG("size changed: " << current.window.data1 << ", " << current.window.data2);
+		}
 		else
 		if(SDL_WINDOWEVENT_FOCUS_GAINED == current.window.event)
 		    handleFocusEvent(true);
@@ -938,9 +961,6 @@ bool Display::handleEvents(void)
 		    handleFocusEvent(false);
                 break;
 
-	    case SDL_WINDOWEVENT_SIZE_CHANGED:
-		DEBUG("SIZE: " << current.window.data1 << ", " << current.window.data2);
-		break;
 
 	    case SDL_TEXTINPUT:
 		handleTextInput(current.text);
@@ -1408,7 +1428,7 @@ std::list<Size> Display::hardwareVideoModes(void)
     {
         for(int ii = 0; modes[ii]; ++ii)
 	{
-	    Size mode(modes[ii]->w, modes[ii]->h)
+	    Size mode(modes[ii]->w, modes[ii]->h);
 	    if(mode.h > mode.w) std::swap(mode.w, mode.h);
 	    result.push_back(mode);
 	}

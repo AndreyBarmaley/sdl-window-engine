@@ -748,6 +748,11 @@ TermBase & TermBase::operator<< (const set::wrap & st)
 }
 
 /* TermWindow */
+TermWindow::TermWindow(const Point & gfxpos, const Size & gfxsz, const FontRender & frs, Window & win) : TermBase(gfxpos, gfxsz, frs, win)
+{
+    termResizeEvent();
+}
+
 void TermWindow::termResizeEvent(void)
 {
     chars.resize(rows() * cols(), UnicodeColor(0x20, FBColors(fgColor(), bgColor())));

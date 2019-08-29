@@ -27,6 +27,7 @@
 #include <cctype>
 #include <cstdlib>
 #include <clocale>
+#include <algorithm>
 
 #if defined(__MINGW32CE__) || defined(__MINGW32__) || defined(__WIN32__) || defined(__WIN64__)
 #include <windows.h>
@@ -238,7 +239,7 @@ std::string Systems::basename(const std::string & str)
 
 namespace
 {
-    StringList assetsList;
+    StringList assetsRes;
 }
 
 void Systems::assetsInit(void)
@@ -250,40 +251,38 @@ void Systems::assetsInit(void)
 
     if(str.size())
     {
-	assetsList << String::split(str, 0x0A);
-	DEBUG("items: " << assetsList.size());
+	assetsRes << String::split(str, 0x0A);
+	DEBUG("items: " << assetsRes.size());
     }
+}
+
+const StringList & Systems::assetsList(void)
+{
+    return assetsRes;
 }
 
 bool Systems::isFile(const std::string & name, bool writable)
 {
 #if defined(ANDROID)
-    if(assetsList.end() != std::find(assetsList.begin(), assetsList.end(), name))
+    if(assetsRes.end() != std::find(assetsRes.begin(), assetsRes.end(), name))
 	return true;
-
-    return 0 == access(name.c_str(), writable ? W_OK : R_OK);
-#else
+#endif
     struct stat fs;
 
     if(stat(name.c_str(), &fs) || !S_ISREG(fs.st_mode))
         return false;
 
     return 0 == access(name.c_str(), writable ? W_OK : R_OK);
-#endif
 }
 
 bool Systems::isDirectory(const std::string & name, bool writable)
 {
-#if defined (ANDROID)
-    return 0 == access(name.c_str(), writable ? W_OK : R_OK);
-#else
     struct stat fs;
 
     if(stat(name.c_str(), &fs) || !S_ISDIR(fs.st_mode))
         return false;
 
     return 0 == access(name.c_str(), writable ? W_OK : R_OK);
-#endif
 }
 
 int Systems::remove(const std::string & file)
@@ -298,47 +297,64 @@ bool Systems::saveString2File(const std::string & str, const std::string & file)
 {
     SDL_RWops* rw = SDL_RWFromFile(file.c_str(), "wb");
 
-    if(rw && SDL_RWwrite(rw, str.c_str(), str.size(), 1) == 1)
+    if(rw)
     {
+	bool res = SDL_RWwrite(rw, str.c_str(), str.size(), 1) == 1;
         SDL_RWclose(rw);
-        return true;
+        return res;
     }
 
     ERROR(SDL_GetError());
     return false;
 }
 
-bool Systems::saveFile(const BinaryBuf & raw, const std::string & file)
+bool Systems::saveFile(const BinaryBuf & raw, const std::string & file, int offset /* default: 0, endpos : -1 */)
 {
-    SDL_RWops* rw = SDL_RWFromFile(file.c_str(), "wb");
+    SDL_RWops* rw = NULL;
 
-    if(rw && SDL_RWwrite(rw, raw.data(), raw.size(), 1) == 1)
+    if(0 < offset)
     {
+	// open a file for update both reading and writing
+	rw = SDL_RWFromFile(file.c_str(), "r+b");
+        SDL_RWseek(rw, offset, RW_SEEK_SET);
+    }
+    else
+    if(0 > offset)
+    {
+	// writing operations append data at the end of the file
+	rw = SDL_RWFromFile(file.c_str(), "ab");
+    }
+    else
+	// create an empty file for writing
+	rw = SDL_RWFromFile(file.c_str(), "wb");
+
+    if(rw)
+    {
+	bool res = SDL_RWwrite(rw, raw.data(), raw.size(), 1) == 1;
         SDL_RWclose(rw);
-        return true;
+        return res;
     }
 
     ERROR(SDL_GetError());
     return false;
 }
 
-bool Systems::readFile2String(const std::string & file, std::string & res)
+bool Systems::readFile2String(const std::string & file, std::string & str)
 {
     SDL_RWops* rw = SDL_RWFromFile(file.c_str(), "rb");
 
-    if(rw && SDL_RWseek(rw, 0, RW_SEEK_END) != -1)
+    if(rw)
     {
-	res.clear();
-        res.resize(SDL_RWtell(rw));
+	SDL_RWseek(rw, 0, RW_SEEK_END);
+        size_t size = SDL_RWtell(rw);
+        str.resize(size);
         SDL_RWseek(rw, 0, RW_SEEK_SET);
-        SDL_RWread(rw, & res[0], res.size(), 1);
+        bool res = SDL_RWread(rw, & str[0], str.size(), 1) == 1;
         SDL_RWclose(rw);
-
-	return true;
+	return res;
     }
-    else
-	ERROR(SDL_GetError());
 
+    ERROR(SDL_GetError());
     return false;
 }
 
@@ -358,12 +374,13 @@ BinaryBuf Systems::readFile(const std::string & file, size_t offset, size_t size
 	    buf.resize(size);
 
         SDL_RWseek(rw, offset, RW_SEEK_SET);
-        SDL_RWread(rw, buf.data(), buf.size(), 1);
+        if(SDL_RWread(rw, buf.data(), buf.size(), 1) != 1)
+	    ERROR(SDL_GetError());
         SDL_RWclose(rw);
+	return buf;
     }
-    else
-	ERROR(SDL_GetError());
 
+    ERROR(SDL_GetError());
     return buf;
 }
 
@@ -429,6 +446,9 @@ std::string Systems::homeDirectory(const std::string & prog)
 
     if(path)
     {
+	size_t last = strlen(path) - 1;
+	if(path[last] == SEPARATOR) path[last] = 0;
+
 	res = path;
 	SDL_free(path);
     }

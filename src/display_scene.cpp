@@ -435,8 +435,11 @@ bool DisplayScene::userHandle(const SDL_UserEvent & ev)
     else
     // broadcast: for all
     {
+	for(auto it = sceneItems.rbegin(); it != sceneItems.rend(); ++it)
+    	    if(*it && (*it)->parent() != NULL) (*it)->userEvent(ev.code, ev.data2);
+
 	for(auto it = sceneItems.begin(); it != sceneItems.end(); ++it)
-    	    if(*it) (*it)->userEvent(ev.code, ev.data2);
+    	    if(*it && (*it)->parent() == NULL) (*it)->userEvent(ev.code, ev.data2);
 
 	return true;
     }

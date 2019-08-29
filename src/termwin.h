@@ -343,7 +343,7 @@ public:
     TermBase(const Point & gfxpt, const Size & gfxsz, const FontRender &, Window &);
 
     void		setFontRender(const FontRender &);
-    void                setSize(const Size &);
+    void                setSize(const Size &) override;
     void		setTermSize(const TermSize &);
 
     void		setCursorPos(const TermPos & tp) { curpos = tp; }
@@ -352,7 +352,6 @@ public:
 
     virtual void	setCharset(int ch, const ColorIndex & fg = Color::Transparent, const ColorIndex & bg = Color::Transparent, int prop = 0) = 0;
     virtual void	renderFlush(void) = 0;
-
 
     inline int		cols(void) const { return termsz.cols(); }
     inline int		rows(void) const { return termsz.rows(); }
@@ -418,17 +417,17 @@ protected:
     TermWindow() {}
     TermWindow(TermBase & term) : TermBase(term) {} // FIXED: remove
 
-    void		termResizeEvent(void);
+    void		termResizeEvent(void) override;
 
 public:
     TermWindow(const FontRender & frs) : TermBase(frs) {}
     TermWindow(const FontRender & frs, Window & win) : TermBase(frs, win) {}
-    TermWindow(const Point & gfxpos, const Size & gfxsz, const FontRender & frs, Window & win) : TermBase(gfxpos, gfxsz, frs, win) {}
+    TermWindow(const Point & gfxpos, const Size & gfxsz, const FontRender &, Window &);
 
-    void		setCharset(int ch, const ColorIndex & fg = Color::Transparent, const ColorIndex & bg = Color::Transparent, int prop = 0);
+    void		setCharset(int ch, const ColorIndex & fg = Color::Transparent, const ColorIndex & bg = Color::Transparent, int prop = 0) override;
+    void		renderFlush(void) override;
 
     void		renderSymbol(int symx, int symy);
-    void		renderFlush(void);
 };
 
 class TermArea : public TermBase
@@ -449,8 +448,8 @@ public:
     inline int		posx(void) const { return termpos.posx(); }
     inline int		posy(void) const { return termpos.posy(); }
 
-    void		setCharset(int ch, const ColorIndex & fg = Color::Transparent, const ColorIndex & bg = Color::Transparent, int prop = 0);
-    void		renderFlush(void);
+    void		setCharset(int ch, const ColorIndex & fg = Color::Transparent, const ColorIndex & bg = Color::Transparent, int prop = 0) override;
+    void		renderFlush(void) override;
 };
 
 class CenteredTerminal : public TermWindow

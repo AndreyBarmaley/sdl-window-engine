@@ -104,6 +104,9 @@ namespace Systems
     StringList	shareDirectories(const std::string &);
 
     void	assetsInit(void);
+    const StringList &
+		assetsList(void);
+
     bool	isFile(const std::string &, bool writable = false);
     bool	isDirectory(const std::string &, bool writable = false);
     int		remove(const std::string &);
@@ -111,7 +114,7 @@ namespace Systems
     void	setLocale(int, const char*);
     std::string messageLocale(int length /* 1, 2, 3 */);
 
-    bool	saveFile(const BinaryBuf &, const std::string &);
+    bool	saveFile(const BinaryBuf &, const std::string &, int offset = 0 /* -1 end */);
     BinaryBuf	readFile(const std::string &, size_t offset = 0, size_t size = 0);
 
     bool	saveString2File(const std::string &, const std::string &);
