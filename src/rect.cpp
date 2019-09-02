@@ -341,20 +341,23 @@ Point Rect::bottomRight(void) const
     return Point(x + w - 1, y + h - 1);
 }
 
-Rect Rect::intersection(const Rect & rt1, const Rect & rt2)
+bool Rect::intersection(const Rect & rt1, const Rect & rt2, Rect* res)
 {
-    Rect res;
-
     if(rt1 & rt2)
     {
-	res.x = rt1.x <= rt2.x ? rt2.x : rt1.x;
-	res.y = rt1.y <= rt2.y ? rt2.y : rt1.y;
+	if(res)
+	{
+	    res->x = rt1.x <= rt2.x ? rt2.x : rt1.x;
+	    res->y = rt1.y <= rt2.y ? rt2.y : rt1.y;
 
-	res.w = rt1.x + rt1.w <= rt2.x + rt2.w ? rt1.x + rt1.w - res.x : rt2.x + rt2.w - res.x;
-	res.h = rt1.y + rt1.h <= rt2.y + rt2.h ? rt1.y + rt1.h - res.y : rt2.y + rt2.h - res.y;
+	    res->w = rt1.x + rt1.w <= rt2.x + rt2.w ? rt1.x + rt1.w - res->x : rt2.x + rt2.w - res->x;
+	    res->h = rt1.y + rt1.h <= rt2.y + rt2.h ? rt1.y + rt1.h - res->y : rt2.y + rt2.h - res->y;
+	}
+
+	return true;
     }
 
-    return res;
+    return false;
 }
 
 std::string Rect::toString(void) const

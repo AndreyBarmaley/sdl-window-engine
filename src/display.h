@@ -38,6 +38,7 @@ class UnicodeString;
 
 namespace Display
 {
+    bool		init(const std::string &, bool landscape);
     bool		init(const std::string &, const Size & win, bool fullscreen, bool accel = true);
     bool		init(const std::string &, const Size & win, const Size & render, bool fullscreen, bool accel, bool resized);
     bool		resize(const Size &);
@@ -51,7 +52,7 @@ namespace Display
 
     void		hardwareCursorHide(void);
     void		hardwareCursorShow(void);
-    std::list<Size>	hardwareVideoModes(void);
+    std::list<Size>	hardwareVideoModes(bool landscape);
 
     bool		handleEvents(void);
     void		redraw(void);

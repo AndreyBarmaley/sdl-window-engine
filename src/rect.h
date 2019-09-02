@@ -150,7 +150,7 @@ struct Rect : public Point, public Size
     // Rect intersects Rect
     bool	operator& (const Rect &) const;
 
-    static Rect	intersection(const Rect &, const Rect &);
+    static bool	intersection(const Rect &, const Rect &, Rect* res = NULL);
     std::string	toString(void) const;
 };
 

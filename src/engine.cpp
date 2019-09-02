@@ -55,7 +55,6 @@ namespace Display
     SDL_Window*         _window = NULL;
     SDL_SpinLock	renderLock = 0;
 #endif
-    bool		accelval = false;
 
     Texture		displayTexture;
 
@@ -79,6 +78,7 @@ namespace Display
 
     bool		renderInit(const Size &, bool);
     bool		renderReset(SDL_Texture*);
+    bool		renderAccelerated(void);
     void                renderPresent(void);
     void		renderCopyEx(const Texture &, const Rect &, Texture &, const Rect &, int);
 
@@ -241,16 +241,58 @@ void Engine::quit(void)
     SDL_Quit();
 }
 
-bool Display::init(const std::string & title, const Size & win, bool fullscreen, bool accel)
+bool Display::init(const std::string & title, bool landscape)
 {
-    return init(title, win, win, fullscreen, accel, false);
+    auto modes = hardwareVideoModes(landscape);
+    if(modes.empty())
+    {
+	ERROR("video modes empty");
+	return false;
+    }
+    return init(title, modes.back(), true, true);
 }
 
-bool Display::init(const std::string & title, const Size & win, const Size & render, bool fullscreen, bool accel, bool resized)
+bool Display::init(const std::string & title, const Size & win, bool fullscreen, bool accel)
+{
+    if(Systems::isEmbeded() || fullscreen || win.isEmpty())
+    {
+	Size winsz = Display::size();
+	Size rensz = win;
+
+	if(winsz.isEmpty())
+	{
+	    // modes sorting landscape
+	    auto modes = hardwareVideoModes(true);
+	    winsz = modes.back();
+	}
+
+	if(rensz.isEmpty())
+	    rensz = winsz;
+	else
+	{
+	    // rotate win
+	    if((rensz.w < rensz.h && winsz.w > winsz.h) ||
+		(rensz.w > rensz.h && winsz.w < winsz.h))
+	    {
+		std::swap(winsz.w, winsz.h);
+		DEBUG("rotate window: " << winsz.toString());
+	    }
+	}
+
+        return init(title, winsz, rensz, true, accel, false);
+    }
+    else
+	return init(title, win, win, fullscreen, accel, false);
+}
+
+bool Display::init(const std::string & title, const Size & winsz, const Size & rensz, bool fullscreen, bool accel, bool resized)
 {
     closeWindow();
-    DEBUG("window: " << win.toString());
-    DEBUG("render: " << render.toString());
+
+    DEBUG("window: " << winsz.toString());
+    DEBUG("render: " << rensz.toString());
+    // reset old size
+    rendersz = Size(0, 0);
 
 #ifdef OLDENGINE
     int flags = accel ? SDL_SWSURFACE | SDL_HWSURFACE | SDL_DOUBLEBUF : SDL_SWSURFACE;
@@ -260,24 +302,6 @@ bool Display::init(const std::string & title, const Size & win, const Size & ren
 
     if(Systems::isEmbeded())
 	fullscreen = true;
-
-    Size winsz = win;
-    Size rensz = render;
-
-    if(fullscreen)
-    {
-	auto modes = hardwareVideoModes();
-
-	// modes sorting landscape
-	winsz = modes.back();
-
-	// rotate win
-	if((rensz.w < rensz.h && winsz.w > winsz.h) ||
-	    (rensz.w > rensz.h && winsz.w < winsz.h))
-	    std::swap(winsz.w, winsz.h);
-
-	DEBUG("fixed window: " << winsz.toString());
-    }
 
 #ifdef OLDENGINE
     if(fullscreen)
@@ -339,6 +363,7 @@ bool Display::resizeWindow(const Size & newsz, bool sdl)
 {
     if(_window && winsz != newsz)
     {
+	bool accel = Display::renderAccelerated();
 	FontRender::clearCache();
 
 #ifdef OLDENGINE
@@ -347,9 +372,11 @@ bool Display::resizeWindow(const Size & newsz, bool sdl)
 	SDL_SetWindowSize(_window, newsz.w, newsz.h);
 #endif
 
-	if(renderInit(newsz, accelval))
+	if(renderInit(newsz, accel))
 	{
 	    DisplayScene::displayResizeHandle(newsz, sdl);
+	    DisplayScene::textureInvalidHandle();
+	    DisplayScene::setDirty(true);
 	    return true;
 	}
     }
@@ -357,26 +384,27 @@ bool Display::resizeWindow(const Size & newsz, bool sdl)
     return false;
 }
 
-bool Display::renderInit(const Size & win, bool accel)
+bool Display::renderInit(const Size & newsz, bool accel)
 {
-    accelval = accel;
-    rendersz = win;
+    // save aspect ratio with resize window
+    if(rendersz.isEmpty() || rendersz == winsz)
+	rendersz = newsz;
 
     if(displayTexture.isValid())
 	displayTexture.reset();
 
 #ifdef OLDENGINE
     _window = SDL_GetVideoSurface();
+    // update winsz
     winsz.w = _window->w;
     winsz.h = _window->h;
 
     displayTexture = Display::createTexture(rendersz, false);
     displayTexture.convertToDisplayFormat();
 #else
-
     if(_renderer)
     {
-        SDL_DestroyRenderer(_renderer);
+	SDL_DestroyRenderer(_renderer);
 	_renderer = NULL;
     }
 
@@ -398,24 +426,25 @@ bool Display::renderInit(const Size & win, bool accel)
 	}
     }
 
-    if(_renderer)
-    {
-	SDL_Rect port;
-
-	SDL_RenderGetViewport(_renderer, &port);
-	DEBUG("viewport: " << Rect(port).toString());
-    }
-
-    SDL_GetWindowSize(_window, &winsz.w, &winsz.h);
-    DEBUG("window: " << winsz.w << "x" << winsz.h);
-    DEBUG("render: " << (accel ? "hardware" : "software"));
-
     if(! renderReset(NULL))
         return false;
 
+    // update winsz
+    SDL_GetWindowSize(_window, &winsz.w, &winsz.h);
+
+    // render info
+    if(1)
+    {
+	SDL_Rect port;
+        SDL_RenderGetViewport(_renderer, &port);
+	DEBUG("viewport: " << Rect(port).toString());
+        const char* hint = SDL_GetHint(SDL_HINT_ORIENTATIONS);
+	DEBUG("orientation hint: " << (hint ? hint : "empty"));
+    }
+
     // default: alpha blending enabled
     SDL_SetRenderDrawBlendMode(_renderer, SDL_BLENDMODE_BLEND);
-
+    // set displayTexture
     displayTexture = Texture(SDL_CreateTexture(_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, rendersz.w, rendersz.h));
 #endif
 
@@ -426,7 +455,10 @@ bool Display::renderInit(const Size & win, bool accel)
     }
 
     renderClear(Color::Black, displayTexture);
+
+    DEBUG("window: " << winsz.w << "x" << winsz.h);
     DEBUG("render: " << rendersz.w << "x" << rendersz.h);
+    DEBUG("render: " << (accel ? "hardware" : "software"));
 
     if(winsz != rendersz)
     {
@@ -440,9 +472,15 @@ bool Display::renderInit(const Size & win, bool accel)
 	scale.x = (winsz.w - scale.w) / 2;
 	scale.y = (winsz.h - scale.h) / 2;
     }
+    else
+    {
+	scale.w = rendersz.w;
+	scale.h = rendersz.h;
+	scale.x = 0;
+	scale.y = 0;
+    }
 
     DisplayScene::setDirty(false);
-
     return true;
 }
 
@@ -470,6 +508,28 @@ void Display::closeWindow(void)
         _window = NULL;
     }
 #endif
+}
+
+bool Display::renderAccelerated(void)
+{
+#ifdef OLDENGINE
+    if(_window)
+    {
+	return _window->flags & SDL_HWACCEL;
+    }
+#else
+    if(_renderer)
+    {
+	SDL_RendererInfo info;
+	if(0 != SDL_GetRendererInfo(_renderer, &info))
+	{
+	    ERROR("get info: " << SDL_GetError());
+    	    return false;
+	}
+	return info.flags & SDL_RENDERER_ACCELERATED;
+    }
+#endif
+    return false;
 }
 
 bool Display::renderReset(SDL_Texture* target)
@@ -761,8 +821,6 @@ void Display::renderPresent(void)
     SDL_AtomicLock(& renderLock);
     if(renderReset(NULL))
     {
-	//SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "2");
-
 	if(0 != SDL_SetRenderDrawColor(_renderer, 0, 0, 0, 0))
     	    ERROR("set color: " << SDL_GetError());
 
@@ -946,12 +1004,12 @@ bool Display::handleEvents(void)
 		if(SDL_WINDOWEVENT_RESIZED == current.window.event)
 		{
 		    DEBUG("resize: " << current.window.data1 << ", " << current.window.data2);
-                    Display::resizeWindow(Size(current.window.data1, current.window.data2), true);
 		}
 		else
 		if(SDL_WINDOWEVENT_SIZE_CHANGED == current.window.event)
 		{
 		    DEBUG("size changed: " << current.window.data1 << ", " << current.window.data2);
+                    Display::resizeWindow(Size(current.window.data1, current.window.data2), true);
 		}
 		else
 		if(SDL_WINDOWEVENT_FOCUS_GAINED == current.window.event)
@@ -1194,6 +1252,16 @@ void Display::handleFingerTap(const SDL_TouchFingerEvent & ev)
 		const int val = 5;
 		if(val > std::abs(delta.x) && val > std::abs(delta.y))
 		    DisplayScene::mouseClickHandle(coords);
+		else
+		if(std::abs(delta.x) > std::abs(delta.y))
+		{
+		    DisplayScene::pushEvent(NULL, 0 > delta.x ? Signal::GestureFingerRight : Signal::GestureFingerLeft, NULL);
+		}
+		else
+		if(std::abs(delta.x) < std::abs(delta.y))
+		{
+		    DisplayScene::pushEvent(NULL, 0 > delta.y ? Signal::GestureFingerDown : Signal::GestureFingerUp, NULL);
+		}
 #else
 		// generate click
 		DisplayScene::mouseClickHandle(coords);
@@ -1220,10 +1288,14 @@ void Display::handleFingerMotion(const SDL_TouchFingerEvent & ev)
     float dy = dsz.h * ev.dy;
 
     if(std::fabs(dx) > std::fabs(dy))
-	handleScrollEvent(dx > 0 ? ScrollLeft : ScrollRight, real);
+    {
+	DisplayScene::pushEvent(NULL, 0 < ev.dx ? Signal::FingerMoveRight : Signal::FingerMoveLeft, NULL);
+    }
     else
     if(std::fabs(dy) > std::fabs(dx))
-	handleScrollEvent(dy > 0 ? ScrollUp : ScrollDown, real);
+    {
+	DisplayScene::pushEvent(NULL, 0 < ev.dy ? Signal::FingerMoveDown : Signal::FingerMoveUp, NULL);
+    }
 }
 #endif
 
@@ -1406,7 +1478,7 @@ bool Display::resize(const Size & winsz)
     return resizeWindow(winsz, false);
 }
 
-std::list<Size> Display::hardwareVideoModes(void)
+std::list<Size> Display::hardwareVideoModes(bool landscape)
 {
     std::list<Size> result;
 
@@ -1429,7 +1501,15 @@ std::list<Size> Display::hardwareVideoModes(void)
         for(int ii = 0; modes[ii]; ++ii)
 	{
 	    Size mode(modes[ii]->w, modes[ii]->h);
-	    if(mode.h > mode.w) std::swap(mode.w, mode.h);
+	    if(landscape)
+	    {
+		if(mode.h > mode.w) std::swap(mode.w, mode.h);
+	    }
+	    else
+	    {
+		if(mode.h < mode.w) std::swap(mode.w, mode.h);
+	    }
+
 	    result.push_back(mode);
 	}
     }
@@ -1440,7 +1520,14 @@ std::list<Size> Display::hardwareVideoModes(void)
 
     while(0 == SDL_GetDisplayMode(displayIndex, modeIndex++, & mode))
     {
-	if(mode.h > mode.w) std::swap(mode.w, mode.h);
+	if(landscape)
+	{
+	    if(mode.h > mode.w) std::swap(mode.w, mode.h);
+	}
+	else
+	{
+	    if(mode.h < mode.w) std::swap(mode.w, mode.h);
+	}
 	result.push_back(Size(mode.w, mode.h));
     }
 #endif

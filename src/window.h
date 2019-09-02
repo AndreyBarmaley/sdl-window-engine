@@ -60,6 +60,7 @@ protected:
     // virtual void	signalReceive(int, const SignalMember*) {}
 
     // Window
+    virtual void	textureInvalidEvent(void) {}
     virtual void	windowMoveEvent(const Point &) {}
     virtual void	windowResizeEvent(const Size &) {}
     virtual void	windowVisibleEvent(bool) {}

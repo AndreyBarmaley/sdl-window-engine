@@ -23,9 +23,18 @@
 #ifndef DISABLE_NETWORK
 
 #include "engine.h"
-#include "streamnet.h"
 
-#ifdef OLDENGINE
+// SDLNet_GetLocalAddresses: SDL_net 1.2.8
+#if (SDL_VERSIONNUM(SDL_NET_MAJOR_VERSION, SDL_NET_MINOR_VERSION, SDL_NET_PATCHLEVEL) < SDL_VERSIONNUM(1, 2, 8))
+
+#ifdef __MINGW32__
+#include <winsock2.h>
+#include <iptypes.h>
+#include <iphlpapi.h>
+#undef ERROR
+#undef DELETE
+#endif
+
 int SDLNet_GetLocalAddresses(IPaddress *addresses, int maxcount)
 {
     int count = 0;
@@ -101,6 +110,9 @@ int SDLNet_GetLocalAddresses(IPaddress *addresses, int maxcount)
     return count;
 }
 #endif
+
+#include "engine.h"
+#include "streamnet.h"
 
 StreamNetwork::StreamNetwork() : sd(NULL), sdset(NULL)
 {

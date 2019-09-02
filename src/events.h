@@ -129,6 +129,8 @@ enum Signal
     ListboxChangedList, ListboxSelectedItem,
     ScrollBarScrolledPrev, ScrollBarScrolledNext, ScrollBarMovedCursor,
     ButtonPressed, ButtonReleased, ButtonClicked, ButtonSetFocus, ButtonResetFocus, ButtonTimerComplete,
+    GestureFingerUp, GestureFingerDown, GestureFingerLeft, GestureFingerRight,
+    FingerMoveUp, FingerMoveDown, FingerMoveLeft, FingerMoveRight,
     LuaUnrefAction
 };
 

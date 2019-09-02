@@ -52,6 +52,7 @@ public:
     static bool                scrollRightHandle(const Point &);
     static void                tickHandle(u32);
     static void                renderPresentHandle(u32);
+    static void                textureInvalidHandle(void);
     static void                displayResizeHandle(const Size &, bool);
     static void                displayFocusHandle(bool);
 

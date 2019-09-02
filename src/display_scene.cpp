@@ -131,6 +131,7 @@ void DisplayScene::addItem(Window & win)
 
 void DisplayScene::removeItem(Window & win)
 {
+    win.setVisible(false);
     sceneItems.remove(& win);
 }
     
@@ -146,6 +147,7 @@ void DisplayScene::sceneDestroy(void)
 	cursorTexture.reset();
 
     for(auto it = sceneItems.begin(); it != sceneItems.end(); ++it)
+    if(*it)
     {
 	(*it)->setVisible(false);
 
@@ -298,9 +300,15 @@ bool DisplayScene::mousePressHandle(const ButtonEvent & st)
 		(*it)->mouseLeaveEvent();
 	    }
 
-	    if(((*it)->isFocused() &&
-		(*it)->mousePressEvent(ButtonEvent(st.button(), st.position() - (*it)->position()))) ||
-		(*it)->checkState(FlagModality)) return true;
+	    if((*it)->checkState(FlagModality))
+	    {
+		(*it)->mousePressEvent(ButtonEvent(st.button(), st.position() - (*it)->position()));
+		return true;
+	    }
+	    else
+	    if((*it)->isFocused() &&
+		(*it)->mousePressEvent(ButtonEvent(st.button(), st.position() - (*it)->position())))
+		return true;
 	}
     }
 
@@ -327,9 +335,15 @@ bool DisplayScene::mouseReleaseHandle(const ButtonEvent & st)
 		(*it)->mouseLeaveEvent();
 	    }
 
-	    if(((*it)->isFocused() &&
-		(*it)->mouseReleaseEvent(ButtonEvent(st.button(), st.position() - (*it)->position()))) ||
-		(*it)->checkState(FlagModality)) return true;
+	    if((*it)->checkState(FlagModality))
+	    {
+		(*it)->mouseReleaseEvent(ButtonEvent(st.button(), st.position() - (*it)->position()));
+		return true;
+	    }
+	    else
+	    if((*it)->isFocused() &&
+		(*it)->mouseReleaseEvent(ButtonEvent(st.button(), st.position() - (*it)->position())))
+		return true;
 	}
     }
 
@@ -356,10 +370,18 @@ bool DisplayScene::mouseClickHandle(const ButtonsEvent & st)
 		(*it)->mouseLeaveEvent();
 	    }
 
-	    if(((*it)->isFocused() &&
+	    if((*it)->checkState(FlagModality))
+	    {
+		(*it)->mouseClickEvent(ButtonsEvent(st.press().button(),
+					    st.press().position() - (*it)->position(),
+                                            st.release().position() - (*it)->position()));
+		return true;
+	    }
+	    else
+	    if((*it)->isFocused() &&
 		(*it)->mouseClickEvent(ButtonsEvent(st.press().button(), st.press().position() - (*it)->position(),
-                                                st.release().position() - (*it)->position()))) ||
-		(*it)->checkState(FlagModality)) return true;
+                                                st.release().position() - (*it)->position())))
+		return true;
 	}
     }
 
@@ -391,9 +413,15 @@ void DisplayScene::mouseMotionHandle(const Point & pos, u32 buttons)
 		(*it)->mouseTrackingEvent(pos, buttons);
 
 	    // local mouse motion event
-	    if(((*it)->isFocused() &&
-		(*it)->mouseMotionEvent(pos - (*it)->position(), buttons)) ||
-		(*it)->checkState(FlagModality)) break;
+	    if((*it)->checkState(FlagModality))
+	    {
+		(*it)->mouseMotionEvent(pos - (*it)->position(), buttons);
+		break;
+	    }
+	    else
+	    if((*it)->isFocused() &&
+		(*it)->mouseMotionEvent(pos - (*it)->position(), buttons))
+		break;
 	}
     }
 
@@ -451,9 +479,31 @@ bool DisplayScene::scrollUpHandle(const Point & pos)
 {
     for(auto it = sceneItems.rbegin(); it != sceneItems.rend(); ++it)
     {
-        if(*it && (*it)->isVisible() &&
-	    (((*it)->isAreaPoint(pos) && (*it)->scrollUpEvent(pos)) ||
-	    (*it)->checkState(FlagModality))) return true;
+        if(*it && (*it)->isVisible())
+	{
+	    bool focus = (*it)->isAreaPoint(pos);
+
+	    if(focus && ! (*it)->isFocused())
+	    {
+		(*it)->setState(FlagFocused);
+		(*it)->mouseFocusEvent();
+	    }
+	    else
+	    if(! focus && (*it)->isFocused())
+	    {
+		(*it)->resetState(FlagFocused);
+		(*it)->mouseLeaveEvent();
+	    }
+
+	    if((*it)->checkState(FlagModality))
+	    {
+		(*it)->scrollUpEvent(pos);
+		return true;
+	    }
+	    else
+	    if((*it)->isFocused() && (*it)->scrollUpEvent(pos))
+		return true;
+	}
     }
 
     return false;
@@ -463,9 +513,31 @@ bool DisplayScene::scrollDownHandle(const Point & pos)
 {
     for(auto it = sceneItems.rbegin(); it != sceneItems.rend(); ++it)
     {
-        if(*it && (*it)->isVisible() &&
-	    (((*it)->isAreaPoint(pos) && (*it)->scrollDownEvent(pos)) ||
-	    (*it)->checkState(FlagModality))) return true;
+        if(*it && (*it)->isVisible())
+	{
+	    bool focus = (*it)->isAreaPoint(pos);
+
+	    if(focus && ! (*it)->isFocused())
+	    {
+		(*it)->setState(FlagFocused);
+		(*it)->mouseFocusEvent();
+	    }
+	    else
+	    if(! focus && (*it)->isFocused())
+	    {
+		(*it)->resetState(FlagFocused);
+		(*it)->mouseLeaveEvent();
+	    }
+
+	    if((*it)->checkState(FlagModality))
+	    {
+		(*it)->scrollDownEvent(pos);
+		return true;
+	    }
+	    else
+	    if((*it)->isFocused() && (*it)->scrollDownEvent(pos))
+		return true;
+	}
     }
 
     return false;
@@ -475,9 +547,31 @@ bool DisplayScene::scrollLeftHandle(const Point & pos)
 {
     for(auto it = sceneItems.rbegin(); it != sceneItems.rend(); ++it)
     {
-        if(*it && (*it)->isVisible() &&
-	    (((*it)->isAreaPoint(pos) && (*it)->scrollLeftEvent(pos)) ||
-	    (*it)->checkState(FlagModality))) return true;
+        if(*it && (*it)->isVisible())
+	{
+	    bool focus = (*it)->isAreaPoint(pos);
+
+	    if(focus && ! (*it)->isFocused())
+	    {
+		(*it)->setState(FlagFocused);
+		(*it)->mouseFocusEvent();
+	    }
+	    else
+	    if(! focus && (*it)->isFocused())
+	    {
+		(*it)->resetState(FlagFocused);
+		(*it)->mouseLeaveEvent();
+	    }
+
+	    if((*it)->checkState(FlagModality))
+	    {
+		(*it)->scrollLeftEvent(pos);
+		return true;
+	    }
+	    else
+	    if((*it)->isFocused() && (*it)->scrollLeftEvent(pos))
+		return true;
+	}
     }
 
     return false;
@@ -487,9 +581,31 @@ bool DisplayScene::scrollRightHandle(const Point & pos)
 {
     for(auto it = sceneItems.rbegin(); it != sceneItems.rend(); ++it)
     {
-        if(*it && (*it)->isVisible() &&
-	    (((*it)->isAreaPoint(pos) && (*it)->scrollRightEvent(pos)) ||
-	    (*it)->checkState(FlagModality))) return true;
+        if(*it && (*it)->isVisible())
+	{
+	    bool focus = (*it)->isAreaPoint(pos);
+
+	    if(focus && ! (*it)->isFocused())
+	    {
+		(*it)->setState(FlagFocused);
+		(*it)->mouseFocusEvent();
+	    }
+	    else
+	    if(! focus && (*it)->isFocused())
+	    {
+		(*it)->resetState(FlagFocused);
+		(*it)->mouseLeaveEvent();
+	    }
+
+	    if((*it)->checkState(FlagModality))
+	    {
+		(*it)->scrollRightEvent(pos);
+		return true;
+	    }
+	    else
+	    if((*it)->isFocused() && (*it)->scrollRightEvent(pos))
+		return true;
+	}
     }
 
     return false;
@@ -503,8 +619,9 @@ void DisplayScene::tickHandle(u32 ms)
 	if(sceneToolTip) static_cast<Window*>(sceneToolTip)->tickEvent(ms);
     }
 
-    auto it = std::find_if(sceneItems.rbegin(), sceneItems.rend(),
-	std::bind2nd(std::mem_fun(&Window::checkState), FlagFocused));
+    auto it = sceneItems.rbegin();
+    for(; it != sceneItems.rend(); ++it)
+	if((*it) && (*it)->checkState(FlagFocused)) break;
 
     if(it != sceneItems.rend())
     {
@@ -544,6 +661,14 @@ void DisplayScene::renderPresentHandle(u32 ms)
     for(auto it = sceneItems.begin(); it != sceneItems.end(); ++it)
     {
         if(*it) (*it)->renderPresentEvent(ms);
+    }
+}
+
+void DisplayScene::textureInvalidHandle(void)
+{
+    for(auto it = sceneItems.begin(); it != sceneItems.end(); ++it)
+    {
+        if(*it) (*it)->textureInvalidEvent();
     }
 }
 

@@ -180,12 +180,20 @@ bool Systems::makeDirectory(const std::string & path)
 
 std::string Systems::concatePath(const StringList & list)
 {
-    return list.join(std::string(1, SEPARATOR));
+    std::string path;
+
+    for(auto it = list.begin(); it != list.end(); ++it)
+	path = concatePath(path, *it);
+
+    return path;
 }
 
 std::string Systems::concatePath(const std::string & str1, const std::string & str2)
 {
-    if(! str1.empty() && str1[str1.size() - 1] == SEPARATOR)
+    if(str1.empty())
+	return str2;
+
+    if(str1.back() == SEPARATOR)
 	return std::string(str1).append(str2);
 
     return std::string(str1).append(1, SEPARATOR).append(str2);
@@ -194,11 +202,6 @@ std::string Systems::concatePath(const std::string & str1, const std::string & s
 std::string Systems::concatePath(const std::string & str1, const std::string & str2, const std::string & str3)
 {
     return concatePath(concatePath(str1, str2), str3);
-}
-
-std::string Systems::concatePath2(std::string str, const char* ptr)
-{
-    return concatePath(str, ptr);
 }
 
 std::string Systems::dirname(const std::string & str)
@@ -485,7 +488,8 @@ StringList Systems::shareDirectories(const std::string & prog)
     if(isDirectory(dir2, true))
 	dirs.push_back(Systems::concatePath(dir2, prog));
 #else
-    dirs.push_back(homeDirectory(prog));
+    std::string home = homeDirectory(prog);
+    if(home.size()) dirs.push_back(home);
 #endif
 
     return dirs;
