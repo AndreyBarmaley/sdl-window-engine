@@ -65,6 +65,8 @@ namespace String
     std::string         time(time_t);
     std::string		strftime(const std::string &);
 
+    std::string		escapeChar(const std::string &, int ch);
+
     std::string         replace(const std::string &, const char*, const std::string &);
     std::string         replace(const std::string &, const char*, int);
     StringList          split(const std::string &, int);

@@ -32,6 +32,16 @@
 #include "systems.h"
 #include "cstring.h"
 
+std::string String::escapeChar(const std::string & str, int ch)
+{
+    if(str.empty()) return str;
+
+    StringList list = String::split(str, ch);
+    list.remove("");
+
+    return list.join(std::string(1, '\\').append(1, ch));
+}
+
 std::string String::ucFirst(std::string str)
 {
     if(! str.empty())

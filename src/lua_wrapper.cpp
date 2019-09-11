@@ -185,6 +185,12 @@ int LuaState::toIntegerIndex(int index) const
 
 std::string LuaState::toStringIndex(int index) const
 {
+    if(lua_isnil(ptr, index))
+	return "nil";
+
+    if(lua_isboolean(ptr, index))
+	return lua_toboolean(ptr, index) ? "true" : "false";
+
     return lua_tostring(ptr, index);
 }
 
@@ -296,7 +302,7 @@ int LuaState::dumpTable(int index)
 
     if(isTableIndex(index))
     {
-        std::string name = "table";
+        std::string name = "";
 
         if(getFieldTableIndex("__type", index, false).isTopString())
 	    name = getTopString();
@@ -309,7 +315,7 @@ int LuaState::dumpTable(int index)
 
         while(nextTableIndex(index))
         {
-            VERBOSE(name << "[" << dumpValue(-2) << "] = " << dumpValue(-1));
+            VERBOSE(name << "[`" << toStringIndex(-2) << "'] = " << dumpValue(-1));
             stackPop();
             counts++;
         }
@@ -351,6 +357,7 @@ std::string LuaState::dumpValue(int index)
         	name = getTopString();
 
     	    std::string str = StringFormat("%1(%2,%3)").arg(typeName).arg(name).arg(luaL_getn(L(), index));
+
             stackPop();
             return str;
         }
@@ -439,7 +446,11 @@ LuaState & LuaState::pushTable(const std::string & path)
 
 	while(tables.size())
 	{
-	    lua_getfield(ptr, -1, tables.front().c_str());
+	    // lua_getfield(ptr, -1, tables.front().c_str());
+	    // change getfield, disable meta
+    	    lua_pushstring(ptr, tables.front().c_str());
+    	    lua_rawget(ptr, -2);
+
 	    if(lua_istable(ptr, -1))
 	    {
 		objects.push_back(tables.front());
@@ -544,7 +555,12 @@ LuaState & LuaState::getFieldTableIndex(const char* field, int index, bool verbo
 {
     if(lua_istable(ptr, index))
     {
-	lua_getfield(ptr, index, field);
+	// lua_getfield(ptr, index, field);
+	// change getfield, disable meta
+	lua_pushstring(ptr, field);
+	if(0 > index) index = index - 1;
+	lua_rawget(ptr, index);
+
 
 	if(lua_isnil(ptr, -1) && verboseNil)
 	{
@@ -576,7 +592,12 @@ std::string LuaState::popFieldTableIndex(const char* field, int index)
 
     if(lua_istable(ptr, index))
     {
-	lua_getfield(ptr, index, field);
+	// lua_getfield(ptr, index, field);
+	// change getfield, disable meta
+        lua_pushstring(ptr, field);
+        if(0 > index) index = index - 1;
+        lua_rawget(ptr, index);
+
 
 	if(lua_isnil(ptr, -1))
 	{
@@ -686,6 +707,12 @@ void LuaState::stackClear(void)
 LuaState & LuaState::stackPop(size_t num)
 {
     if(0 < num) lua_pop(ptr, num);
+    return *this;
+}
+
+LuaState & LuaState::garbageCollect(void)
+{
+    lua_gc(ptr, LUA_GCCOLLECT, 0);
     return *this;
 }
 

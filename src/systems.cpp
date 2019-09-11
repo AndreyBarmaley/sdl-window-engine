@@ -62,13 +62,17 @@ extern HWND SDL_Window;
 #include <sys/stat.h>
 #include <sys/types.h>
 
+std::string SEPARATOR(void)
+{
 #if defined(__SYMBIAN32__)
-#define SEPARATOR '\\'
+    return "\\";
+#elif defined(__MINGW32CE__)
+    return "/";
 #elif defined(__WIN32__)
-#define SEPARATOR '\\'
-#else
-#define SEPARATOR '/'
+    return "\\\\";
 #endif
+    return "/";
+}
 
 std::ostream* LogWrapper::os = NULL;
 std::string   LogWrapper::id;
@@ -110,16 +114,25 @@ void LogWrapper::init(const std::string & app, const char* arg0)
     id = arg0 ?
 	Systems::concatePath(Systems::dirname(arg0), app).append(".txt") :
 	std::string(app).append(".txt");
+
     osfile.open(id.c_str(), std::fstream::app);
+
+    if(! osfile.is_open())
+	std::cerr << "error open file: " << id << std::endl;
 }
 
 LogWrapper::LogWrapper()
 {
     if(osfile.is_open())
 	os = & osfile;
+    else
+	os = & std::cerr;
 }
 
-LogWrapper::~LogWrapper(){}
+LogWrapper::~LogWrapper()
+{
+    if(os) os->flush();
+}
 #else
 void LogWrapper::init(const std::string & app, const char* arg0)
 {
@@ -133,7 +146,6 @@ LogWrapper::LogWrapper()
 
 LogWrapper::~LogWrapper(){}
 #endif
-
 
 int Systems::setEnvironment(const char* name, const char* value)
 {
@@ -190,13 +202,16 @@ std::string Systems::concatePath(const StringList & list)
 
 std::string Systems::concatePath(const std::string & str1, const std::string & str2)
 {
+    std::string sep = SEPARATOR();
+
     if(str1.empty())
 	return str2;
 
-    if(str1.back() == SEPARATOR)
+    if(str1.size() >= sep.size() &&
+	str1.substr(str1.size() - sep.size()) == sep)
 	return std::string(str1).append(str2);
 
-    return std::string(str1).append(1, SEPARATOR).append(str2);
+    return std::string(str1).append(sep).append(str2);
 }
 
 std::string Systems::concatePath(const std::string & str1, const std::string & str2, const std::string & str3)
@@ -204,37 +219,58 @@ std::string Systems::concatePath(const std::string & str1, const std::string & s
     return concatePath(concatePath(str1, str2), str3);
 }
 
-std::string Systems::dirname(const std::string & str)
+std::string dirname2(const std::string & str)
 {
     if(str.size())
     {
-        size_t pos = str.rfind(SEPARATOR);
+	std::string sep = SEPARATOR();
+        size_t pos = str.rfind(sep);
 
         if(std::string::npos == pos)
-            return std::string("./");
-        else if(pos == 0)
-            return std::string("/");
-        else if(pos == str.size() - 1)
-            return dirname(str.substr(0, str.size() - 1));
+#if defined(__MINGW32CE__)
+            return "/";
+#elif defined(__MINGW32__)
+            return str;
+#else
+            return std::string(".");
+#endif
         else
-            return str.substr(0, pos);
+	if(pos == 0)
+            return sep;
+        else
+	if(pos == str.size() - sep.size())
+            return dirname2(str.substr(0, str.size() - sep.size()));
+
+	return str.substr(0, pos);
     }
 
     return str;
+}
+
+std::string Systems::dirname(const std::string & str)
+{
+#if defined(__MINGW32CE__)
+    return dirname2(String::replace(str, "\\", "/"));
+#elif defined(__MINGW32__)
+    return dirname2(String::escapeChar(str, '\\'));
+#endif
+    return dirname2(str);
 }
 
 std::string Systems::basename(const std::string & str)
 {
     if(str.size())
     {
-        size_t pos = str.rfind(SEPARATOR);
+	std::string sep = SEPARATOR();
+        size_t pos = str.rfind(sep);
 
         if(std::string::npos == pos)
 	    return str;
-        else if(pos == str.size() - 1)
-            return basename(str.substr(0, str.size() - 1));
         else
-            return str.substr(pos + 1);
+	if(pos == str.size() - sep.size())
+            return basename(str.substr(0, str.size() - sep.size()));
+        else
+            return str.substr(pos + sep.size());
     }
 
     return str;
@@ -280,8 +316,12 @@ bool Systems::isFile(const std::string & name, bool writable)
 
 bool Systems::isDirectory(const std::string & name, bool writable)
 {
-    struct stat fs;
+#if defined(__MINGW32__)
+    if(name.back() == ':')
+	return isDirectory(std::string(name).append(SEPARATOR()));
+#endif
 
+    struct stat fs;
     if(stat(name.c_str(), &fs) || !S_ISDIR(fs.st_mode))
         return false;
 
@@ -368,17 +408,38 @@ BinaryBuf Systems::readFile(const std::string & file, size_t offset, size_t size
 
     if(rw)
     {
-	if(size == 0)
+	SDL_RWseek(rw, 0, RW_SEEK_END);
+    	size_t filesz = SDL_RWtell(rw);
+
+	if(offset > filesz)
 	{
-	    SDL_RWseek(rw, 0, RW_SEEK_END);
-    	    buf.resize(SDL_RWtell(rw));
+	    ERROR("offset out of range, file size: " << filesz);
+	    return buf;
 	}
-    	else
-	    buf.resize(size);
+
+	// fixed block size
+	if(offset + size > filesz)
+	    size = filesz - offset;
+	else
+	    size = filesz;
+
+	if(0 == size)
+	{
+    	    SDL_RWclose(rw);
+	    DEBUG("file empty, nothing to read");
+	    return buf;
+	}
+
+	buf.resize(size);
 
         SDL_RWseek(rw, offset, RW_SEEK_SET);
+
         if(SDL_RWread(rw, buf.data(), buf.size(), 1) != 1)
+	{
 	    ERROR(SDL_GetError());
+	    buf.clear();
+	}
+
         SDL_RWclose(rw);
 	return buf;
     }
@@ -449,9 +510,6 @@ std::string Systems::homeDirectory(const std::string & prog)
 
     if(path)
     {
-	size_t last = strlen(path) - 1;
-	if(path[last] == SEPARATOR) path[last] = 0;
-
 	res = path;
 	SDL_free(path);
     }
@@ -462,6 +520,10 @@ std::string Systems::homeDirectory(const std::string & prog)
     else
     if(Systems::environment("APPDATA"))
         res = Systems::concatePath(Systems::environment("APPDATA"), prog);
+
+#if defined(__MINGW32__)
+    res = String::escapeChar(res, '\\');
+#endif
 
     return res;
 }
@@ -513,6 +575,11 @@ bool findFilterContent(const std::string & content, const std::string & filter, 
 
 StringList Systems::findFiles(const std::string & path, const std::string & filter, bool sensitive)
 {
+#if defined(__MINGW32__)
+    if(path.back() == ':')
+	return findFiles(std::string(path).append(SEPARATOR()), filter, sensitive);
+#endif
+
     StringList res;
 
     DIR* dp = opendir(path.c_str());
@@ -548,6 +615,11 @@ StringList Systems::findFiles(const std::string & path, const std::string & filt
 
 StringList Systems::readDir(const std::string & path, bool fullpath)
 {
+#if defined(__MINGW32__)
+    if(path.back() == ':')
+	return readDir(std::string(path).append(SEPARATOR()), fullpath);
+#endif
+
     StringList res;
 
     DIR* dp = opendir(path.c_str());
@@ -561,8 +633,8 @@ StringList Systems::readDir(const std::string & path, bool fullpath)
     while(NULL != (ep = readdir(dp)))
 	if(0 != strcmp(ep->d_name, "."))
 	    res.push_back(fullpath ? concatePath(path, ep->d_name) : ep->d_name);
-
     closedir(dp);
+
     return res;
 }
 

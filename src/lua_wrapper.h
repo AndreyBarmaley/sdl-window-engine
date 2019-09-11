@@ -125,7 +125,7 @@ public:
     int			nextTableIndex(int);
     int			countFieldsTableIndex(int);
 
-    LuaState &		getIndexTableIndex(int, int);
+    LuaState &		getIndexTableIndex(int index, int tindex);
     LuaState &		getFieldTableIndex(const std::string &, int, bool verboseNil = true);
     LuaState &		setFieldTableIndex(const std::string &, int);
 
@@ -154,6 +154,8 @@ public:
     LuaState &		stackDump(const std::string &);
     LuaState &		stackDump(void);
     LuaState &		stackPop(size_t num = 1);
+
+    LuaState &		garbageCollect(void);
 };
 
 #endif

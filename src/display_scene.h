@@ -58,6 +58,8 @@ public:
 
 public:
     static std::list<Window*>	findChilds(const Window &);
+    static void			destroyChilds(const Window &);
+
     static void			addItem(Window &);
     static void			removeItem(Window &);
     static void			dumpScene(void);

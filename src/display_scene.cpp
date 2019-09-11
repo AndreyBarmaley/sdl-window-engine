@@ -190,7 +190,7 @@ void DisplayScene::pushEvent(const Window* dst, int code, void* data)
     event.user.data2 = data;
 
     if(0 > SDL_PushEvent(&event))
-        ERROR(SDL_GetError());
+	ERROR("win: " << String::hex64(reinterpret_cast<u64>(dst)) << ", " << "code: " << String::hex(code) << ", " << "error: " << SDL_GetError());
 }
 
 ////////////// handle events
@@ -456,7 +456,7 @@ bool DisplayScene::userHandle(const SDL_UserEvent & ev)
 	    if(ev.code == WindowCreated)
 		return true;
 
-	    DEBUG("skip signal: " << String::hex(ev.code) << "win not found: " << String::hex(reinterpret_cast<std::uintptr_t>(ev.data1)));
+	    DEBUG("skip signal: " << String::hex(ev.code) << ", win not found: " << String::hex(reinterpret_cast<std::uintptr_t>(ev.data1)));
 	    return true;
 	}
     }
@@ -688,4 +688,11 @@ void DisplayScene::displayFocusHandle(bool gain)
         if(*it && (*it)->isVisible())
 	    (*it)->displayFocusEvent(gain);
     }
+}
+
+void DisplayScene::destroyChilds(const Window & win)
+{
+    auto list = findChilds(win);
+    for(auto it = list.begin(); it != list.end(); ++it)
+        if(*it) (*it)->destroy();
 }

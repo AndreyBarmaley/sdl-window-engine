@@ -47,6 +47,7 @@ namespace Engine
 namespace Display
 {
     bool		debug = false;
+    bool		fingerEventEmulation = false;
 
 #ifdef OLDENGINE
     SDL_Surface*	_window = NULL;
@@ -199,6 +200,11 @@ bool Engine::init(bool debug)
     SDL_StartTextInput();
 #endif
 #endif
+
+#ifdef __MINGW32CE__
+    Display::fingerEventEmulation = true;
+#endif
+
     return true;
 }
 
@@ -1044,11 +1050,17 @@ bool Display::handleEvents(void)
 
 #if !(defined ANDROID)
             case SDL_MOUSEBUTTONDOWN:
+		//DEBUG("DOWN: " << current.button.x << ", " << current.button.y);
+		handleMouseButton(current.button);
+		break;
+
             case SDL_MOUSEBUTTONUP:
+		//DEBUG("UP: " << current.button.x << ", " << current.button.y);
 		handleMouseButton(current.button);
 		break;
 
             case SDL_MOUSEMOTION:
+		//DEBUG("MOTION: " << current.button.x << ", " << current.button.y);
 		handleMouseMotion(current.motion);
 		break;
 
@@ -1156,12 +1168,28 @@ void Display::handleMouseButton(const SDL_MouseButtonEvent & ev)
 		break;
 
 	    case SDL_MOUSEBUTTONUP:
+	    {
 		coords->setRelease(real);
 		// generate release
 		DisplayScene::mouseReleaseHandle(coords->release());
+
 		// generate click
-		DisplayScene::mouseClickHandle(*coords);
+		Point delta = coords->press().position() - coords->release().position();
+		const int val = 15;
+
+		if(val > std::abs(delta.x) && val > std::abs(delta.y))
+		    DisplayScene::mouseClickHandle(*coords);
+		else
+		if(fingerEventEmulation)
+		{
+		    if(std::abs(delta.x) > std::abs(delta.y))
+			DisplayScene::pushEvent(NULL, 0 > delta.x ? Signal::GestureFingerRight : Signal::GestureFingerLeft, NULL);
+		    else
+		    if(std::abs(delta.x) < std::abs(delta.y))
+			DisplayScene::pushEvent(NULL, 0 > delta.y ? Signal::GestureFingerDown : Signal::GestureFingerUp, NULL);
+		}
 		break;
+	    }
 
 	    default: break;
 	}
@@ -1171,10 +1199,23 @@ void Display::handleMouseButton(const SDL_MouseButtonEvent & ev)
 void Display::handleMouseMotion(const SDL_MouseMotionEvent & ev)
 {
     Point real(ev.x, ev.y);
+
     if(Display::scaleUsed())
     	real = Display::scaleValue(real);
 
     DisplayScene::mouseMotionHandle(real, ev.state);
+
+    if(fingerEventEmulation)
+    {
+	const s32 & dx = ev.xrel;
+	const s32 & dy = ev.yrel;
+
+	if(std::abs(dx) > std::abs(dy))
+	    DisplayScene::pushEvent(NULL, 0 < dx ? Signal::FingerMoveRight : Signal::FingerMoveLeft, NULL);
+	else
+	if(std::abs(dy) > std::abs(dx))
+	    DisplayScene::pushEvent(NULL, 0 < dy ? Signal::FingerMoveDown : Signal::FingerMoveUp, NULL);
+    }
 }
 
 void Display::handleFocusEvent(bool gain)
@@ -1247,9 +1288,9 @@ void Display::handleFingerTap(const SDL_TouchFingerEvent & ev)
 		// generate release
 		DisplayScene::mouseReleaseHandle(coords.release());
 #if (defined ANDROID)
-		// fix finger motion
+		// gesture finger event
 		Point delta = coords.press().position() - coords.release().position();
-		const int val = 5;
+		const int val = 15;
 		if(val > std::abs(delta.x) && val > std::abs(delta.y))
 		    DisplayScene::mouseClickHandle(coords);
 		else

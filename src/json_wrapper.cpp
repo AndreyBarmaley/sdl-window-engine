@@ -378,18 +378,21 @@ bool JsonContent::parseBinary(const char* str, size_t len)
     if(counts == JSMN_ERROR_INVAL)
     {
         ERROR("Invalid character inside JSON content");
+	clear();
         return false;
     }
     else
     if(counts == JSMN_ERROR_PART)
     {
         ERROR("The content is not a full JSON packet, more bytes expected");
+	clear();
         return false;
     }
     else
     if(counts < 0)
     {
         ERROR("Unknown error");
+	clear();
         return false;
     }
 
@@ -423,12 +426,12 @@ std::string JsonContent::stringTocken(const JsmnToken & tok) const
 
 bool JsonContent::isArray(void) const
 {
-    return size() && front().isArray();
+    return isValid() && front().isArray();
 }
 
 bool JsonContent::isObject(void) const
 {
-    return size() && front().isObject();
+    return isValid() && front().isObject();
 }
 
 std::pair<JsonValue*, int>
