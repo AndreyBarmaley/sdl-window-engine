@@ -48,8 +48,6 @@ public:
 #endif
     static bool                scrollUpHandle(const Point &);
     static bool                scrollDownHandle(const Point &);
-    static bool                scrollLeftHandle(const Point &);
-    static bool                scrollRightHandle(const Point &);
     static void                tickHandle(u32);
     static void                renderPresentHandle(u32);
     static void                textureInvalidHandle(void);

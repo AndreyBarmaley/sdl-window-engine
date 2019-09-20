@@ -30,24 +30,87 @@
 
 enum align_t { AlignNone, AlignLeft, AlignRight, AlignTop, AlignBottom, AlignCenter };
 
-struct FontID : packint2 /* font id 16 bit, font blend 1 bit, style 4 bit, hinting 2, font size 9 bit */
+#if (SDL_VERSIONNUM(SDL_TTF_MAJOR_VERSION, SDL_TTF_MINOR_VERSION, SDL_TTF_PATCHLEVEL) <= SDL_VERSIONNUM(2, 0, 10))
+#define TTF_STYLE_STRIKETHROUGH 0x08
+#define TTF_HINTING_NORMAL 0
+#define TTF_HINTING_LIGHT  1
+#define TTF_HINTING_MONO   2
+#define TTF_HINTING_NONE   3
+#endif
+
+enum { StyleNormal = TTF_STYLE_NORMAL, StyleBold = TTF_STYLE_BOLD, StyleItalic = TTF_STYLE_ITALIC, StyleUnderLine = TTF_STYLE_UNDERLINE, StyleStrikeThrough = TTF_STYLE_STRIKETHROUGH };
+enum { HintingNormal = TTF_HINTING_NORMAL, HintingLight = TTF_HINTING_LIGHT, HintingMono = TTF_HINTING_MONO, HintingNone = TTF_HINTING_NONE };
+
+struct CharsetID;
+struct SDLFont;
+
+struct CharsetProperty
 {
-    FontID() : packint2(0) {}
-    FontID(int id, int sz, bool blend, int style, int hinting) : packint2(id, 0)
+    /* unused 1 bit, blended 1 bit, style 4 bit, hinting 2 bit */
+    u8                  val;
+
+    CharsetProperty(int v) : val(v)
     {
-	int val = 0x01FF & sz;
-	if(blend) val |= 0x8000;
-	if(style) val |= (style & 0x000F) << 11;
-	if(hinting) val |= (hinting & 0x0003) << 9;
-	set2(val);
     }
 
-    int                 font(void) const { return val1(); }
-    int                 size(void) const { return 0x01FF & val2(); }
-    int                 style(void) const { return 0x000F & (val2() >> 11); }
-    int                 hinting(void) const { return 0x0003 & (val2() >> 9); }
-    bool                blend(void) const { return 0x8000 & val2(); }
-    void                reset(void) { setvalue(0); }
+    CharsetProperty() : val(0)
+    {
+        setBlended(false);
+        setStyle(StyleNormal);
+        setHinting(HintingNormal);
+    }
+
+    CharsetProperty(bool blend, int style, int hinting) : val(0)
+    {
+        setBlended(blend);
+        setStyle(style);
+        setHinting(hinting);
+    }
+
+    int                 operator() (void) const { return val; }
+
+    bool                blended(void) const { return 0x01 & (val >> 6); }
+    int                 style(void) const { return 0x0F & (val >> 2); }
+    int                 hinting(void) const { return 0x0003 & (val); }
+    void                reset(void) { val = 0; }
+
+    void                setBlended(bool v) { val &= ~(0x01 << 6); val |= (v & 0x01) << 6; }
+    void                setStyle(int v) { val &= ~(0x0F << 2); val |= (v & 0x0F) << 2; }
+    void                setHinting(int v) { val &= ~(0x03); val |= (v & 0x03); }
+};
+
+struct FontID
+{
+    /* font id 16 bit, font size 9 bit, charset property 7 bit */
+    u32			val;
+
+    FontID() : val(0)
+    {
+    }
+
+    FontID(int id, int sz, const CharsetProperty & cp = CharsetProperty()) : val(0)
+    {
+	setId(id);
+	setSize(sz);
+	setProperty(cp());
+    }
+
+    const u32 &		value(void) const { return val; }
+
+    bool		operator< (const FontID & fid) const { return val < fid.val; }
+    bool		operator> (const FontID & fid) const { return val > fid.val; }
+    bool		operator== (const FontID & fid) const { return val == fid.val; }
+    bool		operator!= (const FontID & fid) const { return val != fid.val; }
+
+    int                 id(void) const { return 0x0000FFFF & (val >> 16); }
+    int                 size(void) const { return 0x000001FF & (val >> 7); }
+    CharsetProperty     property(void) const { return CharsetProperty(0x0000007F & val); }
+
+    void                reset(void) { val = 0; }
+
+    void		setId(int v) { val &= ~(0x0000FFFF << 16); val |= (v & 0xFFFF) << 16; }
+    void		setSize(int v) { val &= ~(0x000001FF << 7); val |= (v & 0x01FF) << 7; }
+    void		setProperty(int v) { val &= ~(0x0000007F); val |= (v & 0x0000007F); }
 };
 
 class FontRender
@@ -71,7 +134,7 @@ public:
     virtual int		symbolAdvance(int) const = 0;
     virtual int		lineSkipHeight(void) const = 0;
 
-    virtual Surface	renderCharset(int, const Color &) const = 0;
+    virtual Surface	renderCharset(int, const Color &, int blend, int style, int hinting) const = 0;
 
     //
     UCStringList	splitUCStringWidth(const UCString &, int) const;
@@ -86,8 +149,6 @@ public:
     void 		renderString(const std::string &, const Color &, const Point &, Surface &) const;
 };
 
-class CharsetID;
-
 class FontsCache
 {
     const FontRender*	render;
@@ -99,21 +160,11 @@ public:
     static void		dump(void);
     void		erase(void);
 
-    Texture		renderCharset(int ch, const Color &);
+    Texture		renderCharset(int ch, const Color & col) { return renderCharset(ch, col, -1, -1, -1); }
+    Texture		renderCharset(int ch, const Color &, int blend, int style, int hinting);
 };
 
-struct SDLFont;
 
-#if (SDL_VERSIONNUM(SDL_TTF_MAJOR_VERSION, SDL_TTF_MINOR_VERSION, SDL_TTF_PATCHLEVEL) <= SDL_VERSIONNUM(2, 0, 10))
-#define TTF_STYLE_STRIKETHROUGH 0x08
-#define TTF_HINTING_NORMAL 0
-#define TTF_HINTING_LIGHT  1
-#define TTF_HINTING_MONO   2
-#define TTF_HINTING_NONE   3
-#endif
-
-enum { StyleNormal = TTF_STYLE_NORMAL, StyleBold = TTF_STYLE_BOLD, StyleItalic = TTF_STYLE_ITALIC, StyleUnderLine = TTF_STYLE_UNDERLINE, StyleStrikeThrough = TTF_STYLE_STRIKETHROUGH };
-enum { HintingNormal = TTF_HINTING_NORMAL, HintingLight = TTF_HINTING_LIGHT, HintingMono = TTF_HINTING_MONO, HintingNone = TTF_HINTING_NONE };
 
 class FontRenderTTF : public FontRender
 {
@@ -146,7 +197,7 @@ public:
     int		symbolAdvance(int sym) const override;
     int		lineSkipHeight(void) const override;
 
-    Surface	renderCharset(int, const Color &) const override;
+    Surface	renderCharset(int, const Color &, int blend, int style, int hinting) const override;
 };
 
 class FontRenderPSF : public FontRender
@@ -171,7 +222,7 @@ public:
     int		symbolAdvance(int sym) const override;
     int		lineSkipHeight(void) const override;
 
-    Surface	renderCharset(int, const Color &) const override;
+    Surface	renderCharset(int, const Color &, int blend, int style, int hinting) const override;
 };
 
 class FontAltC8x16 : public FontRenderPSF

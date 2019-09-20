@@ -524,7 +524,7 @@ JsonContent::getValue(const const_iterator & it, JsonContainer* cont) const
     {
 	const std::string & val = stringTocken(tok);
 	if(! (*it).isValue()) ERROR("not value, index: " << std::distance(begin(), it) << ", value: \"" << val <<"\"");
-	res = new JsonString(val);
+	res = new JsonString(String::replace(val, "\\\"", "\""));
 	skip = 1;
     }
 

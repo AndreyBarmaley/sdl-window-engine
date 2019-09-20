@@ -236,16 +236,16 @@ namespace fill
 
     struct property : public area
     {
-	property(int prop, const TermSize & sz = TermSize(1, 1)) : area(prop, sz) {}
+	property(const CharsetProperty & cp, const TermSize & sz = TermSize(1, 1)) : area(cp(), sz) {}
     };
 
     struct defaults : public UnicodeColor
     {
-	int property;
+	CharsetProperty property;
 
 	defaults(const FBColors & fbc, int ch = 0x20, int prop = 0) : UnicodeColor(ch, fbc), property(prop) {}
-	defaults(const ColorIndex & fg, const ColorIndex & bg, int ch = 0x20, int prop = 0) : UnicodeColor(ch, FBColors(fg, bg)), property(prop) {}
-	int		prop(void) const { return property; }
+	defaults(const ColorIndex & fg, const ColorIndex & bg, int ch = 0x20, const CharsetProperty & prop = CharsetProperty()) : UnicodeColor(ch, FBColors(fg, bg)), property(prop) {}
+	const CharsetProperty &  prop(void) const { return property; }
     };
 }
 
@@ -276,6 +276,22 @@ namespace draw
     };
 }
 
+struct TermCharset : std::pair<UnicodeColor, CharsetProperty>
+{
+    TermCharset() {}
+
+    TermCharset(const UnicodeColor & uc, const CharsetProperty & cp = CharsetProperty())
+	: std::pair<UnicodeColor, CharsetProperty>(uc, cp) {}
+
+    void	setCharset(const UnicodeColor & uc) { first = uc; }
+    void	setProperty(const CharsetProperty & cp) { second = cp; }
+
+    const UnicodeColor &	charset(void) const { return first; }
+    const CharsetProperty &	property(void) const { return second; }
+
+    UnicodeColor &	charset(void) { return first; }
+    CharsetProperty &	property(void) { return second; }
+};
 
 class TermBase : public Window
 {
@@ -304,8 +320,6 @@ protected:
     virtual bool        userEvent(int, void*) { return false; }
     virtual bool        scrollUpEvent(const Point &) { return false; }
     virtual bool        scrollDownEvent(const Point &) { return false; }
-    virtual bool        scrollLeftEvent(const Point &) { return false; }
-    virtual bool        scrollRightEvent(const Point &) { return false; }
     virtual void        tickEvent(u32 ms) {}
     virtual void        renderPresentEvent(u32 ms) {}
     virtual void        displayResizeEvent(const Size &, bool) {}
@@ -350,7 +364,7 @@ public:
     void		resetCursorPos(void) { curpos = TermPos(); }
     const TermPos &	cursor(void) const { return curpos; }
 
-    virtual void	setCharset(int ch, const ColorIndex & fg = Color::Transparent, const ColorIndex & bg = Color::Transparent, int prop = 0) = 0;
+    virtual void	setCharset(int ch, const ColorIndex & fg = Color::Transparent, const ColorIndex & bg = Color::Transparent, const CharsetProperty & prop = CharsetProperty()) = 0;
     virtual void	renderFlush(void) = 0;
 
     inline int		cols(void) const { return termsz.cols(); }
@@ -412,7 +426,7 @@ public:
 class TermWindow : public TermBase
 {
 protected:
-    std::vector<UnicodeColor>	chars;
+    std::vector<TermCharset>	chars;
 
     TermWindow() {}
     TermWindow(TermBase & term) : TermBase(term) {} // FIXED: remove
@@ -424,7 +438,9 @@ public:
     TermWindow(const FontRender & frs, Window & win) : TermBase(frs, win) {}
     TermWindow(const Point & gfxpos, const Size & gfxsz, const FontRender &, Window &);
 
-    void		setCharset(int ch, const ColorIndex & fg = Color::Transparent, const ColorIndex & bg = Color::Transparent, int prop = 0) override;
+    const TermCharset*	charset(void) const;
+
+    void		setCharset(int ch, const ColorIndex & fg = Color::Transparent, const ColorIndex & bg = Color::Transparent, const CharsetProperty & prop = CharsetProperty()) override;
     void		renderFlush(void) override;
 
     void		renderSymbol(int symx, int symy);
@@ -448,7 +464,7 @@ public:
     inline int		posx(void) const { return termpos.posx(); }
     inline int		posy(void) const { return termpos.posy(); }
 
-    void		setCharset(int ch, const ColorIndex & fg = Color::Transparent, const ColorIndex & bg = Color::Transparent, int prop = 0) override;
+    void		setCharset(int ch, const ColorIndex & fg = Color::Transparent, const ColorIndex & bg = Color::Transparent, const CharsetProperty & prop = CharsetProperty()) override;
     void		renderFlush(void) override;
 };
 

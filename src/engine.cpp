@@ -87,7 +87,6 @@ namespace Display
     void                handleMouseMotion(const SDL_MouseMotionEvent &);
     void                handleKeyboard(const SDL_KeyboardEvent &);
     void                handleUserEvent(const SDL_UserEvent &);
-    void                handleScrollEvent(int, const Point &);
     void                handleFocusEvent(bool);
 #ifdef OLDENGINE
     void                handleMouseWheel(int, int);
@@ -1103,7 +1102,7 @@ bool Display::handleEvents(void)
     return true;
 }
 
-enum { ScrollNone, ScrollUp, ScrollDown, ScrollLeft, ScrollRight };
+// enum { ScrollNone, ScrollUp, ScrollDown, ScrollLeft, ScrollRight };
 
 void Display::handleKeyboard(const SDL_KeyboardEvent & ev)
 {
@@ -1126,8 +1125,8 @@ void Display::handleKeyboard(const SDL_KeyboardEvent & ev)
 
     switch(key)
     {
-	case Key::PAGEUP:	handleScrollEvent(ScrollUp, Point(-1, -1)); break;
-	case Key::PAGEDOWN:	handleScrollEvent(ScrollDown, Point(-1, -1)); break;
+	case Key::PAGEUP:	DisplayScene::scrollUpHandle(Point(-1, -1)); break;
+	case Key::PAGEDOWN:	DisplayScene::scrollDownHandle(Point(-1, -1)); break;
 	default: break;
     }
 }
@@ -1236,10 +1235,10 @@ void Display::handleMouseWheel(int button, int type)
         real = Display::scaleValue(real);
 
         if(SDL_BUTTON_WHEELUP == button)
-            handleScrollEvent(ScrollUp, real);
+            DisplayScene::scrollUpHandle(real);
         else
         if(SDL_BUTTON_WHEELDOWN == button)
-            handleScrollEvent(ScrollDown, real);
+	    DisplayScene::scrollDownHandle(real);
     }
 }
 #else
@@ -1253,10 +1252,10 @@ void Display::handleMouseWheel(const SDL_MouseWheelEvent & ev)
         real = Display::scaleValue(real);
 
     if(0 < ev.y)
-	handleScrollEvent(ScrollUp, real);
+	DisplayScene::scrollUpHandle(real);
     else
     if(0 > ev.y)
-	handleScrollEvent(ScrollDown, real);
+	DisplayScene::scrollDownHandle(real);
 }
 
 void Display::handleTextInput(const SDL_TextInputEvent & ev)
@@ -1343,18 +1342,6 @@ void Display::handleFingerMotion(const SDL_TouchFingerEvent & ev)
 void Display::handleUserEvent(const SDL_UserEvent & ev)
 {
     DisplayScene::userHandle(ev);
-}
-
-void Display::handleScrollEvent(int dir, const Point & pos)
-{
-    switch(dir)
-    {
-	case ScrollUp:    DisplayScene::scrollUpHandle(pos); break;
-	case ScrollDown:  DisplayScene::scrollDownHandle(pos); break;
-	case ScrollLeft:  DisplayScene::scrollLeftHandle(pos); break;
-	case ScrollRight: DisplayScene::scrollRightHandle(pos); break;
-	default: break;
-    }
 }
 
 void Display::hardwareCursorHide(void)

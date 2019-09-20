@@ -478,7 +478,7 @@ namespace JsonPack
     }
 }
 
-class JsonContent : protected SharedVector<JsmnToken>
+class JsonContent : protected std::vector<JsmnToken>
 {
     std::string		content;
 

@@ -79,8 +79,6 @@ protected:
     virtual bool	userEvent(int, void*) { return false; }
     virtual bool	scrollUpEvent(const Point &) { return false; }
     virtual bool	scrollDownEvent(const Point &) { return false; }
-    virtual bool	scrollLeftEvent(const Point &) { return false; }
-    virtual bool	scrollRightEvent(const Point &) { return false; }
     virtual void	tickEvent(u32 ms) {}
     virtual void	renderPresentEvent(u32 ms) {}
     virtual void	displayResizeEvent(const Size &, bool) {}
