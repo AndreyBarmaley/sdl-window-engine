@@ -118,7 +118,7 @@ Texture FontsCache::renderCharset(int ch, const Color & col, int blend, int styl
 	CharsetID cid(render->id(), UnicodeColor(ch, col));
 	CharsetProperty cp;
 
-	if(0 <= blend) cp.setBlended(blend);
+	if(0 <= blend) cp.setRender(blend);
 	if(0 <= style) cp.setStyle(style);
 	if(0 <= hinting) cp.setHinting(hinting);
 	if(cp()) cid.fs().setProperty(cp());
@@ -235,12 +235,12 @@ struct SDLFont
     }
 };
 
-FontRenderTTF::FontRenderTTF(const std::string & fn, int size, bool blend, int style, int hinting)
+FontRenderTTF::FontRenderTTF(const std::string & fn, int size, int blend, int style, int hinting)
 {
     open(fn, size, blend, style, hinting);
 }
 
-FontRenderTTF::FontRenderTTF(const BinaryBuf & buf, int size, bool blend, int style, int hinting)
+FontRenderTTF::FontRenderTTF(const BinaryBuf & buf, int size, int blend, int style, int hinting)
 {
     load(buf, size, blend, style, hinting);
 }
@@ -257,7 +257,7 @@ void FontRenderTTF::reset(void)
     FontRender::fsz = Size(0, 0);
 }
 
-bool FontRenderTTF::load(const BinaryBuf & raw, int size, bool blend, int style, int hinting)
+bool FontRenderTTF::load(const BinaryBuf & raw, int size, int blend, int style, int hinting)
 {
     fid.reset();
     SDL_RWops *rw = SDL_RWFromConstMem(raw.data(), raw.size());
@@ -277,7 +277,7 @@ bool FontRenderTTF::load(const BinaryBuf & raw, int size, bool blend, int style,
     return false;
 }
 
-bool FontRenderTTF::open(const std::string & fn, int size, bool blend, int style, int hinting)
+bool FontRenderTTF::open(const std::string & fn, int size, int blend, int style, int hinting)
 {
     fid.reset();
 
@@ -380,25 +380,31 @@ Size FontRenderTTF::unicodeSize(const UnicodeString & ustr, bool horizontal) con
     {
 	if(horizontal)
 	{
+	    if(0 == ustr.back())
+	    {
+		if(1 < ustr.size())
+		{
+		    const char16_t* ptr = & ustr[0];
+
+		    if(0 != TTF_SizeUNICODE(toSDLFont(), reinterpret_cast<const Uint16*>(ptr), & w, & h))
+			ERROR(SDL_GetError());
+		}
+	    }
+	    else
 	    if(ustr.capacity() > ustr.size())
 	    {
 		UnicodeString & ustr2 = const_cast<UnicodeString &>(ustr);
 		ustr2.push_back(0);
-		const char16_t* ptr = & ustr2[0];
-
-		if(0 != TTF_SizeUNICODE(toSDLFont(), reinterpret_cast<const Uint16*>(ptr), & w, & h))
-		    ERROR(SDL_GetError());
-
+		Size res = unicodeSize(ustr2, horizontal);
 		ustr2.pop_back();
+		return res;
 	    }
 	    else
 	    {
 		UnicodeString ustr2;
-		ustr2.append(ustr).append(0);
-		const char16_t* ptr = & ustr2[0];
-
-		if(0 != TTF_SizeUNICODE(toSDLFont(), reinterpret_cast<const Uint16*>(ptr), & w, & h))
-		    ERROR(SDL_GetError());
+		ustr2.reserve(ustr.size() + 1);
+		ustr2.append(ustr);
+		return unicodeSize(ustr2, horizontal);
 	    }
 	}
 	else
@@ -415,18 +421,89 @@ Size FontRenderTTF::unicodeSize(const UnicodeString & ustr, bool horizontal) con
     return Size(w, h);
 }
 
-Surface FontRenderTTF::renderCharset(int ch, const Color & col, int blend, int style, int hinting) const
+Surface FontRenderTTF::renderString(const std::string & str, const Color & col, int blend, int style, int hinting) const
 {
-    u16 buf[2] = { L'\0', L'\0' }; buf[0] = ch;
-    SDL_Surface* sf = NULL;
     TTF_Font* ttf = toSDLFont();
 
-    if(ttf)
+    if(ttf && str.size())
     {
+	SDL_Surface* sf = NULL;
 	CharsetProperty cp = fid.property();
 
 	if(0 > blend)
-	    blend = cp.blended();
+	    blend = cp.render();
+
+	if(0 > style)
+	    style = cp.style();
+
+	if(0 > hinting)
+	    hinting = cp.hinting();
+
+	TTF_SetFontStyle(ttf, style);
+#ifndef OLDENGINE
+	TTF_SetFontHinting(ttf, hinting);
+#endif
+
+	sf = blend ? TTF_RenderUTF8_Blended(ttf, str.c_str(), col.toSDLColor()) :
+		TTF_RenderUTF8_Solid(ttf, str.c_str(), col.toSDLColor());
+
+	if(sf != NULL)
+	    return Surface(sf);
+	else
+	    ERROR(SDL_GetError());
+    }
+
+    return Surface();
+}
+
+Surface FontRenderTTF::renderUnicode(const UnicodeString & ustr, const Color & col, int blend, int style, int hinting) const
+{
+    TTF_Font* ttf = toSDLFont();
+
+    if(ttf && ustr.size())
+    {
+	SDL_Surface* sf = NULL;
+	const char16_t* ptr = & ustr[0];
+	CharsetProperty cp = fid.property();
+
+	if(0 > blend)
+	    blend = cp.render();
+
+	if(0 > style)
+	    style = cp.style();
+
+	if(0 > hinting)
+	    hinting = cp.hinting();
+
+	TTF_SetFontStyle(ttf, style);
+#ifndef OLDENGINE
+	TTF_SetFontHinting(ttf, hinting);
+#endif
+
+	sf = blend ? TTF_RenderUNICODE_Blended(ttf, reinterpret_cast<const Uint16*>(ptr), col.toSDLColor()) :
+		TTF_RenderUNICODE_Solid(ttf, reinterpret_cast<const Uint16*>(ptr), col.toSDLColor());
+
+	if(sf != NULL)
+	    return Surface(sf);
+	else
+	    ERROR(SDL_GetError());
+    }
+
+    return Surface();
+}
+
+Surface FontRenderTTF::renderCharset(int ch, const Color & col, int blend, int style, int hinting) const
+{
+    TTF_Font* ttf = toSDLFont();
+
+    if(ttf && 0x20 < ch)
+    {
+	u16 buf[2] = { L'\0', L'\0' }; buf[0] = ch;
+	SDL_Surface* sf = NULL;
+	CharsetProperty cp = fid.property();
+
+	if(0 > blend)
+	    blend = cp.render();
 
 	if(0 > style)
 	    style = cp.style();
@@ -450,7 +527,7 @@ Surface FontRenderTTF::renderCharset(int ch, const Color & col, int blend, int s
 	    ERROR(SDL_GetError());
     }
 
-    return Surface();
+    return Surface(fsz);
 }
 
 FontRenderPSF::FontRenderPSF(const std::string & fn, const Size & sz) : FontRender(sz), buf(Systems::readFile(fn))
@@ -500,7 +577,7 @@ Surface FontRenderPSF::renderCharset(int ch, const Color & cl, int blend, int st
 {
     Surface res(fsz);
 
-    if(UnicodeColor(ch, cl).visible())
+    if(0x20 < ch)
     {
 	size_t offsetx = ch * fsz.w * fsz.h / 8; // bits -> byte
 

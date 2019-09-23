@@ -596,7 +596,7 @@ TermBase & TermBase::operator<< (const fill::property & st)
 	for(int posx = start.x; posx < start.x + st.width(); ++posx)
 	{
 	    *this << cursor::set(posx, posy);
-	    setCharset(-1, Color::Transparent, Color::Transparent, CharsetProperty(st.value()));
+	    setCharset(-1, Color::Transparent, Color::Transparent, st.toProperty());
 	}
     }
 
@@ -771,7 +771,7 @@ void TermWindow::renderSymbol(int symx, int symy)
 	    renderColor(bgcolor, Rect(relPos, sym2gfx(Size(1, 1))));
 
 	if(uc.unicode() > 0x20 && ! uc.fgcolor().isTransparent())
-	    renderTexture(FontsCache(fontRender).renderCharset(uc.unicode(), uc.fgcolor(), cp.blended(), cp.style(), cp.hinting()), relPos);
+	    renderTexture(FontsCache(fontRender).renderCharset(uc.unicode(), uc.fgcolor(), cp.render(), cp.style(), cp.hinting()), relPos);
     }
     else
     {

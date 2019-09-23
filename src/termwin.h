@@ -234,9 +234,14 @@ namespace fill
 	ColorIndex	bgindex(void) const { return ColorIndex(packshort(value()).val1()); }
     };
 
-    struct property : public area
+    struct property : public std::pair<CharsetProperty, packint2>
     {
-	property(const CharsetProperty & cp, const TermSize & sz = TermSize(1, 1)) : area(cp(), sz) {}
+	property(const CharsetProperty & cp, const TermSize & sz = TermSize(1, 1)) :
+	    std::pair<CharsetProperty, packint2>(cp, packint2(sz.cols(), sz.rows())) {}
+
+	const CharsetProperty & toProperty(void) const { return first; }
+	int                     width(void) const { return second.val1(); }
+	int                     height(void) const { return second.val2(); }
     };
 
     struct defaults : public UnicodeColor

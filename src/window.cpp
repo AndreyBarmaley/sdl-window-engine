@@ -184,8 +184,12 @@ void Window::setPosition(const Point & pos)
 
 void Window::setLayerTop(void)
 {
+    bool f = isVisible();
+
     DisplayScene::removeItem(*this);
     DisplayScene::addItem(*this);
+
+    setVisible(f);
 
     auto childs = DisplayScene::findChilds(*this);
     std::for_each(childs.begin(), childs.end(), std::mem_fun(&Window::setLayerTop));
@@ -412,15 +416,18 @@ void Window::renderSurface(const Surface & sf, const Point & dstpt) const
 {
     if(rect() & dstpt)
     {
-	Rect dstrt(dstpt, sf.size());
-	Display::renderSurface(sf, transformSize(sf.rect(), gfxpos), Display::texture(), transformRect(dstrt, gfxpos));
+	Rect dstrt = transformRect(Rect(dstpt, sf.size()), gfxpos);
+	Display::renderSurface(sf, transformSize(sf.rect(), dstrt), Display::texture(), dstrt);
     }
 }
 
 void Window::renderSurface(const Surface & sf, const Rect & srcrt, const Rect & dstrt) const
 {
     if(rect() & dstrt.toPoint())
-	Display::renderSurface(sf, srcrt, Display::texture(), dstrt);
+    {
+	Rect dstrt2 = transformRect(dstrt, gfxpos);
+	Display::renderSurface(sf, transformSize(srcrt, dstrt2), Display::texture(), dstrt2);
+    }
 }
 
 void Window::renderTexture(const TexturePos & sp) const
@@ -432,15 +439,18 @@ void Window::renderTexture(const Texture & tx, const Point & dstpt) const
 {
     if(rect() & dstpt)
     {
-	Rect dstrt(dstpt, tx.size());
-	Display::renderTexture(tx, transformSize(tx.rect(), gfxpos), Display::texture(), transformRect(dstrt, gfxpos));
+	Rect dstrt = transformRect(Rect(dstpt, tx.size()), gfxpos);
+	Display::renderTexture(tx, transformSize(tx.rect(), dstrt), Display::texture(), dstrt);
     }
 }
 
 void Window::renderTexture(const Texture & tx, const Rect & srcrt, const Rect & dstrt) const
 {
     if(rect() & dstrt.toPoint())
-	Display::renderTexture(tx, srcrt, Display::texture(), transformRect(dstrt, gfxpos));
+    {
+	Rect dstrt2 = transformRect(dstrt, gfxpos);
+	Display::renderTexture(tx, transformSize(srcrt, dstrt2), Display::texture(), dstrt2);
+    }
 }
 
 Rect Window::renderText(const FontRender & fs, const UnicodeString & ustr, const Color & col, const Point & dpt, int halign, int valign, bool horizontal) const

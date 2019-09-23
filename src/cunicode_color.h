@@ -35,8 +35,6 @@ public:
     UnicodeColor(int sym, const Color & cl) : std::pair<FBColors, u16>(FBColors(cl.toColorIndex()), sym) {}
     UnicodeColor(int sym, const FBColors & fbc) : std::pair<FBColors, u16>(FBColors(fbc), sym) {}
 
-    bool		visible(void) const { return unicode() >= 0x20; }
-
     bool		operator< (const UnicodeColor & uc) const;
     bool		operator> (const UnicodeColor & uc) const;
     bool		operator== (const UnicodeColor & uc) const;

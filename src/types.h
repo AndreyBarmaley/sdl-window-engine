@@ -123,15 +123,15 @@ public:
     packshort(int val1, int val2) : val((0xFF00 & (val1 << 8)) | (0x00FF & val2)) {}
 
     int operator() (void) const { return val; }
-    int value(void) const { return val; }
+    const u16 & value(void) const { return val; }
 
     int val1(void) const { return 0xFF & (value() >> 8); }
     int val2(void) const { return 0xFF & value(); }
 
-    void set1(int v) { val = (val | 0xFF00) & (0x00FF | (0xFF00 & (v << 8))); }
-    void set2(int v) { val = (val | 0x00FF) & (0xFF00 | (0x00FF & v)); }
+    packshort & set1(int v) { val = (val | 0xFF00) & (0x00FF | (0xFF00 & (v << 8))); return *this; }
+    packshort & set2(int v) { val = (val | 0x00FF) & (0xFF00 | (0x00FF & v)); return *this; }
 
-    void setvalue(int v) { val = v; }
+    void setvalue(u16 v) { val = v; }
 
     bool operator< (const packshort & p) const { return val < p.val; }
     bool operator> (const packshort & p) const { return val > p.val; }
@@ -151,9 +151,9 @@ public:
     packint(int v = 0) : val(v) {}
 
     int operator() (void) const { return val; }
-    int value(void) const { return val; }
+    const u32 & value(void) const { return val; }
 
-    void setvalue(int v) { val = v; }
+    void setvalue(u32 v) { val = v; }
 
     bool operator< (const packint & p) const { return val < p.val; }
     bool operator> (const packint & p) const { return val > p.val; }
@@ -174,10 +174,10 @@ struct packint4 : public packint
     int val3(void) const { return 0xFF & (value() >> 8); }
     int val4(void) const { return 0xFF & value(); }
 
-    void set1(int v) { val = (val | 0xFF000000) & (0x00FFFFFF | (0xFF000000 & (v << 24))); }
-    void set2(int v) { val = (val | 0x00FF0000) & (0xFF00FFFF | (0x00FF0000 & (v << 16))); }
-    void set3(int v) { val = (val | 0x0000FF00) & (0xFFFF00FF | (0x0000FF00 & (v <<  8))); }
-    void set4(int v) { val = (val | 0x000000FF) & (0xFFFFFF00 | (0x000000FF &  v)); }
+    packint4 & set1(int v) { val = (val | 0xFF000000) & (0x00FFFFFF | (0xFF000000 & (v << 24))); return *this; }
+    packint4 & set2(int v) { val = (val | 0x00FF0000) & (0xFF00FFFF | (0x00FF0000 & (v << 16))); return *this; }
+    packint4 & set3(int v) { val = (val | 0x0000FF00) & (0xFFFF00FF | (0x0000FF00 & (v <<  8))); return *this; }
+    packint4 & set4(int v) { val = (val | 0x000000FF) & (0xFFFFFF00 | (0x000000FF &  v)); return *this; }
 };
 
 struct packint2 : public packint
@@ -188,8 +188,8 @@ struct packint2 : public packint
     int val1(void) const { return 0xFFFF & (value() >> 16); }
     int val2(void) const { return 0xFFFF & value(); }
 
-    void set1(int v) { val = (val | 0xFFFF0000) & (0x0000FFFF | (0xFFFF0000 & (v << 16))); }
-    void set2(int v) { val = (val | 0x0000FFFF) & (0xFFFF0000 | (0x0000FFFF & v)); }
+    packint2 & set1(int v) { val = (val | 0xFFFF0000) & (0x0000FFFF | (0xFFFF0000 & (v << 16))); return *this; }
+    packint2 & set2(int v) { val = (val | 0x0000FFFF) & (0xFFFF0000 | (0x0000FFFF & v)); return *this; }
 };
 
 class BitFlags
