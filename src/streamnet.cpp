@@ -136,7 +136,7 @@ StreamNetwork::~StreamNetwork()
     close();
 }
 
-StreamNetwork::StreamNetwork(StreamNetwork && sn)
+StreamNetwork::StreamNetwork(StreamNetwork && sn) noexcept
 {
     sd = sn.sd;
     sdset = sn.sdset;
@@ -145,7 +145,7 @@ StreamNetwork::StreamNetwork(StreamNetwork && sn)
     sn.sdset = NULL;
 }
 
-StreamNetwork & StreamNetwork::operator= (StreamNetwork && sn)
+StreamNetwork & StreamNetwork::operator= (StreamNetwork && sn) noexcept
 {
     close();
 

@@ -49,21 +49,21 @@ namespace
         0x00FFFFFF /* White */, -1 /* Transparent */ };
 
     const char* _names[] = {
-        "black", "navy", "darkblue", "mediumblue", "blue", "darkgreen", "green", "teal", "darkcyan", "deepskyblue",
-        "darkturquoise", "mediumspringgreen", "lime", "springgreen", "aqua", "cyan", "midnightblue", "dodgerblue", "lightseagreen", "forestgreen",
-        "seagreen", "darkslategray", "limegreen", "mediumseagreen", "turquoise", "royalblue", "steelblue", "darkslateblue", "mediumturquoise", "indigo",
-        "darkolivegreen", "cadetblue", "cornflowerblue", "mediumaquamarine", "dimgray", "slateblue", "olivedrab", "slategray", "lightslategray", "mediumslateblue",
-        "lawngreen", "chartreuse", "aquamarine", "maroon", "purple", "olive", "gray", "skyblue", "lightskyblue", "blueviolet",
-        "darkred", "darkmagenta", "saddlebrown", "darkseagreen", "lightgreen", "mediumpurple", "darkviolet", "palegreen", "darkorchid", "amethyst",
-        "yellowgreen", "sienna", "brown", "darkgray", "lightblue", "greenyellow", "paleturquoise", "lightsteelblue", "powderblue", "firebrick",
-        "darkgoldenrod", "mediumorchid", "rosybrown", "darkkhaki", "silver", "mediumvioletred", "indianred", "peru", "chocolate", "tan",
-        "lightgrey", "thistle", "orchid", "goldenrod", "palevioletred", "crimson", "gainsboro", "plum", "burlywood", "lightcyan",
-        "lavender", "darksalmon", "violet", "palegoldenrod", "lightcoral", "khaki", "aliceblue", "honeydew", "azure", "sandybrown",
-        "wheat", "beige", "whitesmoke", "mintcream", "ghostwhite", "salmon", "antiquewhite", "linen", "lightgoldenrodyellow", "oldlace",
-        "red", "fuchsia", "magenta", "deeppink", "orangered", "tomato", "hotpink", "coral", "darkorange", "lightsalmon",
-        "orange", "lightpink", "pink", "gold", "peachpuff", "navajowhite", "moccasin", "bisque", "mistyrose", "blanchedalmond",
-        "papayawhip", "lavenderblush", "seashell", "cornsilk", "lemonchiffon", "floralwhite", "snow", "yellow", "lightyellow", "ivory",
-        "white", "transparent" };
+	"Black", "Navy", "DarkBlue", "MediumBlue", "Blue", "DarkGreen", "Green", "Teal", "DarkCyan", "DeepSkyBlue",
+        "DarkTurquoise", "MediumSpringGreen", "Lime", "SpringGreen", "Aqua", "Cyan", "MidnightBlue", "DodgerBlue", "LightSeaGreen", "ForestGreen",
+        "SeaGreen", "DarkSlateGray", "LimeGreen", "MediumSeaGreen", "Turquoise", "RoyalBlue", "SteelBlue", "DarkSlateBlue", "MediumTurquoise", "Indigo",
+        "DarkOliveGreen", "CadetBlue", "CornflowerBlue", "MediumAquamarine", "DimGray", "SlateBlue", "OliveDrab", "SlateGray", "LightSlateGray", "MediumSlateBlue",
+        "LawnGreen", "Chartreuse", "Aquamarine", "Maroon", "Purple", "Olive", "Gray", "SkyBlue", "LightSkyBlue", "BlueViolet",
+        "DarkRed", "DarkMagenta", "SaddleBrown", "DarkSeaGreen", "LightGreen", "MediumPurple", "DarkViolet", "PaleGreen", "DarkOrchid", "Amethyst",
+        "YellowGreen", "Sienna", "Brown", "DarkGray", "LightBlue", "GreenYellow", "PaleTurquoise", "LightSteelBlue", "PowderBlue", "FireBrick",
+        "DarkGoldenrod", "MediumOrchid", "RosyBrown", "DarkKhaki", "Silver", "MediumVioletRed", "IndianRed", "Peru", "Chocolate", "Tan",
+        "LightGrey", "Thistle", "Orchid", "Goldenrod", "PaleVioletRed", "Crimson", "Gainsboro", "Plum", "BurlyWood", "LightCyan",
+        "Lavender", "DarkSalmon", "Violet", "PaleGoldenrod", "LightCoral", "Khaki", "AliceBlue", "Honeydew", "Azure", "SandyBrown",
+        "Wheat", "Beige", "WhiteSmoke", "MintCream", "GhostWhite", "Salmon", "AntiqueWhite", "Linen", "LightGoldenrodYellow", "OldLace",
+        "Red", "Fuchsia", "Magenta", "DeepPink", "OrangeRed", "Tomato", "HotPink", "Coral", "DarkOrange", "LightSalmon",
+        "Orange", "LightPink", "Pink", "Gold", "PeachPuff", "NavajoWhite", "Moccasin", "Bisque", "MistyRose", "BlanchedAlmond",
+        "PapayaWhip", "LavenderBlush", "Seashell", "Cornsilk", "LemonChiffon", "FloralWhite", "Snow", "Yellow", "LightYellow", "Ivory",
+        "White", "Transparent" };
 
     std::vector<ARGB> others_argb;
 
@@ -83,7 +83,13 @@ namespace
     int names2index(const std::string & str)
     {
 	auto _names_end = std::end(_names);
-	auto _names_its = std::find(std::begin(_names), _names_end, str);
+	auto _names_its = std::begin(_names);
+
+	while(_names_its != _names_end)
+	{
+	    if(String::compareInSensitive(*_names_its, str)) break;
+	    _names_its++;
+	}
 
 	return _names_its != _names_end ? std::distance(std::begin(_names), _names_its) : -1;
     }
@@ -157,7 +163,7 @@ ARGB::ARGB(const std::string & str) : packint4(SDL_ALPHA_OPAQUE, 0, 0, 0)
         }
 	else
 	{
-	    int index = names2index(String::toLower(str));
+	    int index = names2index(str);
 	    argb = index2argb(index);
 	}
 

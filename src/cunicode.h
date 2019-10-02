@@ -93,10 +93,10 @@ public:
     UnicodeList(const StringList & v) { append(v); }
     UnicodeList(const std::list<UnicodeString> & v) : std::list<UnicodeString>(v) {}
     UnicodeList(const UnicodeList & v) : std::list<UnicodeString>(v) {}
-    UnicodeList(UnicodeList && v) { swap(v); }
+    UnicodeList(UnicodeList && v) noexcept { swap(v); }
 
     UnicodeList		operator= (const UnicodeList & v) { assign(v.begin(), v.end()); return *this; }
-    UnicodeList		operator= (UnicodeList && v) { swap(v); return *this; }
+    UnicodeList		operator= (UnicodeList && v) noexcept { swap(v); return *this; }
 
     size_t		maxStringWidth(void) const;
     size_t		totalStringsWidth(void) const;

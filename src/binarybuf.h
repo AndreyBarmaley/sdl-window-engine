@@ -39,10 +39,10 @@ public:
     BinaryBuf(const u8* ptr, size_t len) : std::vector<u8>(ptr, ptr + len) {}
     BinaryBuf(const std::vector<u8> & v) : std::vector<u8>(v) {}
     BinaryBuf(const BinaryBuf & v) : std::vector<u8>(v) {}
-    BinaryBuf(BinaryBuf && v) { swap(v); }
+    BinaryBuf(BinaryBuf && v) noexcept { swap(v); }
 
     BinaryBuf &		operator= (const BinaryBuf & v) { assign(v.begin(), v.end()); return *this; }
-    BinaryBuf &		operator= (BinaryBuf && v) { swap(v); return *this; }
+    BinaryBuf &		operator= (BinaryBuf && v) noexcept { swap(v); return *this; }
 
     BinaryBuf		zlibUncompress(size_t real = 0) const;
     BinaryBuf		zlibCompress(void) const;

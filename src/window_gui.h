@@ -28,6 +28,7 @@
 #include "window.h"
 
 class WindowScrollBar;
+struct KeySym;
 
 class WindowTexture : public Window
 {
@@ -173,8 +174,8 @@ protected:
     bool        		mouseReleaseEvent(const ButtonEvent &);
     void        		mouseLeaveEvent(void);
     void        		mouseFocusEvent(void);
-    bool			keyPressEvent(int);
-    bool			keyReleaseEvent(int);
+    bool			keyPressEvent(const KeySym &);
+    bool			keyReleaseEvent(const KeySym &);
     void			signalReceive(int, const SignalMember*);
 
     void			setClickedComplete(void);

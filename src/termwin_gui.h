@@ -97,10 +97,10 @@ class LabelAction : public TermWindow, public CurrentTheme
     std::string content;
 
 protected:
-    bool        keyPressEvent(int);
-    void        mouseFocusEvent(void);
-    void        mouseLeaveEvent(void);
-    bool        mouseClickEvent(const ButtonsEvent &);
+    bool        keyPressEvent(const KeySym &) override;
+    void        mouseFocusEvent(void) override;
+    void        mouseLeaveEvent(void) override;
+    bool        mouseClickEvent(const ButtonsEvent &) override;
 
     bool	setLabelHotKey(const std::string &);
     void        renderLabel(const ThemeColors &);
@@ -119,6 +119,7 @@ public:
     bool	isAction(int) const;
 
     void	setHotKey(int);
+    void	setHotKey(const std::string &);
     int		hotKey(void) const;
     bool	isHotKey(int) const;
 
@@ -141,9 +142,9 @@ public:
     TextButton(const buttons_t &, TermWindow &, const ThemeColors* = NULL);
     TextButton(TermWindow & term, const ThemeColors* theme = NULL) : LabelAction(term, theme) {}
 
-    void	setLabel(const std::string &);
+    void	setLabel(const std::string &) override;
     void	setLabel(const buttons_t &);
-    void        renderWindow(void);
+    void        renderWindow(void) override;
 
 };
 
@@ -202,7 +203,7 @@ class HeaderAreaBox : public TermWindow, public CurrentTheme
     UCString		header;
 
 protected:
-    bool                keyPressEvent(int);
+    bool                keyPressEvent(const KeySym &) override;
     virtual void	renderWindowLine(const line_t &);
 
     void		initHeaderAreaBox(const TermSize &);
@@ -226,9 +227,9 @@ protected:
     ButtonsGroup	buttonsGroup;
 
 protected:
-    void		signalReceive(int, const SignalMember*);
-    void		renderWindowLine(const line_t &);
-    bool                keyPressEvent(int);
+    void		signalReceive(int, const SignalMember*) override;
+    void		renderWindowLine(const line_t &) override;
+    bool                keyPressEvent(const KeySym &) override;
 
     void		setButtonsPosition(void);
     void		setHotKeyDisabled(bool);
@@ -251,7 +252,7 @@ class MessageBox : public ButtonsAreaBox
     UCStringList	content;
 
 protected:
-    void		renderWindowLine(const line_t &);
+    void		renderWindowLine(const line_t &) override;
     void		initMessageBox(const UCString &);
 
 public:
@@ -268,9 +269,9 @@ class InputBox : public ButtonsAreaBox
     u32			tickLast;
 
 protected:
-    bool                keyPressEvent(int);
-    void		tickEvent(u32 ms);
-    void		renderWindowLine(const line_t &);
+    bool                keyPressEvent(const KeySym &) override;
+    void		tickEvent(u32 ms) override;
+    void		renderWindowLine(const line_t &) override;
 
     void		setInputFocused(bool);
     bool		checkInputFocused(void) const;
@@ -292,12 +293,12 @@ class ListBox : public ButtonsAreaBox
     int			skipped;
 
 protected:
-    bool                keyPressEvent(int);
-    bool		mouseClickEvent(const ButtonsEvent &);
-    bool		scrollUpEvent(const Point &);
-    bool		scrollDownEvent(const Point &);
-    void		windowVisibleEvent(bool);
-    void		renderWindowLine(const line_t &);
+    bool                keyPressEvent(const KeySym &) override;
+    bool		mouseClickEvent(const ButtonsEvent &) override;
+    bool		scrollUpEvent(const Point &) override;
+    bool		scrollDownEvent(const Point &) override;
+    void		windowVisibleEvent(bool) override;
+    void		renderWindowLine(const line_t &) override;
 
     bool		scrollUpContent(void);
     bool		scrollDownContent(void);

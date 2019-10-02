@@ -81,12 +81,12 @@ public:
     StreamBufRW(const StreamBufRW &);
     StreamBufRW(const BinaryBuf &);
     StreamBufRW(const u8*, size_t);
-    StreamBufRW(BinaryBuf &&);
+    StreamBufRW(BinaryBuf &&) noexcept;
 
     StreamBufRW &	operator=(const StreamBufRW &);
 
-    void		setBuf(const u8*, size_t);
-    void		setBuf(const BinaryBuf &);
+    void		setBuf(const u8*, size_t) override;
+    void		setBuf(const BinaryBuf &) override;
 
     size_t              lastp(void) const { return sw.last(); }
     size_t              tellp(void) const { return sw.tell(); }

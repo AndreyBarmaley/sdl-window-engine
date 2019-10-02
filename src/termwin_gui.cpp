@@ -138,12 +138,15 @@ bool LabelAction::setLabelHotKey(const std::string & str)
 {
     bool blockPresent = false;
 
-    auto it = std::find(str.begin(), str.end(), '<');
-    if(str.end() != it)
+    auto it1 = std::find(str.begin(), str.end(), '<');
+    if(it1 != str.end())
     {
-	blockPresent = true;
-	++it;
-	if(str.end() != it) setHotKey(Key::toKey(*it));
+	auto it2 = std::find(it1 + 1, str.end(), '>');
+	if(it2 != str.end())
+	{
+	    blockPresent = true;
+	    setHotKey(std::string(it1 + 1, it2));
+	}
     }
 
     content = str;
@@ -180,6 +183,11 @@ int LabelAction::action(void) const
 bool LabelAction::isAction(int act) const
 {
     return action() == act;
+}
+
+void LabelAction::setHotKey(const std::string & str)
+{
+    hotkey = Key::toKey(str);
 }
 
 void LabelAction::setHotKey(int key)
@@ -286,10 +294,9 @@ void LabelAction::renderWindow(void)
     *this << set::flush();
 }
 
-bool LabelAction::keyPressEvent(int key)
+bool LabelAction::keyPressEvent(const KeySym & key)
 {
-    if(hotKey() != Key::NONE &&
-	(hotKey() == Key::upper(key) || hotKey() == Key::lower(key)))
+    if(Key::NONE != hotKey() && hotKey() == key.keycode())
     {
         if(isSelected())
 	    clickAction();
@@ -299,7 +306,7 @@ bool LabelAction::keyPressEvent(int key)
         return true;
     }
     else
-    if(isSelected() && key == Key::RETURN)
+    if(isSelected() && key.keycode() == Key::RETURN)
     {
 	clickAction();
         return true;
@@ -681,9 +688,9 @@ void HeaderAreaBox::renderWindowLine(const line_t & line)
     	    acs::rtee(line) << header << set::fgcolor(theme().borderLine()) << acs::ltee(line);
 }
 
-bool HeaderAreaBox::keyPressEvent(int key)
+bool HeaderAreaBox::keyPressEvent(const KeySym & key)
 {
-    if(key == Key::ESCAPE)
+    if(key.keycode() == Key::ESCAPE)
     {
 	setVisible(false);
 	return true;
@@ -748,16 +755,16 @@ void ButtonsAreaBox::signalReceive(int sig, const SignalMember* sm)
 
 	case Signal::ButtonClicked:
 	{
-	    const TextButton* tb = static_cast<const TextButton*>(sm);
-	    setResultCode(tb->action());
+	    const TextButton* tb = dynamic_cast<const TextButton*>(sm);
+	    if(tb) setResultCode(tb->action());
 	    setVisible(false);
 	}
 	break;
 
 	case Signal::ButtonSetFocus:
 	{
-	    const TextButton* tb = static_cast<const TextButton*>(sm);
-	    buttonsGroup.resetSelected(tb);
+	    const TextButton* tb = dynamic_cast<const TextButton*>(sm);
+	    if(tb) buttonsGroup.resetSelected(tb);
 	}
 	break;
 
@@ -812,9 +819,9 @@ void ButtonsAreaBox::renderWindowLine(const line_t & line)
     buttonsGroup.renderWindow();
 }
 
-bool ButtonsAreaBox::keyPressEvent(int key)
+bool ButtonsAreaBox::keyPressEvent(const KeySym & key)
 {
-    switch(key)
+    switch(key.keycode())
     {
         case Key::LEFT:
 	    if(buttonsGroup.findSelected())
@@ -962,14 +969,14 @@ void InputBox::tickEvent(u32 ms)
     }
 }
 
-bool InputBox::keyPressEvent(int key)
+bool InputBox::keyPressEvent(const KeySym & key)
 {
     if(ButtonsAreaBox::keyPressEvent(key))
         return true;
 
     if(! checkInputFocused())
     {
-	if(key == Key::TAB)
+	if(key.keycode() == Key::TAB)
 	{
 	    if(buttonsGroup.isFirstSelected())
 		buttonsGroup.lastSelected();
@@ -986,7 +993,7 @@ bool InputBox::keyPressEvent(int key)
     	return false;
     }
 
-    switch(key)
+    switch(key.keycode())
     {
         case Key::RETURN:
 	    setResultCode(ButtonYes);
@@ -1016,7 +1023,7 @@ bool InputBox::keyPressEvent(int key)
 
         default:
 	{
-	    int ch = Key::toChar(key);
+	    int ch = key.keychar();
 	    if(ch)
     	    {
 		sResult.append(1, ch);
@@ -1187,12 +1194,12 @@ bool ListBox::scrollDownEvent(const Point & cur)
     return false;
 }
 
-bool ListBox::keyPressEvent(int key)
+bool ListBox::keyPressEvent(const KeySym & key)
 {
     if(ButtonsAreaBox::keyPressEvent(key))
         return true;
 
-    switch(key)
+    switch(key.keycode())
     {
         case Key::UP:
 	    return scrollUpContent();

@@ -28,6 +28,21 @@
 #include "rect.h"
 #include "tools.h"
 
+Point Point::parse(const std::string & str, int sep)
+{
+    Point res;
+    StringList list = String::split(str, sep);
+
+    if(1 < list.size())
+    {
+	auto it = list.begin();
+	res.x = String::toInt(*it); it++;
+	res.y = String::toInt(*it);
+    }
+
+    return res;
+}
+
 bool Point::isNull(void) const
 {
     return 0 == x && 0 == y;
@@ -102,6 +117,22 @@ std::string Point::toString(void) const
     return os.str();
 }
 
+ZPoint ZPoint::parse(const std::string & str, int sep)
+{
+    ZPoint res;
+    StringList list = String::split(str, sep);
+
+    if(2 < list.size())
+    {
+	auto it = list.begin();
+	res.x = String::toInt(*it); it++;
+	res.y = String::toInt(*it); it++;
+	res.z = String::toInt(*it);
+    }
+
+    return res;
+}
+
 bool ZPoint::operator== (const ZPoint & pt) const
 {
     return x == pt.x && y == pt.y && z == pt.z;
@@ -165,6 +196,21 @@ std::string ZPoint::toString(void) const
     std::ostringstream os;
     os << "x: " << x << ", " << "y: " << y << ", " << "z: " << z;
     return os.str();
+}
+
+Size Size::parse(const std::string & str, int sep)
+{
+    Size res;
+    StringList list = String::split(str, sep);
+
+    if(1 < list.size())
+    {
+	auto it = list.begin();
+	res.w = String::toInt(*it); it++;
+	res.h = String::toInt(*it);
+    }
+
+    return res;
 }
 
 bool Size::operator== (const Size & sz) const

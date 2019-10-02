@@ -313,8 +313,8 @@ protected:
     virtual void        windowMoveEvent(const Point &) {}
     virtual void        windowResizeEvent(const Size &) {}
     virtual void        windowVisibleEvent(bool) {}
-    virtual bool        keyPressEvent(int) { return false; }
-    virtual bool        keyReleaseEvent(int) { return false; }
+    virtual bool        keyPressEvent(const KeySym &) { return false; }
+    virtual bool        keyReleaseEvent(const KeySym &) { return false; }
     virtual bool        textInputEvent(const std::string &) { return false; }
     virtual bool        mousePressEvent(const ButtonEvent &) { return false; }
     virtual bool        mouseReleaseEvent(const ButtonEvent &) { return false; }
@@ -369,7 +369,7 @@ public:
     void		resetCursorPos(void) { curpos = TermPos(); }
     const TermPos &	cursor(void) const { return curpos; }
 
-    virtual void	setCharset(int ch, const ColorIndex & fg = Color::Transparent, const ColorIndex & bg = Color::Transparent, const CharsetProperty & prop = CharsetProperty()) = 0;
+    virtual void	setCharset(int ch, const ColorIndex & fg = Color::Transparent, const ColorIndex & bg = Color::Transparent, const CharsetProperty* prop = NULL) = 0;
     virtual void	renderFlush(void) = 0;
 
     inline int		cols(void) const { return termsz.cols(); }
@@ -425,7 +425,7 @@ public:
 
     TermBase & operator<< (const UnicodeColor &);
 
-    virtual void        renderWindow(void);
+    void		renderWindow(void) override;
 };
 
 class TermWindow : public TermBase
@@ -445,7 +445,7 @@ public:
 
     const TermCharset*	charset(void) const;
 
-    void		setCharset(int ch, const ColorIndex & fg = Color::Transparent, const ColorIndex & bg = Color::Transparent, const CharsetProperty & prop = CharsetProperty()) override;
+    void		setCharset(int ch, const ColorIndex & fg = Color::Transparent, const ColorIndex & bg = Color::Transparent, const CharsetProperty* prop = NULL) override;
     void		renderFlush(void) override;
 
     void		renderSymbol(int symx, int symy);
@@ -461,7 +461,7 @@ public:
     TermArea(int symx, int symy, int cols, int rows, TermWindow & term) : TermBase(term) { setTermArea(symx, symy, cols, rows); }
 
     void		setTermPos(const TermPos & tp) { termpos = tp; }
-    void		setPosition(const Point &);
+    void		setPosition(const Point &) override;
 
     void		setTermArea(const TermRect &);
     void		setTermArea(int symx, int symy, int cols, int rows);
@@ -469,7 +469,7 @@ public:
     inline int		posx(void) const { return termpos.posx(); }
     inline int		posy(void) const { return termpos.posy(); }
 
-    void		setCharset(int ch, const ColorIndex & fg = Color::Transparent, const ColorIndex & bg = Color::Transparent, const CharsetProperty & prop = CharsetProperty()) override;
+    void		setCharset(int ch, const ColorIndex & fg = Color::Transparent, const ColorIndex & bg = Color::Transparent, const CharsetProperty* prop = NULL) override;
     void		renderFlush(void) override;
 };
 

@@ -194,13 +194,7 @@ bool Engine::init(bool debug)
     }
 #endif
 
-#ifndef ANDROID
-#ifndef OLDENGINE
-    SDL_StartTextInput();
-#endif
-#endif
-
-#ifdef __MINGW32CE__
+#ifdef __MINGW32__
     Display::fingerEventEmulation = true;
 #endif
 
@@ -225,11 +219,6 @@ bool Engine::debugMode(void)
 void Engine::quit(void)
 {
     clearAllSignals();
-#ifndef ANDROID
-#ifndef OLDENGINE
-    SDL_StopTextInput();
-#endif
-#endif
     Display::closeWindow();
 #ifndef DISABLE_AUDIO
     Music::reset();
@@ -552,7 +541,7 @@ bool Display::renderReset(SDL_Texture* target)
 
     if(! (info.flags & SDL_RENDERER_TARGETTEXTURE))
     {
-        ERROR( "not target texture: " << String::hex64(reinterpret_cast<std::uintptr_t>(target)));
+        ERROR( "not target texture: " << String::pointer(target));
     	return false;
     }
 
@@ -799,8 +788,8 @@ void Display::renderPresent(void)
     if(winsz != rendersz)
     {
 	SDL_Rect dstrt = scale.toSDLRect();
-	double zoomx = dstrt.w / static_cast<double>(rendersz.w);
-	double zoomy = dstrt.h / static_cast<double>(rendersz.h);
+	float zoomx = dstrt.w / static_cast<float>(rendersz.w);
+	float zoomy = dstrt.h / static_cast<float>(rendersz.h);
 
 	SDL_Surface* zoomsf = zoomSurface(displayTexture.toSDLTexture(), zoomx, zoomy, 1);
 
@@ -1106,9 +1095,7 @@ bool Display::handleEvents(void)
 
 void Display::handleKeyboard(const SDL_KeyboardEvent & ev)
 {
-    int key = Key::toKey(ev.keysym.sym, ev.keysym.mod);
-
-    DisplayScene::keyDebugHandle(ev);
+    KeySym key(ev.keysym);
 
     switch(ev.type)
     {
@@ -1123,7 +1110,7 @@ void Display::handleKeyboard(const SDL_KeyboardEvent & ev)
 	default: break;
     }
 
-    switch(key)
+    switch(key.keycode())
     {
 	case Key::PAGEUP:	DisplayScene::scrollUpHandle(Point(-1, -1)); break;
 	case Key::PAGEDOWN:	DisplayScene::scrollDownHandle(Point(-1, -1)); break;

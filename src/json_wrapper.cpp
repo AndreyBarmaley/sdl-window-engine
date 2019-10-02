@@ -446,7 +446,7 @@ JsonContent::getValue(const const_iterator & it, JsonContainer* cont) const
 	int counts = tok.counts();
 	skip = 1;
 	auto itval = it + skip;
-	JsonArray* arr = cont ? static_cast<JsonArray*>(cont) : new JsonArray();
+	JsonArray* arr = cont ? dynamic_cast<JsonArray*>(cont) : new JsonArray();
 
 	while(counts-- && itval != end())
 	{
@@ -466,7 +466,7 @@ JsonContent::getValue(const const_iterator & it, JsonContainer* cont) const
 	skip = 1;
 	auto itkey = it + skip;
 	auto itval = itkey + 1;
-	JsonObject* obj = cont ? static_cast<JsonObject*>(cont) : new JsonObject();
+	JsonObject* obj = cont ? dynamic_cast<JsonObject*>(cont) : new JsonObject();
 
 	while(counts-- && itval != end())
 	{
@@ -630,6 +630,12 @@ const JsonValue* JsonObject::getValue(const std::string & key) const
     return it != content.end() ? (*it).second : NULL;
 }
 
+int JsonObject::getType(const std::string & key) const
+{
+    const JsonValue* jv = getValue(key);
+    return jv ? jv->getType() : TypeNull;
+}
+
 int JsonObject::getInteger(const std::string & key, int def) const
 {
     const JsonValue* jv = getValue(key);
@@ -656,25 +662,25 @@ bool JsonObject::getBoolean(const std::string & key, bool def) const
 
 Point JsonObject::getPoint(const std::string & key, Point def) const
 {
-    const JsonContainer* jv = static_cast<const JsonContainer*>(getValue(key));
+    const JsonContainer* jv = dynamic_cast<const JsonContainer*>(getValue(key));
     return jv ? jv->getPoint(def) : def;
 }
 
 ZPoint JsonObject::getZPoint(const std::string & key, ZPoint def) const
 {
-    const JsonContainer* jv = static_cast<const JsonContainer*>(getValue(key));
+    const JsonContainer* jv = dynamic_cast<const JsonContainer*>(getValue(key));
     return jv ? jv->getZPoint(def) : def;
 }
 
 Size JsonObject::getSize(const std::string & key, Size def) const
 {
-    const JsonContainer* jv = static_cast<const JsonContainer*>(getValue(key));
+    const JsonContainer* jv = dynamic_cast<const JsonContainer*>(getValue(key));
     return jv ? jv->getSize(def) : def;
 }
 
 Rect JsonObject::getRect(const std::string & key, Rect def) const
 {
-    const JsonContainer* jv = static_cast<const JsonContainer*>(getValue(key));
+    const JsonContainer* jv = dynamic_cast<const JsonContainer*>(getValue(key));
     return jv ? jv->getRect(def) : def;
 }
 
@@ -686,13 +692,13 @@ Color JsonObject::getColor(const std::string & key, Color def) const
 
 const JsonObject* JsonObject::getObject(const std::string & key) const
 {
-    const JsonObject* jv = static_cast<const JsonObject*>(getValue(key));
+    const JsonObject* jv = dynamic_cast<const JsonObject*>(getValue(key));
     return jv;
 }
 
 const JsonArray* JsonObject::getArray(const std::string & key) const
 {
-    const JsonArray* jv = static_cast<const JsonArray*>(getValue(key));
+    const JsonArray* jv = dynamic_cast<const JsonArray*>(getValue(key));
     return jv;
 }
 
@@ -878,6 +884,11 @@ UnicodeColor JsonObject::getUnicodeColor(const std::string & key) const
     return res;
 }
 
+void JsonObject::addNull(const std::string & key)
+{
+    content.insert(key, new JsonValue());
+}
+
 void JsonObject::addInteger(const std::string & key, const int & val)
 {
     content.insert(key, new JsonInteger(val));
@@ -980,13 +991,13 @@ const JsonValue* JsonArray::getValue(size_t index) const
 
 const JsonObject* JsonArray::getObject(size_t index) const
 {
-    const JsonObject* jo = static_cast<const JsonObject*>(getValue(index));
+    const JsonObject* jo = dynamic_cast<const JsonObject*>(getValue(index));
     return jo;
 }
 
 const JsonArray* JsonArray::getArray(size_t index) const
 {
-    const JsonArray* ja = static_cast<const JsonArray*>(getValue(index));
+    const JsonArray* ja = dynamic_cast<const JsonArray*>(getValue(index));
     return ja;
 }
 

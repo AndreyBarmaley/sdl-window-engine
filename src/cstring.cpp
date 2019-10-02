@@ -42,6 +42,17 @@ std::string String::escapeChar(const std::string & str, int ch)
     return list.join(std::string(1, '\\').append(1, ch));
 }
 
+bool compareInSensChar(const char & c1, const char & c2)
+{
+    return c1 != c2 ? (std::tolower(c1) == std::tolower(c2)) : true;
+}
+ 
+bool String::compareInSensitive(const std::string & str1, const std::string &str2)
+{
+    return ((str1.size() == str2.size()) &&
+	     std::equal(str1.begin(), str1.end(), str2.begin(), & compareInSensChar));
+}
+
 std::string String::ucFirst(std::string str)
 {
     if(! str.empty())
@@ -97,6 +108,14 @@ std::string String::hex64(u64 value)
 {
     std::ostringstream stream;
     stream << "0x" << std::setw(16) << std::setfill('0') << std::hex << value;
+    return stream.str();
+}
+
+std::string String::pointer(const void* ptr)
+{
+    int fill = sizeof(ptr);
+    std::ostringstream stream;
+    stream << "0x" << std::setw(fill) << std::setfill('0') << std::hex << reinterpret_cast<uintptr_t>(ptr);
     return stream.str();
 }
 

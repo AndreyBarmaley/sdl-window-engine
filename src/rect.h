@@ -35,6 +35,8 @@ struct Size
     Size() : w(0), h(0) {}
     Size(int sw, int sh) : w(sw), h(sh) {}
 
+    static Size parse(const std::string &, int sep = 'x');
+
     bool	isEmpty(void) const;
 
     bool	operator== (const Size &) const;
@@ -67,6 +69,8 @@ struct Point
     Point(const Size & sz) : x(sz.w), y(sz.h) {}
     Point(int px, int py) : x(px), y(py) {}
 
+    static Point parse(const std::string &, int sep = ':');
+
     bool	isNull(void) const;
 
     bool	operator== (const Point &) const;
@@ -96,6 +100,8 @@ struct ZPoint : public Point
     ZPoint() : z(0) {}
     ZPoint(int px, int py, int pz) : Point(px, py), z(pz) {}
     ZPoint(const Point & pt, int pz) : Point(pt), z(pz) {}
+
+    static ZPoint parse(const std::string &, int sep = ':');
 
     bool	operator== (const ZPoint &) const;
     bool	operator!= (const ZPoint &) const;
@@ -159,10 +165,10 @@ struct Points : std::vector<Point>
     Points() {}
     Points(const std::vector<Point> & v) : std::vector<Point>(v) {}
     Points(const Points & v) : std::vector<Point>(v) {}
-    Points(Points && v) { swap(v); }
+    Points(Points && v) noexcept { swap(v); }
 
     Points & operator= (const Points & v) { assign(v.begin(), v.end()); return *this; }
-    Points & operator= (Points && v) { swap(v); return *this; }
+    Points & operator= (Points && v) noexcept { swap(v); return *this; }
 
     Rect	around(void) const;
 
@@ -178,10 +184,10 @@ struct Rects : std::vector<Rect>
     Rects() {}
     Rects(const std::vector<Rect> & v) : std::vector<Rect>(v) {}
     Rects(const Rects & v) : std::vector<Rect>(v) {}
-    Rects(Rects && v) { swap(v); }
+    Rects(Rects && v) noexcept { swap(v); }
 
     Rects & operator= (const Rects & v) { assign(v.begin(), v.end()); return *this; }
-    Rects & operator= (Rects && v) { swap(v); return *this; }
+    Rects & operator= (Rects && v) noexcept { swap(v); return *this; }
 
     int 	index(const Point &) const;
     Rect	around(void) const;

@@ -26,6 +26,7 @@
 #include "window.h"
 #include "display.h"
 #include "window_gui.h"
+#include "inputs_keys.h"
 #include "display_scene.h"
 
 class WindowToolTip : public WindowTexture
@@ -190,34 +191,13 @@ void DisplayScene::pushEvent(const Window* dst, int code, void* data)
     event.user.data2 = data;
 
     if(0 > SDL_PushEvent(&event))
-	ERROR("win: " << String::hex64(reinterpret_cast<u64>(dst)) << ", " << "code: " << String::hex(code) << ", " << "error: " << SDL_GetError());
+	ERROR("win: " << String::pointer(dst) << ", " << "code: " << String::hex(code) << ", " << "error: " << SDL_GetError());
 }
 
 ////////////// handle events
 enum EventFilter { KeyHandle, MouseButtonHandle, MouseTrackingHandle, SystemTickHandle };
 
-bool DisplayScene::keyDebugHandle(const SDL_KeyboardEvent & ev)
-{
-    for(auto it = sceneItems.rbegin(); it != sceneItems.rend(); ++it)
-    {
-        if(*it && (*it)->isVisible())
-	{
-    	    if((*it)->checkState(FlagModality))
-    	    {
-        	(*it)->keyDebugEvent(ev);
-        	return true;
-    	    }
-    	    else
-    	    // focus
-    	    if(((*it)->isFocused() || (*it)->checkState(FlagKeyHandle)) &&
-        	(*it)->keyDebugEvent(ev)) return true;
-	}
-    }
-
-    return false;
-}
-
-bool DisplayScene::keyPressHandle(int key)
+bool DisplayScene::keyPressHandle(const KeySym & key)
 {
     for(auto it = sceneItems.rbegin(); it != sceneItems.rend(); ++it)
     {
@@ -238,7 +218,7 @@ bool DisplayScene::keyPressHandle(int key)
     return false;
 }
 
-bool DisplayScene::keyReleaseHandle(int key)
+bool DisplayScene::keyReleaseHandle(const KeySym & key)
 {
     for(auto it = sceneItems.rbegin(); it != sceneItems.rend(); ++it)
     {
@@ -440,6 +420,7 @@ bool DisplayScene::userHandle(const SDL_UserEvent & ev)
     {
 	if(sceneItems.end() != std::find(sceneItems.begin(), sceneItems.end(), ev.data1))
 	{
+	    // dst always Window type
 	    Window* win = static_cast<Window*>(ev.data1);
 
 	    if(ev.code == Signal::WindowCreated)
@@ -448,7 +429,7 @@ bool DisplayScene::userHandle(const SDL_UserEvent & ev)
 		return true;
 	    }
 
-            return win->userEvent(ev.code, ev.data2);
+    	    return win->userEvent(ev.code, ev.data2);
         }
 	else
 	{

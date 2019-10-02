@@ -25,9 +25,10 @@
 
 #include <string>
 #include "types.h"
+#include "SDL.h"
 
 #ifdef OLDENGINE
-typedef SDLKey SDL_Keycode;
+typedef SDL_keysym SDL_Keysym;
 #endif
 
 struct KeyName
@@ -42,73 +43,204 @@ struct KeyName
     KeyName(int k, const char* v) : key(k), name(v) {}
 };
 
+
 namespace Key
 {
-    enum
-    {
-        NONE = 0,
-
-        ESCAPE, F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12, INSERT, HOME, END, DELETE, PAGEUP, PAGEDOWN, LEFT, RIGHT, UP, DOWN, RETURN,
-	BACKQUOTE, K1, K2, K3, K4, K5, K6, K7, K8, K9, K0, MINUS, EQUALS, BACKSPACE,
-	TAB, LEFTBRACKET, RIGHTBRACKET, BACKSLASH, SEMICOLON, QUOTE, COMMA, PERIOD, SLASH, SPACE,
-        a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z,
-
-	CTRL		= KMOD_CTRL << 16,
-	ALT		= KMOD_ALT << 16,
-	SHIFT		= KMOD_SHIFT << 16,
-
-	TILDE = BACKQUOTE | SHIFT, EXCLAIM = K1 | SHIFT, AT = K2 | SHIFT, HASH = K3 | SHIFT, DOLLAR = K4 | SHIFT, PERCENT = K5 | SHIFT, CARET = K6 | SHIFT,
-	AMPERSAND = K7 | SHIFT, ASTERISK = K8 | SHIFT, LEFTPAREN = K9 | SHIFT, RIGHTPAREN = K0 | SHIFT, UNDERSCORE = MINUS | SHIFT, PLUS = EQUALS | SHIFT,
-	LEFTCURLY = LEFTBRACKET | SHIFT, RIGHTCURLY = RIGHTBRACKET | SHIFT, VERTLINE = BACKSLASH | SHIFT, COLON = SEMICOLON | SHIFT, QUOTEDBL = QUOTE | SHIFT,
-	LESS = COMMA | SHIFT, GREATER = PERIOD | SHIFT, QUESTION = SLASH | SHIFT,
-
-	A = a | SHIFT, B = b | SHIFT, C = c | SHIFT, D = d | SHIFT, E = e | SHIFT, F = f | SHIFT, G = g | SHIFT, H = h | SHIFT, I = i | SHIFT,
-	J = j | SHIFT, K = k | SHIFT, L = l | SHIFT, M = m | SHIFT, N = n | SHIFT, O = o | SHIFT, P = p | SHIFT, Q = q | SHIFT, R = r | SHIFT,
-	S = s | SHIFT, T = t | SHIFT, U = u | SHIFT, V = v | SHIFT, W = w | SHIFT, X = x | SHIFT, Y = y | SHIFT, Z = z | SHIFT,
-
-	AC_SEARCH,
-	AC_HOME,
-	AC_BACK,
-	AC_FORWARD,
-	AC_STOP,
-	AC_REFRESH,
-	AC_BOOKMARKS,
-
-        CAPSLOCK,
-        SCROLLOCK,
-        RSHIFT,
-        LSHIFT,
-        RCTRL,
-        LCTRL,
-        RALT,
-        LALT,
-        RMETA,
-        LMETA,
-        LSUPER,
-        RSUPER,
-        MODE,
-        HELP,
-        PRINT,
-        SYSREQ,
-        MENU,
-        POWER,
-        UNDO,
-
-	ANY,
+    enum {
+	NONE = SDLK_UNKNOWN,
+	BACKSPACE = SDLK_BACKSPACE,
+	TAB = SDLK_TAB,
+	CLEAR = SDLK_CLEAR,
+	RETURN = SDLK_RETURN,
+	PAUSE = SDLK_PAUSE,
+	ESCAPE = SDLK_ESCAPE,
+	SPACE = SDLK_SPACE,
+	EXCLAIM = SDLK_EXCLAIM,
+	QUOTEDBL = SDLK_QUOTEDBL,
+	HASH = SDLK_HASH,
+	DOLLAR = SDLK_DOLLAR,
+	AMPERSAND = SDLK_AMPERSAND,
+	QUOTE = SDLK_QUOTE,
+	LEFTPAREN = SDLK_LEFTPAREN,
+	RIGHTPAREN = SDLK_RIGHTPAREN,
+	ASTERISK = SDLK_ASTERISK,
+	PLUS = SDLK_PLUS,
+	COMMA = SDLK_COMMA,
+	MINUS = SDLK_MINUS,
+	PERIOD = SDLK_PERIOD,
+	SLASH = SDLK_SLASH,
+	K0 = SDLK_0,
+	K1 = SDLK_1,
+	K2 = SDLK_2,
+	K3 = SDLK_3,
+	K4 = SDLK_4,
+	K5 = SDLK_5,
+	K6 = SDLK_6,
+	K7 = SDLK_7,
+	K8 = SDLK_8,
+	K9 = SDLK_9,
+	COLON = SDLK_COLON,
+	SEMICOLON = SDLK_SEMICOLON,
+	LESS = SDLK_LESS,
+	EQUALS = SDLK_EQUALS,
+	GREATER = SDLK_GREATER,
+	QUESTION = SDLK_QUESTION,
+	AT = SDLK_AT,
+	LEFTBRACKET = SDLK_LEFTBRACKET,
+	BACKSLASH = SDLK_BACKSLASH,
+	RIGHTBRACKET = SDLK_RIGHTBRACKET,
+	CARET = SDLK_CARET,
+	UNDERSCORE = SDLK_UNDERSCORE,
+	BACKQUOTE = SDLK_BACKQUOTE,
+	a = SDLK_a,
+	b = SDLK_b,
+	c = SDLK_c,
+	d = SDLK_d,
+	e = SDLK_e,
+	f = SDLK_f,
+	g = SDLK_g,
+	h = SDLK_h,
+	i = SDLK_i,
+	j = SDLK_j,
+	k = SDLK_k,
+	l = SDLK_l,
+	m = SDLK_m,
+	n = SDLK_n,
+	o = SDLK_o,
+	p = SDLK_p,
+	q = SDLK_q,
+	r = SDLK_r,
+	s = SDLK_s,
+	t = SDLK_t,
+	u = SDLK_u,
+	v = SDLK_v,
+	w = SDLK_w,
+	x = SDLK_x,
+	y = SDLK_y,
+	z = SDLK_z,
+	DELETE = SDLK_DELETE,
+#ifdef OLDENGINE
+	KP_K0 = SDLK_KP0,
+	KP_K1 = SDLK_KP1,
+	KP_K2 = SDLK_KP2,
+	KP_K3 = SDLK_KP3,
+	KP_K4 = SDLK_KP4,
+	KP_K5 = SDLK_KP5,
+	KP_K6 = SDLK_KP6,
+	KP_K7 = SDLK_KP7,
+	KP_K8 = SDLK_KP8,
+	KP_K9 = SDLK_KP9,
+#else
+	KP_K0 = SDLK_KP_0,
+	KP_K1 = SDLK_KP_1,
+	KP_K2 = SDLK_KP_2,
+	KP_K3 = SDLK_KP_3,
+	KP_K4 = SDLK_KP_4,
+	KP_K5 = SDLK_KP_5,
+	KP_K6 = SDLK_KP_6,
+	KP_K7 = SDLK_KP_7,
+	KP_K8 = SDLK_KP_8,
+	KP_K9 = SDLK_KP_9,
+#endif
+	KP_PERIOD = SDLK_KP_PERIOD,
+	KP_DIVIDE = SDLK_KP_DIVIDE,
+	KP_MULTIPLY = SDLK_KP_MULTIPLY,
+	KP_MINUS = SDLK_KP_MINUS,
+	KP_PLUS = SDLK_KP_PLUS,
+	KP_ENTER = SDLK_KP_ENTER,
+	KP_EQUALS = SDLK_KP_EQUALS,
+	UP = SDLK_UP,
+	DOWN = SDLK_DOWN,
+	RIGHT = SDLK_RIGHT,
+	LEFT = SDLK_LEFT,
+	INSERT = SDLK_INSERT,
+	HOME = SDLK_HOME,
+	END = SDLK_END,
+	PAGEUP = SDLK_PAGEUP,
+	PAGEDOWN = SDLK_PAGEDOWN,
+	F1 = SDLK_F1,
+	F2 = SDLK_F2,
+	F3 = SDLK_F3,
+	F4 = SDLK_F4,
+	F5 = SDLK_F5,
+	F6 = SDLK_F6,
+	F7 = SDLK_F7,
+	F8 = SDLK_F8,
+	F9 = SDLK_F9,
+	F10 = SDLK_F10,
+	F11 = SDLK_F11,
+	F12 = SDLK_F12,
+	F13 = SDLK_F13,
+	F14 = SDLK_F14,
+	F15 = SDLK_F15,
+	CAPSLOCK = SDLK_CAPSLOCK,
+#ifdef OLDENGINE
+        SCROLLOCK = SDLK_SCROLLOCK,
+#else
+        SCROLLOCK = SDLK_SCROLLLOCK,
+#endif
+	RSHIFT = SDLK_RSHIFT,
+	LSHIFT = SDLK_LSHIFT,
+	RCTRL = SDLK_RCTRL,
+	LCTRL = SDLK_LCTRL,
+	RALT = SDLK_RALT,
+	LALT = SDLK_LALT,
+	MODE = SDLK_MODE,
+	HELP = SDLK_HELP,
+#ifdef OLDENGINE
+	PRINT = SDLK_PRINT,
+#else
+	PRINT = SDLK_PRINTSCREEN,
+#endif
+	SYSREQ = SDLK_SYSREQ,
+	MENU = SDLK_MENU,
+	POWER = SDLK_POWER,
+	UNDO = SDLK_UNDO,
 	LAST
     };
 
-    SDL_Keycode toSDLKeyCode(int key);
-    int		toKey(const SDL_Keycode &, int mod);
-    int		toKey(int ch);
     int		toKey(const std::string &);
     const char* toName(int);
-    int		toChar(int key);
 
-    int		lower(int key);
-    int		upper(int key);
-
-    const KeyName* allKeys(void);
+    const std::vector<KeyName> & allKeys(void);
 }
+
+struct KeySym : std::pair<u16, int>
+{
+    KeySym(int sym = SDLK_UNKNOWN, u16 mod = 0) : std::pair<u16, int>(mod, sym){}
+    KeySym(const SDL_Keysym & sdl) : std::pair<u16, int>(sdl.mod, sdl.sym){}
+                                                    
+    const u16 &		keymod(void) const { return first; }
+    const int &		keycode(void) const { return second; }
+    int			keychar(void) const;
+#ifdef OLDENGINE
+    int			scancode(void) const { return 0; }
+#else
+    int			scancode(void) const { return SDL_GetScancodeFromKey(keycode()); }
+#endif
+    const char*		keyname(void) const { return Key::toName(keycode()); }
+
+    bool		isCtrl(void) const { return keymod() & KMOD_CTRL; }
+    bool		isLeftCtrl(void) const { return keymod() & KMOD_LCTRL; }
+    bool		isRightCtrl(void) const { return keymod() & KMOD_RCTRL; }
+
+    bool		isShift(void) const { return keymod() & KMOD_SHIFT; }
+    bool		isLeftShift(void) const { return keymod() & KMOD_LSHIFT; }
+    bool		isRightShift(void) const { return keymod() & KMOD_RSHIFT; }
+
+    bool		isAlt(void) const { return keymod() & KMOD_ALT; }
+    bool		isLeftAlt(void) const { return keymod() & KMOD_LALT; }
+    bool		isRightAlt(void) const { return keymod() & KMOD_RALT; }
+
+#ifndef OLDENGINE
+    bool		isGui(void) const { return keymod() & KMOD_GUI; }
+    bool		isLGui(void) const { return keymod() & KMOD_LGUI; }
+    bool		isRGui(void) const { return keymod() & KMOD_RGUI; }
+#endif
+
+    bool		isNum(void) const { return keymod() & KMOD_NUM; }
+    bool		isCaps(void) const { return keymod() & KMOD_CAPS; }
+    bool		isMode(void) const { return keymod() & KMOD_MODE; }
+};
 
 #endif

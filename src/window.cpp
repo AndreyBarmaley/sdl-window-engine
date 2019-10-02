@@ -53,7 +53,7 @@ Window::Window(const Point & pos, const Size & sz, Window* win) : prnt(NULL), re
     pushEventAction(Signal::WindowCreated, this, NULL);
 }
 
-Window::Window(Window && win) : prnt(NULL), result(0)
+Window::Window(Window && win) noexcept
 {
     gfxpos = win.gfxpos;
     prnt = win.prnt;
@@ -255,13 +255,13 @@ void Window::redraw(void)
 
 	// redraw childs: order background
 	for(auto it = childs.begin(); it != childs.end(); ++it)
-	    if((*it)->checkState(FlagLayoutBackground)) (*it)->redraw();
+	    if((*it)->isVisible() && (*it)->checkState(FlagLayoutBackground)) (*it)->redraw();
 	// redraw childs: order normal
 	for(auto it = childs.begin(); it != childs.end(); ++it)
-	    if(! (*it)->checkState(FlagLayoutBackground | FlagLayoutForeground)) (*it)->redraw();
+	    if((*it)->isVisible() && ! (*it)->checkState(FlagLayoutBackground) && ! (*it)->checkState(FlagLayoutForeground)) (*it)->redraw();
 	// redraw childs: order foreground
 	for(auto it = childs.begin(); it != childs.end(); ++it)
-	    if((*it)->checkState(FlagLayoutForeground)) (*it)->redraw();
+	    if((*it)->isVisible() && (*it)->checkState(FlagLayoutForeground)) (*it)->redraw();
     }
 }
 

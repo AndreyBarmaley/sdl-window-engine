@@ -166,7 +166,7 @@ StreamBufRW::StreamBufRW(const u8* data, size_t size)
     StreamBufRW::setBuf(data, size);
 }
 
-StreamBufRW::StreamBufRW(BinaryBuf && bb) : buf(bb), sw(SDL_RWFromMem(buf.data(), buf.size()))
+StreamBufRW::StreamBufRW(BinaryBuf && bb) noexcept : buf(bb), sw(SDL_RWFromMem(buf.data(), buf.size()))
 {
     buf.reserve(MINCAPACITY);
     StreamBufRO::setBuf(buf);

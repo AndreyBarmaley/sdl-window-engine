@@ -55,6 +55,7 @@ public:
     bool		registerDirectory(const std::string &);
 
     // check type
+    bool		isNoneIndex(int) const;
     bool		isNilIndex(int) const;
     bool		isBooleanIndex(int) const;
     bool		isNumberIndex(int) const;
@@ -113,6 +114,7 @@ public:
     // global
     LuaState &		getGlobalName(const std::string &);
     LuaState &		setGlobalName(const std::string &);
+    int			toAbsIndex(int);
 
     // return type
     int			getTypeIndex(int) const;
@@ -124,8 +126,13 @@ public:
     // table manip
     int			nextTableIndex(int);
     int			countFieldsTableIndex(int);
+    bool		isSequenceTableIndex(int);
 
-    LuaState &		getIndexTableIndex(int index, int tindex);
+#ifdef WITH_JSON
+    JsonArray		toJsonArrayTableIndex(int);
+    JsonObject		toJsonObjectTableIndex(int);
+#endif
+
     LuaState &		getFieldTableIndex(const std::string &, int, bool verboseNil = true);
     LuaState &		setFieldTableIndex(const std::string &, int);
 

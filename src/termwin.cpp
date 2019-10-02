@@ -311,28 +311,6 @@ void TermBase::renderWindow(void)
 {
     *this << set::flush();
 }
-/*
-bool	keyPressHandle(int);
-bool	keyReleaseHandle(int);
-bool	mousePressHandle(const ButtonEvent &);
-bool	mouseReleaseHandle(const ButtonEvent &);
-bool	mouseClickHandle(const ButtonsEvent &);
-bool	mouseMotionHandle(const Point &);
-bool	userHandle(const SDL_UserEvent &);
-bool	scrollUpHandle(const Point &);
-bool	scrollDownHandle(const Point &);
-
-bool	keyPressEvent(int) { return false; }
-bool	keyReleaseEvent(int) { return false; }
-bool	mousePressEvent(const ButtonEvent &) { return false; }
-bool	mouseReleaseEvent(const ButtonEvent &) { return false; }
-bool	mouseClickEvent(const ButtonsEvent &) { return false; }
-void	mouseLeaveEvent(void) {}
-bool	mouseMotionEvent(const Point &) { return false; }
-bool	userEvent(int, void*) { return false; }
-bool	scrollUpEvent(const Point &) { return false; }
-bool	scrollDownEvent(const Point &) { return false; }
-*/
 
 TermBase & TermBase::operator<< (const cursor::set & st)
 {
@@ -530,7 +508,7 @@ TermBase & TermBase::operator<< (const fill::defaults & st)
 	for(int posx = 0; posx < cols(); ++posx)
 	{
 	    *this << cursor::set(posx, posy);
-	    setCharset(st.unicode(), st.fgindex(), st.bgindex(), st.prop());
+	    setCharset(st.unicode(), st.fgindex(), st.bgindex(), & st.prop());
 	}
     }
 
@@ -596,7 +574,7 @@ TermBase & TermBase::operator<< (const fill::property & st)
 	for(int posx = start.x; posx < start.x + st.width(); ++posx)
 	{
 	    *this << cursor::set(posx, posy);
-	    setCharset(-1, Color::Transparent, Color::Transparent, st.toProperty());
+	    setCharset(-1, Color::Transparent, Color::Transparent, & st.toProperty());
 	}
     }
 
@@ -716,7 +694,7 @@ const TermCharset* TermWindow::charset(void) const
     return & chars[pos];
 }
 
-void TermWindow::setCharset(int ch, const ColorIndex & fg, const ColorIndex & bg, const CharsetProperty & prop)
+void TermWindow::setCharset(int ch, const ColorIndex & fg, const ColorIndex & bg, const CharsetProperty* prop)
 {
     const Rect & termArea = Rect(padding.left(), padding.top(),
 			    cols() - (padding.left() + padding.right()), rows() - (padding.top() + padding.bottom()));
@@ -743,7 +721,7 @@ void TermWindow::setCharset(int ch, const ColorIndex & fg, const ColorIndex & bg
 	else
 	if(! bgColor().isTransparent()) tc.bgindex(bgColor());
 
-	chars[pos].setProperty(prop);
+	if(prop) chars[pos].setProperty(*prop); 
     }
 
     *this << cursor::right(1);
@@ -789,10 +767,8 @@ void TermWindow::renderFlush(void)
 /* TermArea */
 void TermArea::setPosition(const Point & pos)
 {
-    TermWindow* term = static_cast<TermWindow*>(parent());
-
-    if(term)
-	setCursorPos(term->gfx2sym(pos));
+    TermWindow* term = dynamic_cast<TermWindow*>(parent());
+    if(term) setCursorPos(term->gfx2sym(pos));
 
     Window::setPosition(pos);
 }
@@ -809,9 +785,9 @@ void TermArea::setTermArea(int symx, int symy, int cols, int rows)
     setTermSize(TermSize(cols, rows));
 }
 
-void TermArea::setCharset(int ch, const ColorIndex & fg, const ColorIndex & bg, const CharsetProperty & prop)
+void TermArea::setCharset(int ch, const ColorIndex & fg, const ColorIndex & bg, const CharsetProperty* prop)
 {
-    TermWindow* term = static_cast<TermWindow*>(parent());
+    TermWindow* term = dynamic_cast<TermWindow*>(parent());
 
     if(term)
     {
@@ -840,7 +816,7 @@ void TermArea::setCharset(int ch, const ColorIndex & fg, const ColorIndex & bg, 
 
 void TermArea::renderFlush(void)
 {
-    TermWindow* term = static_cast<TermWindow*>(parent());
+    TermWindow* term = dynamic_cast<TermWindow*>(parent());
 
     if(term)
     {

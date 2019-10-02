@@ -28,14 +28,14 @@
 
 class Window;
 class Texture;
+struct KeySym;
 
 class DisplayScene
 {
 public:
     static Window*             rootWindow(void);
-    static bool                keyDebugHandle(const SDL_KeyboardEvent &);
-    static bool                keyPressHandle(int);
-    static bool                keyReleaseHandle(int);
+    static bool                keyPressHandle(const KeySym &);
+    static bool                keyReleaseHandle(const KeySym &);
     static bool                textInputHandle(const std::string &);
     static bool                mousePressHandle(const ButtonEvent &);
     static bool                mouseReleaseHandle(const ButtonEvent &);

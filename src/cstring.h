@@ -33,10 +33,10 @@ struct StringList : std::list<std::string>
     StringList() {}
     StringList(const std::list<std::string> & v) : std::list<std::string>(v) {}
     StringList(const StringList & v) : std::list<std::string>(v) {}
-    StringList(StringList && v) { swap(v); }
+    StringList(StringList && v) noexcept { swap(v); }
 
     StringList		operator= (const StringList & v) { assign(v.begin(), v.end()); return *this; }
-    StringList		operator= (StringList && v) { swap(v); return *this; }
+    StringList		operator= (StringList && v) noexcept { swap(v); return *this; }
 
     size_t		maxStringWidth(void) const;
 
@@ -66,6 +66,7 @@ namespace String
     std::string		strftime(const std::string &);
 
     std::string		escapeChar(const std::string &, int ch);
+    bool		compareInSensitive(const std::string &, const std::string &);
 
     std::string         replace(const std::string &, const char*, const std::string &);
     std::string         replace(const std::string &, const char*, int);
@@ -75,6 +76,7 @@ namespace String
 
     std::string         hex(int value, int width = 8);
     std::string         hex64(u64 value);
+    std::string		pointer(const void*);
 
     std::string         number(int);
     std::string         number(double, int prec);

@@ -46,8 +46,8 @@ public:
     StreamNetwork(const std::string &, int);
     ~StreamNetwork();
 
-    StreamNetwork(StreamNetwork &&);
-    StreamNetwork &	operator=(StreamNetwork &&);
+    StreamNetwork(StreamNetwork &&) noexcept;
+    StreamNetwork &	operator=(StreamNetwork &&) noexcept;
 
     static StringList   localAddresses(void);
     static std::pair<std::string, int>

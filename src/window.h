@@ -31,6 +31,7 @@
 #include "events.h"
 
 typedef std::uintptr_t	WindowId;
+struct KeySym;
 
 enum { FlagVisible = 0x80000000, FlagModality = 0x40000000, FlagFocused = 0x20000000, FlagAllocated = 0x10000000,
 
@@ -65,9 +66,8 @@ protected:
     virtual void	windowResizeEvent(const Size &) {}
     virtual void	windowVisibleEvent(bool) {}
     virtual void	windowCreateEvent(void) {}
-    virtual bool	keyDebugEvent(const SDL_KeyboardEvent &) { return false; }
-    virtual bool	keyPressEvent(int) { return false; }
-    virtual bool	keyReleaseEvent(int) { return false; }
+    virtual bool	keyPressEvent(const KeySym &) { return false; }
+    virtual bool	keyReleaseEvent(const KeySym &) { return false; }
     virtual bool	textInputEvent(const std::string &) { return false; }
     virtual bool	mousePressEvent(const ButtonEvent &) { return false; }
     virtual bool	mouseReleaseEvent(const ButtonEvent &) { return false; }
@@ -92,7 +92,7 @@ public:
     Window(const Point &, const Size &, Window*);
     virtual ~Window();
 
-    Window(Window &&);
+    Window(Window &&) noexcept;
     Window(const Window &);
     Window &		operator= (const Window &);
 

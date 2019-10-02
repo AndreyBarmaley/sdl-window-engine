@@ -75,10 +75,10 @@ public:
 
     UCString(const std::vector<UnicodeColor> & v) : std::vector<UnicodeColor>(v) {}
     UCString(const UCString & v) : std::vector<UnicodeColor>(v) {}
-    UCString(UCString && v) { swap(v); }
+    UCString(UCString && v) noexcept { swap(v); }
 
     UCString & operator= (const UCString & v) { std::vector<UnicodeColor>::assign(v.begin(), v.end()); return *this; }
-    UCString & operator= (UCString && v) { swap(v); return *this; }
+    UCString & operator= (UCString && v) noexcept { swap(v); return *this; }
 
     UCString & operator<< (const FBColors &);
     UCString & operator<< (const ColorIndex &);
@@ -112,10 +112,10 @@ public:
     UCStringList(const UnicodeList & ul, const ColorIndex & col) { append(ul, col); }
     UCStringList(const std::list<UCString> & v) : std::list<UCString>(v) {}
     UCStringList(const UCStringList & v) : std::list<UCString>(v) {}
-    UCStringList(UCStringList && v) { swap(v); }
+    UCStringList(UCStringList && v) noexcept { swap(v); }
 
     UCStringList &	operator= (const UCStringList & v) { assign(v.begin(), v.end()); return *this; }
-    UCStringList &	operator= (UCStringList && v) { swap(v); return *this; }
+    UCStringList &	operator= (UCStringList && v) noexcept { swap(v); return *this; }
 
     size_t              maxStringWidth(void) const;
     size_t              totalStringsWidth(void) const;

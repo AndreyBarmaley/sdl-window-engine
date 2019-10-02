@@ -367,6 +367,7 @@ public:
     bool		isObject(const std::string &) const;
     bool		isArray(const std::string &) const;
 
+    int			getType(const std::string &) const;
     int                 getInteger(const std::string &, int def = 0) const;
     std::string         getString(const std::string &, std::string def = "") const;
     double              getDouble(const std::string &, double def = 0) const;
@@ -385,6 +386,7 @@ public:
     Rect		getRect(const std::string &, Rect def = Rect()) const;
     Color		getColor(const std::string &, Color def = Color()) const;
 
+    void		addNull(const std::string &);
     void		addInteger(const std::string &, const int &);
     void		addString(const std::string &, const std::string &);
     void		addDouble(const std::string &, const double &);

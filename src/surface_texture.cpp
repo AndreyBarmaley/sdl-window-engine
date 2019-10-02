@@ -271,7 +271,7 @@ std::string Texture::toString(void) const
 
 std::string Texture::toStringID(void) const
 {
-    return String::hex64(reinterpret_cast<std::uintptr_t>(toSDLTexture()));
+    return String::pointer(toSDLTexture());
 }
 
 void TexturePos::swap(TexturePos & tp)

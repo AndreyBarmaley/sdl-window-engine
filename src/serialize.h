@@ -202,9 +202,9 @@ public:
     ~StreamRWops() { close(); }
 
     StreamRWops(SDL_RWops* val = NULL) : rw(val) {}
-    StreamRWops(StreamRWops && srw) : rw(NULL) { rw = srw.rw; srw.rw = NULL; }
+    StreamRWops(StreamRWops && srw) noexcept { rw = srw.rw; srw.rw = NULL; }
 
-    StreamRWops & operator=(StreamRWops && srw) { rw = srw.rw; srw.rw = NULL; return *this; }
+    StreamRWops & operator=(StreamRWops && srw) noexcept { rw = srw.rw; srw.rw = NULL; return *this; }
 
     void		close(void);
 

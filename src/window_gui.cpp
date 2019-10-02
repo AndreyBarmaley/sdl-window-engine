@@ -251,7 +251,7 @@ void WindowListBox::signalReceive(int sig, const SignalMember* sm)
 
 	case Signal::ScrollBarMovedCursor:
 	{
-	    const WindowScrollBar* scroll = static_cast<const WindowScrollBar*>(sm);
+	    const WindowScrollBar* scroll = dynamic_cast<const WindowScrollBar*>(sm);
 	    if(scroll)
 	    {
 		int pos = isVertical() ? scroll->cursorPosition().y : scroll->cursorPosition().x;
@@ -493,7 +493,7 @@ void WindowScrollBar::signalReceive(int sig, const SignalMember* sm)
 	case Signal::WindowScrolledNext:
 	case Signal::ListboxChangedList:
 	{
-	    const WindowListBox* list = static_cast<const WindowListBox*>(sm);
+	    const WindowListBox* list = dynamic_cast<const WindowListBox*>(sm);
 	    if(list) setCursorPosition(*list);
 	}
 	break;
@@ -548,13 +548,13 @@ void WindowScrollBar::setCursorPosition(u32 count, u32 visible, s32 index)
 
 void WindowScrollBar::windowMoveEvent(const Point &)
 {
-    const WindowListBox* list = static_cast<const WindowListBox*>(parent());
+    const WindowListBox* list = dynamic_cast<const WindowListBox*>(parent());
     if(list) setCursorPosition(*list);
 }
 
 void WindowScrollBar::windowResizeEvent(const Size &)
 {
-    const WindowListBox* list = static_cast<const WindowListBox*>(parent());
+    const WindowListBox* list = dynamic_cast<const WindowListBox*>(parent());
     if(list) setCursorPosition(*list);
 }
 
@@ -579,7 +579,7 @@ bool WindowScrollBar::mousePressEvent(const ButtonEvent & be)
 	if(! isVertical() && pos1.x > localArea.w - cursz)
 	    pos1.x = localArea.w - cursz;
 
-        const WindowListBox* list = static_cast<const WindowListBox*>(parent());
+        const WindowListBox* list = dynamic_cast<const WindowListBox*>(parent());
 	if(list && list->itemsVisible() < list->itemsCount())
 	{
 	    textureCursor().setPosition(isVertical() ? Point(pos2.x, pos1.y) : Point(pos1.x, pos2.y));
@@ -636,7 +636,7 @@ bool WindowScrollBar::mouseMotionEvent(const Point & pos1, u32 buttons)
 	if((isVertical() && scroll.y < pos1.y && pos1.y < scroll.y + scroll.h - cursz) ||
 	    (! isVertical() && scroll.x < pos1.x && pos1.x < scroll.x + scroll.w - cursz))
 	{
-    	    const WindowListBox* list = static_cast<const WindowListBox*>(parent());
+    	    const WindowListBox* list = dynamic_cast<const WindowListBox*>(parent());
 	    if(list && list->itemsVisible() < list->itemsCount())
 	    {
 		Point pos2 = cursorPosition();
@@ -685,8 +685,9 @@ u32 WindowButton::renderButtonComplete(u32 tick, void* ptr)
 {
     if(ptr)
     {
+	// ptr always WindowButton type
         WindowButton* win = static_cast<WindowButton*>(ptr);
-        if(win) win->signalEmit(Signal::ButtonTimerComplete);
+        win->signalEmit(Signal::ButtonTimerComplete);
     }
 
     return 0;
@@ -841,9 +842,9 @@ void WindowButton::mouseLeaveEvent(void)
 	renderWindow();
 }
 
-bool WindowButton::keyPressEvent(int key)
+bool WindowButton::keyPressEvent(const KeySym & key)
 {
-    if(hotkey && hotkey == key && ! isDisabled() && isReleased())
+    if(hotkey && hotkey == key.keycode() && ! isDisabled() && isReleased())
     {
         setPressed(true);
 	return true;
@@ -851,9 +852,9 @@ bool WindowButton::keyPressEvent(int key)
     return false;
 }
 
-bool WindowButton::keyReleaseEvent(int key)
+bool WindowButton::keyReleaseEvent(const KeySym & key)
 {
-    if(hotkey == key && ! isDisabled() && isPressed())
+    if(hotkey == key.keycode() && ! isDisabled() && isPressed())
     {
         setReleased();
         setClickedComplete();
@@ -874,7 +875,7 @@ void WindowButton::signalReceive(int sig, const SignalMember* sm)
 void WindowButton::setHotKey(const std::string & str)
 {
     if(str.size())
-	hotkey = Key::toKey(str[0]);
+	hotkey = Key::toKey(str);
 }
 
 void WindowButton::setHotKey(int key)
