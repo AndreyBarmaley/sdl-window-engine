@@ -1,4 +1,6 @@
 #ifdef OLDENGINE
+#ifndef DISABLE_IMAGE
+
 /*
   Based on zlib license - see http://www.gzip.org/zlib/zlib_license.html
 
@@ -274,4 +276,5 @@ savedone: /* clean up and return */
 }
 
 #endif
-#endif
+#endif // DISABLE_IMAGE
+#endif // OLDENGINE

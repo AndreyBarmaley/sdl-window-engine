@@ -97,7 +97,7 @@ std::string String::trimmed(std::string str)
     return str;
 }
 
-std::string String::hex(int value, int width)
+std::string String::hex(u64 value, int width)
 {
     std::ostringstream stream;
     stream << "0x" << std::setw(width) << std::setfill('0') << std::hex << value;
@@ -106,47 +106,42 @@ std::string String::hex(int value, int width)
 
 std::string String::hex64(u64 value)
 {
-    std::ostringstream stream;
-    stream << "0x" << std::setw(16) << std::setfill('0') << std::hex << value;
-    return stream.str();
+    return hex(value, 16);
 }
 
 std::string String::pointer(const void* ptr)
 {
-    int fill = sizeof(ptr);
-    std::ostringstream stream;
-    stream << "0x" << std::setw(fill) << std::setfill('0') << std::hex << reinterpret_cast<uintptr_t>(ptr);
-    return stream.str();
+    return hex(reinterpret_cast<uintptr_t>(ptr), sizeof(ptr));
 }
 
 int String::toInt(const std::string & str, bool* ok)
 {
-    int res = 0;
-    std::istringstream ss(str);
+    long int res = toLong(str, ok);
 
-    // hex
-    if(str.size() > 2 && str[0] == '0' && std::tolower(str[1]) == 'x' &&
-	str.end() == std::find_if(str.begin() + 2, str.end(), std::not1(std::ptr_fun<int, int>(std::isxdigit))))
-        ss >> std::hex;
-
-    ss >> res;
-    if(ok) *ok = !ss.fail();
+    if(res > INT_MAX)
+	ERROR("overload INT_MAX");
 
     return res;
 }
 
-u64 String::toInt64(const std::string & str, bool* ok)
+long int String::toLong(const std::string & str, bool* ok)
 {
-    u64 res = 0;
-    std::istringstream ss(str);
+    long int res = 0;
 
-    // hex
-    if(str.size() > 2 && str[0] == '0' && std::tolower(str[1]) == 'x' &&
-	str.end() == std::find_if(str.begin() + 2, str.end(), std::not1(std::ptr_fun<int, int>(std::isxdigit))))
-        ss >> std::hex;
+    if(ok)
+    {
+	std::istringstream ss(str);
 
-    ss >> res;
-    if(ok) *ok = !ss.fail();
+	// hex
+	if(str.size() > 2 && str[0] == '0' && std::tolower(str[1]) == 'x' &&
+	    str.end() == std::find_if(str.begin() + 2, str.end(), std::not1(std::ptr_fun<int, int>(std::isxdigit))))
+    	ss >> std::hex;
+
+	ss >> res;
+	*ok = !ss.fail();
+    }
+    else
+	res = std::stol(str, NULL, 0);
 
     return res;
 }
@@ -154,10 +149,15 @@ u64 String::toInt64(const std::string & str, bool* ok)
 double String::toDouble(const std::string & str, bool* ok)
 {
     double res = 0;
-    std::istringstream ss(str);
 
-    ss >> res;
-    if(ok) *ok = !ss.fail();
+    if(ok)
+    {
+	std::istringstream ss(str);
+	ss >> res;
+	*ok = !ss.fail();
+    }
+    else
+	res = std::stod(str, NULL);
 
     return res;
 }
@@ -200,18 +200,19 @@ std::string String::strftime(const std::string & format)
 
 std::string String::number(int value)
 {
-    // return std::to_string(value);
-
-    std::ostringstream os;
-    os << value;
-    return os.str();
+    return std::to_string(value);
 }
 
 std::string String::number(double value, int prec)
 {
-    std::ostringstream os;
-    os << std::fixed << std::setprecision(prec) << value;
-    return os.str();
+    if(prec)
+    {
+	std::ostringstream os;
+	os << std::fixed << std::setprecision(prec) << value;
+	return os.str();
+    }
+
+    return std::to_string(value);
 }
 
 std::string String::replace(const std::string & src, const char* pred, const std::string & val)

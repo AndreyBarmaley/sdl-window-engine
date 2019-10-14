@@ -56,7 +56,7 @@ namespace String
     std::string         toLower(std::string);
     std::string         toUpper(std::string);
     int                 toInt(const std::string &, bool* = NULL);
-    u64                 toInt64(const std::string &, bool* = NULL);
+    long int            toLong(const std::string &, bool* = NULL);
     double              toDouble(const std::string &, bool* = NULL);
     int			index(const std::string &, int);
 
@@ -74,7 +74,7 @@ namespace String
 
     std::list<std::string> split(const std::string & str, const std::string & sep);
 
-    std::string         hex(int value, int width = 8);
+    std::string         hex(u64 value, int width = 8);
     std::string         hex64(u64 value);
     std::string		pointer(const void*);
 

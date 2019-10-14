@@ -132,7 +132,7 @@ public:
     void        setSelected(bool);
     bool        isSelected(void) const;
 
-    void        renderWindow(void);
+    void        renderWindow(void) override;
 };
 
 class TextButton : public LabelAction
@@ -218,7 +218,7 @@ public:
     HeaderAreaBox(const UCString &, const FontRender &, Window &, const ThemeColors* = NULL);
     virtual ~HeaderAreaBox() {}
 
-    void		renderWindow(void);
+    void		renderWindow(void) override;
 };
 
 class ButtonsAreaBox : public HeaderAreaBox

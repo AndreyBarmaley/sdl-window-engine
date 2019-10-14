@@ -37,6 +37,7 @@ void UnicodeString::assign(const std::string & utf8)
     clear();
     reserve(utf8.size() + 1);
 
+    // convert utf8 to utf16
     for(std::string::const_iterator
         it = utf8.begin(); it < utf8.end(); ++it)
     {
@@ -145,6 +146,7 @@ std::string UnicodeString::toString(void) const
     std::string str;
     str.reserve(2 * size());
 
+    // utf16 to utf8 
     for(const_iterator it = begin(); it != end(); ++it)
     {
         if(*it < 128)

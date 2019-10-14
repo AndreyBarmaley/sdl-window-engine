@@ -27,11 +27,9 @@
 
 #include <utility>
 #include <unordered_map>
+#include <initializer_list>
 
 #include "types.h"
-#include "sharedvector.h"
-#include "sharedlist.h"
-#include "sharedmap.h"
 #include "colors.h"
 #include "cunicode_color.h"
 #include "cstring.h"
@@ -71,7 +69,6 @@ public:
 
     virtual int		getType(void) const { return TypeNull; }
     virtual std::string	toString(void) const { return "null"; }
-    virtual bool	isValid(void) const { return false; }
 
     bool		isNull(void) const { return getType() == TypeNull; }
     bool		isBoolean(void) const { return getType() == TypeBoolean; }
@@ -81,50 +78,16 @@ public:
     bool		isObject(void) const { return getType() == TypeObject; }
     bool		isArray(void) const { return getType() == TypeArray; }
 
-    virtual int		getInteger(int def = 0) const { return def; }
-    virtual std::string	getString(std::string def = "") const { return def; }
-    virtual double	getDouble(double def = 0) const { return def; }
-    virtual bool	getBoolean(bool def = false) const { return def; }
-
-    virtual Color	getColor(Color def = Color()) const { return def; }
-    virtual Point	getPoint(Point def = Point()) const { return def; }
-    virtual ZPoint	getZPoint(ZPoint def = ZPoint()) const { return def; }
-    virtual Size	getSize(Size def = Size()) const { return def; }
-    virtual Rect	getRect(Rect def = Rect()) const { return def; }
-
-    virtual void	addInteger(const int &) {}
-    virtual void	addString(const std::string &) {}
-    virtual void	addDouble(const double &) {}
-    virtual void	addBoolean(const bool &) {}
-
-    virtual void	addColor(const Color &) {}
-    virtual void	addPoint(const Point &) {}
-    virtual void	addZPoint(const ZPoint &) {}
-    virtual void	addSize(const Size &) {}
-    virtual void	addRect(const Rect &) {}
+    virtual int		getInteger(void) const { return 0; }
+    virtual std::string	getString(void)  const { return ""; }
+    virtual double	getDouble(void)  const { return 0; }
+    virtual bool	getBoolean(void) const { return false; }
 };
 
 const JsonValue & operator>> (const JsonValue &, int &);
 const JsonValue & operator>> (const JsonValue &, std::string &);
 const JsonValue & operator>> (const JsonValue &, double &);
 const JsonValue & operator>> (const JsonValue &, bool &);
-
-const JsonValue & operator>> (const JsonValue &, Point &);
-const JsonValue & operator>> (const JsonValue &, ZPoint &);
-const JsonValue & operator>> (const JsonValue &, Size &);
-const JsonValue & operator>> (const JsonValue &, Rect &);
-const JsonValue & operator>> (const JsonValue &, Color &);
-
-JsonValue & operator<< (JsonValue &, const int &);
-JsonValue & operator<< (JsonValue &, const std::string &);
-JsonValue & operator<< (JsonValue &, const double &);
-JsonValue & operator<< (JsonValue &, const bool &);
-
-JsonValue & operator<< (JsonValue &, const Color &);
-JsonValue & operator<< (JsonValue &, const Point &);
-JsonValue & operator<< (JsonValue &, const ZPoint &);
-JsonValue & operator<< (JsonValue &, const Size &);
-JsonValue & operator<< (JsonValue &, const Rect &);
 
 template<typename T1, typename T2>
 const JsonValue & operator>> (const JsonValue & jv, std::pair<T1, T2> & val)
@@ -134,79 +97,73 @@ const JsonValue & operator>> (const JsonValue & jv, std::pair<T1, T2> & val)
 
 class JsonPrimitive : public JsonValue
 {
-protected:
-    std::shared_ptr<void*> ptr;
-
-    void		setInteger(const int &);
-    void		setString(const std::string &);
-    void		setDouble(const double &);
-
 public:
     JsonPrimitive() {}
     virtual ~JsonPrimitive() {}
-
-    bool		isValid(void) const { return ptr && ptr.get() && *ptr.get(); }
-    const void*		operator() (void) const { return ptr && ptr.get() ? *ptr.get() : NULL; }
 
     std::string		toString(void) const { return getString(); }
 };
 
 class JsonString : public JsonPrimitive
 {
+    std::string		content;
+
 public:
-    JsonString(const std::string & val) { setString(val); }
-    ~JsonString();
+    JsonString(const std::string & val) : content(val) {}
 
-    int			getInteger(int def = 0) const;
-    std::string		getString(std::string def = "") const;
-    double		getDouble(double def = 0) const;
-    bool		getBoolean(bool def = false) const;
+    int			getInteger(void) const override { return String::toInt(content); }
+    std::string		getString(void)  const override	{ return content; }
+    double		getDouble(void)  const override { return String::toDouble(content); }
+    bool		getBoolean(void) const override;
 
-    Color		getColor(Color def = Color()) const;
-
-    int			getType(void) const { return TypeString; }
-    std::string		toString(void) const;
+    int			getType(void) const override { return TypeString; }
+    std::string		toString(void) const override;
 };
 
 class JsonDouble : public JsonPrimitive
 {
+    double		content;
     int			prec;
 
 public:
-    JsonDouble(const double & val, int prc = 8) : prec(prc) { setDouble(val); }
-    ~JsonDouble();
+    JsonDouble(const double & val, int prc = 8) : content(val), prec(prc) {}
 
-    int			getInteger(int def = 0) const;
-    std::string		getString(std::string def = "") const;
-    double		getDouble(double def = 0) const;
-    bool		getBoolean(bool def = false) const;
+    int			getInteger(void) const override { return content; }
+    std::string		getString(void)  const override { return String::number(content, prec); }
+    double		getDouble(void)  const override { return content; }
+    bool		getBoolean(void) const override { return content; }
 
-    int			getType(void) const { return TypeDouble; }
+    int			getType(void) const override { return TypeDouble; }
 };
 
 class JsonInteger : public JsonPrimitive
 {
+    int			content;
+
 public:
-    JsonInteger(const int & val) { setInteger(val); }
-    ~JsonInteger();
+    JsonInteger(const int & val) : content(val) {}
 
-    int			getInteger(int def = 0) const;
-    std::string		getString(std::string def = "") const;
-    double		getDouble(double def = 0) const;
-    bool		getBoolean(bool def = false) const;
+    int			getInteger(void) const override { return content; }
+    std::string		getString(void)  const override { return String::number(content); }
+    double		getDouble(void)  const override { return content; }
+    bool		getBoolean(void) const override { return content; }
 
-    Color		getColor(Color def = Color()) const;
-
-    int			getType(void) const { return TypeInteger; }
+    int			getType(void) const override { return TypeInteger; }
 };
 
-class JsonBoolean : public JsonInteger
+class JsonBoolean : public JsonPrimitive
 {
-public:
-    JsonBoolean(const bool & val) : JsonInteger(val ? 1 : 0) {}
+    bool		content;
 
-    std::string		getString(std::string def = "false") const;
-    int			getType(void) const { return TypeBoolean; }
+public:
+    JsonBoolean(const bool & val) : content(val) {}
+
+    int			getInteger(void) const override { return content; }
+    std::string		getString(void)  const override { return content ? "true" : "false"; }
+    double		getDouble(void)  const override { return content; }
+    bool		getBoolean(void) const override { return content; }
+
+    int			getType(void) const override { return TypeBoolean; }
 };
 
 class JsonContainer : public JsonValue
@@ -214,66 +171,59 @@ class JsonContainer : public JsonValue
 public:
     JsonContainer() {}
 
+    virtual bool	isValid(void) const { return false; }
     virtual int		count(void) const = 0;
     virtual void	clear(void) = 0;
 };
 
 class JsonArray : public JsonContainer
 {
+    int			getInteger(void) const override { return 0; }
+    std::string		getString(void) const override { return ""; }
+    double		getDouble(void) const override { return 0; }
+    bool		getBoolean(void) const override { return false; }
+
 protected:
-    SharedVector<JsonValue*>
+    std::vector<JsonValue*>
 			content;
     friend class JsonContent;
 
 public:
     JsonArray() {}
+    JsonArray(const std::initializer_list<int> &);
+    JsonArray(const std::initializer_list<const char*> &);
+    JsonArray(const JsonArray &);
+    JsonArray(JsonArray && ja) noexcept { content.swap(ja.content); }
     ~JsonArray();
 
-    int			count(void) const { return content.size(); }
-    void		clear(void) { return content.clear(); }
-    int			getType(void) const { return TypeArray; }
+    JsonArray &		operator=(const JsonArray &);
+    JsonArray &		operator=(JsonArray && ja) noexcept { content.swap(ja.content); return *this; }
+
+    int			count(void) const override { return content.size(); }
+    void		clear(void) override { return content.clear(); }
+    int			getType(void) const override { return TypeArray; }
+
     const JsonValue*	getValue(size_t index) const;
     const JsonObject*	getObject(size_t index) const;
     const JsonArray*	getArray(size_t index) const;
 
-    std::string		toString(void) const;
-    Points		toPoints(void) const;
-    Rects		toRects(void) const;
+    std::string		toString(void) const override;
 
-    bool		isValid(void) const { return ! content.empty(); }
+    int			getInteger(size_t index) const { return isValid(index) ? content[index]->getInteger() : 0; }
+    std::string		getString(size_t index)  const { return isValid(index) ? content[index]->getString() : ""; }
+    double		getDouble(size_t index)  const { return isValid(index) ? content[index]->getDouble() : 0; }
+    bool		getBoolean(size_t index) const { return isValid(index)? content[index]->getBoolean() : false; }
 
-    Point		getPoint(Point def = Point()) const;
-    ZPoint		getZPoint(ZPoint def = ZPoint()) const;
-    Size		getSize(Size def = Size()) const;
-    Rect		getRect(Rect def = Rect()) const;
-    Color		getColor(Color def = Color()) const;
-    FBColors		getFBColors(FBColors def = FBColors()) const;
+    bool		isValid(void) const override { return ! content.empty(); }
+    bool		isValid(size_t index) const { return index < content.size() && content[index]; }
 
     void		addInteger(const int &);
     void		addString(const std::string &);
     void		addDouble(const double &);
     void		addBoolean(const bool &);
 
-    void		addColor(const Color &);
-    void		addPoint(const Point &);
-    void		addZPoint(const ZPoint &);
-    void		addSize(const Size &);
-    void		addRect(const Rect &);
     void		addArray(const JsonArray &);
     void		addObject(const JsonObject &);
-
-    template<typename T>
-    SharedVector<T>     toArray(void) const
-    {
-        SharedVector<T> res;
-        res.reserve(content.size());
-        for(auto it = content.begin(); it != content.end(); ++it)
-        {
-	    const JsonValue* jv = *it;
-	    if(jv) { res.push_back(T()); *jv >> res.back(); }
-        }
-        return res;
-    }
 
     template<typename T>
     std::vector<T>     toStdVector(void) const
@@ -282,20 +232,8 @@ public:
         res.reserve(content.size());
         for(auto it = content.begin(); it != content.end(); ++it)
         {
-	    const JsonValue* jv = *it;
-	    if(jv) { res.push_back(T()); *jv >> res.back(); }
-        }
-        return res;
-    }
-
-    template<typename T>
-    SharedList<T>	toList(void) const
-    {
-        SharedList<T> res;
-        for(auto it = content.begin(); it != content.end(); ++it)
-        {
-	    const JsonValue* jv = *it;
-	    if(jv) { res.push_back(T()); *jv >> res.back(); }
+            const JsonValue* jv = *it;
+            if(jv) { res.push_back(T()); *jv >> res.back(); }
         }
         return res;
     }
@@ -335,22 +273,37 @@ public:
     }
 };
 
+JsonArray & operator<< (JsonArray &, const int &);
+JsonArray & operator<< (JsonArray &, const std::string &);
+JsonArray & operator<< (JsonArray &, const double &);
+JsonArray & operator<< (JsonArray &, const bool &);
+
 class JsonObject : public JsonContainer
 {
+    int			getInteger(void) const override { return 0; }
+    std::string		getString(void) const override { return ""; }
+    double		getDouble(void) const override { return 0; }
+    bool		getBoolean(void) const override { return false; }
+
 protected:
-    SharedMap<std::string, JsonValue*>
+    std::unordered_map<std::string, JsonValue*>
 			content;
     friend class JsonContent;
 
 public:
     JsonObject() {}
+    JsonObject(const JsonObject &);
+    JsonObject(JsonObject && jo) noexcept { content.swap(jo.content); }
     ~JsonObject();
 
-    int			count(void) const { return content.size(); }
-    void		clear(void) { return content.clear(); }
-    int			getType(void) const { return TypeObject; }
-    std::string		toString(void) const;
-    bool		isValid(void) const { return ! content.empty(); }
+    JsonObject &	operator=(const JsonObject &);
+    JsonObject &	operator=(JsonObject && jo) noexcept { content.swap(jo.content); return *this; }
+
+    int			count(void) const override { return content.size(); }
+    void		clear(void) override { return content.clear(); }
+    int			getType(void) const override { return TypeObject; }
+    std::string		toString(void) const override;
+    bool		isValid(void) const override { return ! content.empty(); }
 
     bool		hasKey(const std::string &) const;
     StringList		keys(void) const;
@@ -373,53 +326,16 @@ public:
     double              getDouble(const std::string &, double def = 0) const;
     bool                getBoolean(const std::string &, bool def = false) const;
 
-    Point		getPoint(Point def = Point()) const;
-    ZPoint		getZPoint(ZPoint def = ZPoint()) const;
-    Size		getSize(Size def = Size()) const;
-    Rect		getRect(Rect def = Rect()) const;
-    FBColors		getFBColors(FBColors def = FBColors()) const;
-    UnicodeColor	getUnicodeColor(UnicodeColor def = UnicodeColor()) const;
-
-    Point		getPoint(const std::string &, Point def = Point()) const;
-    ZPoint		getZPoint(const std::string &, ZPoint def = ZPoint()) const;
-    Size		getSize(const std::string &, Size def = Size()) const;
-    Rect		getRect(const std::string &, Rect def = Rect()) const;
-    Color		getColor(const std::string &, Color def = Color()) const;
-
     void		addNull(const std::string &);
     void		addInteger(const std::string &, const int &);
     void		addString(const std::string &, const std::string &);
     void		addDouble(const std::string &, const double &);
     void		addBoolean(const std::string &, const bool &);
 
-    void		addColor(const std::string &, const Color &);
-    void		addPoint(const std::string &, const Point &);
-    void		addZPoint(const std::string &, const ZPoint &);
-    void		addSize(const std::string &, const Size &);
-    void		addRect(const std::string &, const Rect &);
     void		addArray(const std::string &, const JsonArray &);
     void		addObject(const std::string &, const JsonObject &);
 
-    Points		getPoints(const std::string &) const;
-    Rects		getRects(const std::string &) const;
-    StringList		getStringList(const std::string &) const;
-
-    FBColors		getFBColors(const std::string &) const;
-    UnicodeColor	getUnicodeColor(const std::string &) const;
-
-    template<typename T>
-    SharedVector<T>     getArray(const std::string & key) const
-    {
-	const JsonArray* jarr = getArray(key);
-        return jarr ? jarr->toArray<T>() : SharedVector<T>();
-    }
-
-    template<typename T>
-    SharedList<T>       getList(const std::string & key) const
-    {
-	const JsonArray* jarr = getArray(key);
-        return jarr ? jarr->toList<T>() : SharedList<T>();
-    }
+    StringList		getStringList(const std::string & key) const { return getStdList<std::string>(key); }
 
     template<typename T>
     std::vector<T>     getStdVector(const std::string & key) const
@@ -435,50 +351,6 @@ public:
         return jarr ? jarr->toStdList<T>() : std::list<T>();
     }
 };
-
-namespace JsonPack
-{
-    JsonArray points(const Points &);
-    JsonArray rects(const Rects &);
-    JsonArray stringList(const StringList &);
-    JsonObject fbColors(const FBColors &);
-
-    template<typename T>
-    JsonArray stdList(const std::list<T> & v)
-    {
-	JsonArray ja;
-	for(auto it = v.begin(); it != v.end(); ++it)
-    	    ja << *it;
-	return ja;
-    }
-
-    template<typename T>
-    JsonArray stdVector(const std::vector<T> & v)
-    {
-	JsonArray ja;
-	for(auto it = v.begin(); it != v.end(); ++it)
-    	    ja << *it;
-	return ja;
-    }
-
-    template<typename T>
-    JsonArray sharedVector(const SharedVector<T> & v)
-    {
-	JsonArray ja;
-	for(auto it = v.begin(); it != v.end(); ++it)
-    	    ja << *it;
-	return ja;
-    }
-
-    template<typename T>
-    JsonArray sharedList(const SharedList<T> & v)
-    {
-	JsonArray ja;
-	for(auto it = v.begin(); it != v.end(); ++it)
-    	    ja << *it;
-	return ja;
-    }
-}
 
 class JsonContent : protected std::vector<JsmnToken>
 {

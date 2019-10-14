@@ -127,9 +127,9 @@ public:
     void		pushEventAction(int, Window*, void*);
 
     void                renderSurface(const Surface &, const Point &) const;
-    void		renderSurface(const Surface &, const Rect &, const Rect &) const;
+    void		renderSurface(const Surface &, const Rect &, const Rect &, bool fixedsize = true) const;
     void                renderTexture(const Texture &, const Point &) const;
-    void		renderTexture(const Texture &, const Rect &, const Rect &) const;
+    void		renderTexture(const Texture &, const Rect &, const Rect &, bool fixedsize = true) const;
     void                renderTexture(const TexturePos &) const;
 
     Rect		renderText(const FontRender &, const UnicodeString &, const Color &, const Point &, int halign = AlignLeft, int valign = AlignTop, bool horizontal = true) const;

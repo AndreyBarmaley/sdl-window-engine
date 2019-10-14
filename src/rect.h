@@ -24,8 +24,6 @@
 #define _SWE_RECT_
 
 #include <string>
-
-#include "sharedvector.h"
 #include "types.h"
 
 struct Size

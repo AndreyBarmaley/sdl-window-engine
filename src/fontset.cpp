@@ -221,6 +221,7 @@ void FontRender::renderString(const std::string & str, const Color & col, const 
     }
 }
 
+#ifndef DISABLE_TTF
 struct SDLFont
 {
     TTF_Font*	raw;
@@ -529,6 +530,7 @@ Surface FontRenderTTF::renderCharset(int ch, const Color & col, int blend, int s
 
     return Surface(fsz);
 }
+#endif
 
 FontRenderPSF::FontRenderPSF(const std::string & fn, const Size & sz) : FontRender(sz), buf(Systems::readFile(fn))
 {

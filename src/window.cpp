@@ -421,12 +421,12 @@ void Window::renderSurface(const Surface & sf, const Point & dstpt) const
     }
 }
 
-void Window::renderSurface(const Surface & sf, const Rect & srcrt, const Rect & dstrt) const
+void Window::renderSurface(const Surface & sf, const Rect & srcrt, const Rect & dstrt, bool fixedsize) const
 {
     if(rect() & dstrt.toPoint())
     {
 	Rect dstrt2 = transformRect(dstrt, gfxpos);
-	Display::renderSurface(sf, transformSize(srcrt, dstrt2), Display::texture(), dstrt2);
+	Display::renderSurface(sf, (fixedsize ? transformSize(srcrt, dstrt2) : srcrt), Display::texture(), dstrt2);
     }
 }
 
@@ -444,12 +444,12 @@ void Window::renderTexture(const Texture & tx, const Point & dstpt) const
     }
 }
 
-void Window::renderTexture(const Texture & tx, const Rect & srcrt, const Rect & dstrt) const
+void Window::renderTexture(const Texture & tx, const Rect & srcrt, const Rect & dstrt, bool fixedsize) const
 {
     if(rect() & dstrt.toPoint())
     {
 	Rect dstrt2 = transformRect(dstrt, gfxpos);
-	Display::renderTexture(tx, transformSize(srcrt, dstrt2), Display::texture(), dstrt2);
+	Display::renderTexture(tx, (fixedsize ? transformSize(srcrt, dstrt2) : srcrt), Display::texture(), dstrt2);
     }
 }
 

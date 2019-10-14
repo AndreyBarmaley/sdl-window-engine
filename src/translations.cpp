@@ -20,7 +20,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <map>
+#include <unordered_map>
 #include <string>
 
 #include "engine.h"
@@ -38,7 +38,7 @@ struct mofile
 {
     u32 count, offset_strings1, offset_strings2, hash_size, hash_offset;
     StreamBuf buf;
-    std::map<u32, chunk> hash_offsets;
+    std::unordered_map<std::string, chunk> hash_offsets;
     std::string encoding;
     std::string plural_forms;
     u32 nplurals;
@@ -47,7 +47,7 @@ struct mofile
 
     const char* ngettext(const char* str, size_t plural)
     {
-	auto it = hash_offsets.find(Tools::crc32b(str));
+	auto it = hash_offsets.find(str);
 	if(it == hash_offsets.end())
 	    return str;
 
@@ -124,7 +124,7 @@ struct mofile
 	    const std::string sep2(": ");
 
 	    buf.seekg(offset2);
-	    SharedList<std::string> tags = String::split(std::string(buf.data(), buf.data() + length2), '\n');
+	    StringList tags = String::split(std::string(buf.data(), buf.data() + length2), '\n');
 	    buf.skipg(length2);
 
 	    for(auto it = tags.begin(); it != tags.end(); ++it)
@@ -146,18 +146,11 @@ struct mofile
 	    if(length1)
 	    {
 		buf.seekg(offset1);
-		u32 crc = Tools::crc32b(buf.data(), length1);
+		const std::string word(buf.data(), buf.data() + length1);
 		buf.seekg(offset_strings2 + index * 8 /* length, offset */);
 		u32 length2 = buf.get32();
 		u32 offset2 = buf.get32();
-		auto it = hash_offsets.find(crc);
-		if(it == hash_offsets.end())
-		    hash_offsets[crc] = chunk(offset2, length2);
-		else
-		{
-		    buf.seekg(offset1);
-		    ERROR("incorrect hash for: " << buf.data());
-		}
+		hash_offsets[word] = chunk(offset2, length2);
 	    }
 	}
 

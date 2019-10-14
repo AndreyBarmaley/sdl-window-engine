@@ -49,11 +49,9 @@
 #include "music.h"
 #include "window_gui.h"
 #include "json_wrapper.h"
+#include "json_wrapper_ext.h"
 #include "lua_wrapper.h"
 #include "tinyxml2.h"
-#include "sharedlist.h"
-#include "sharedvector.h"
-#include "sharedmap.h"
 
 namespace Engine
 {

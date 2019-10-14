@@ -36,15 +36,17 @@
 #endif
 
 #include "SDL.h"
-#include "SDL_ttf.h"
-#include "SDL_image.h"
-
-#ifndef DISABLE_AUDIO
-#include "SDL_mixer.h"
+#ifndef DISABLE_TTF
+ #include "SDL_ttf.h"
 #endif
-
+#ifndef DISABLE_IMAGE
+ #include "SDL_image.h"
+#endif
+#ifndef DISABLE_AUDIO
+ #include "SDL_mixer.h"
+#endif
 #ifndef DISABLE_NETWORK
-#include "SDL_net.h"
+ #include "SDL_net.h"
 #endif
 
 #include <vector>

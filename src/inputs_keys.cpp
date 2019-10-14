@@ -259,7 +259,7 @@ int Key::toKey(const std::string & name)
     auto it = std::find_if(allkeys.begin(), allkeys.end(), std::bind2nd(std::mem_fun_ref(& KeyName::isname), name));
     if(it != allkeys.end()) return (*it).key;
 
-    ERROR("key not found: " << name);
+    FIXME("key not found: " << name);
     return Key::NONE;
 }
 
@@ -268,7 +268,7 @@ const char* Key::toName(int key)
     auto it = std::find_if(allkeys.begin(), allkeys.end(), std::bind2nd(std::mem_fun_ref(& KeyName::iskey), key));
     if(it != allkeys.end()) return (*it).name;
 
-    ERROR("key not found: " << key);
+    FIXME("key not found: " << key);
     return NULL;
 }
 
@@ -384,6 +384,7 @@ int KeySym::keychar(void) const
 
 	default: break;
     }
+    FIXME("unknown keycode: " << String::hex(keycode()) << ", mod: " << keymod());
 
     return 0;
 }

@@ -25,6 +25,7 @@
 #include <sstream>
 #include <cctype>
 #include <algorithm>
+#include <utility>
 
 #include "systems.h"
 #include "json_wrapper.h"
@@ -97,59 +98,30 @@ const char* JsmnToken::typeString(void) const
 }
 
 /* JsonValue */
-JsonValue & operator<< (JsonValue & jv, const int & st)
+JsonArray & operator<< (JsonArray & jv, const int & st)
 {
     jv.addInteger(st);
     return jv;
 }
 
-JsonValue & operator<< (JsonValue & jv, const std::string & st)
+JsonArray & operator<< (JsonArray & jv, const std::string & st)
 {
     jv.addString(st);
     return jv;
 }
 
-JsonValue & operator<< (JsonValue & jv, const double & st)
+JsonArray & operator<< (JsonArray & jv, const double & st)
 {
     jv.addDouble(st);
     return jv;
 }
 
-JsonValue & operator<< (JsonValue & jv, const bool & st)
+JsonArray & operator<< (JsonArray & jv, const bool & st)
 {
     jv.addBoolean(st);
     return jv;
 }
 
-JsonValue & operator<< (JsonValue & jv, const Color & st)
-{
-    jv.addColor(st);
-    return jv;
-}
-
-JsonValue & operator<< (JsonValue & jv, const Point & st)
-{
-    jv.addPoint(st);
-    return jv;
-}
-
-JsonValue & operator<< (JsonValue & jv, const ZPoint & st)
-{
-    jv.addZPoint(st);
-    return jv;
-}
-
-JsonValue & operator<< (JsonValue & jv, const Size & st)
-{
-    jv.addSize(st);
-    return jv;
-}
-
-JsonValue & operator<< (JsonValue & jv, const Rect & st)
-{
-    jv.addRect(st);
-    return jv;
-}
 
 const JsonValue & operator>> (const JsonValue & jv, int & val)
 {
@@ -175,180 +147,21 @@ const JsonValue & operator>> (const JsonValue & jv, bool & val)
     return jv;
 }
 
-const JsonValue & operator>> (const JsonValue & jv, Point & val)
-{
-    val = jv.getPoint();
-    return jv;
-}
-
-const JsonValue & operator>> (const JsonValue & jv, ZPoint & val)
-{
-    val = jv.getZPoint();
-    return jv;
-}
-
-const JsonValue & operator>> (const JsonValue & jv, Size & val)
-{
-    val = jv.getSize();
-    return jv;
-}
-
-const JsonValue & operator>> (const JsonValue & jv, Rect & val)
-{
-    val = jv.getRect();
-    return jv;
-}
-
-const JsonValue & operator>> (const JsonValue & jv, Color & val)
-{
-    val = jv.getColor();
-    return jv;
-}
-
-/* JsonPrimitive */
-void JsonPrimitive::setInteger(const int & val)
-{
-    ptr = std::make_shared<void*>(new int(val));
-}
-
-void JsonPrimitive::setString(const std::string & val)
-{
-    ptr = std::make_shared<void*>(new std::string(val));
-}
-
-void JsonPrimitive::setDouble(const double & val)
-{
-    ptr = std::make_shared<void*>(new double(val));
-}
-
 /* JsonString */
-JsonString::~JsonString()
+bool JsonString::getBoolean(void) const
 {
-    if(isValid() && ptr.unique())
-    {
-	std::string* res = reinterpret_cast<std::string*>(*ptr.get());
-	delete res;
-    }
-}
-
-int JsonString::getInteger(int def) const
-{
-    const std::string & val = getString();
-    bool ok = false;
-    int res = String::toInt(val, & ok);
-    return ok ? res : def;
-}
-
-std::string JsonString::getString(std::string def) const
-{
-    const JsonPrimitive & val = *this;
-    const std::string* res = reinterpret_cast<const std::string*>(val());
-    return res ? *res : def;
-}
-
-double JsonString::getDouble(double def) const
-{
-    const std::string & val = getString();
-    bool ok = false;
-    double res = String::toDouble(val, & ok);
-    return ok ? res : def;
-}
-
-bool JsonString::getBoolean(bool def) const
-{
-    const std::string & val = getString();
-    if(val.compare(0, 4, "fals") == 0)
+    if(content.compare(0, 4, "fals") == 0)
 	return false;
     else
-    if(val.compare(0, 4, "true") == 0)
+    if(content.compare(0, 4, "true") == 0)
 	return true;
 
-    return getInteger(0);
+    return getInteger();
 }
 
 std::string JsonString::toString(void) const
 {
-    return StringFormat("\"%1\"").arg(getString());
-}
-
-Color JsonString::getColor(Color def) const
-{
-    return Color(getString());
-}
-
-/* JsonDouble */
-JsonDouble::~JsonDouble()
-{
-    if(isValid() && ptr.unique())
-    {
-	double* res = reinterpret_cast<double*>(*ptr.get());
-	delete res;
-    }
-}
-
-int JsonDouble::getInteger(int def) const
-{
-    return isValid() ? getDouble() : def;
-}
-
-std::string JsonDouble::getString(std::string def) const
-{
-    return isValid() ? String::number(getDouble(), prec) : def;
-}
-
-double JsonDouble::getDouble(double def) const
-{
-    const JsonPrimitive & val = *this;
-    const double* res = reinterpret_cast<const double*>(val());
-    return res ? *res : def;
-}
-
-bool JsonDouble::getBoolean(bool def) const
-{
-    return isValid() ? getInteger() : def;
-}
-
-/* JsonInteger */
-JsonInteger::~JsonInteger()
-{
-    if(isValid() && ptr.unique())
-    {
-	int* res = reinterpret_cast<int*>(*ptr.get());
-	delete res;
-    }
-}
-
-int JsonInteger::getInteger(int def) const
-{
-    const JsonPrimitive & val = *this;
-    const int* res = reinterpret_cast<const int*>(val());
-    return res ? *res : def;
-}
-
-std::string JsonInteger::getString(std::string def) const
-{
-    return isValid() ? String::number(getInteger()) : def;
-}
-
-double JsonInteger::getDouble(double def) const
-{
-    return isValid() ? getInteger() : def;
-}
-
-bool JsonInteger::getBoolean(bool def) const
-{
-    return isValid() ? getInteger() : def;
-}
-
-Color JsonInteger::getColor(Color def) const
-{
-    return Color(ARGB(getInteger()));
-}
-
-/* JsonBoolean */
-std::string JsonBoolean::getString(std::string def) const
-{
-    return isValid() ? (getBoolean() ? "true" : "false") : def;
+    return StringFormat("\"%1\"").arg(content);
 }
 
 /* JsonContent */
@@ -475,7 +288,7 @@ JsonContent::getValue(const const_iterator & it, JsonContainer* cont) const
 	    std::string key = stringTocken(*itkey);
 	    auto valp = getValue(itval);
 	    if(valp.first)
-		obj->content.insert(key, valp.first);
+		obj->content.insert(std::make_pair(key, valp.first));
 	    skip += 1 + valp.second;
 	    itkey = it + skip;
 	    itval = itkey + 1;
@@ -558,15 +371,66 @@ JsonArray JsonContent::toArray(void) const
     return res;
 }
 
+JsonValue* JsonValueDup(const JsonValue* jv)
+{
+    if(! jv)
+	return new JsonValue();
+
+    JsonValue* res = NULL;
+
+    switch(jv->getType())
+    {
+	case TypeInteger:
+	    res = new JsonInteger(jv->getInteger());
+	    break;
+	case TypeDouble:
+	    res = new JsonDouble(jv->getDouble());
+	    break;
+	case TypeString:
+	    res = new JsonString(jv->getString());
+	    break;
+	case TypeBoolean:
+	    res = new JsonBoolean(jv->getBoolean());
+	    break;
+	case TypeObject:
+	    res = new JsonObject(*static_cast<const JsonObject*>(jv));
+	    break;
+	case TypeArray:
+	    res = new JsonArray(*static_cast<const JsonArray*>(jv));
+	    break;
+	default:
+	    res = new JsonValue();
+	    break;
+    }
+
+    return res;
+}
+
 /* JsonObject */
+JsonObject::JsonObject(const JsonObject & jo)
+{
+    for(auto it = jo.content.begin(); it != jo.content.end(); ++it)
+	content.insert(std::make_pair((*it).first, JsonValueDup((*it).second)));
+}
+
+JsonObject & JsonObject::operator=(const JsonObject & jo)
+{
+    for(auto it = content.begin(); it != content.end(); ++it)
+	delete (*it).second;
+
+    content.clear();
+
+    for(auto it = jo.content.begin(); it != jo.content.end(); ++it)
+	content.insert(std::make_pair((*it).first, JsonValueDup((*it).second)));
+
+    return *this;
+}
+
 JsonObject::~JsonObject()
 {
-    if(content.unique())
-    {
-	for(auto it = content.begin(); it != content.end(); ++it)
-	    delete (*it).second;
-	content.clear();
-    }
+    for(auto it = content.begin(); it != content.end(); ++it)
+	delete (*it).second;
+    content.clear();
 }
 
 bool JsonObject::hasKey(const std::string & key) const
@@ -639,55 +503,25 @@ int JsonObject::getType(const std::string & key) const
 int JsonObject::getInteger(const std::string & key, int def) const
 {
     const JsonValue* jv = getValue(key);
-    return jv ? jv->getInteger(def) : def;
+    return jv ? jv->getInteger() : def;
 }
 
 std::string JsonObject::getString(const std::string & key, std::string def) const
 {
     const JsonValue* jv = getValue(key);
-    return jv ? jv->getString(def) : def;
+    return jv ? jv->getString() : def;
 }
 
 double JsonObject::getDouble(const std::string & key, double def) const
 {
     const JsonValue* jv = getValue(key);
-    return jv ? jv->getDouble(def) : def;
+    return jv ? jv->getDouble() : def;
 }
 
 bool JsonObject::getBoolean(const std::string & key, bool def) const
 {
     const JsonValue* jv = getValue(key);
-    return jv ? jv->getBoolean(def) : def;
-}
-
-Point JsonObject::getPoint(const std::string & key, Point def) const
-{
-    const JsonContainer* jv = dynamic_cast<const JsonContainer*>(getValue(key));
-    return jv ? jv->getPoint(def) : def;
-}
-
-ZPoint JsonObject::getZPoint(const std::string & key, ZPoint def) const
-{
-    const JsonContainer* jv = dynamic_cast<const JsonContainer*>(getValue(key));
-    return jv ? jv->getZPoint(def) : def;
-}
-
-Size JsonObject::getSize(const std::string & key, Size def) const
-{
-    const JsonContainer* jv = dynamic_cast<const JsonContainer*>(getValue(key));
-    return jv ? jv->getSize(def) : def;
-}
-
-Rect JsonObject::getRect(const std::string & key, Rect def) const
-{
-    const JsonContainer* jv = dynamic_cast<const JsonContainer*>(getValue(key));
-    return jv ? jv->getRect(def) : def;
-}
-
-Color JsonObject::getColor(const std::string & key, Color def) const
-{
-    const JsonValue* jv = getValue(key);
-    return jv ? jv->getColor() : def;
+    return jv ? jv->getBoolean() : def;
 }
 
 const JsonObject* JsonObject::getObject(const std::string & key) const
@@ -719,269 +553,130 @@ std::string JsonObject::toString(void) const
     return os.str();
 }
 
-Point JsonObject::getPoint(Point def) const
-{
-    const JsonValue* val = NULL;
-
-    val = getValue("posx");
-    if(! val) val = getValue("x");
-    if(val) def.x = val->getInteger(def.x);
-
-    val = getValue("posy");
-    if(! val) val = getValue("y");
-    if(val) def.y = val->getInteger(def.y);
-
-    return def;
-}
-
-ZPoint JsonObject::getZPoint(ZPoint def) const
-{
-    Point pt = getPoint(def);
-    def.x = pt.x;
-    def.y = pt.y;
-
-    const JsonValue* val = getValue("posz");
-    if(! val) val = getValue("z");
-    if(val) def.z = val->getInteger(def.z);
-
-    return def;
-}
-
-Size JsonObject::getSize(Size def) const
-{
-    const JsonValue* val = NULL;
-
-    val = getValue("width");
-    if(! val) val = getValue("w");
-    if(val) def.w = val->getInteger(def.w);
-
-    val = getValue("height");
-    if(! val) val = getValue("h");
-    if(val) def.h = val->getInteger(def.h);
-
-    return def;
-}
-
-Rect JsonObject::getRect(Rect def) const
-{
-    Point pt = getPoint(def.toPoint());
-    Size sz = getSize(def.toSize());
-
-    def.x = pt.x;
-    def.y = pt.y;
-    def.w = sz.w;
-    def.h = sz.h;
-
-    return def;
-}
-
-FBColors JsonObject::getFBColors(FBColors def) const
-{
-    const JsonValue* val = NULL;
-
-    val = getValue("fg");
-    if(! val) val = getValue("foreground");
-    if(val) def.setfg(val->getColor(def.fgcolor()).toColorIndex());
-
-    val = getValue("bg");
-    if(! val) val = getValue("background");
-    if(val) def.setbg(val->getColor(def.bgcolor()).toColorIndex());
-
-    return def;
-}
-
-UnicodeColor JsonObject::getUnicodeColor(UnicodeColor def) const
-{
-    const JsonValue* val = NULL;
-
-    val = getValue("symbol");
-    if(! val) val = getValue("sym");
-    if(val) def.unicode(val->getInteger());
-
-    val = getValue("colors");
-    if(val)
-    {
-	if(val->isArray())
-	{
-	    const JsonArray* ja = static_cast<const JsonArray*>(val);
-	    def.colors(ja->getFBColors(def.colors()));
-	}
-	else
-	if(val->isObject())
-	{
-	    const JsonObject* jo = static_cast<const JsonObject*>(val);
-	    def.colors(jo->getFBColors(def.colors()));
-	}
-    }
-
-    return def;
-}
-
-Points JsonObject::getPoints(const std::string & key) const
-{
-    return getStdVector<Point>(key);
-}
-
-Rects JsonObject::getRects(const std::string & key) const
-{
-    return getStdVector<Rect>(key);
-}
-
-StringList JsonObject::getStringList(const std::string & key) const
-{
-    return getStdList<std::string>(key);
-}
-
-FBColors JsonObject::getFBColors(const std::string & key) const
-{
-    FBColors res;
-    const JsonValue* val = NULL;
-
-    val = getValue(key);
-    if(val)
-    {
-	if(val->isArray())
-	{
-	    const JsonArray* ja = static_cast<const JsonArray*>(val);
-	    res = ja->getFBColors();
-	}
-	else
-	if(val->isObject())
-	{
-	    const JsonObject* jo = static_cast<const JsonObject*>(val);
-	    res = jo->getFBColors();
-	}
-    }
-
-    return res;
-}
-
-UnicodeColor JsonObject::getUnicodeColor(const std::string & key) const
-{
-    UnicodeColor res;
-    const JsonValue* val = NULL;
-
-    val = getValue("symbol");
-    if(! val) val = getValue("sym");
-    if(val) res.unicode(val->getInteger());
-
-    val = getValue("colors");
-    if(val)
-    {
-	if(val->isArray())
-	{
-	    const JsonArray* ja = static_cast<const JsonArray*>(val);
-	    res.colors(ja->getFBColors());
-	}
-	else
-	if(val->isObject())
-	{
-	    const JsonObject* jo = static_cast<const JsonObject*>(val);
-	    res.colors(jo->getFBColors());
-	}
-    }
-
-    return res;
-}
-
 void JsonObject::addNull(const std::string & key)
 {
-    content.insert(key, new JsonValue());
+    auto it = content.find(key);
+    if(it != content.end())
+    {
+	delete (*it).second;
+	(*it).second = new JsonValue();
+    }
+    else
+	content.insert(std::make_pair(key, new JsonValue()));
 }
 
 void JsonObject::addInteger(const std::string & key, const int & val)
 {
-    content.insert(key, new JsonInteger(val));
+    auto it = content.find(key);
+    if(it != content.end())
+    {
+	delete (*it).second;
+	(*it).second = new JsonInteger(val);
+    }
+    else
+	content.insert(std::make_pair(key, new JsonInteger(val)));
 }
 
 void JsonObject::addString(const std::string & key, const std::string & val)
 {
-    content.insert(key, new JsonString(val));
+    auto it = content.find(key);
+    if(it != content.end())
+    {
+	delete (*it).second;
+	(*it).second = new JsonString(val);
+    }
+    else
+	content.insert(std::make_pair(key, new JsonString(val)));
 }
 
 void JsonObject::addDouble(const std::string & key, const double & val)
 {
-    content.insert(key, new JsonDouble(val));
+    auto it = content.find(key);
+    if(it != content.end())
+    {
+	delete (*it).second;
+	(*it).second = new JsonDouble(val);
+    }
+    else
+	content.insert(std::make_pair(key, new JsonDouble(val)));
 }
 
 void JsonObject::addBoolean(const std::string & key, const bool & val)
 {
-    content.insert(key, new JsonBoolean(val));
-}
-
-void JsonObject::addColor(const std::string & key, const Color & val)
-{
-    content.insert(key, new JsonString(val.toString()));
-}
-
-void JsonObject::addPoint(const std::string & key, const Point & val)
-{
-    JsonArray* ja = new JsonArray();
-    if(ja)
+    auto it = content.find(key);
+    if(it != content.end())
     {
-	ja->addInteger(val.x);
-	ja->addInteger(val.y);
-	content.insert(key, ja);
+	delete (*it).second;
+	(*it).second = new JsonBoolean(val);
     }
-}
-
-void JsonObject::addZPoint(const std::string & key, const ZPoint & val)
-{
-    JsonArray* ja = new JsonArray();
-    if(ja)
-    {
-	ja->addInteger(val.x);
-	ja->addInteger(val.y);
-	ja->addInteger(val.z);
-	content.insert(key, ja);
-    }
-}
-
-void JsonObject::addSize(const std::string & key, const Size & val)
-{
-    JsonArray* ja = new JsonArray();
-    if(ja)
-    {
-	ja->addInteger(val.w);
-	ja->addInteger(val.h);
-	content.insert(key, ja);
-    }
-}
-
-void JsonObject::addRect(const std::string & key, const Rect & val)
-{
-    JsonArray* ja = new JsonArray();
-    if(ja)
-    {
-	ja->addInteger(val.x);
-	ja->addInteger(val.y);
-	ja->addInteger(val.w);
-	ja->addInteger(val.h);
-	content.insert(key, ja);
-    }
+    else
+	content.insert(std::make_pair(key, new JsonBoolean(val)));
 }
 
 void JsonObject::addArray(const std::string & key, const JsonArray & val)
 {
-    JsonArray* ja = new JsonArray(val);
-    if(ja) content.insert(key, ja);
+    auto it = content.find(key);
+    if(it != content.end())
+    {
+	delete (*it).second;
+	(*it).second = new JsonArray(val);
+    }
+    else
+	content.insert(std::make_pair(key, new JsonArray(val)));
 }
 
 void JsonObject::addObject(const std::string & key, const JsonObject & val)
 {
-    JsonObject* jo = new JsonObject(val);
-    if(jo) content.insert(key, jo);
+    auto it = content.find(key);
+    if(it != content.end())
+    {
+	delete (*it).second;
+	(*it).second = new JsonObject(val);
+    }
+    else
+	content.insert(std::make_pair(key, new JsonObject(val)));
 }
 
 /* JsonArray */
+JsonArray::JsonArray(const std::initializer_list<int> & ji)
+{
+    content.reserve(ji.size());
+    for(auto it = ji.begin(); it != ji.end(); ++it)
+	content.push_back(new JsonInteger(*it));
+}
+
+JsonArray::JsonArray(const std::initializer_list<const char*> & ji)
+{
+    content.reserve(ji.size());
+    for(auto it = ji.begin(); it != ji.end(); ++it)
+	content.push_back(new JsonString(*it));
+}
+
+JsonArray::JsonArray(const JsonArray & ja)
+{
+    content.reserve(ja.content.size());
+    for(auto it = ja.content.begin(); it != ja.content.end(); ++it)
+	content.push_back(JsonValueDup(*it));
+}
+
+JsonArray & JsonArray::operator=(const JsonArray & ja)
+{
+    for(auto it = content.begin(); it != content.end(); ++it)
+	delete *it;
+
+    content.clear();
+
+    for(auto it = ja.content.begin(); it != ja.content.end(); ++it)
+	content.push_back(JsonValueDup(*it));
+
+    return *this;
+}
+ 
 JsonArray::~JsonArray()
 {
-    if(content.unique())
-    {
-	for(auto it = content.begin(); it != content.end(); ++it)
-	    delete *it;
-	content.clear();
-    }
+    for(auto it = content.begin(); it != content.end(); ++it)
+	delete *it;
+    content.clear();
 }
 
 const JsonValue* JsonArray::getValue(size_t index) const
@@ -1017,127 +712,6 @@ std::string JsonArray::toString(void) const
     return os.str();
 }
 
-Points JsonArray::toPoints(void) const
-{
-    Points res;
-    res.resize(count());
-
-    for(int it = 0; it < count(); ++it)
-    {
-	const JsonValue* jv = getValue(it);
-	if(jv)  *jv >> res[it];
-    }
-
-    return res;
-}
-
-Rects JsonArray::toRects(void) const
-{
-    Rects res;
-    res.resize(count());
-
-    for(int it = 0; it < count(); ++it)
-    {
-	const JsonValue* jv = getValue(it);
-	if(jv) *jv >> res[it];
-    }
-
-    return res;
-}
-
-Point JsonArray::getPoint(Point def) const
-{
-    const JsonValue* val = NULL;
-
-    val = getValue(0);
-    if(val) def.x = val->getInteger(def.x);
-
-    val = getValue(1);
-    if(val) def.y = val->getInteger(def.y);
-
-    return def;
-}
-
-ZPoint JsonArray::getZPoint(ZPoint def) const
-{
-    Point pt = getPoint(def);
-    def.x = pt.x;
-    def.y = pt.y;
-
-    const JsonValue* val = getValue(2);
-    if(val) def.z = val->getInteger(def.z);
-
-    return def;
-}
-
-Size JsonArray::getSize(Size def) const
-{
-    const JsonValue* val = NULL;
-
-    val = getValue(0);
-    if(val) def.w = val->getInteger(def.w);
-
-    val = getValue(1);
-    if(val) def.h = val->getInteger(def.h);
-
-    return def;
-}
-
-Rect JsonArray::getRect(Rect def) const
-{
-    const JsonValue* val = NULL;
-
-    val = getValue(0);
-    if(val) def.x = val->getInteger(def.x);
-
-    val = getValue(1);
-    if(val) def.y = val->getInteger(def.y);
-
-    val = getValue(2);
-    if(val) def.w = val->getInteger(def.w);
-
-    val = getValue(3);
-    if(val) def.h = val->getInteger(def.h);
-
-    return def;
-}
-
-Color JsonArray::getColor(Color def) const
-{
-    const JsonValue* val = NULL;
-    int rv = 0;
-    int gv = 0;
-    int bv = 0;
-
-    val = getValue(0);
-    if(val) rv = val->getInteger(def.r());
-
-    val = getValue(1);
-    if(val) gv = val->getInteger(def.g());
-
-    val = getValue(2);
-    if(val) bv = val->getInteger(def.b());
-
-    if(3 >= count())
-	return Color(rv, gv, bv);
-
-    val = getValue(3);
-    return Color(rv, gv, bv, val->getInteger(def.a()));
-}
-
-FBColors JsonArray::getFBColors(FBColors def) const
-{
-    const JsonValue* val = NULL;
-
-    val = getValue(0);
-    if(val) def.setfg(val->getColor(def.fgcolor()).toColorIndex());
-
-    val = getValue(1);
-    if(val) def.setbg(val->getColor(def.bgcolor()).toColorIndex());
-
-    return def;
-}
-
 void JsonArray::addInteger(const int & val)
 {
     content.push_back(new JsonInteger(val));
@@ -1156,58 +730,6 @@ void JsonArray::addDouble(const double & val)
 void JsonArray::addBoolean(const bool & val)
 {
     content.push_back(new JsonBoolean(val));
-}
-
-void JsonArray::addColor(const Color & val)
-{
-    content.push_back(new JsonString(val.toString()));
-}
-
-void JsonArray::addPoint(const Point & val)
-{
-    JsonArray* ja = new JsonArray();
-    if(ja)
-    {
-	ja->addInteger(val.x);
-	ja->addInteger(val.y);
-	content.push_back(ja);
-    }
-}
-
-void JsonArray::addZPoint(const ZPoint & val)
-{
-    JsonArray* ja = new JsonArray();
-    if(ja)
-    {
-	ja->addInteger(val.x);
-	ja->addInteger(val.y);
-	ja->addInteger(val.z);
-	content.push_back(ja);
-    }
-}
-
-void JsonArray::addSize(const Size & val)
-{
-    JsonArray* ja = new JsonArray();
-    if(ja)
-    {
-	ja->addInteger(val.w);
-	ja->addInteger(val.h);
-	content.push_back(ja);
-    }
-}
-
-void JsonArray::addRect(const Rect & val)
-{
-    JsonArray* ja = new JsonArray();
-    if(ja)
-    {
-	ja->addInteger(val.x);
-	ja->addInteger(val.y);
-	ja->addInteger(val.w);
-	ja->addInteger(val.h);
-	content.push_back(ja);
-    }
 }
 
 void JsonArray::addArray(const JsonArray & val)
@@ -1234,28 +756,4 @@ JsonContentString::JsonContentString(const std::string & str)
     parseString(str);
 }
 
-/* JsonPack */
-JsonArray JsonPack::points(const Points & st)
-{
-    return sharedVector<Point>(st);
-}
-
-JsonArray JsonPack::rects(const Rects & st)
-{
-    return sharedVector<Rect>(st);
-}
-
-JsonArray JsonPack::stringList(const StringList & v)
-{
-    return sharedList<std::string>(v);
-}
-
-JsonObject JsonPack::fbColors(const FBColors & v)
-{
-    JsonObject jo;
-    jo.addString("fg", v.fgcolor().toString());
-    jo.addString("bg", v.bgcolor().toString());
-    return jo;
-}
-
-#endif /* WITH_JSON */
+#endif

@@ -151,6 +151,7 @@ bool Engine::init(bool debug)
     }
 #endif
 
+#ifndef DISABLE_IMAGE
     if(IMG_Init(IMG_INIT_PNG) == 0)
     {
         ERROR("IMG_Init" << ": " << SDL_GetError());
@@ -162,7 +163,9 @@ bool Engine::init(bool debug)
 	if(sdlver)
 	    DEBUG("usage " << "SDL_image" << ", " << "version: " << static_cast<int>(sdlver->major) << "." << static_cast<int>(sdlver->minor) << "." << static_cast<int>(sdlver->patch));
     }
+#endif
 
+#ifndef DISABLE_TTF
     if(TTF_Init() != 0)
     {
         ERROR("TTF_Init" << ": " << SDL_GetError());
@@ -174,6 +177,7 @@ bool Engine::init(bool debug)
 	if(sdlver)
 	    DEBUG("usage " << "SDL_ttf" << ", " << "version: " << static_cast<int>(sdlver->major) << "." << static_cast<int>(sdlver->minor) << "." << static_cast<int>(sdlver->patch));
     }
+#endif
 
 #ifndef DISABLE_AUDIO
 #if (SDL_VERSIONNUM(SDL_MIXER_MAJOR_VERSION, SDL_MIXER_MINOR_VERSION, SDL_MIXER_PATCHLEVEL) > SDL_VERSIONNUM(1,2,8))
@@ -227,11 +231,15 @@ void Engine::quit(void)
     Mix_Quit();
 #endif
 #endif
+#ifndef DISABLE_IMAGE
     IMG_Quit();
+#endif
 #ifndef DISABLE_NETWORK
     SDLNet_Quit();
 #endif
+#ifndef DISABLE_TTF
     TTF_Quit();
+#endif
     SDL_Quit();
 }
 
@@ -911,19 +919,27 @@ Texture Display::createTexture(const BinaryBuf & raw)
     SDL_RWops *rw = SDL_RWFromConstMem(raw.data(), raw.size());
     if(! rw)
         ERROR(SDL_GetError());
-#ifdef OLDENGINE
-    return Texture(IMG_Load_RW(rw, 1));
+#ifdef DISABLE_IMAGE
+    return createTexture(Surface(SDL_LoadBMP_RW(rw, 1)));
 #else
+ #ifdef OLDENGINE
+    return Texture(IMG_Load_RW(rw, 1));
+ #else
     return Texture(IMG_LoadTexture_RW(_renderer, rw, 1));
+ #endif
 #endif
 }
 
 Texture Display::createTexture(const std::string & file)
 {
-#ifdef OLDENGINE
-    return Texture(IMG_Load(file.c_str()));
+#ifdef DISABLE_IMAGE
+    return createTexture(Surface(SDL_LoadBMP(file.c_str())));
 #else
+ #ifdef OLDENGINE
+    return Texture(IMG_Load(file.c_str()));
+ #else
     return Texture(IMG_LoadTexture(_renderer, file.c_str()));
+ #endif
 #endif
 }
 

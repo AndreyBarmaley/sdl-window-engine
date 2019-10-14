@@ -40,17 +40,21 @@ public:
     UnicodeString(const std::u16string & v) : std::u16string(v) {}
     UnicodeString(const UnicodeString & v) : std::u16string(v) {}
     UnicodeString(const_iterator it1, const_iterator it2) : std::u16string(it1, it2) {}
-    UnicodeString(UnicodeString && v) { swap(v); }
+    UnicodeString(std::u16string && v) noexcept { swap(v); }
+    UnicodeString(UnicodeString && v) noexcept { swap(v); }
     UnicodeString(const std::string & v) { assign(v); }
     UnicodeString(const char* v) { if(v) assign(v); }
 
     UnicodeString &	operator= (const UnicodeString & v) { std::u16string::assign(v.begin(), v.end()); return *this; }
-    UnicodeString &	operator= (UnicodeString && v) { swap(v); return *this; }
+    UnicodeString &	operator= (UnicodeString && v) noexcept { swap(v); return *this; }
+    UnicodeString &	operator= (std::u16string && v) noexcept { swap(v); return *this; }
 
     bool		operator== (const std::string &) const;
     bool		operator!= (const std::string &) const;
 
     void		assign(const std::string &);
+    void		assign(const_iterator it1, const_iterator it2){ std::u16string::assign(it1, it2); }
+
     UnicodeString &	append(int);
     UnicodeString &	append(const UnicodeString &);
     UnicodeList		split(int sep) const;

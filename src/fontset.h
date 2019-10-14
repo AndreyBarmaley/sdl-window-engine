@@ -30,17 +30,28 @@
 
 enum align_t { AlignNone, AlignLeft, AlignRight, AlignTop, AlignBottom, AlignCenter };
 
-#if (SDL_VERSIONNUM(SDL_TTF_MAJOR_VERSION, SDL_TTF_MINOR_VERSION, SDL_TTF_PATCHLEVEL) <= SDL_VERSIONNUM(2, 0, 10))
-#define TTF_STYLE_STRIKETHROUGH 0x08
-#define TTF_HINTING_NORMAL 0
-#define TTF_HINTING_LIGHT  1
-#define TTF_HINTING_MONO   2
-#define TTF_HINTING_NONE   3
-#endif
-
-
 struct CharsetID;
 struct SDLFont;
+
+#if (SDL_VERSIONNUM(SDL_TTF_MAJOR_VERSION, SDL_TTF_MINOR_VERSION, SDL_TTF_PATCHLEVEL) <= SDL_VERSIONNUM(2, 0, 10))
+ #define TTF_STYLE_STRIKETHROUGH 0x08
+ #define TTF_HINTING_NORMAL 0
+ #define TTF_HINTING_LIGHT  1
+ #define TTF_HINTING_MONO   2
+ #define TTF_HINTING_NONE   3
+#endif
+
+#ifdef DISABLE_TTF
+ #define TTF_STYLE_NORMAL        0
+ #define TTF_STYLE_BOLD          0x01
+ #define TTF_STYLE_ITALIC        0x02
+ #define TTF_STYLE_UNDERLINE     0x04
+ #define TTF_STYLE_STRIKETHROUGH 0x08
+ #define TTF_HINTING_NORMAL 0
+ #define TTF_HINTING_LIGHT  1
+ #define TTF_HINTING_MONO   2
+ #define TTF_HINTING_NONE   3
+#endif
 
 enum PropertyRender { RenderSolid = 0, RenderBlended = 1, RenderShaded = 2 };
 enum PropertyStyle { StyleNormal = TTF_STYLE_NORMAL, StyleBold = TTF_STYLE_BOLD, StyleItalic = TTF_STYLE_ITALIC, StyleUnderLine = TTF_STYLE_UNDERLINE, StyleStrikeThrough = TTF_STYLE_STRIKETHROUGH };
@@ -144,8 +155,7 @@ public:
     Texture		renderCharset(int ch, const Color &, int blend, int style, int hinting);
 };
 
-
-
+#ifndef DISABLE_TTF
 class FontRenderTTF : public FontRender
 {
     std::shared_ptr<SDLFont> ptr;
@@ -182,6 +192,7 @@ public:
     Surface	renderString(const std::string &, const Color &, int blend = -1, int style = -1, int hinting = -1) const;
     Surface	renderUnicode(const UnicodeString &, const Color &, int blend = -1, int style = -1, int hinting = -1) const;
 };
+#endif
 
 class FontRenderPSF : public FontRender
 {

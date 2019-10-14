@@ -79,7 +79,11 @@ Surface::Surface(const Surface & other) : ptr(NULL)
 
 Surface::Surface(const std::string & file) : ptr(NULL)
 {
+#ifdef DISABLE_IMAGE
+    ptr = SDL_LoadBMP(file.c_str());
+#else
     ptr = IMG_Load(file.c_str());
+#endif
     if(! ptr)
 	ERROR(SDL_GetError());
 }
@@ -89,7 +93,11 @@ Surface::Surface(const BinaryBuf & raw) : ptr(NULL)
     SDL_RWops *rw = SDL_RWFromConstMem(raw.data(), raw.size());
     if(! rw)
 	ERROR(SDL_GetError());
+#ifdef DISABLE_IMAGE
+    ptr = SDL_LoadBMP_RW(rw, 1);
+#else
     ptr = IMG_Load_RW(rw, 1);
+#endif
     if(! ptr)
 	ERROR(SDL_GetError());
 }
@@ -352,10 +360,14 @@ bool Surface::save(const std::string & file) const
 {
     if(ptr)
     {
-#ifdef OLDENGINE
-	return 0 == IMG_SavePNG(file.c_str(), ptr, 7);
+#ifdef DISABLE_IMAGE
+	return 0 == SDL_SaveBMP(ptr, file.c_str());
 #else
+ #ifdef OLDENGINE
+	return 0 == IMG_SavePNG(file.c_str(), ptr, 7);
+ #else
 	return 0 == IMG_SavePNG(ptr, file.c_str());
+ #endif
 #endif
     }
     return false;
