@@ -60,7 +60,7 @@ namespace String
     double              toDouble(const std::string &, bool* = NULL);
     int			index(const std::string &, int);
 
-    std::string         trimmed(std::string);
+    std::string         trimmed(const std::string &);
     std::string         time(void);
     std::string         time(time_t);
     std::string		strftime(const std::string &);

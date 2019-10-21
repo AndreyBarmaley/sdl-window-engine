@@ -252,34 +252,30 @@ namespace Translation
 
     bool bindDomain(const std::string & domain, const BinaryBuf & buf)
     {
-	auto it = domains.find(domain);
-	if(it != domains.end())
-	    return true;
-
-	setLocale();
-
-	return domains[domain].parse(buf);
+	auto res = domains.insert(std::make_pair(domain, mofile()));
+	// if inserted
+	if(res.second)
+	{
+	    setLocale();
+	    return (*res.first).second.parse(buf);
+	}
+	return true;
     }
 
     bool bindDomain(const std::string & domain, const std::string & file)
     {
-	auto it = domains.find(domain);
-	if(it != domains.end())
-	    return true;
-
-	setLocale();
-
-	return domains[domain].parse(Systems::readFile(file));
+	return bindDomain(domain, Systems::readFile(file));
     }
 
     bool setDomain(const std::string & domain)
     {
 	auto it = domains.find(domain);
-	if(it == domains.end())
-	    return false;
-
-	current = & (*it).second;
-	return true;
+	if(it != domains.end())
+	{
+	    current = & (*it).second;
+	    return true;
+	}
+	return false;
     }
 
     const char* gettext(const std::string & str)

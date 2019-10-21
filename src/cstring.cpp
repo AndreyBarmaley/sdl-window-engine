@@ -77,21 +77,15 @@ std::string String::toUpper(std::string str)
     return str;
 }
 
-std::string String::trimmed(std::string str)
+std::string String::trimmed(const std::string & str)
 {
     if(! str.empty())
     {
-        std::string::iterator it = str.begin();
-
-        while(it != str.end() && std::isspace(*it)) ++it;
-
-        if(it != str.begin()) str.erase(str.begin(), it);
-
-        it = str.end() - 1;
-
-        while(it != str.begin() && std::isspace(*it)) --it;
-
-        if(it != str.end() - 1) str.erase(it + 1, str.end());
+        auto it1 = str.begin();
+        while(it1 != str.end() && std::isspace(*it1)) ++it1;
+        auto it2 = str.end() - 1;
+        while(it2 != str.begin() && std::isspace(*it2)) --it2;
+        return std::string(it1, it2 + 1);
     }
 
     return str;
