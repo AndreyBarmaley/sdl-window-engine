@@ -211,7 +211,7 @@ public:
     size_t		size(void) const;
     size_t              last(void) const;
     size_t              tell(void) const;
-    bool                seek(size_t);
+    bool                seek(int offset, int whence = RW_SEEK_SET);
     bool                skip(size_t);
 
     bool		isValid(void) const { return rw; }

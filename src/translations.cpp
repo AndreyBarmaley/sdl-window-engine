@@ -252,12 +252,15 @@ namespace Translation
 
     bool bindDomain(const std::string & domain, const BinaryBuf & buf)
     {
-	auto res = domains.insert(std::make_pair(domain, mofile()));
+	auto dom = domains.insert(std::make_pair(domain, mofile()));
 	// if inserted
-	if(res.second)
+	if(dom.second)
 	{
 	    setLocale();
-	    return (*res.first).second.parse(buf);
+	    bool res = (*dom.first).second.parse(buf);
+	    if(res && current == NULL)
+		current = & (*dom.first).second;
+	    return res;
 	}
 	return true;
     }

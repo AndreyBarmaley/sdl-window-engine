@@ -330,9 +330,9 @@ void StreamRWops::close(void)
     }
 }
 
-bool StreamRWops::seek(size_t pos)
+bool StreamRWops::seek(int offset, int whence /* RW_SEEK_SET */)
 {
-    return rw ? 0 <= SDL_RWseek(rw, pos, RW_SEEK_SET) : false;
+    return rw ? 0 <= SDL_RWseek(rw, offset, whence) : false;
 }
  
 bool StreamRWops::skip(size_t len)

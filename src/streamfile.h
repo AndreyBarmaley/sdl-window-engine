@@ -48,7 +48,7 @@ public:
 
     StreamBuf		toStreamBuf(size_t = 0 /* all data */);
 
-    bool		seek(size_t pos) { return rw.seek(pos); }
+    bool		seek(int offset, int whence = RW_SEEK_SET) { return rw.seek(offset, whence); }
     bool		skip(size_t len) { return rw.skip(len); }
 
     int			get8(void) const override;
