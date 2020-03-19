@@ -933,7 +933,9 @@ void TextureButton::setSprites(const Texture & tx1, const Texture & tx2)
     txPress = tx2;
 
     setSize(tx1.size() < tx2.size() ? tx2.size() : tx1.size());
-    renderWindow();
+
+   if(isVisible())
+        DisplayScene::setDirty(true);
 }
 
 /* WindowCheckBox */

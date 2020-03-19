@@ -135,7 +135,14 @@ long int String::toLong(const std::string & str, bool* ok)
 	*ok = !ss.fail();
     }
     else
+    {
+#if defined(__MINGW32CE__)
+	std::istringstream ss(str);
+	ss >> res;
+#else
 	res = std::stol(str, NULL, 0);
+#endif
+    }
 
     return res;
 }
@@ -151,7 +158,14 @@ double String::toDouble(const std::string & str, bool* ok)
 	*ok = !ss.fail();
     }
     else
+    {
+#if defined(__MINGW32CE__)
+	std::istringstream ss(str);
+	ss >> res;
+#else
 	res = std::stod(str, NULL);
+#endif
+    }
 
     return res;
 }
@@ -194,7 +208,13 @@ std::string String::strftime(const std::string & format)
 
 std::string String::number(int value)
 {
+#if defined(__MINGW32CE__)
+    std::ostringstream os;
+    os << value;
+    return os.str();
+#else
     return std::to_string(value);
+#endif
 }
 
 std::string String::number(double value, int prec)
@@ -206,7 +226,11 @@ std::string String::number(double value, int prec)
 	return os.str();
     }
 
+#if defined(__MINGW32CE__)
+    return number(value, 8);
+#else
     return std::to_string(value);
+#endif
 }
 
 std::string String::replace(const std::string & src, const char* pred, const std::string & val)

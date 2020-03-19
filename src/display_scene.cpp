@@ -534,7 +534,7 @@ void DisplayScene::tickHandle(u32 ms)
 
     auto it = sceneItems.rbegin();
     for(; it != sceneItems.rend(); ++it)
-	if((*it) && (*it)->checkState(FlagFocused)) break;
+	if((*it) && (*it)->isFocused()) break;
 
     if(it != sceneItems.rend())
     {

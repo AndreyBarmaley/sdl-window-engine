@@ -301,20 +301,40 @@ std::string Size::toString(void) const
     return os.str();
 }
 
+void fixedNegativeSize(Rect & rt)
+{
+    if(rt.w < 0)
+    {
+	rt.x = rt.x + rt.w + 1;
+	rt.w = std::abs(rt.w);
+    }
+
+    if(rt.h < 0)
+    {
+	rt.y = rt.y + rt.y  + 1;
+	rt.h = std::abs(rt.h);
+    }
+}
+
 Rect::Rect(int rx, int ry, int rw, int rh) : Point(rx, ry), Size(rw, rh)
 {
+    fixedNegativeSize(*this);
 }
 
 Rect::Rect(const Point & pt, const Size & sz) : Point(pt), Size(sz)
 {
+    fixedNegativeSize(*this);
 }
 
-Rect::Rect(const Point & pt1, const Point & pt2)
+Rect::Rect(const Point & pt1, const Point & pt2) : Point(pt1), Size(1, 1)
 {
-    x = pt1.x < pt2.x ? pt1.x : pt2.x;
-    y = pt1.y < pt2.y ? pt1.y : pt2.y;
-    w = (pt1.x < pt2.x ? pt2.x - pt1.x : pt1.x - pt2.x) + 1;
-    h = (pt1.y < pt2.y ? pt2.y - pt1.y : pt1.y - pt2.y) + 1;
+    if(pt2.x < x) { w += x - pt2.x; x = pt2.x; }
+    else
+    if(pt2.x > x + w) { w = pt2.x + 1 - x; }
+
+    if(pt2.y < y) { h += y - pt2.y; y = pt2.y; }
+    else
+    if(pt2.y > y + h) { h = pt2.y + 1 - y; }
 }
 
 bool Rect::operator== (const Rect & rt) const
@@ -429,23 +449,24 @@ Rect Points::around(void) const
 {
     Rect res;
 
-    if(1 < size())
+    if(size())
     {
-	const Point & pt1 = at(0);
-	const Point & pt2 = at(1);
+	auto it = begin();
 
-	res = Rect(pt1, pt2);
-	
-	for(const_iterator
-	    it = begin() + 2; it != end(); ++it)
+	res.setPoint(*it++);
+	res.setSize(Size(1,1));
+
+	for(; it != end(); ++it)
 	{
-	    if((*it).x < res.x){ res.w += res.x - (*it).x; res.x = (*it).x; }
-	    else
-	    if((*it).x > res.x + res.w) res.w = (*it).x - res.x;
+	    const Point & pt = *it;
 
-	    if((*it).y < res.y){ res.h += res.y - (*it).y; res.y = (*it).y; }
+	    if(pt.x < res.x) { res.w += res.x - pt.x; res.x = pt.x; }
 	    else
-	    if((*it).y > res.y + res.h) res.h = (*it).y - res.y;
+	    if(pt.x > res.x + res.w) { res.w = pt.x +1 - res.x; }
+
+	    if(pt.y < res.y) { res.h += res.y - pt.y; res.y = pt.y; }
+	    else
+	    if(pt.y > res.y + res.h) { res.h = pt.y + 1 - res.y; }
 	}
     }
 
@@ -479,24 +500,18 @@ Rect Rects::around(void) const
 {
     Rect res;
 
-    if(size())
+    auto it = begin();
+    res = *it++;
+
+    for(; it != end(); ++it)
     {
-	const_iterator it = begin();
-	res = *it;
+	const Rect & rt = *it;
 
-	++it;
+	if(rt.x < res.x) { res.w += res.x - rt.x; res.x = rt.x; }
+	if(rt.x + rt.w > res.x + res.w) { res.w = rt.x + rt.w - res.x; }
 
-	for(; it != end(); ++it)
-	{
-	    const Rect & rt1 = *it;
-	    const Rect & rt2 = res;
-	    Rect & rt3 = res;
-
-    	    rt3.x = rt1.x < rt2.x ? rt1.x : rt2.x;
-	    rt3.y = rt1.y < rt2.y ? rt1.y : rt2.y;
-	    rt3.w = rt1.x + rt1.w > rt2.x + rt2.w ? rt1.x + rt1.w - rt3.x : rt2.x + rt2.w - rt3.x;
-    	    rt3.h = rt1.y + rt1.h > rt2.y + rt2.h ? rt1.y + rt1.h - rt3.y : rt2.y + rt2.h - rt3.y;
-	}
+	if(rt.y < res.y) { res.h += res.y - rt.y; res.y = rt.y; }
+	if(rt.y + rt.h > res.y + res.h) { res.h = rt.y + rt.h - res.y; }
     }
 
     return res;
@@ -573,17 +588,28 @@ Point operator/ (const Point & pt, const Size & sz)
     return Point(pt.x / sz.w, pt.y / sz.h);
 }
 
+struct PointComp
+{
+    bool operator() (const Point & lhs, const Point & rhs) const
+    {
+        return lhs.y < rhs.y || (lhs.y == rhs.y && (lhs.x < rhs.x));
+    }
+};
+
 Polygon::Polygon(const Points & v)
 {
-    for(size_t it = 0; it < v.size(); ++it)
+    for(auto it1 = v.begin(); it1 != v.end(); ++it1)
     {
-        const Point & pt1 = v[it];
-        const Point & pt2 = it + 1 < v.size() ? v[it + 1] : v[0];
-
-        push_back(Tools::renderLine(pt1, pt2));
+	auto it2 = std::next(it1);
+	if(it2 != v.end()) push_back(Tools::renderLine(*it1, *it2));
     }
-}
 
+    if(size() && back() != front())
+    	push_back(Tools::renderLine(v.back(), v.front()));
+
+    std::sort(begin(), end(), PointComp());
+    resize(std::distance(begin(), std::unique(begin(), end())));
+}
 
 bool Polygon::operator& (const Point & pt) const
 {

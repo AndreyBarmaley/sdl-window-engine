@@ -1095,8 +1095,8 @@ bool Display::handleEvents(void)
 		break;
 
             case SDL_QUIT:
-		DEBUG("SDL_QUIT");
-                // Engine::except(__FUNCTION__, "SDL_QUIT");
+		// DEBUG("SDL_QUIT");
+                Engine::except(__FUNCTION__, "SDL_QUIT");
 		return false;
 
 	    default: break;

@@ -391,6 +391,7 @@ Points Tools::renderLine(const Point & pt1, const Point & pt2, int step)
 {
     Points res;
     res.reserve(Point::distance(pt1, pt2));
+    res.push_back(pt1);
 
     const int dx = std::abs(pt2.x - pt1.x);
     const int dy = std::abs(pt2.y - pt1.y);
@@ -425,8 +426,10 @@ Points Tools::renderLine(const Point & pt1, const Point & pt2, int step)
             }
         }
 
-        if(0 == (i % step)) res.push_back(pt);
+        if(2 > step || 0 == (i % step)) res.push_back(pt);
     }
+
+    if(res.back() != pt2) res.push_back(pt2);
 
     return res;
 }
