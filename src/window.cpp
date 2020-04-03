@@ -414,7 +414,7 @@ void Window::renderPoint(const Color & col, const Point & dstpt) const
 
 void Window::renderSurface(const Surface & sf, const Point & dstpt) const
 {
-    if(rect() & dstpt)
+    if(rect() & Rect(dstpt, sf.size()))
     {
 	Rect dstrt = transformRect(Rect(dstpt, sf.size()), gfxpos);
 	Display::renderSurface(sf, transformSize(sf.rect(), dstrt), Display::texture(), dstrt);
@@ -423,7 +423,7 @@ void Window::renderSurface(const Surface & sf, const Point & dstpt) const
 
 void Window::renderSurface(const Surface & sf, const Rect & srcrt, const Rect & dstrt, bool fixedsize) const
 {
-    if(rect() & dstrt.toPoint())
+    if(rect() & Rect(dstrt.toPoint(), srcrt.toSize()))
     {
 	Rect dstrt2 = transformRect(dstrt, gfxpos);
 	Display::renderSurface(sf, (fixedsize ? transformSize(srcrt, dstrt2) : srcrt), Display::texture(), dstrt2);
@@ -437,7 +437,7 @@ void Window::renderTexture(const TexturePos & sp) const
 
 void Window::renderTexture(const Texture & tx, const Point & dstpt) const
 {
-    if(rect() & dstpt)
+    if(rect() & Rect(dstpt, tx.size()))
     {
 	Rect dstrt = transformRect(Rect(dstpt, tx.size()), gfxpos);
 	Display::renderTexture(tx, transformSize(tx.rect(), dstrt), Display::texture(), dstrt);
@@ -446,7 +446,7 @@ void Window::renderTexture(const Texture & tx, const Point & dstpt) const
 
 void Window::renderTexture(const Texture & tx, const Rect & srcrt, const Rect & dstrt, bool fixedsize) const
 {
-    if(rect() & dstrt.toPoint())
+    if(rect() & Rect(dstrt.toPoint(), srcrt.toSize()))
     {
 	Rect dstrt2 = transformRect(dstrt, gfxpos);
 	Display::renderTexture(tx, (fixedsize ? transformSize(srcrt, dstrt2) : srcrt), Display::texture(), dstrt2);

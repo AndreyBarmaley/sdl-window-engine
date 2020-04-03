@@ -69,6 +69,7 @@ public:
 
     static bool			isDirty(void);
     static void			setDirty(bool);
+    static void			waitDelay(int);
 };
 
 #endif

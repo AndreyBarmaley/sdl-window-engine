@@ -41,6 +41,7 @@
 #include <unistd.h>
 #endif
 
+#include "streamfile.h"
 #include "systems.h"
 
 #if defined(__MINGW32CE__)
@@ -336,21 +337,6 @@ int Systems::remove(const std::string & file)
     return unlink(file.c_str());
 }
 
-bool Systems::saveString2File(const std::string & str, const std::string & file)
-{
-    SDL_RWops* rw = SDL_RWFromFile(file.c_str(), "wb");
-
-    if(rw)
-    {
-	bool res = SDL_RWwrite(rw, str.c_str(), str.size(), 1) == 1;
-        SDL_RWclose(rw);
-        return res;
-    }
-
-    ERROR(SDL_GetError());
-    return false;
-}
-
 bool Systems::saveFile(const BinaryBuf & raw, const std::string & file, int offset /* default: 0, endpos : -1 */)
 {
     SDL_RWops* rw = NULL;
@@ -376,25 +362,6 @@ bool Systems::saveFile(const BinaryBuf & raw, const std::string & file, int offs
 	bool res = SDL_RWwrite(rw, raw.data(), raw.size(), 1) == 1;
         SDL_RWclose(rw);
         return res;
-    }
-
-    ERROR(SDL_GetError());
-    return false;
-}
-
-bool Systems::readFile2String(const std::string & file, std::string & str)
-{
-    SDL_RWops* rw = SDL_RWFromFile(file.c_str(), "rb");
-
-    if(rw)
-    {
-	SDL_RWseek(rw, 0, RW_SEEK_END);
-        size_t size = SDL_RWtell(rw);
-        str.resize(size);
-        SDL_RWseek(rw, 0, RW_SEEK_SET);
-        bool res = SDL_RWread(rw, & str[0], str.size(), 1) == 1;
-        SDL_RWclose(rw);
-	return res;
     }
 
     ERROR(SDL_GetError());
@@ -446,6 +413,26 @@ BinaryBuf Systems::readFile(const std::string & file, size_t offset, size_t size
 
     ERROR(SDL_GetError());
     return buf;
+}
+
+bool Systems::saveString2File(const std::string & str, const std::string & file)
+{
+    if(str.empty())
+	return false;
+
+    return saveFile(BinaryBuf(reinterpret_cast<const u8*>(str.c_str()), str.size()), file);
+}
+
+bool Systems::readFile2String(const std::string & file, std::string & str)
+{
+    BinaryBuf bb = readFile(file);
+    if(bb.size())
+    {
+	str = bb.toString();
+	return true;
+    }
+
+    return false;
 }
 
 bool Systems::isEmbeded(void)

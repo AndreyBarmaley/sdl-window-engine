@@ -290,6 +290,7 @@ Point JsonUnpack::point(const JsonObject & jo, const std::string & key, const Po
 	auto ja = jo.getArray(key);
 	if(ja){ *ja >> st; return st; }
     }
+
     return def;
 }
 
@@ -301,6 +302,7 @@ ZPoint JsonUnpack::zpoint(const JsonObject & jo, const std::string & key, const 
 	auto ja = jo.getArray(key);
 	if(ja){ *ja >> st; return st; }
     }
+
     return def;
 }
 
@@ -312,6 +314,7 @@ Size JsonUnpack::size(const JsonObject & jo, const std::string & key, const Size
 	auto ja = jo.getArray(key); 
 	if(ja){ *ja >> st; return st; }
     }
+
     return def;
 }
 
@@ -323,6 +326,7 @@ Rect JsonUnpack::rect(const JsonObject & jo, const std::string & key, const Rect
 	auto ja = jo.getArray(key);
 	if(ja){ *ja >> st; return st; }
     }
+
     return def;
 }
 

@@ -23,13 +23,14 @@
 #include <cstdlib>
 #include <cmath>
 #include <ctime>
+#include <iostream>
 #include <stdexcept>
 #include <sstream>
 #include <algorithm>
 #include <iterator>
 #include <list>
 
-#define SWE_VERSION 20190826
+#define SWE_VERSION 20200320
 
 #ifdef OLDENGINE
 #include "SDL_rotozoom.h"
@@ -103,10 +104,22 @@ namespace Display
     Rect		renderTextVertical(const FontRender &, const UnicodeString &, const Color &, Texture &, const Point &, int, int);
 }
 
+#ifdef BUILD_STACKTRACE
+#include "boost/stacktrace.hpp"
+#endif
+
 void Engine::except(const char* func, const char* message)
 {
     if(func && message) COUT(String::time() << ": [EXCEPTION]\t" << func << ":  " << message);
-#ifndef ANDROID
+
+#ifdef BUILD_STACKTRACE
+    if(!message || strcmp(message, "SDL_QUIT"))
+	LogWrapper() << boost::stacktrace::stacktrace();
+#endif
+
+#ifdef ANDROID
+    exit(0);
+#else
     throw exception();
 #endif
 }

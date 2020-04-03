@@ -609,3 +609,19 @@ void DisplayScene::destroyChilds(const Window & win)
     for(auto it = list.begin(); it != list.end(); ++it)
         if(*it) (*it)->destroy();
 }
+
+void DisplayScene::waitDelay(int delay)
+{
+    u32 start = Tools::ticks();
+
+    while(true)
+    {
+	if(Display::handleEvents())
+    	    Display::redraw();
+	else
+    	    Tools::delay(1);
+
+    	if(0 > delay || start + delay < Tools::ticks())
+	    break;
+    }
+}
