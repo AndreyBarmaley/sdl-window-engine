@@ -22,6 +22,7 @@
 
 /* http://www.lua.org/manual/5.1/manual.html */
 #ifdef WITH_LUA
+#include <cmath>
 #include <sstream>
 
 #include "engine.h"
@@ -35,7 +36,19 @@
 #endif
 
 #if LUA_VERSION_NUM <= 502
- #define lua_isinteger(L, i) ((int)lua_isnumber(L, i))
+//#define lua_isinteger(L, i) ((int)lua_isnumber(L, i))
+
+int lua_isinteger(lua_State* L, int index)
+{
+    if(lua_isnumber(L, index))
+    {
+	double number = lua_tonumber(L, index);
+	double intpart = 0;
+	return 0.0 != std::modf(number, &intpart) ? 0 : 1;
+    }
+
+    return 0;
+}
 #endif
 
 /* LuaState */
@@ -78,19 +91,15 @@ int LuaState::doString(const std::string & str)
 
 bool LuaState::registerDirectory(const std::string & dir)
 {
-    if(getGlobalName("package").isTopTable())
+    if(getGlobalName("package").isTopTable() && Systems::isDirectory(dir))
     {
 	if(getFieldTableIndex("path", -1).isTopString())
 	{
 	    std::string newPath = StringFormat("%1;%2").arg(toStringIndex(-1)).arg(Systems::concatePath(dir, "?.lua"));
 	    stackPop();
 
-	    if(Systems::isDirectory(dir))
-	    {
-		pushString(newPath);
-		setFieldTableIndex("path", -2);
-		return true;
-	    }
+	    pushString(newPath).setFieldTableIndex("path", -2);
+	    return true;
 	}
 	else
 	{
@@ -102,19 +111,23 @@ bool LuaState::registerDirectory(const std::string & dir)
     return false;
 }
 
-bool LuaState::registerLibrary(const char* name, const luaL_Reg funcs[])
+bool LuaState::registerLibrary(const std::string & libname, const luaL_Reg funcs[])
 {
-    lua_newtable(ptr);
-    lua_setglobal(ptr, name);
-    lua_getglobal(ptr, name);
+    pushTable().setGlobalName(libname);
 
-    for(int it = 0; funcs[it].name; ++it)
+    if(getGlobalName(libname).isTopTable())
     {
-	lua_pushcfunction(ptr, funcs[it].func);
-	lua_setfield(ptr, -2, funcs[it].name);
+	for(int it = 0; funcs[it].name; ++it)
+	    pushFunction(funcs[it].func).setFieldTableIndex(funcs[it].name, -2);
+
+	return true;
+    }
+    else
+    {
+	ERROR("name not found: " << libname);
     }
 
-    return true;
+    return false;
 }
 
 bool LuaState::isNoneIndex(int index) const
@@ -174,6 +187,13 @@ bool LuaState::isThreadIndex(int index) const
 
 bool LuaState::toBooleanIndex(int index) const
 {
+    if(lua_isstring(ptr, index) &&
+	0 == String::toLower(lua_tostring(ptr, index)).compare("false"))
+	return false;
+
+    if(lua_isinteger(ptr, index))
+	return lua_tointeger(ptr, index);
+
     return lua_toboolean(ptr, index);
 }
 
@@ -196,27 +216,50 @@ int LuaState::toIntegerIndex(int index) const
 
 std::string LuaState::toStringIndex(int index) const
 {
-    if(lua_isnil(ptr, index))
-	return "nil";
+    int type = lua_type(ptr, index);
 
-    if(lua_isboolean(ptr, index))
-	return lua_toboolean(ptr, index) ? "true" : "false";
+    switch(type)
+    {
+    	case LUA_TNIL:		return "nil";
+	case LUA_TSTRING:	return lua_tostring(ptr, index);
+    	case LUA_TBOOLEAN:	return lua_toboolean(ptr, index) ? "true" : "false";
 
-    if(lua_isinteger(ptr, index))
-	return String::number(lua_tointeger(ptr, index));
+    	case LUA_TTABLE:
+    	case LUA_TTHREAD:
+    	case LUA_TFUNCTION:
+    	case LUA_TUSERDATA:
+    	case LUA_TLIGHTUSERDATA:return StringFormat("%1(%2)").arg(lua_typename(ptr, type)).arg(String::pointer(lua_topointer(ptr, index)));
 
-    return lua_tostring(ptr, index);
+	case LUA_TNUMBER:
+	{
+	    double number = lua_tonumber(ptr, index);
+	    double intpart = 0;
+
+	    // return fixed double
+	    if(0.0 != std::modf(number, &intpart))
+		return String::number(number, 8);
+	    else
+		// return integer
+		return String::number(static_cast<int>(intpart));
+	}
+
+    	default: ERROR("unknown value" << ", " << "type: " << lua_typename(ptr, type)); break;
+    }
+
+    return "unknown value";
 }
 
 BinaryBuf LuaState::toBinaryIndex(int index) const
 {
-    const char* data = lua_tostring(ptr, index);
+    if(lua_isnumber(ptr, index))
+    {
+	FIXME("lua_tolstring changes the actual value in the stack to a string" << ", " << "index: " << index);
+    }
 
-    lua_len(ptr, index);
-    int size = lua_tointeger(ptr, -1);
-    lua_pop(ptr, 1);
+    size_t len = 0;
+    const char* data = lua_tolstring(ptr, index, & len);
 
-    return BinaryBuf(reinterpret_cast<const u8*>(data), size);
+    return BinaryBuf(reinterpret_cast<const u8*>(data), len);
 }
 
 void* LuaState::toUserDataIndex(int index) const
@@ -300,109 +343,104 @@ void* LuaState::pushUserData(size_t sz)
 
 LuaState & LuaState::stackDump(void)
 {
-    dump();
+    VERBOSE("+----------------------> " << "stack");
+
+    int index = stackSize();
+    while(index)
+    {
+        VERBOSE("| " << index << ": " << dumpValue(index));
+	index--;
+    }
+
+    VERBOSE("+----------------------< " << "stack");
+
+    index = stackSize();
+    while(index)
+    {
+	if(isTableIndex(index)) dumpTable(index);
+	index--;
+    }
+
     return *this;
 }
 
-LuaState & LuaState::stackDump(const std::string & label)
+void LuaState::dumpTable(int index, int tabs)
 {
-    dump(label.c_str());
-    return *this;
-}
-
-int LuaState::dumpTable(int index)
-{
-    int counts = 0;
+    static std::list<const void*> checkLoop;
 
     if(isTableIndex(index))
     {
+	const std::string spaces(tabs * 2, 0x20);
+
         // fixed index
         index = toAbsIndex(index);
 
-        std::string name = "";
+	const void* ptrTable = toPointerIndex(index);
+	checkLoop.push_back(ptrTable);
 
-        if(getFieldTableIndex("__type", index, false).isTopString())
-	    name = getTopString();
+	VERBOSE(spaces << "+----------------------> " << String::pointer(ptrTable));
 
         // iterate
         pushNil();
 
         while(nextTableIndex(index))
         {
-    	    VERBOSE(name << "[`" << toStringIndex(-2) << "'] = " << dumpValue(-1));
+	    // key index: -2, value index: -1
+	    if(isTableIndex(-1))
+	    {
+
+		if(checkLoop.end() == std::find(checkLoop.begin(), checkLoop.end(), toPointerIndex(-1)))
+		{
+    		    VERBOSE(spaces << "[`" << toStringIndex(-2) << "'] = " << dumpValue(-1));
+		    dumpTable(-1, tabs + 1);
+		}
+		else
+		{
+    		    VERBOSE(spaces << "[`" << toStringIndex(-2) << "'] = " << dumpValue(-1) << "->isref");
+		}
+	    }
+	    else
+	    {
+    		VERBOSE(spaces << "[`" << toStringIndex(-2) << "'] = " << dumpValue(-1));
+	    }
+
     	    stackPop();
-    	    counts++;
         }
 
-        // remove name
-        stackPop();
+	VERBOSE(spaces << "+----------------------< " << String::pointer(ptrTable));
+	checkLoop.remove(ptrTable);
     }
-    
-    return counts;
+    else
+    {
+	ERROR("not table");
+    }
 }
 
 std::string LuaState::dumpValue(int index)
 {
     int type = getTypeIndex(index);
-    const char* typeName = getTypeName(type);
 
     switch(type)
     {
-        case LUA_TNIL:
-            return typeName;
-
         case LUA_TSTRING:
-            return StringFormat("%1(`%2')").arg(typeName).arg(toStringIndex(index));
+            return StringFormat("%1(`%2')").arg(getTypeName(type)).arg(toStringIndex(index));
 
         case LUA_TBOOLEAN:
-            return StringFormat("%1(%2)").arg(typeName).arg(toBooleanIndex(index) ? "true" : "false");
+            return StringFormat("%1(%2)").arg(getTypeName(type)).arg(toStringIndex(index));
 
         case LUA_TNUMBER:
             if(isIntegerIndex(index))
-		return StringFormat("%1(%2)").arg("integer").arg(toIntegerIndex(index));
-            else
-		return StringFormat("%1(%2)").arg(typeName).arg(String::number(toNumberIndex(index), 6));
-
-        case LUA_TTABLE:
-        {
-	    std::string name = "[]";
-
-	    if(getFieldTableIndex("__type", index, false).isTopString())
-        	name = getTopString();
-
-    	    std::string str = StringFormat("%1(%2,%3)").arg(typeName).arg(name).arg(luaL_getn(L(), index));
-
-            stackPop();
-            return str;
-        }
-
-        case LUA_TTHREAD:
-        case LUA_TFUNCTION:
-        case LUA_TUSERDATA:
-        case LUA_TLIGHTUSERDATA:
-            return StringFormat("%1(%2)").arg(typeName).
-			arg(String::pointer(toPointerIndex(index)));
+	    {
+		int val = toIntegerIndex(index);
+		return StringFormat("%1(%2,%3)").arg("integer").arg(val).arg(String::hex(val));
+            }
+	    else
+		return StringFormat("%1(%2)").arg(getTypeName(type)).arg(toStringIndex(index));
 
         default: break;
     }
 
-    return StringFormat("unknown type: %1(%2)").arg(typeName).arg(type);
-}
-
-void LuaState::dump(const char* label)
-{
-    if(label) VERBOSE(label << ":");
-    VERBOSE("+---------------------->");
-
-    int index = stackSize();
-    while(index)
-    {
-        VERBOSE("| " << index << ": " << dumpValue(index));
-        if(isTableIndex(index)) dumpTable(index);
-        index--;
-    }
-
-    VERBOSE("+----------------------<");
+    return toStringIndex(index);
 }
 
 int LuaState::toAbsIndex(int index)
@@ -420,6 +458,7 @@ JsonArray LuaState::toJsonArrayTableIndex(int index)
     {
         // fixed index
         index = toAbsIndex(index);
+
 	const void* ptrTable = toPointerIndex(index);
 	checkLoop.push_back(ptrTable);
 
@@ -469,7 +508,7 @@ JsonArray LuaState::toJsonArrayTableIndex(int index)
 		    }
 		    break;
 
-    		default: break;
+    		default: ERROR("unknown type: " << typeName); break;
 	    }
 
 	    // remove value
@@ -495,6 +534,7 @@ JsonObject LuaState::toJsonObjectTableIndex(int index)
     {
         // fixed index
         index = toAbsIndex(index);
+
 	const void* ptrTable = toPointerIndex(index);
 	checkLoop.push_back(ptrTable);
 
@@ -548,7 +588,7 @@ JsonObject LuaState::toJsonObjectTableIndex(int index)
 			res.addString(key, "reference to table");
 		    break;
 
-    		default: break;
+    		default: ERROR("unknown type: " << typeName); break;
 	    }
 
 	    // remove value
@@ -600,9 +640,6 @@ LuaState & LuaState::pushTable(const std::string & path)
 	    lua_pop(ptr, 1);
 
 	    lua_newtable(ptr);
-	    //lua_pushstring(ptr, tables.front().c_str());
-	    //lua_setfield(ptr, -2, "__type");
-
 	    lua_setglobal(ptr, tables.front().c_str());
 	    lua_getglobal(ptr, tables.front().c_str());
 	}
@@ -621,7 +658,6 @@ LuaState & LuaState::pushTable(const std::string & path)
 
 	while(tables.size())
 	{
-	    // lua_getfield(ptr, -1, tables.front().c_str());
 	    // change getfield, disable meta
     	    lua_pushstring(ptr, tables.front().c_str());
     	    lua_rawget(ptr, -2);
@@ -638,9 +674,6 @@ LuaState & LuaState::pushTable(const std::string & path)
 		lua_pop(ptr, 1);
 		lua_pushstring(ptr, tables.front().c_str());
 		lua_newtable(ptr);
-		//std::string name = objects.join(".").append(".").append(tables.front());
-		//lua_pushstring(ptr, name.c_str());
-		//lua_setfield(ptr, -2, "__type");
 		lua_settable(ptr, -3);
 	    }
 	    else
@@ -662,9 +695,6 @@ LuaState & LuaState::pushTable(const std::string & path)
 	lua_pop(ptr, 1);
 
 	lua_newtable(ptr);
-	//lua_pushstring(ptr, path.c_str());
-	//lua_setfield(ptr, -2, "__type");
-
 	lua_setglobal(ptr, path.c_str());
 	lua_getglobal(ptr, path.c_str());
     }
@@ -714,19 +744,19 @@ LuaState & LuaState::setTableIndex(int index)
 
 LuaState & LuaState::setFunctionsTableIndex(const luaL_Reg funcs[], int index)
 {
+    if(index < 0)
+	index = lua_absindex(ptr, index);
+
     for(int it = 0; funcs[it].name; ++it)
-	pushFunction(funcs[it].func).setFieldTableIndex(funcs[it].name, 0 < index ? index : index - 1);
+    {
+	if(funcs[it].func)
+	    pushFunction(funcs[it].func).setFieldTableIndex(funcs[it].name, index);
+	else
+	    pushNil().setFieldTableIndex(funcs[it].name, index);
+    }
 
     return *this;
 }
-
-/*
-LuaState & LuaState::getIndexTableIndex(int index, int tableIndex)
-{
-    lua_rawgeti(ptr, tableIndex, index);
-    return *this;
-}
-*/
 
 LuaState & LuaState::getFieldTableIndex(const char* field, int index, bool verboseNil)
 {
@@ -734,10 +764,10 @@ LuaState & LuaState::getFieldTableIndex(const char* field, int index, bool verbo
     {
 	// lua_getfield(ptr, index, field);
 	// change getfield, disable meta
-	lua_pushstring(ptr, field);
-	if(0 > index) index = index - 1;
-	lua_rawget(ptr, index);
 
+        index = lua_absindex(ptr, index);
+	lua_pushstring(ptr, field);
+	lua_rawget(ptr, index);
 
 	if(lua_isnil(ptr, -1) && verboseNil)
 	{
@@ -771,10 +801,10 @@ std::string LuaState::popFieldTableIndex(const char* field, int index)
     {
 	// lua_getfield(ptr, index, field);
 	// change getfield, disable meta
-        lua_pushstring(ptr, field);
-        if(0 > index) index = index - 1;
-        lua_rawget(ptr, index);
 
+        index = lua_absindex(ptr, index);
+        lua_pushstring(ptr, field);
+        lua_rawget(ptr, index);
 
 	if(lua_isnil(ptr, -1))
 	{
@@ -830,10 +860,12 @@ int LuaState::nextTableIndex(int index)
 
 int LuaState::countFieldsTableIndex(int index)
 {
-    int res = 0;
+    index = lua_absindex(ptr, index);
 
+    int res = 0;
     lua_pushnil(ptr);
-    while(lua_next(ptr, index - 1))
+
+    while(lua_next(ptr, index))
     {
 	lua_pop(ptr, 1);
         res++;
@@ -844,10 +876,12 @@ int LuaState::countFieldsTableIndex(int index)
 
 bool LuaState::isSequenceTableIndex(int index)
 {
-    int prev = 0;
+    index = lua_absindex(ptr, index);
 
+    int prev = 0;
     lua_pushnil(ptr);
-    while(lua_next(ptr, index - 1))
+
+    while(lua_next(ptr, index))
     {
 	// value
 	lua_pop(ptr, 1);
@@ -885,6 +919,9 @@ LuaState & LuaState::stackReplaceIndex(int index)
 
 LuaState & LuaState::stackRemoveIndex(int index)
 {
+    if(index < 0)
+        index = lua_absindex(ptr, index);
+
     lua_remove(ptr, index);
     return *this;
 }
@@ -897,6 +934,9 @@ LuaState & LuaState::stackTopIndex(int index)
 
 LuaState & LuaState::stackInsertIndex(int index)
 {
+    if(index < 0)
+	index = lua_absindex(ptr, index);
+
     lua_insert(ptr, index);
     return *this;
 }

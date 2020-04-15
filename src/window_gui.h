@@ -40,7 +40,7 @@ public:
     WindowTexture(const Texture &, Window*);
 
     void			setTexture(const Texture & tx);
-    void			renderWindow(void);
+    void			renderWindow(void) override;
 };
 
 class WindowToolTipArea : public Window
@@ -77,10 +77,11 @@ protected:
     virtual Rect		itemsArea(void) const;
 
 protected:
-    bool			mouseClickEvent(const ButtonsEvent &);
-    bool			scrollUpEvent(const Point &);
-    bool			scrollDownEvent(const Point &);
-    void			signalReceive(int, const SignalMember*);
+    bool			mouseClickEvent(const ButtonsEvent &) override;
+    bool			scrollUpEvent(const Point &) override;
+    bool			scrollDownEvent(const Point &) override;
+    bool			userEvent(int, void*) override;
+    void			signalReceive(int, const SignalMember*) override;
 
 public:
     WindowListBox(bool vertical, Window &);
@@ -133,14 +134,14 @@ protected:
     bool			isVertical(void) const;
 
 protected:
-    void			windowMoveEvent(const Point &);
-    void			windowResizeEvent(const Size &);
-    bool			mousePressEvent(const ButtonEvent &);
-    bool			mouseReleaseEvent(const ButtonEvent &);
-    bool			mouseMotionEvent(const Point &, u32 buttons);
-    bool			scrollUpEvent(const Point &);
-    bool			scrollDownEvent(const Point &);
-    void			signalReceive(int, const SignalMember*);
+    void			windowMoveEvent(const Point &) override;
+    void			windowResizeEvent(const Size &) override;
+    bool			mousePressEvent(const ButtonEvent &) override;
+    bool			mouseReleaseEvent(const ButtonEvent &) override;
+    bool			mouseMotionEvent(const Point &, u32 buttons) override;
+    bool			scrollUpEvent(const Point &) override;
+    bool			scrollDownEvent(const Point &) override;
+    void			signalReceive(int, const SignalMember*) override;
 
 public:
     WindowScrollBar(bool, WindowListBox &);
@@ -170,13 +171,13 @@ protected:
     virtual const Texture* 	textureReleased(void) const { return NULL; }
     virtual const Texture* 	textureInformed(void) const { return NULL; } // second sprite, if informed mode
 
-    bool        		mousePressEvent(const ButtonEvent &);
-    bool        		mouseReleaseEvent(const ButtonEvent &);
-    void        		mouseLeaveEvent(void);
-    void        		mouseFocusEvent(void);
-    bool			keyPressEvent(const KeySym &);
-    bool			keyReleaseEvent(const KeySym &);
-    void			signalReceive(int, const SignalMember*);
+    bool        		mousePressEvent(const ButtonEvent &) override;
+    bool        		mouseReleaseEvent(const ButtonEvent &) override;
+    void        		mouseLeaveEvent(void) override;
+    void        		mouseFocusEvent(void) override;
+    bool			keyPressEvent(const KeySym &) override;
+    bool			keyReleaseEvent(const KeySym &) override;
+    void			signalReceive(int, const SignalMember*) override;
 
     void			setClickedComplete(void);
     void			setReleased(void);
@@ -187,7 +188,7 @@ public:
     WindowButton(Window* win = NULL);
     WindowButton(const WindowButton &);
 
-    void        		renderWindow(void);
+    void        		renderWindow(void) override;
 
     void        		setAction(int);
     void       			setDisabled(bool);
@@ -206,15 +207,15 @@ public:
     int         		action(void) const;
     int         		hotKey(void) const;
 
-    std::string			toString(void) const;
+    std::string			toString(void) const override;
 };
 
 class WindowCheckBox : public WindowButton
 {
 protected:
-    void 			mouseLeaveEvent(void);
-    bool 			mousePressEvent(const ButtonEvent &);
-    bool 			mouseReleaseEvent(const ButtonEvent &);
+    void 			mouseLeaveEvent(void) override;
+    bool 			mousePressEvent(const ButtonEvent &) override;
+    bool 			mouseReleaseEvent(const ButtonEvent &) override;
 
 public:
     WindowCheckBox(Window & win) : WindowButton(& win) {}
@@ -246,13 +247,13 @@ class WindowTextAreaItem : public WindowListItem
 
 public:
     WindowTextAreaItem(const TexturePos &, Window &);
-    void renderWindow(void);
+    void renderWindow(void) override;
 };
 
 class WindowTextArea : public WindowListBox
 {
 protected:
-    bool			mouseClickEvent(const ButtonsEvent &) { return false; }
+    bool			mouseClickEvent(const ButtonsEvent &) override { return false; }
 
 public:
     WindowTextArea(Window & win) : WindowListBox(true, win) {}
@@ -266,7 +267,7 @@ public:
     void			clear(void) { removeAllItems(); }
 
     virtual void		renderBackground(void) {}
-    void			renderWindow(void);
+    void			renderWindow(void) override;
 };
 
 #endif

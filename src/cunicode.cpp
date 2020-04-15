@@ -168,6 +168,26 @@ std::string UnicodeString::toString(void) const
     return str;
 }
 
+std::string UnicodeString::toHexString(const std::string & sep, bool prefix) const
+{
+    if(size())
+    {
+        StringList list;
+
+        for(const_iterator it = begin(); it != end(); ++it)
+        {
+            std::ostringstream os;
+            if(prefix) os << "0x";
+            os << std::setw(4) << std::setfill('0') << std::uppercase << std::hex << static_cast<int>(*it);
+            list << os.str();
+        }
+
+        return list.join(sep);
+    }
+
+    return "";
+}
+
 UnicodeString & UnicodeString::append(const UnicodeString & src)
 {
     int sz = size();

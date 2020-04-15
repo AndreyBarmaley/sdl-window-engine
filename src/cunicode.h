@@ -68,6 +68,7 @@ public:
     int			index(int) const;
     UnicodeString	substr(size_t, int = -1) const;
     std::string		toString(void) const;
+    std::string         toHexString(const std::string & sep = ", ", bool prefix = true) const;
 
     UnicodeString       ucFirst(void) const;
     UnicodeString	toLower(void) const;

@@ -33,8 +33,7 @@ class LuaState
 {
     lua_State*		ptr;
 
-    void		dump(const char* label = NULL);
-    int			dumpTable(int index);
+    void		dumpTable(int index, int tabs = 0);
     std::string		dumpValue(int index);
 
 public:
@@ -51,7 +50,7 @@ public:
     LuaState & 		callFunction(int nargs, int nresults);
 
     // lib
-    bool		registerLibrary(const char*, const luaL_Reg[]);
+    bool		registerLibrary(const std::string &, const luaL_Reg[]);
     bool		registerDirectory(const std::string &);
 
     // check type
@@ -154,11 +153,10 @@ public:
     size_t		stackSize(void) const;
     int			stackTopIndex(void) const;
     void		stackClear(void);
-    LuaState &		stackReplaceIndex(int);
-    LuaState &		stackInsertIndex(int);
-    LuaState &		stackRemoveIndex(int);
-    LuaState &		stackTopIndex(int);
-    LuaState &		stackDump(const std::string &);
+    LuaState &		stackReplaceIndex(int);		// replace top to stack index
+    LuaState &		stackInsertIndex(int);		// insert top to stack index
+    LuaState &		stackRemoveIndex(int);		// remove stack index
+    LuaState &		stackTopIndex(int);		// resize stack, set new top index
     LuaState &		stackDump(void);
     LuaState &		stackPop(size_t num = 1);
 

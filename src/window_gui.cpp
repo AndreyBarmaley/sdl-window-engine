@@ -275,6 +275,17 @@ bool WindowListBox::scrollDownEvent(const Point & pos)
     return scrollNext();
 }
 
+bool WindowListBox::userEvent(int ev, void*)
+{
+    if(ev == Signal::FingerMoveUp)
+	return scrollNext();
+
+    if(ev == FingerMoveDown)
+	return scrollPrev();
+
+    return false;
+}
+
 bool WindowListBox::selectedPrev(void)
 {
     if(0 < indexSelected)

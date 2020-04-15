@@ -118,8 +118,6 @@ StreamNetwork::StreamNetwork() : sd(NULL), sdset(NULL)
 {
 }
 
-size_t StreamNetwork::timeout = 100;
-
 StreamNetwork::StreamNetwork(TCPsocket sock) : sd(NULL), sdset(NULL)
 {
     open(sock);
@@ -158,16 +156,23 @@ StreamNetwork & StreamNetwork::operator= (StreamNetwork && sn) noexcept
     return *this;
 }
 
-bool StreamNetwork::ready(void) const
+bool StreamNetwork::ready(u32 timeout) const
 {
     const size_t chunk = 10;
 
-    for(size_t it = 0; it < timeout; it += chunk)
+    if(0 < timeout)
     {
-	bool res = sd && sdset && 0 < SDLNet_CheckSockets(sdset, 1) && 0 < SDLNet_SocketReady(sd);
-	if(res) return true;
+	for(size_t it = 0; it < timeout; it += chunk)
+	{
+	    bool res = sd && sdset && 0 < SDLNet_CheckSockets(sdset, 1) && 0 < SDLNet_SocketReady(sd);
+	    if(res) return true;
 
-	Tools::delay(chunk);
+	    Tools::delay(chunk);
+	}
+    }
+    else
+    {
+	return sd && sdset && 0 < SDLNet_CheckSockets(sdset, 1) && 0 < SDLNet_SocketReady(sd);
     }
 
     return false;

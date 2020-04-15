@@ -38,8 +38,6 @@ protected:
     int			recv(char*, int) const;
     int			send(const char*, int);
 
-    static size_t	timeout;
-
 public:
     StreamNetwork();
     StreamNetwork(TCPsocket);
@@ -60,7 +58,7 @@ public:
     bool		connect(const std::string &, int);
     bool		listen(int port);
     void		close(void);
-    bool		ready(void) const;
+    bool		ready(u32 timeout = 100 /* ms */) const;
 
     int			get8(void) const override;
     int			getBE16(void) const override;
@@ -79,8 +77,6 @@ public:
     void		putBE16(u16) override;
     void		putLE16(u16) override;
     void		put(const char*, size_t) override;
-
-    static void		setReadyTimeout(size_t ms) { timeout = ms; }
 };
 
 #endif

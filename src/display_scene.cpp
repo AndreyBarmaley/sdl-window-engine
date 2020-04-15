@@ -610,7 +610,7 @@ void DisplayScene::destroyChilds(const Window & win)
         if(*it) (*it)->destroy();
 }
 
-void DisplayScene::waitDelay(int delay)
+void DisplayScene::handleEvents(u32 interval)
 {
     u32 start = Tools::ticks();
 
@@ -618,10 +618,10 @@ void DisplayScene::waitDelay(int delay)
     {
 	if(Display::handleEvents())
     	    Display::redraw();
-	else
-    	    Tools::delay(1);
 
-    	if(0 > delay || start + delay < Tools::ticks())
+    	if(0 == interval || start + interval < Tools::ticks())
 	    break;
+
+    	Tools::delay(1);
     }
 }

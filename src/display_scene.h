@@ -69,7 +69,7 @@ public:
 
     static bool			isDirty(void);
     static void			setDirty(bool);
-    static void			waitDelay(int);
+    static void			handleEvents(u32 interval = 0);
 };
 
 #endif

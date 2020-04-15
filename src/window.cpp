@@ -384,10 +384,7 @@ void Window::renderClear(const Color & col) const
 void Window::renderColor(const Color & col, const Rect & dstrt) const
 {
     if(rect() & dstrt)
-    {
-	Rect rt = transformRect(dstrt, gfxpos);
-	Display::renderColor(col, Display::texture(), rt);
-    }
+	Display::renderColor(col, Display::texture(), transformRect(dstrt, gfxpos));
 }
 
 void Window::renderRect(const Color & col, const Rect & dstrt) const
