@@ -1,0 +1,98 @@
+/***************************************************************************
+ *   Copyright (C) 2017 by SWE team <sdl.window.engine@gmail.com>          *
+ *                                                                         *
+ *   Part of the SWE: SDL Window Engine:                                   *
+ *   https://github.com/AndreyBarmaley/sdl-window-engine                   *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 3 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this program; if not, write to the                         *
+ *   Free Software Foundation, Inc.,                                       *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ ***************************************************************************/
+
+#ifndef _SWE_DISPLAY_
+#define _SWE_DISPLAY_
+
+#include "surface.h"
+
+namespace SWE
+{
+
+#ifdef OLDENGINE
+    enum { FlipNone, FlipHorizontal, FlipVertical };
+#else
+    enum { FlipNone = SDL_FLIP_NONE, FlipHorizontal = SDL_FLIP_HORIZONTAL, FlipVertical = SDL_FLIP_VERTICAL };
+#endif
+
+    class Window;
+    class FontRender;
+    class UCString;
+    class UnicodeString;
+
+    namespace Display
+    {
+        bool		init(const std::string &, bool landscape);
+        bool		init(const std::string &, const Size & win, bool fullscreen, bool accel = true);
+        bool		init(const std::string &, const Size & win, const Size & render, bool fullscreen, bool accel, bool resized);
+        bool		resize(const Size &);
+
+        const Size &	device(void);
+        const Size &	size(void);
+        bool		fullscreen(void);
+
+        bool		scaleUsed(void);
+        Point		scaleValue(const Point &);
+
+        void		hardwareCursorHide(void);
+        void		hardwareCursorShow(void);
+        std::list<Size>	hardwareVideoModes(bool landscape);
+
+        bool		handleEvents(void);
+        void		redraw(void);
+
+        void 		renderSurface(const Surface &, const Rect &, Texture &, const Rect &, int flip = FlipNone);
+        void 		renderTexture(const Texture &, const Point &);
+        void 		renderTexture(const Texture &, const Rect &, Texture &, const Rect &, int flip = FlipNone);
+
+        void		renderClear(const Color &, Texture &);
+        void            renderColor(const Color &, Texture &, const Rect &);
+        void		renderRect(const Color &, Texture &, const Rect &);
+        void		renderLine(const Color &, Texture &, const Point &, const Point &);
+        void		renderPoint(const Color &, Texture &, const Point &);
+        void		renderPolygon(const Color &, Texture &, const Points &, bool closure = true);
+
+        Rect		renderText(const FontRender &, const UnicodeString &, const Color &, Texture &, const Point &, int halign, int valign, bool horizontal = true);
+        Rect		renderTextFixed(const FontRender &, const UnicodeString &, const Color &, Texture &, const Point &, const Rect &, int halign, int valign, bool horizontal = true);
+        bool		renderScreenshot(const std::string &);
+
+        Texture &	texture(void);
+        void		renderCursor(const Texture &);
+        u32		timeStart(void);
+
+        Point		mouseCursorPosition(void);
+        u32		mouseButtonState(void);
+
+        Texture		renderRect(const Color & rect, const Color & fill, const Size &, int = 1);
+        Texture         renderText(const FontRender &, const UnicodeString &, const Color &, const Color & = Color::transparent());
+        Texture         renderText(const FontRender &, const UCString &);
+
+        Surface		createSurface(const Texture &);
+        Texture		createTexture(const Texture &, int flip = FlipNone);
+        Texture		createTexture(const Surface &);
+        Texture		createTexture(const BinaryBuf &);
+        Texture		createTexture(const std::string &);
+        Texture		createTexture(const Size &, bool alpha = true);
+    } // Display
+
+} // SWE
+#endif
