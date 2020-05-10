@@ -1,0 +1,495 @@
+/***************************************************************************
+ *   Copyright (C) 2017 by SWE team <sdl.window.engine@gmail.com>          *
+ *                                                                         *
+ *   Part of the SWE: SDL Window Engine:                                   *
+ *   https://github.com/AndreyBarmaley/sdl-window-engine                   *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 3 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this program; if not, write to the                         *
+ *   Free Software Foundation, Inc.,                                       *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ ***************************************************************************/
+
+#include <algorithm>
+#include <iterator>
+
+#include "swe_display.h"
+#include "swe_wingui_scroll.h"
+#include "swe_wingui_list.h"
+
+namespace SWE
+{
+    /* ListWidgetItem */
+    ListWidgetItem::ListWidgetItem(ListWidget & parent) : WindowToolTipArea(& parent)
+    {
+        resetState(FlagModality);
+    }
+
+    bool ListWidgetItem::isSelected(void) const
+    {
+	auto list = listWidget();
+	return list ? list->currentItem() == this : false;
+    }
+
+    ListWidget* ListWidgetItem::listWidget(void) const
+    {
+	auto list = dynamic_cast<const ListWidget*>(parent());
+	return list ? const_cast<ListWidget*>(list) : NULL;
+    }
+
+    void ListWidgetItem::setSelected(bool select)
+    {
+	auto list = listWidget();
+	if(list) list->setCurrentItem(this);
+    }
+
+    bool ListWidgetItem::mousePressEvent(const ButtonEvent & be)
+    {
+	auto list = listWidget();
+	if(list) list->itemPressed(this);
+
+        return true;
+    }
+
+    bool ListWidgetItem::mouseClickEvent(const ButtonsEvent & be)
+    {
+	auto list = listWidget();
+        if(be.isButtonLeft())
+        {
+	    if(list && isSelected()) list->itemDoubleClicked(this);
+	    setSelected(true);
+        }
+
+	if(list) list->itemClicked(this);
+
+        return true;
+    }
+
+    void ListWidgetItem::mouseFocusEvent(void)
+    {
+	auto list = listWidget();
+	if(list) list->itemEntered(this);
+    }
+
+
+    bool ListWidgetItem::isVisibleNotHidden(void) const
+    {
+	return ! isHidden() && isVisible();
+    }
+
+    /* ListWidget */
+    ListWidget::ListWidget(bool vertical, Window* parent) : Window(parent), skipItems(0), curItem(NULL)
+    {
+        if(vertical) setState(FlagVertical);
+        resetState(FlagModality);
+    }
+
+    ListWidget::ListWidget(const Size & sz, bool vertical, Window* parent) : Window(sz, parent), skipItems(0), curItem(NULL)
+    {
+        if(vertical) setState(FlagVertical);
+        resetState(FlagModality);
+    }
+
+    ListWidget::ListWidget(const Point & pos, const Size & sz, bool vertical, Window* parent) : Window(pos, sz, parent), skipItems(0), curItem(NULL)
+    {
+        if(vertical) setState(FlagVertical);
+        resetState(FlagModality);
+    }
+
+    ListWidget::~ListWidget()
+    {
+        for(auto it = listItems.begin(); it != listItems.end(); ++it)
+            delete *it;
+    }
+
+    void ListWidget::addItem(ListWidgetItem* item)
+    {
+	listItems.push_back(item);
+	signalEmit(Signal::ListWidgetChanged);
+    }
+
+    void ListWidget::clear(void)
+    {
+        for(auto it = listItems.begin(); it != listItems.end(); ++it)
+            delete *it;
+	listItems.clear();
+	setCurrentItem(NULL);
+	skipItems = 0;
+	signalEmit(Signal::ListWidgetChanged);
+    }
+
+    int ListWidget::count(void) const
+    {
+	return listItems.size();
+    }
+
+    ListWidgetItem* ListWidget::currentItem(void) const
+    {
+	return curItem;
+    }
+
+    int ListWidget::currentRow(void) const
+    {
+	return row(currentItem());
+    }
+
+    void ListWidget::insertItem(int row, ListWidgetItem* item)
+    {
+	if(row < 0 || row >= listItems.size())
+	    listItems.push_back(item);
+	else
+	{
+	    auto it = std::next(listItems.begin(), row);
+	    listItems.insert(it, item);
+	}
+	signalEmit(Signal::ListWidgetChanged);
+    }
+
+    ListWidgetItem* ListWidget::item(int row) const
+    {
+	return row < 0 || row >= listItems.size() ?
+		NULL : listItems[row];
+    }
+
+    ListWidgetItem* ListWidget::itemAt(const Point & pos) const
+    {
+	for(auto it = listItems.begin(); it != listItems.end(); ++it)
+	{
+	    auto item = *it;
+	    if(item->isVisibleNotHidden() &&
+		(item->area() & pos)) return item;
+        }
+	return NULL;
+    }
+
+    const std::vector<ListWidgetItem*> &
+    ListWidget::items(void) const
+    {
+	return listItems;
+    }
+
+    void ListWidget::removeItemWidget(ListWidgetItem* item)
+    {
+	auto it = std::find(listItems.begin(), listItems.end(), item);
+	if(it != listItems.end())
+	{
+	    if(*it == currentItem())
+		setCurrentItem(NULL);
+
+	    listItems.erase(it);
+	    delete *it;
+
+	    signalEmit(Signal::ListWidgetChanged);
+	}
+    }
+
+    int ListWidget::row(const ListWidgetItem* item) const
+    {
+	auto it = std::find(listItems.begin(), listItems.end(), item);
+	return it == listItems.end() ?
+	    -1 : std::distance(listItems.begin(), it);
+    }
+
+    int ListWidget::rowTop(void) const
+    {
+	return skipItems;
+    }
+
+    void ListWidget::scrollToItem(const ListWidgetItem* item)
+    {
+	int pos = row(item);
+
+	if(0 <= pos)
+	{
+	    int visible = visibleItems();
+
+	    if(pos < skipItems)
+	    {
+		skipItems = pos;
+        	signalEmit(Signal::ListWidgetScrolled);
+	    }
+	    else
+	    if(skipItems + visible - 1 < pos)
+	    {
+		skipItems = pos;
+		if(skipItems > listItems.size() - visible) skipItems = listItems.size() - visible;
+    		signalEmit(Signal::ListWidgetScrolled);
+	    }
+	}
+    }
+
+    void ListWidget::setCurrentItem(ListWidgetItem* item)
+    {
+	ListWidgetItem* previous = curItem;
+
+	if(! item)
+	    curItem = NULL;
+	else
+	if(listItems.end() != std::find(listItems.begin(), listItems.end(), item))
+	    curItem = item;
+
+	if(curItem != previous)
+	{
+	    currentItemChanged(curItem, previous);
+	    renderWindow();
+	}
+    }
+
+    void ListWidget::setCurrentRow(int row)
+    {
+	setCurrentItem(item(row));
+    }
+
+    ListWidgetItem* ListWidget::takeItem(int row)
+    {
+	auto it = std::find(listItems.begin(), listItems.end(), item(row));
+	if(it != listItems.end())
+	{
+	    if(*it == currentItem())
+		setCurrentItem(NULL);
+
+	    listItems.erase(it);
+	    signalEmit(Signal::ListWidgetChanged);
+
+	    return *it;
+	}
+	return NULL;
+    }
+
+    bool ListWidget::isAreaPoint(const Point & pt) const
+    {
+        return (listArea() + position()) & pt;
+    }
+
+    Rect ListWidget::listArea(void) const
+    {
+	return rect();
+    }
+
+    int ListWidget::visibleItems(void) const
+    {
+	Rect area = listArea();
+	Point itemPos = area.toPoint();
+	int visible = 0;
+
+	for(auto it = listItems.begin(); it != listItems.end(); ++it)
+	{
+	    auto item = *it;
+	    if(! isHidden())
+	    {
+		visible++;
+    
+        	if(isVerticalOrientation())
+		{
+                    itemPos.y += item->height();
+		    if(itemPos.y + item->height() > area.y + area.h) break;
+                }
+		else
+		{
+                    itemPos.x += item->width();
+		    if(itemPos.x + item->width() > area.x + area.w) break;
+		}
+	    }
+	}
+
+	return visible;
+    }
+
+    bool ListWidget::scrollUp(int rows)
+    {
+        if(0 < skipItems)
+        {
+            skipItems -= rows;
+	    if(0 > skipItems) skipItems = 0;
+
+            signalEmit(Signal::ListWidgetScrolled);
+            renderWindow();
+            return true;
+        }
+        return false;
+    }
+
+    bool ListWidget::scrollDown(int rows)
+    {
+        int visible = visibleItems();
+
+	if(visible < listItems.size() &&
+	    skipItems + visible < listItems.size())
+	{
+	    skipItems += rows;
+	    if(skipItems > listItems.size() - visible) skipItems = listItems.size() - visible;
+
+    	    signalEmit(Signal::ListWidgetScrolled);
+    	    renderWindow();
+    	    return true;
+	}
+
+        return false;
+    }
+
+    bool ListWidget::scrollUpEvent(void)
+    {
+	return scrollUp();
+    }
+
+    bool ListWidget::scrollDownEvent(void)
+    {
+	return scrollDown();
+    }
+
+    bool ListWidget::userEvent(int ev, void*)
+    {
+        if(ev == Signal::FingerMoveUp)
+            return scrollUp();
+
+        if(ev == FingerMoveDown)
+            return scrollDown();
+
+        return false;
+    }
+
+    void ListWidget::signalReceive(int sig, const SignalMember* sm)
+    {
+        switch(sig)
+        {
+            case Signal::ScrollBarMoved:
+            {
+                const ScrollBar* scroll = dynamic_cast<const ScrollBar*>(sm);
+
+                if(scroll)
+                {
+		    int top = ScrollBar::transformToListTopRow(*scroll, *this);
+		    if(0 <= top)
+		    {
+			skipItems = top;
+    			renderWindow();
+		    }
+                }
+            }
+            break;
+
+            default:
+                break;
+        }
+    }
+
+    bool ListWidget::isVerticalOrientation(void) const
+    {
+        return checkState(FlagVertical);
+    }
+
+    void ListWidget::renderWindow(void)
+    {
+        if(listItems.size())
+        {
+	    Point itemPos = listArea().toPoint();
+	    int visible = visibleItems();
+            std::for_each(listItems.begin(), listItems.end(), std::bind2nd(std::mem_fun(&Window::setHidden), true));
+
+	    for(int row = skipItems; row < skipItems + visible; ++row)
+	    {
+		ListWidgetItem* item = ListWidget::item(row);
+		if(! item) break;
+
+		item->setPosition(itemPos);
+		item->setHidden(false);
+
+                if(isVerticalOrientation())
+		{
+                    itemPos.y += item->height();
+                }
+		else
+		{
+                    itemPos.x += item->width();
+		}
+	    }
+        }
+    }
+
+    /* TextAreaItem */
+    TextAreaItem::TextAreaItem(const TexturePos & tp, TextArea & win) : ListWidgetItem(win), content(tp)
+    {
+        setSize(Size(win.listArea().w, tp.height()));
+	setVisible(true);
+    }
+
+    void TextAreaItem::renderWindow(void)
+    {
+        renderTexture(content);
+    }
+
+    /* TextArea */
+    TextArea & TextArea::appendString(const Texture & tx, const Point & offset)
+    {
+        addItem(new TextAreaItem(TexturePos(tx, offset), *this));
+        return *this;
+    }
+
+    TextArea & TextArea::appendString(const FontRender & frs, const UnicodeString & str, const Color & col, int halign, bool wrap)
+    {
+        if(wrap)
+        {
+            UCStringList list = frs.splitUCStringWidth(UCString::parseUnicode(str, FBColors(col.toColorIndex())), listArea().w);
+
+            for(auto it = list.begin(); it != list.end(); ++it)
+                appendString(frs, *it, halign, false);
+        }
+        else
+            appendString(frs, UCString::parseUnicode(str, FBColors(col.toColorIndex())), halign, false);
+
+        return *this;
+    }
+
+    TextArea & TextArea::appendString(const FontRender & frs, const UCString & str, int halign, bool wrap)
+    {
+        if(wrap)
+        {
+            UCStringList list = frs.splitUCStringWidth(str, listArea().w);
+
+            for(auto it = list.begin(); it != list.end(); ++it)
+                appendString(frs, *it, halign, false);
+        }
+        else if(str.length())
+        {
+            Texture tx = Display::renderText(frs, str);
+            Point offset = Point(0, 0);
+            
+            switch(halign)
+            {
+                case AlignRight:
+                    offset.x = listArea().w - tx.width();
+                    break;
+             
+                case AlignCenter:
+                    offset.x = (listArea().w - tx.width()) / 2;
+                    break;
+            
+                default:
+                    break;
+            }
+                    
+            appendString(tx, offset);
+        }
+        else
+            appendSpacer(frs);
+
+        return *this;
+    }
+
+    TextArea & TextArea::appendSpacer(const FontRender & frs)
+    {   
+        int height = frs.lineSkipHeight();
+        addItem(new TextAreaItem(TexturePos(Display::createTexture(Size(listArea().w, height)), Point()), *this));
+        return *this;
+    }
+}
