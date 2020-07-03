@@ -35,7 +35,7 @@ namespace SWE
         StreamNetwork &	operator= (const StreamNetwork &) { return *this; }
 
         size_t          	tell(void) const override { return 0; }
-        bool            	skip(size_t len) override { return false; }
+        bool            	skip(size_t len) const override { return false; }
 
     protected:
         TCPsocket		sd;
