@@ -55,59 +55,25 @@ namespace SWE
         return "Unknown";
     }
 
-    struct SDLTexture
-    {
-        SDL_Texture*        raw;
-
-        SDLTexture(SDL_Texture* ptr = NULL) : raw(ptr)
-        {
-        }
-
-        ~SDLTexture()
-        {
 #ifdef OLDENGINE
-
-            if(raw && raw != SDL_GetVideoSurface())
-                SDL_FreeSurface(raw);
-
-#else
-
-            if(raw) SDL_DestroyTexture(raw);
-
-#endif
-        }
-    };
-
-#ifdef OLDENGINE
-    Texture::Texture(const Surface & sf)
+    Texture::Texture(SDL_Texture* tx) : Surface(tx)
     {
-        SDL_Surface* src = sf.toSDLSurface();
-
-        if(src)
-        {
-            ptr = std::make_shared<SDLTexture>(src);
-            src->refcount += 1;
-        }
     }
-#endif
-
-    Texture::Texture(SDL_Texture* tx) : ptr(std::make_shared<SDLTexture>(tx))
+#else
+    Texture::Texture(SDL_Texture* tx) : ptr(std::shared_ptr<SDL_Texture>(tx, SDL_DestroyTexture))
     {
         if(! tx)
             ERROR(SDL_GetError());
-    }
-
-#ifdef OLDENGINE
-    void Texture::convertToDisplayFormat(void)
-    {
-        if(isValid())
-            ptr = std::make_shared<SDLTexture>(SDL_DisplayFormat(toSDLTexture()));
     }
 #endif
 
     void Texture::reset(void)
     {
+#ifdef OLDENGINE
+	Surface::reset();
+#else
         ptr.reset();
+#endif
     }
 
     bool Texture::operator== (const Texture & tx) const
@@ -127,7 +93,11 @@ namespace SWE
 
     void Texture::setTexture(const Texture & tx)
     {
+#ifdef OLDENGINE
+	setSurface(tx);
+#else
         ptr = tx.ptr;
+#endif
     }
 
     void Texture::setBlendMode(int mode)
@@ -142,7 +112,6 @@ namespace SWE
             if(0 != SDL_SetTextureBlendMode(toSDLTexture(), val))
                 ERROR(SDL_GetError());
         }
-
 #endif
     }
 
@@ -151,13 +120,11 @@ namespace SWE
 #ifdef OLDENGINE
         ERROR("not supported");
 #else
-
         if(isValid())
         {
             if(0 != SDL_SetTextureColorMod(toSDLTexture(), col.r(), col.g(), col.b()))
                 ERROR(SDL_GetError());
         }
-
 #endif
     }
 
@@ -166,16 +133,10 @@ namespace SWE
         if(isValid())
         {
 #ifdef OLDENGINE
-
-            if(0 != SDL_SetAlpha(toSDLTexture(), (alpha ? SDL_SRCALPHA : 0), alpha))
-                ERROR(SDL_GetError());
-
-            Display::createSurface(*this).setAlphaMod(alpha);
+            Surface::setAlphaMod(alpha);
 #else
-
             if(0 != SDL_SetTextureAlphaMod(toSDLTexture(), alpha))
                 ERROR(SDL_GetError());
-
 #endif
         }
     }
@@ -204,16 +165,10 @@ namespace SWE
         if(isValid())
         {
 #ifdef OLDENGINE
-            SDL_Texture* tx = toSDLTexture();
-
-            if(tx)
-                res = tx->format->alpha;
-
+	    return Surface::alphaMod();
 #else
-
             if(0 != SDL_GetTextureAlphaMod(toSDLTexture(), &res))
                 ERROR(SDL_GetError());
-
 #endif
         }
 
@@ -231,10 +186,8 @@ namespace SWE
 #ifdef OLDENGINE
             ERROR("not supported");
 #else
-
             if(0 != SDL_GetTextureColorMod(toSDLTexture(), &r, &g, &b))
                 ERROR(SDL_GetError());
-
 #endif
         }
 
@@ -243,7 +196,11 @@ namespace SWE
 
     void Texture::swap(Texture & tx)
     {
+#ifdef OLDENGINE
+	Surface::swap(tx);
+#else
         ptr.swap(tx.ptr);
+#endif
     }
 
     int Texture::width(void) const
@@ -263,8 +220,11 @@ namespace SWE
 
     SDL_Texture* Texture::toSDLTexture(void) const
     {
-        SDLTexture* res = ptr.get();
-        return res ? res->raw : NULL;
+#ifdef OLDENGINE
+	return toSDLSurface();
+#else
+        return ptr.get();
+#endif
     }
 
     Size Texture::size(void) const
@@ -275,19 +235,10 @@ namespace SWE
         if(isValid())
         {
 #ifdef OLDENGINE
-            SDL_Texture* tx = toSDLTexture();
-
-            if(tx)
-            {
-                w = tx->w;
-                h = tx->h;
-            }
-
+	    return Surface::size();
 #else
-
             if(0 != SDL_QueryTexture(toSDLTexture(), NULL, NULL, &w, &h))
                 ERROR(SDL_GetError());
-
 #endif
         }
 
@@ -296,23 +247,60 @@ namespace SWE
 
     void Texture::fill(const Rect & drt, const Color & col)
     {
+#ifdef OLDENGINE
+        Surface::fill(drt, col);
+#else
         Display::renderColor(col, *this, drt);
+#endif
     }
 
     bool Texture::save(const std::string & file) const
     {
-        return Display::createSurface(*this).save(file);
+#ifdef OLDENGINE
+	return Surface::save(file);
+#else
+	return Display::createSurface(*this).save(file);
+#endif
     }
 
-    Texture Texture::copy(void) const
+    Texture Texture::scale(const Texture & tx, const Size & sz)
     {
-        Texture res = Display::createTexture(size());
-        Display::renderTexture(*this, rect(), res, rect());
+#ifdef OLDENGINE
+	return Surface::scale(tx, sz);
+#else
+        Texture res = Display::createTexture(sz);
+        Display::renderTexture(tx, tx.rect(), res, res.rect(), FlipNone);
         return res;
+#endif
+    }
+
+    Texture Texture::copy(const Texture & tx, const Rect & rt)
+    {
+#ifdef OLDENGINE
+	return Surface::copy(tx, rt);
+#else
+        Texture res = Display::createTexture(rt.toSize());
+        Display::renderTexture(tx, rt, res, res.rect(), FlipNone);
+        return res;
+#endif
+    }
+
+    Texture Texture::copy(const Texture & tx, int flip)
+    {
+#ifdef OLDENGINE
+	return Surface::copy(tx, flip);
+#else
+        Texture res = Display::createTexture(tx.size());
+        Display::renderTexture(tx, tx.rect(), res, res.rect(), flip);
+        return res;
+#endif
     }
 
     std::string Texture::toString(void) const
     {
+#ifdef OLDENGINE
+	return Surface::toString();
+#else
         std::ostringstream os;
 
         if(isValid())
@@ -322,15 +310,12 @@ namespace SWE
                "bpp" << "(" << 32 << "), " <<
                "alphaMod" << "(" << alphaMod() << "), " <<
                "colorMod" << "(" << colorMod().toHexString() << "), " <<
-               "blendMode" << "(" << blendModeString(blendMode()) << ")";
+               "blendMode" << "(" << blendModeString(blendMode()) << ")" <<
+	       "refCount" << "(" << ptr.use_count() << ")";
         }
 
         return os.str();
-    }
-
-    std::string Texture::toStringID(void) const
-    {
-        return String::pointer(toSDLTexture());
+#endif
     }
 
     /* TexturePos */
@@ -374,6 +359,9 @@ namespace SWE
 #ifdef WITH_JSON
     JsonObject Texture::toJson(void) const
     {
+#ifdef OLDENGINE
+	return Surface::toJson();
+#else
 	JsonObject res = ObjectClass::toJson();
 
 	if(! isValid())
@@ -386,11 +374,11 @@ namespace SWE
 	res.addBoolean("valid", true);
 	res.addArray("size", JsonPack::size(size()));
         res.addInteger("alphaMod", alphaMod());
-#ifndef OLDENGINE
         res.addString("colorMod", colorMod().toString());
-#endif
         res.addInteger("blendMode", blendMode());
+	res.addInteger("refCount", ptr.use_count());
 	return res;
+#endif
     }
 
     JsonObject TexturePos::toJson(void) const

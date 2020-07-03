@@ -65,7 +65,7 @@ namespace SWE
         UnicodeList	wrap(int) const;
 
         static std::list<UnicodeString>
-        split(const UnicodeString & str, const UnicodeString & sep);
+    			split(const UnicodeString & str, const UnicodeString & sep);
 
 
         int		index(int) const;
@@ -98,13 +98,15 @@ namespace SWE
     {
     public:
         UnicodeList();
-        UnicodeList(const StringList & v);
-        UnicodeList(const std::list<UnicodeString> & v);
-        UnicodeList(const UnicodeList & v);
-        UnicodeList(UnicodeList && v) noexcept;
+        UnicodeList(const StringList &);
+        UnicodeList(const std::list<UnicodeString> &);
+        UnicodeList(const UnicodeList &);
+        UnicodeList(UnicodeList &&) noexcept;
+        UnicodeList(std::list<UnicodeString> &&) noexcept;
 
-        UnicodeList &	operator= (const UnicodeList & v);
-        UnicodeList &	operator= (UnicodeList && v) noexcept;
+        UnicodeList &	operator= (const UnicodeList &);
+        UnicodeList &	operator= (UnicodeList &&) noexcept;
+        UnicodeList &	operator= (std::list<UnicodeString> &&) noexcept;
 
         size_t		maxStringWidth(void) const;
         size_t		totalStringsWidth(void) const;

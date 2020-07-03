@@ -433,32 +433,242 @@ namespace SWE
         return res;
     }
 
-    StreamBase & operator<< (StreamBase & sb, const packshort & st)
+    /* packshort */
+    packshort::packshort(u16 val) : v1(0), v2(0)
     {
-        return sb << st.val;
+	setvalue(val);
     }
 
-    StreamBase & operator>> (StreamBase & sb, packshort & st)
+    packshort::packshort(u8 val1, u8 val2) : v1(0), v2(0)
     {
-        return sb >> st.val;
+	set1(val1).set2(val2);
+    }
+
+    const u8 & packshort::val1(void) const
+    {
+	return v1;
+    }
+
+    const u8 & packshort::val2(void) const
+    {
+	return v2;
+    }
+
+    packshort & packshort::set1(u8 val)
+    {
+	v1 = val;
+	return *this;
+    }
+
+    packshort & packshort::set2(u8 val)
+    {
+	v2 = val;
+	return *this;
+    }
+
+    u16 packshort::operator()(void) const
+    {
+	return value();
+    }
+
+    u16 packshort::value(void) const
+    {
+	return (static_cast<u16>(val1()) << 8) | static_cast<u16>(val2());
+    }
+
+    void packshort::setvalue(u16 val)
+    {
+	set1(0xFF & (val >> 8));
+	set2(0xFF & val);
+    }
+
+    bool packshort::operator< (const packshort & p) const
+    {
+	return value() < p.value();
+    }
+
+    bool packshort::operator> (const packshort & p) const
+    {
+	return value() > p.value();
+    }
+
+    bool packshort::operator== (const packshort & p) const
+    {
+	return value() == p.value();
+    }
+
+    bool packshort::operator!= (const packshort & p) const
+    {
+	return value() != p.value();
+    }
+
+    StreamBase & operator<< (StreamBase & sb, const packshort & st)
+    {
+        return sb << st.value();
+    }
+
+    const StreamBase & operator>> (const StreamBase & sb, packshort & st)
+    {
+	u16 val16; sb >> val16; st.setvalue(val16);
+	return sb;
+    }
+
+    /* packint */
+    bool packint::operator< (const packint & p) const
+    {
+	return value() < p.value();
+    }
+
+    bool packint::operator> (const packint & p) const
+    {
+	return value() > p.value();
+    }
+
+    bool packint::operator== (const packint & p) const
+    {
+	return value() == p.value();
+    }
+
+    bool packint::operator!= (const packint & p) const
+    {
+	return value() != p.value();
     }
 
     StreamBase & operator<< (StreamBase & sb, const packint & st)
     {
-        return sb << st.val;
+        return sb << st.value();
     }
 
-    StreamBase & operator>> (StreamBase & sb, packint & st)
+    const StreamBase & operator>> (const StreamBase & sb, packint & st)
     {
-        return sb >> st.val;
+	u32 val32; sb >> val32; st.setvalue(val32);
+	return sb;
     }
 
+    /* packint2 */
+    packint2::packint2(u32 val) : v1(0), v2(0)
+    {
+	setvalue(val);
+    }
+
+    packint2::packint2(u16 val1, u16 val2) : v1(0), v2(0)
+    {
+	set1(val1).set2(val2);
+    }
+
+    const u16 & packint2::val1(void) const
+    {
+	return v1;
+    }
+
+    const u16 & packint2::val2(void) const
+    {
+	return v2;
+    }
+
+    packint2 & packint2::set1(u16 val)
+    {
+	v1 = val;
+	return *this;
+    }
+
+    packint2 & packint2::set2(u16 val)
+    {
+	v2 = val;
+	return *this;
+    }
+
+    u32 packint2::value(void) const
+    {
+	return (static_cast<u32>(val1()) << 16) | static_cast<u32>(val2());
+    }
+
+    void packint2::setvalue(u32 val)
+    {
+	set1(0xFFFF & (val >> 16));
+	set2(0xFFFF & val);
+    }
+
+    /* packint4 */
+    packint4::packint4(u32 val) : v1(0), v2(0)
+    {
+	setvalue(val);
+    }
+
+    packint4::packint4(u16 val1, u16 val2) : v1(0), v2(0)
+    {
+	v1.setvalue(val1);
+	v2.setvalue(val2);
+    }
+
+    packint4::packint4(u8 val1, u8 val2, u8 val3, u8 val4) : v1(0), v2(0)
+    {
+	v1.set1(val1).set2(val2);
+	v2.set1(val3).set2(val4);
+    }
+
+    const u8 & packint4::val1(void) const
+    {
+	return v1.val1();
+    }
+
+    const u8 & packint4::val2(void) const
+    {
+	return v1.val2();
+    }
+
+    const u8 & packint4::val3(void) const
+    {
+	return v2.val1();
+    }
+
+    const u8 & packint4::val4(void) const
+    {
+	return v2.val2();
+    }
+
+    packint4 & packint4::set1(u8 val)
+    {
+	v1.set1(val);
+	return *this;
+    }
+
+    packint4 & packint4::set2(u8 val)
+    {
+	v1.set2(val);
+	return *this;
+    }
+
+    packint4 & packint4::set3(u8 val)
+    {
+	v2.set1(val);
+	return *this;
+    }
+
+    packint4 & packint4::set4(u8 val)
+    {
+	v2.set2(val);
+	return *this;
+    }
+
+    u32 packint4::value(void) const
+    {
+	return (static_cast<u32>(v1()) << 16) | static_cast<u32>(v2());
+    }
+
+    void packint4::setvalue(u32 val)
+    {
+	v1.setvalue(0xFFFF & (val >> 16));
+	v2.setvalue(0xFFFF & val);
+    }
+
+    /* BitFlags */
     StreamBase & operator<< (StreamBase & sb, const BitFlags & st)
     {
         return sb << st.state;
     }
 
-    StreamBase & operator>> (StreamBase & sb, BitFlags & st)
+    const StreamBase & operator>> (const StreamBase & sb, BitFlags & st)
     {
         return sb >> st.state;
     }

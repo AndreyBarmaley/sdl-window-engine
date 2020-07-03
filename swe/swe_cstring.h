@@ -34,14 +34,17 @@ namespace SWE
     struct StringList : std::list<std::string>
     {
         StringList();
-        StringList(const std::list<std::string> & v);
-        StringList(const StringList & v);
-        StringList(StringList && v) noexcept;
+        StringList(const std::list<std::string> &);
+        StringList(const StringList &);
+        StringList(StringList &&) noexcept;
+        StringList(std::list<std::string> &&) noexcept;
 
-        StringList	operator= (const StringList & v);
-        StringList	operator= (StringList && v) noexcept;
+        StringList &	operator= (const StringList &);
+        StringList &	operator= (StringList &&) noexcept;
+        StringList &	operator= (std::list<std::string> &&) noexcept;
 
         size_t		maxStringWidth(void) const;
+        size_t		totalStringsWidth(void) const;
 
         std::string     join(void) const;
         std::string     join(const std::string &) const;
@@ -76,9 +79,9 @@ namespace SWE
 
         std::string     replace(const std::string &, const char*, const std::string &);
         std::string     replace(const std::string &, const char*, int);
-        StringList      split(const std::string &, int);
 
-        std::list<std::string> split(const std::string & str, const std::string & sep);
+        StringList      split(const std::string &, int);
+        StringList      split(const std::string & str, const std::string & sep);
 
         std::string     hex(u64 value, int width = 8);
         std::string     hex64(u64 value);
@@ -93,7 +96,7 @@ namespace SWE
         int		cur;
 
     public:
-        StringFormat(const char* str, size_t reserver = 0);
+        StringFormat(const std::string &, size_t reserver = 0);
 
         StringFormat &	arg(const std::string &);
         StringFormat &	arg(const char*);

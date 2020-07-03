@@ -294,23 +294,29 @@ namespace SWE
             auto itkey = it + skip;
             auto itval = itkey + 1;
             JsonObject* obj = cont ? dynamic_cast<JsonObject*>(cont) : new JsonObject();
+	    if(obj)
+	    {
+        	while(counts-- && itval != end())
+        	{
+            	    if(!(*itkey).isKey()) ERROR("not key, index: " << std::distance(begin(), itkey) << ", key: \"" << stringTocken(*itkey) << "\"");
 
-            while(counts-- && itval != end())
-            {
-                if(!(*itkey).isKey()) ERROR("not key, index: " << std::distance(begin(), itkey) << ", key: \"" << stringTocken(*itkey) << "\"");
+            	    std::string key = stringTocken(*itkey);
+            	    auto valp = getValue(itval);
 
-                std::string key = stringTocken(*itkey);
-                auto valp = getValue(itval);
+            	    if(valp.first)
+                	obj->content.insert(std::make_pair(key, valp.first));
 
-                if(valp.first)
-                    obj->content.insert(std::make_pair(key, valp.first));
+            	    skip += 1 + valp.second;
+            	    itkey = it + skip;
+            	    itval = itkey + 1;
+        	}
 
-                skip += 1 + valp.second;
-                itkey = it + skip;
-                itval = itkey + 1;
-            }
-
-            res = obj;
+        	res = obj;
+	    }
+	    else
+	    {
+		ERROR("invalid cast");
+	    }
         }
         else if(tok.isPrimitive())
         {

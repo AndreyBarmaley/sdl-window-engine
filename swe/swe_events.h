@@ -30,9 +30,9 @@ namespace SWE
 {
     void	clearAllSignals(void);
 
-    struct SignalMember : public ObjectClass
+    class SignalMember : public ObjectEvent
     {
-        SignalMember() {}
+    public:
         virtual ~SignalMember();
 
         static void	signalSubscribe(const SignalMember & sender, int sig, SignalMember & receiver);
@@ -47,6 +47,15 @@ namespace SWE
 
         void		signalEmit(int);
         virtual void	signalReceive(int, const SignalMember*) {}
+    };
+
+    class BaseObject : public SignalMember
+    {
+    public:
+	BaseObject();
+	virtual ~BaseObject();
+
+	virtual bool	isValidObject(void) const { return false; }
     };
 
 #ifdef OLDENGINE
@@ -134,8 +143,8 @@ namespace SWE
     enum Signal
     {
         EventNone = 0x01000000,
-        WindowCreated, WindowScrolledPrev, WindowScrolledNext, WindowPageUp, WindowPageDown,
-	ListWidgetScrolled, ListWidgetChanged,
+        WindowCreated, WindowCheckFocus, WindowScrolledPrev, WindowScrolledNext, WindowPageUp, WindowPageDown,
+	ListWidgetScrolled, ListWidgetChanged, ListWidgetRemoveItem, ListWidgetTakeItem,
         ScrollBarMoved,
 	LineEditTextChanged, LineEditCursorChanged, LineEditReturnPressed,
 

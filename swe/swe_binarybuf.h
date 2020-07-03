@@ -39,12 +39,14 @@ namespace SWE
         BinaryBuf();
         BinaryBuf(size_t len, int ch = 0);
         BinaryBuf(const u8* ptr, size_t len);
-        BinaryBuf(const std::vector<u8> & v);
-        BinaryBuf(const BinaryBuf & v);
+        BinaryBuf(const std::vector<u8> &);
+        BinaryBuf(const BinaryBuf &);
         BinaryBuf(BinaryBuf &&) noexcept;
+        BinaryBuf(std::vector<u8> &&) noexcept;
 
         BinaryBuf &	operator= (const BinaryBuf &);
         BinaryBuf &	operator= (BinaryBuf &&) noexcept;
+        BinaryBuf &     operator= (std::vector<u8> &&) noexcept;
 
         BinaryBuf	zlibUncompress(size_t real = 0) const;
         BinaryBuf	zlibCompress(void) const;

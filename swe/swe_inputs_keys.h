@@ -207,16 +207,45 @@ namespace SWE
 
         int		toKey(const std::string &);
         const char*	toName(int);
+	bool		isPressed(int);
 
         const std::vector<KeyName> & allKeys(void);
     }
 
-    struct KeySym : std::pair<u16, int>
+    struct KeyMod
     {
-        KeySym(int sym = SDLK_UNKNOWN, u16 mod = 0) : std::pair<u16, int>(mod, sym) {}
-        KeySym(const SDL_Keysym & sdl) : std::pair<u16, int>(sdl.mod, sdl.sym) {}
+	u16	mod;
 
-        const u16 & keymod(void) const
+        KeyMod() : mod(SDL_GetModState()) {}
+        KeyMod(u16 val) : mod(val) {}
+
+        bool isCtrl(void) const { return mod & KMOD_CTRL; }
+        bool isLeftCtrl(void) const { return mod & KMOD_LCTRL; }
+        bool isRightCtrl(void) const { return mod & KMOD_RCTRL; }
+        bool isShift(void) const { return mod & KMOD_SHIFT; }
+        bool isLeftShift(void) const { return mod & KMOD_LSHIFT; }
+        bool isRightShift(void) const { return mod & KMOD_RSHIFT; }
+        bool isAlt(void) const { return mod & KMOD_ALT; }
+        bool isLeftAlt(void) const { return mod & KMOD_LALT; }
+        bool isRightAlt(void) const { return mod & KMOD_RALT; }
+
+#ifndef OLDENGINE
+        bool isGui(void) const { return mod & KMOD_GUI; }
+        bool isLGui(void) const { return mod & KMOD_LGUI; }
+        bool isRGui(void) const { return mod & KMOD_RGUI; }
+#endif
+
+        bool isNum(void) const { return mod & KMOD_NUM; }
+        bool isCaps(void) const { return mod & KMOD_CAPS; }
+        bool isMode(void) const { return mod & KMOD_MODE; }
+    };
+
+    struct KeySym : std::pair<KeyMod, int>
+    {
+        KeySym(int sym = SDLK_UNKNOWN) : std::pair<KeyMod, int>(KeyMod(), sym) {}
+        KeySym(const SDL_Keysym & sdl) : std::pair<KeyMod, int>(KeyMod(sdl.mod), sdl.sym) {}
+
+        const KeyMod & keymod(void) const
         {
             return first;
         }
@@ -248,71 +277,6 @@ namespace SWE
 	{
 	    return code == second;
 	}
-
-        bool isCtrl(void) const
-        {
-            return keymod() & KMOD_CTRL;
-        }
-        bool isLeftCtrl(void) const
-        {
-            return keymod() & KMOD_LCTRL;
-        }
-        bool isRightCtrl(void) const
-        {
-            return keymod() & KMOD_RCTRL;
-        }
-        bool isShift(void) const
-        {
-            return keymod() & KMOD_SHIFT;
-        }
-        bool isLeftShift(void) const
-        {
-            return keymod() & KMOD_LSHIFT;
-        }
-        bool isRightShift(void) const
-        {
-            return keymod() & KMOD_RSHIFT;
-        }
-        bool isAlt(void) const
-        {
-            return keymod() & KMOD_ALT;
-        }
-        bool isLeftAlt(void) const
-        {
-            return keymod() & KMOD_LALT;
-        }
-        bool isRightAlt(void) const
-        {
-            return keymod() & KMOD_RALT;
-        }
-
-#ifndef OLDENGINE
-        bool isGui(void) const
-        {
-            return keymod() & KMOD_GUI;
-        }
-        bool isLGui(void) const
-        {
-            return keymod() & KMOD_LGUI;
-        }
-        bool isRGui(void) const
-        {
-            return keymod() & KMOD_RGUI;
-        }
-#endif
-
-        bool isNum(void) const
-        {
-            return keymod() & KMOD_NUM;
-        }
-        bool isCaps(void) const
-        {
-            return keymod() & KMOD_CAPS;
-        }
-        bool isMode(void) const
-        {
-            return keymod() & KMOD_MODE;
-        }
     };
 
 } // SWE

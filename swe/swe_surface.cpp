@@ -27,9 +27,12 @@
 #include "swe_surface.h"
 
 #ifdef OLDENGINE
+ #include "SDL_rotozoom.h"
  #ifndef DISABLE_IMAGE
  #include "./savepng/IMG_savepng.h"
  #endif
+#else
+ #include "SDL2_rotozoom.h"
 #endif
 
 #ifdef WITH_JSON
@@ -66,14 +69,12 @@ namespace SWE
             if(amask())
             {
                 fill(rect(), Color::transparent());
-                //setAlphaMod(SDL_ALPHA_OPAQUE);
             }
             else
             {
                 Color colorKey = Color::colorKey();
                 fill(rect(), colorKey);
                 setColorKey(colorKey);
-                //setAlphaMod(0);
             }
         }
         else
@@ -136,22 +137,95 @@ namespace SWE
         }
     }
 
-    Surface Surface::copy(SDL_Surface* ptr)
+    Surface Surface::copy(const Surface & sf1, const Rect & rt)
     {
-        if(ptr)
-            ptr->refcount += 1;
-
-        return Surface(ptr);
+	Surface sf2(rt.toSize(), sf1.ptr->format->Amask);
+	sf1.blit(rt, sf2.rect(), sf2);
+	return sf2;
     }
 
-    Surface Surface::copy(void) const
+    Surface Surface::scale(const Surface & sf1, const Size & sz)
     {
-        Surface sf;
+	return Surface(zoomSurface(sf1.ptr, sz.w / static_cast<double>(sf1.width()), sz.h / static_cast<double>(sf1.height()), 0));
+    }
 
-        if(ptr)
-            sf = Surface(SDL_ConvertSurface(ptr, ptr->format, ptr->flags));
+    Surface Surface::copy(const Surface & sf1, int flip)
+    {
+        Surface sf2 = Surface(SDL_ConvertSurface(sf1.ptr, sf1.ptr->format, sf1.ptr->flags));
 
-        return sf;
+    	switch(flip)
+    	{
+	    case FlipNone:
+		break;
+
+    	    case FlipVertical:
+        	for(int py = 0; py < sf1.height(); ++py)
+		    for(int px = 0; px < sf1.width(); ++px)
+                	sf2.drawPixel(Point(px, sf1.height() - py - 1), sf1.pixel(Point(px, py)));
+        	break;
+        
+    	    case FlipHorizontal:
+        	for(int py = 0; py < sf1.height(); ++py)
+            	    for(int px = 0; px < sf1.width(); ++px)
+                	sf2.drawPixel(Point(sf1.width() - px - 1, py), sf1.pixel(Point(px, py)));
+        	break;
+        
+    	    default:
+        	for(int py = 0; py < sf1.height(); ++py)
+            	    for(int px = 0; px < sf1.width(); ++px)
+                	sf2.drawPixel(Point(sf1.width() - px - 1, sf1.height() - py - 1), sf1.pixel(Point(px, py)));
+        	break;
+    	}
+
+        return sf2;
+    }
+
+    Surface Surface::renderGrayScale(const Surface & sf)
+    {
+	Surface res = Surface(SDL_ConvertSurface(sf.ptr, sf.ptr->format, sf.ptr->flags));
+	u32 colkey = sf.mapRGB(sf.colorKey());
+	u32 pixel = 0;
+
+	for(int py = 0; py < sf.height(); ++py)
+    	    for(int px = 0; px < sf.width(); ++px)
+	{
+    	    pixel = sf.pixel(Point(px, py));
+    	    if(0 == colkey || pixel != colkey)
+    	    {
+        	ARGB col = sf.RGBmap(pixel);
+        	int z = col.r() * 0.299f + col.g() * 0.587f + col.b() * 0.114f;
+        	res.drawPixel(Point(px, py), res.mapRGB(Color(z, z, z, col.a())));
+    	    }
+	}
+
+	return res;
+    }
+
+    Surface Surface::renderSepia(const Surface & sf)
+    {
+	Surface res = Surface(SDL_ConvertSurface(sf.ptr, sf.ptr->format, sf.ptr->flags));
+	u32 colkey = sf.mapRGB(sf.colorKey());
+	u32 pixel = 0;
+
+	for(int py = 0; py < sf.height(); ++py)
+    	    for(int px = 0; px < sf.width(); ++px)
+	{
+    	    pixel = sf.pixel(Point(px, py));
+    	    if(colkey == 0 || pixel != colkey)
+    	    {
+        	ARGB col = sf.RGBmap(pixel);
+        	//Numbers derived from http://blogs.techrepublic.com.com/howdoi/?p=120
+        	#define CLAMP255(val) std::min<u16>((val), 255)
+        	int outR = CLAMP255(static_cast<u16>(col.r() * 0.693f + col.g() * 0.769f + col.b() * 0.189f));
+        	int outG = CLAMP255(static_cast<u16>(col.r() * 0.449f + col.g() * 0.686f + col.b() * 0.168f));
+        	int outB = CLAMP255(static_cast<u16>(col.r() * 0.272f + col.g() * 0.534f + col.b() * 0.131f));
+        	pixel = res.mapRGB(Color(outR, outG, outB, col.a()));
+        	res.drawPixel(Point(px, py), pixel);
+        	#undef CLAMP255
+    	    }
+	}
+
+	return res;
     }
 
     void Surface::swap(Surface & sf)
@@ -171,7 +245,6 @@ namespace SWE
             else
             {
 #ifdef OLDENGINE
-
                 if(ptr != SDL_GetVideoSurface())
                     SDL_FreeSurface(ptr);
 
@@ -182,6 +255,18 @@ namespace SWE
             }
         }
     }
+
+#ifdef OLDENGINE
+    void Surface::convertToDisplayFormat(void)
+    {
+	if(ptr)
+	{
+    	    SDL_Surface* sf = SDL_DisplayFormat(ptr);
+	    reset();
+	    ptr = sf;
+	}
+    }
+#endif
 
     bool Surface::isValid(void) const
     {
@@ -223,7 +308,7 @@ namespace SWE
         return Rect(Point(0, 0), size());
     }
 
-    u32 Surface::mapRGB(const Color & col)
+    u32 Surface::mapRGB(const Color & col) const
     {
         if(ptr)
         {
@@ -258,7 +343,7 @@ namespace SWE
         return ptr ? ptr->flags : 0;
     }
 
-    int Surface::amask(void) const
+    u32 Surface::amask(void) const
     {
         return ptr ? ptr->format->Amask : 0;
     }
@@ -326,8 +411,7 @@ namespace SWE
         if(ptr)
         {
 #ifdef OLDENGINE
-
-            if(0 != SDL_SetAlpha(ptr, (val ? SDL_SRCALPHA : 0), val))
+            if(0 != SDL_SetAlpha(ptr, (0 < val ? SDL_SRCALPHA : 0), val))
                 ERROR(SDL_GetError());
 
 #else
@@ -349,37 +433,130 @@ namespace SWE
         if(ptr) ptr->flags &= ~f;
     }
 
+    void Surface::draw4(const Point & dpt, u32 pixel)
+    {
+	u32* bufp = static_cast<u32 *>(ptr->pixels) + dpt.y * (ptr->pitch >> 2) + dpt.x;
+	*bufp = pixel;
+    }
+
+    void Surface::draw3(const Point & dpt, u32 pixel)
+    {
+	u8* bufp = static_cast<u8 *>(ptr->pixels) + dpt.y * ptr->pitch + dpt.x * 3;
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+	bufp[2] = pixel; bufp[1] = pixel >> 8; bufp[0] = pixel >> 16;
+#else
+	bufp[0] = pixel; bufp[1] = pixel >> 8; bufp[2] = pixel >> 16;
+#endif
+    }
+
+    void Surface::draw2(const Point & dpt, u32 pixel)
+    {
+	u16* bufp = static_cast<u16 *>(ptr->pixels) + dpt.y * (ptr->pitch >> 1) + dpt.x;
+	*bufp = static_cast<u16>(pixel);
+    }
+
+    void Surface::draw1(const Point & dpt, u32 pixel)
+    {
+	u8* bufp = static_cast<u8 *>(ptr->pixels) + dpt.y * ptr->pitch + dpt.x;
+	*bufp = static_cast<u8>(pixel);
+    }
+
     void Surface::drawPoint(const Point & dpt, const Color & col)
     {
         drawPixel(dpt, mapRGB(col));
     }
 
-    void Surface::drawPixel(const Point & dpt, int val)
+    void Surface::drawPixel(const Point & dpt, u32 pixel)
     {
         if(ptr)
         {
-            SDL_Rect dstRect = Rect(dpt, Size(1, 1)).toSDLRect();
-
-            if(0 > SDL_FillRect(ptr, & dstRect, val))
-                ERROR(SDL_GetError());
+            if(0 <= dpt.x && dpt.x < ptr->w && 0 <= dpt.y && dpt.y < ptr->h)
+            {
+                SDL_LockSurface(ptr);
+		switch(ptr->format->BytesPerPixel)
+		{
+		    case 1: draw1(dpt, pixel); break;
+		    case 2: draw2(dpt, pixel); break;
+		    case 3: draw3(dpt, pixel); break;
+		    case 4: draw4(dpt, pixel); break;
+		    default: break;
+		}
+                SDL_UnlockSurface(ptr);
+            }
+            else
+                ERROR("out of range: " << "pos: " << dpt.toString() << ", " << "size: " << size().toString());
         }
     }
 
-    u32 Surface::pixel(const Point & pt) const
+/*
+    u32 Surface::convertPixel(const Surface & sf, u32 pixel, bool alpha)
+    {
+	if(ptr && sf.ptr)
+	{
+	    Uint8 r, g, b, a;
+	    if(alpha)
+	    {
+		SDL_GetRGBA(pixel, sf.ptr->format, &r, &g, &b, &a);
+    		return SDL_MapRGBA(ptr->format, r, g, b, a);
+	    }
+	    SDL_GetRGB(pixel, sf.ptr->format, &r, &g, &b);
+    	    return SDL_MapRGB(ptr->format, r, g, b);
+	}
+	return 0;
+    }
+*/
+
+    u32 Surface::pixel4(const Point & dpt) const
+    {
+	u32* bufp = static_cast<u32 *>(ptr->pixels) + dpt.y * (ptr->pitch >> 2) + dpt.x;
+	return *bufp;
+    }
+
+    u32 Surface::pixel3(const Point & dpt) const
+    {
+	u8* bufp = static_cast<u8 *>(ptr->pixels) + dpt.y * ptr->pitch + dpt.x * 3;
+	u32 res = 0;
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+	res |= bufp[0]; res <<= 8; res |= bufp[1]; res <<= 8; res |= bufp[2];
+#else
+        res |= bufp[2]; res <<= 8; res |= bufp[1]; res <<= 8; res |= bufp[0];
+#endif
+	return res;
+    }
+
+    u32 Surface::pixel2(const Point & dpt) const
+    {
+	u16* bufp = static_cast<u16 *>(ptr->pixels) + dpt.y * (ptr->pitch >> 1) + dpt.x;
+	return static_cast<u32>(*bufp);
+    }
+
+    u32 Surface::pixel1(const Point & dpt) const
+    {
+	u8* bufp = static_cast<u8 *>(ptr->pixels) + dpt.y * ptr->pitch + dpt.x;
+	return static_cast<u32>(*bufp);
+    }
+
+    u32 Surface::pixel(const Point & dpt) const
     {
         u32 res = 0;
 
         if(ptr)
         {
-            if(pt.x < ptr->w && pt.y < ptr->h)
+            if(0 <= dpt.x && dpt.x < ptr->w && 0 <= dpt.y && dpt.y < ptr->h)
             {
                 SDL_LockSurface(ptr);
-                const u32* bufp = static_cast<u32*>(ptr->pixels) + pt.y * (ptr->pitch >> 2) + pt.x;
-                res = *bufp;
+		switch(ptr->format->BytesPerPixel)
+		{
+		    case 1: res = pixel1(dpt); break;
+		    case 2: res = pixel2(dpt); break;
+		    case 3: res = pixel3(dpt); break;
+		    case 4: res = pixel4(dpt); break;
+		    default: break;
+		}
                 SDL_UnlockSurface(ptr);
             }
             else
-                ERROR("out of range: " << "pos: " << pt.toString() << ", " << "size: " << size().toString());
+                ERROR("out of range: " << "pos: " << dpt.toString() << ", " << "size: " << size().toString());
         }
 
         return res;
@@ -426,6 +603,26 @@ namespace SWE
         return false;
     }
 
+    std::string Surface::toString(void) const
+    {
+        std::ostringstream os;
+
+        if(isValid())
+        {
+            os <<
+    		"self" << "(" << String::pointer(this) << "), " <<
+               "size" << "(" << size().toString() << "), " <<
+               "bpp" << "(" << 32 << "), " <<
+               "alphaMod" << "(" << alphaMod() << "), " <<
+               "amask" << "(" << String::hex(amask()) << "), " <<
+               "flags" << "(" << String::hex(flags()) << "), " <<
+               "colorKey" << "(" << colorKey().toString() << "), " <<
+    	       "refCount" << "(" << (ptr ? ptr->refcount : 0) << ")";
+        }
+
+        return os.str();
+    }
+
 #ifdef WITH_JSON
     JsonObject Surface::toJson(void) const
     {
@@ -441,9 +638,10 @@ namespace SWE
         res.addBoolean("valid", true);
         res.addArray("size", JsonPack::size(size()));
         res.addInteger("alphaMod", alphaMod());
-        res.addInteger("amask", amask());
+        res.addString("amask", String::hex(amask()));
         res.addInteger("flags", flags());
         res.addString("colorKey", colorKey().toString());
+        res.addInteger("refCount", ptr ? ptr->refcount : 0);
         return res;
     }
 #endif

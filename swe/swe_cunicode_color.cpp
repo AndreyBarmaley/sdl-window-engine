@@ -20,8 +20,9 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <algorithm>
+#include <numeric>
 #include <iterator>
+#include <algorithm>
 
 #include "swe_fontset.h"
 #include "swe_cunicode_color.h"
@@ -180,8 +181,8 @@ namespace SWE
         UnicodeString res;
         res.reserve(size());
 
-        for(const_iterator it = begin(); it != end(); ++it)
-            res.push_back((*it).unicode());
+        for(const UnicodeColor & uc : *this)
+            res.push_back(uc.unicode());
 
         return res;
     }
@@ -200,8 +201,8 @@ namespace SWE
 
     UCString & UCString::operator<< (const UnicodeString & ustr)
     {
-        for(auto it = ustr.begin(); it != ustr.end(); ++it)
-            push_back(UnicodeColor(*it, defcols));
+        for(const auto & uc : ustr)
+            push_back(UnicodeColor(uc, defcols));
 
         return *this;
     }
@@ -325,7 +326,7 @@ namespace SWE
         auto pos2 = end();
 
         while(static_cast<size_t>(std::distance(begin(), pos1)) < size() &&
-              end() != (pos2 = std::find_if(pos1, end(), std::bind2nd(std::mem_fun_ref(&UnicodeColor::isUnicode), sep))))
+              end() != (pos2 = std::find_if(pos1, end(), [&](const UnicodeColor & uc){ return uc.isUnicode(sep); })))
         {
             list.push_back(UCString(pos1, pos2));
             pos1 = pos2 + 1;
@@ -392,7 +393,7 @@ namespace SWE
 
     int UCString::index(int ch) const
     {
-        const_iterator it = std::find_if(begin(), end(), std::bind2nd(std::mem_fun_ref(&UnicodeColor::isUnicode), ch));
+        auto it = std::find_if(begin(), end(), [&](const UnicodeColor & uc){ return uc.isUnicode(ch); });
         return it != end() ? std::distance(begin(), it) : -1;
     }
 
@@ -511,22 +512,16 @@ namespace SWE
 
     size_t UCStringList::maxStringWidth(void) const
     {
-        size_t res = 0;
+        if(empty()) return 0;
 
-        for(const_iterator it = begin(); it != end(); ++it)
-            if((*it).size() > res) res = (*it).size();
-
-        return res;
+        auto it = std::max_element(begin(), end(), [](const UCString & str1, const UCString & str2) { return str1.size() < str2.size(); });
+        return it != end() ? (*it).size() : front().size();
     }
 
     size_t UCStringList::totalStringsWidth(void) const
     {
-        size_t res = 0;
-
-        for(const_iterator it = begin(); it != end(); ++it)
-            res += (*it).size();
-
-        return res;
+	return std::accumulate(begin(), end(), 0,
+        	    [](size_t v, const UCString & str){ return v + str.size(); });
     }
 
 
@@ -534,8 +529,7 @@ namespace SWE
     {
         UCString res;
 
-        for(const_iterator
-            it = begin(); it != end(); ++it)
+        for(auto it = begin(); it != end(); ++it)
             res.append(*it);
 
         return res;
@@ -545,11 +539,10 @@ namespace SWE
     {
         UCString res;
 
-        for(const_iterator
-            it = begin(); it != end(); ++it)
+        for(auto it = begin(); it != end(); ++it)
         {
             res.append(*it);
-            const_iterator next = it;
+            auto next = it;
 
             if(++next != end())
                 res.append(sep);

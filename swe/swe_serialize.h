@@ -27,6 +27,7 @@
 #include <list>
 #include <string>
 #include <vector>
+#include <unordered_map>
 
 #include "swe_types.h"
 #include "swe_binarybuf.h"
@@ -84,23 +85,27 @@ namespace SWE
         void		put32(u32);
         void		put64(u64);
 
-        StreamBase &	operator>> (bool &);
-        StreamBase &	operator>> (char &);
-        StreamBase &	operator>> (u8 &);
-        StreamBase &	operator>> (s8 &);
-        StreamBase &	operator>> (u16 &);
-        StreamBase &	operator>> (s16 &);
-        StreamBase &	operator>> (u32 &);
-        StreamBase &	operator>> (s32 &);
-        StreamBase &	operator>> (u64 &);
-        StreamBase &	operator>> (s64 &);
-        StreamBase &	operator>> (float &);
-        StreamBase &	operator>> (std::string &);
+        virtual size_t  tell(void) const { return 0; }
+        virtual bool    skip(size_t) const { return false; }
+        virtual bool    seek(int offset, int whence = RW_SEEK_SET) const { return false; }
 
-        StreamBase &	operator>> (Rect &);
-        StreamBase &	operator>> (Point &);
-        StreamBase &	operator>> (Size &);
-        StreamBase &	operator>> (BinaryBuf &);
+        const StreamBase &	operator>> (bool &) const;
+        const StreamBase &	operator>> (char &) const;
+        const StreamBase &	operator>> (u8 &) const;
+        const StreamBase &	operator>> (s8 &) const;
+        const StreamBase &	operator>> (u16 &) const;
+        const StreamBase &	operator>> (s16 &) const;
+        const StreamBase &	operator>> (u32 &) const;
+        const StreamBase &	operator>> (s32 &) const;
+        const StreamBase &	operator>> (u64 &) const;
+        const StreamBase &	operator>> (s64 &) const;
+        const StreamBase &	operator>> (float &) const;
+        const StreamBase &	operator>> (std::string &) const;
+
+        const StreamBase &	operator>> (Rect &) const;
+        const StreamBase &	operator>> (Point &) const;
+        const StreamBase &	operator>> (Size &) const;
+        const StreamBase &	operator>> (BinaryBuf &) const;
 
         StreamBase &	operator<< (const bool &);
         StreamBase &	operator<< (const char &);
@@ -121,56 +126,53 @@ namespace SWE
         StreamBase &	operator<< (const BinaryBuf &);
 
         template<class Type1, class Type2>
-        StreamBase & operator>> (std::pair<Type1, Type2> & p)
+        const StreamBase & operator>> (std::pair<Type1, Type2> & p) const
         {
             return *this >> p.first >> p.second;
         }
 
         template<class Type>
-        StreamBase & operator>> (std::vector<Type> & v)
+        const StreamBase & operator>> (std::vector<Type> & v) const
         {
             size_t size = get32();
             v.clear();
-
             for(size_t it = 0; it < size; ++it)
             {
-                Type t;
-                *this >> t;
-                v.push_back(t);
+                Type t; *this >> t; v.emplace_back(t);
             }
-
             return *this;
         }
 
         template<class Type>
-        StreamBase & operator>> (std::list<Type> & v)
+        const StreamBase & operator>> (std::list<Type> & v) const
         {
-            size_t size = get32();
-            v.clear();
-
+            size_t size = get32(); v.clear();
             for(size_t it = 0; it < size; ++it)
             {
-                Type t;
-                *this >> t;
-                v.push_back(t);
+                Type t; *this >> t; v.emplace_back(t);
             }
-
             return *this;
         }
 
         template<class Type1, class Type2>
-        StreamBase & operator>> (std::map<Type1, Type2> & v)
+        const StreamBase & operator>> (std::map<Type1, Type2> & v) const
         {
-            size_t size = get32();
-            v.clear();
-
+            size_t size = get32(); v.clear();
             for(size_t ii = 0; ii < size; ++ii)
             {
-                std::pair<Type1, Type2> pr;
-                *this >> pr;
-                v.insert(pr);
+                Type1 t; *this >> t; *this >> v[t];
             }
+            return *this;
+        }
 
+        template<class Type1, class Type2, class... Args>
+        const StreamBase & operator>> (std::unordered_map<Type1, Type2, Args...> & v) const
+        {
+            size_t size = get32(); v.clear();
+            for(size_t ii = 0; ii < size; ++ii)
+            {
+                Type1 t; *this >> t; *this >> v[t];
+            }
             return *this;
         }
 
@@ -184,10 +186,7 @@ namespace SWE
         StreamBase & operator<< (const std::vector<Type> & v)
         {
             put32(static_cast<u32>(v.size()));
-
-            for(typename std::vector<Type>::const_iterator
-                it = v.begin(); it != v.end(); ++it) *this << *it;
-
+            for(auto it = v.begin(); it != v.end(); ++it) *this << *it;
             return *this;
         }
 
@@ -195,10 +194,7 @@ namespace SWE
         StreamBase & operator<< (const std::list<Type> & v)
         {
             put32(static_cast<u32>(v.size()));
-
-            for(typename std::list<Type>::const_iterator
-                it = v.begin(); it != v.end(); ++it) *this << *it;
-
+            for(auto it = v.begin(); it != v.end(); ++it) *this << *it;
             return *this;
         }
 
@@ -206,10 +202,15 @@ namespace SWE
         StreamBase & operator<< (const std::map<Type1, Type2> & v)
         {
             put32(static_cast<u32>(v.size()));
+            for(auto it = v.begin(); it != v.end(); ++it) *this << (*it).first << (*it).second;
+            return *this;
+        }
 
-            for(typename std::map<Type1, Type2>::const_iterator
-                it = v.begin(); it != v.end(); ++it) *this << *it;
-
+        template<class Type1, class Type2, class... Args>
+        StreamBase & operator<< (const std::unordered_map<Type1, Type2, Args...> & v)
+        {
+            put32(static_cast<u32>(v.size()));
+            for(auto it = v.begin(); it != v.end(); ++it) *this << (*it).first << (*it).second;
             return *this;
         }
     };
@@ -217,56 +218,37 @@ namespace SWE
     /* StreamRWops */
     class StreamRWops
     {
-        StreamRWops(const StreamRWops &) : rw(NULL) {}
-        StreamRWops & operator=(const StreamRWops &)
-        {
-            return *this;
-        }
+        StreamRWops(const StreamRWops &) {};
+        StreamRWops & operator=(const StreamRWops &){ return *this; };
 
     protected:
         SDL_RWops*		rw;
 
     public:
-        ~StreamRWops()
-        {
-            close();
-        }
+        StreamRWops(SDL_RWops* val = NULL);
+        StreamRWops(StreamRWops && srw) noexcept;
+        ~StreamRWops();
 
-        StreamRWops(SDL_RWops* val = NULL) : rw(val) {}
-        StreamRWops(StreamRWops && srw) noexcept
-        {
-            rw = srw.rw;
-            srw.rw = NULL;
-        }
-
-        StreamRWops & operator=(StreamRWops && srw) noexcept
-        {
-            rw = srw.rw;
-            srw.rw = NULL;
-            return *this;
-        }
+        StreamRWops &	operator=(StreamRWops && srw) noexcept;
 
         void		close(void);
 
         size_t		size(void) const;
-        size_t              last(void) const;
-        size_t              tell(void) const;
-        bool                seek(int offset, int whence = RW_SEEK_SET);
-        bool                skip(size_t);
+        size_t          last(void) const;
+        size_t          tell(void) const;
+        bool            skip(size_t) const;
+        bool            seek(int offset, int whence) const;
 
-        bool		isValid(void) const
-        {
-            return rw;
-        }
+        bool		isValid(void) const { return rw; }
 
-        int                 get8(void) const;
-        int                 getBE16(void) const;
-        int                 getLE16(void) const;
-        int                 getBE32(void) const;
-        int                 getLE32(void) const;
-        s64                 getBE64(void) const;
-        s64                 getLE64(void) const;
-        BinaryBuf           get(size_t = 0 /* all data */) const;
+        int             get8(void) const;
+        int             getBE16(void) const;
+        int             getLE16(void) const;
+        int             getBE32(void) const;
+        int             getLE32(void) const;
+        s64             getBE64(void) const;
+        s64             getLE64(void) const;
+        BinaryBuf       get(size_t = 0 /* all data */) const;
 
         bool		put8(char);
         bool		putBE16(u16);

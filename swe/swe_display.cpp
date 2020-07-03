@@ -30,10 +30,6 @@
 #include <iterator>
 #include <list>
 
-#ifdef OLDENGINE
-#include "SDL_rotozoom.h"
-#endif
-
 #include "swe_engine.h"
 #include "swe_music.h"
 #include "swe_display.h"
@@ -273,8 +269,18 @@ bool SWE::Display::renderInit(const Size & newsz, bool accel)
     // update winsz
     winsz.w = _window->w;
     winsz.h = _window->h;
-    displayTexture = createTexture(rendersz, false);
-    displayTexture.convertToDisplayFormat();
+
+    if(winsz != rendersz)
+    {
+	displayTexture = createTexture(rendersz, true);
+	displayTexture.convertToDisplayFormat();
+	DEBUG("set display to soft surface");
+    }
+    else
+    {
+	displayTexture = Surface(SDL_GetVideoSurface());
+	DEBUG("set display to video surface");
+    }
 #else
 
     if(_renderer)
@@ -456,44 +462,40 @@ void SWE::Display::renderClear(const Color & cl, Texture & dtx)
 #ifdef OLDENGINE
     renderColor(cl, dtx, dtx.rect());
 #else
-
     if(renderReset(dtx.toSDLTexture()))
     {
-        if(0 == SDL_SetRenderDrawColor(_renderer, cl.r(), cl.g(), cl.b(), cl.a()))
-        {
-            if(0 != SDL_RenderClear(_renderer))
-                ERROR(SDL_GetError());
-        }
-        else
-            ERROR(SDL_GetError());
+    	if(0 == SDL_SetRenderDrawColor(_renderer, cl.r(), cl.g(), cl.b(), cl.a()))
+    	{
+    	    if(0 != SDL_RenderClear(_renderer))
+            	ERROR(SDL_GetError());
+    	}
+    	else
+    	    ERROR(SDL_GetError());
     }
     else
-        FIXME(String::pointer(dtx.toSDLTexture()));
-
+    	FIXME(String::pointer(dtx.toSDLTexture()));
 #endif
 }
 
 void SWE::Display::renderColor(const Color & cl, Texture & dtx, const Rect & drt)
 {
 #ifdef OLDENGINE
-    createSurface(dtx).fill(drt, cl);
+    dtx.fill(drt, cl);
 #else
-
     if(renderReset(dtx.toSDLTexture()))
     {
-        if(0 == SDL_SetRenderDrawColor(_renderer, cl.r(), cl.g(), cl.b(), cl.a()))
-        {
-            const SDL_Rect dstrt = drt.toSDLRect();
+    	if(0 == SDL_SetRenderDrawColor(_renderer, cl.r(), cl.g(), cl.b(), cl.a()))
+    	{
+    	    const SDL_Rect dstrt = drt.toSDLRect();
 
-            if(0 != SDL_RenderFillRect(_renderer, &dstrt))
+    	    if(0 != SDL_RenderFillRect(_renderer, &dstrt))
                 ERROR(SDL_GetError());
-        }
-        else
-            ERROR(SDL_GetError());
+    	}
+    	else
+    	    ERROR(SDL_GetError());
     }
     else
-        FIXME(String::pointer(dtx.toSDLTexture()));
-
+    	FIXME(String::pointer(dtx.toSDLTexture()));
 #endif
 }
 
@@ -514,19 +516,18 @@ SWE::Texture SWE::Display::renderRect(const Color & col, const Color & fill, con
 void SWE::Display::renderRect(const Color & cl, Texture & dtx, const Rect & drt)
 {
 #ifdef OLDENGINE
-    Surface dsf = createSurface(dtx);
-    int pixel = dsf.mapRGB(cl);
+    int pixel = dtx.mapRGB(cl);
 
     for(int ox = 0; ox < drt.w; ++ox)
     {
-        dsf.drawPixel(drt.toPoint() + Point(ox, 0), pixel);
-        dsf.drawPixel(drt.toPoint() + Point(ox, drt.h - 1), pixel);
+        dtx.drawPixel(drt.toPoint() + Point(ox, 0), pixel);
+        dtx.drawPixel(drt.toPoint() + Point(ox, drt.h - 1), pixel);
     }
 
     for(int oy = 1; oy < drt.h - 1; ++oy)
     {
-        dsf.drawPixel(drt.toPoint() + Point(0, oy), pixel);
-        dsf.drawPixel(drt.toPoint() + Point(drt.w - 1, oy), pixel);
+        dtx.drawPixel(drt.toPoint() + Point(0, oy), pixel);
+        dtx.drawPixel(drt.toPoint() + Point(drt.w - 1, oy), pixel);
     }
 
 #else
@@ -568,11 +569,10 @@ void SWE::Display::renderLine(const Color & cl, Texture & dtx, const Point & pt1
 {
 #ifdef OLDENGINE
     Points points = Tools::renderLine(pt1, pt2);
-    Surface dsf = createSurface(dtx);
-    int pixel = dsf.mapRGB(cl);
+    int pixel = dtx.mapRGB(cl);
 
     for(auto it = points.begin(); it != points.end(); ++it)
-        dsf.drawPixel(*it, pixel);
+        dtx.drawPixel(*it, pixel);
 
 #else
 
@@ -595,7 +595,7 @@ void SWE::Display::renderLine(const Color & cl, Texture & dtx, const Point & pt1
 void SWE::Display::renderPoint(const Color & cl, Texture & dtx, const Point & pt)
 {
 #ifdef OLDENGINE
-    createSurface(dtx).drawPoint(pt, cl);
+    dtx.drawPoint(pt, cl);
 #else
 
     if(renderReset(dtx.toSDLTexture()))
@@ -639,6 +639,7 @@ void SWE::Display::renderCursor(const Texture & tx)
     DisplayScene::setCursor(tx, Point(0, 0));
 }
 
+/*
 #ifdef OLDENGINE
 int compat_blit(SDL_Surface* ss, SDL_Rect* srt, SDL_Surface* ds, SDL_Rect* drt)
 {
@@ -659,21 +660,31 @@ int compat_blit(SDL_Surface* ss, SDL_Rect* srt, SDL_Surface* ds, SDL_Rect* drt)
     return SDL_BlitSurface(ss, srt, ds, drt);
 }
 #endif
+*/
 
 void SWE::Display::renderCopyEx(const Texture & stx, const Rect & srt, Texture & dtx, const Rect & drt, int flip)
 {
 #ifdef OLDENGINE
-    SDL_Rect srcrt = srt.toSDLRect();
-    SDL_Rect dstrt = drt.toSDLRect();
-    SDL_Surface* src = stx.toSDLTexture();
-    SDL_Surface* dst = dtx.toSDLTexture();
+    if(srt.toSize() != drt.toSize())
+    {
+	auto stx2 = Texture::copy(stx, srt);
+	auto dtx2 = Texture::scale(stx2, drt.toSize());
 
-    if(0 > SDL_BlitSurface(src, & srcrt, dst, & dstrt))
-        ERROR(SDL_GetError() << ", " << stx.toStringID());
+	if(FlipNone == flip)
+	    dtx2.blit(dtx2.rect(), drt, dtx);
+	else
+	    Texture::copy(dtx2, flip).blit(dtx2.rect(), drt, dtx);
+    }
+    else
+    {
+	if(FlipNone == flip)
+	    stx.blit(srt, drt, dtx);
+	else
+	    Texture::copy(stx, flip).blit(srt, drt, dtx);
+    }
 
     if(dtx == displayTexture)
         DisplayScene::setDirty(true);
-
 #else
     const SDL_Rect srcrt = srt.toSDLRect();
     const SDL_Rect dstrt = drt.toSDLRect();
@@ -685,7 +696,7 @@ void SWE::Display::renderCopyEx(const Texture & stx, const Rect & srt, Texture &
                   SDL_RenderCopyEx(_renderer, stx.toSDLTexture(), &srcrt, &dstrt, 0, NULL, (SDL_RendererFlip) flip);
 
         if(res)
-            ERROR(SDL_GetError() << ", " << stx.toStringID());
+            ERROR(SDL_GetError() << ", " << String::pointer(stx.toSDLTexture()));
 
         if(dtx == displayTexture)
             DisplayScene::setDirty(true);
@@ -712,6 +723,10 @@ void SWE::Display::renderSurface(const Surface & sf, const Rect & srt, Texture &
 #endif
 }
 
+#ifdef OLDENGINE
+ #include "SDL_rotozoom.h"
+#endif
+
 void SWE::Display::renderPresent(void)
 {
 #ifdef OLDENGINE
@@ -726,15 +741,13 @@ void SWE::Display::renderPresent(void)
         if(zoomsf)
         {
             if(0 > SDL_BlitSurface(zoomsf, NULL, _window, & dstrt))
-                ERROR(SDL_GetError() << ", " << displayTexture.toStringID());
+                ERROR(SDL_GetError() << ", " << String::pointer(displayTexture.toSDLTexture()));
 
             SDL_FreeSurface(zoomsf);
         }
         else
             ERROR("zoomSurface: " << SDL_GetError());
     }
-    else if(0 > SDL_BlitSurface(displayTexture.toSDLTexture(), NULL, _window, NULL))
-        ERROR(SDL_GetError() << ", " << displayTexture.toStringID());
 
     if(0 > SDL_Flip(_window))
         ERROR(SDL_GetError());
@@ -867,6 +880,13 @@ SWE::Texture SWE::Display::createTexture(const Size & sz, bool alpha)
 #endif
 }
 
+SWE::Texture SWE::Display::createTexture(const Texture & tx, const Rect & rt)
+{
+    Texture res = createTexture(rt.toSize(), false);
+    renderTexture(tx, rt, res, res.rect());
+    return res;
+}
+
 SWE::Texture SWE::Display::createTexture(const Texture & tx, int flip)
 {
     Texture res = createTexture(tx.size());
@@ -882,7 +902,7 @@ SWE::Texture & SWE::Display::texture(void)
 SWE::Surface SWE::Display::createSurface(const Texture & tx)
 {
 #ifdef OLDENGINE
-    return Surface::copy(tx.toSDLTexture());
+    return Texture::copy(tx);
 #else
     SDL_Surface* sf = NULL;
     Texture tx2 = createTexture(tx, FlipVertical);
@@ -1170,14 +1190,6 @@ void SWE::Display::handleMouseWheel(int button, int type)
 {
     if(SDL_MOUSEBUTTONUP == type)
     {
-/*
-        int x, y;
-        SDL_GetMouseState(& x, & y);
-        Point real(x, y);
-
-        if(scaleUsed())
-            real = scaleValue(real);
-*/
         if(SDL_BUTTON_WHEELUP == button)
             DisplayScene::scrollHandle(true);
         else if(SDL_BUTTON_WHEELDOWN == button)
@@ -1187,14 +1199,6 @@ void SWE::Display::handleMouseWheel(int button, int type)
 #else
 void SWE::Display::handleMouseWheel(const SDL_MouseWheelEvent & ev)
 {
-/*
-    int x, y;
-    SDL_GetMouseState(& x, & y);
-    Point real(x, y);
-
-    if(scaleUsed())
-        real = scaleValue(real);
-*/
     if(0 < ev.y)
         DisplayScene::scrollHandle(true);
     else if(0 > ev.y)
@@ -1325,8 +1329,9 @@ SWE::Rect SWE::Display::renderTextFixedHorizontal(const FontRender & frs, const 
             dst.x -= usz.w;
 
         if(valign == AlignCenter)
-            dst.y -= usz.h / 2;
-	else if(valign == AlignBottom)
+	    // usz.h is lineSkipHeight(), and it is large that char height, little down
+            dst.y = dst.y - usz.h / 2 + 2;
+        else if(valign == AlignBottom)
             dst.y -= usz.h;
 
         res.x = dst.x;
@@ -1382,7 +1387,7 @@ SWE::Rect SWE::Display::renderTextFixedVertical(const FontRender & frs, const Un
             Texture tx = FontsCache(&frs).renderCharset(*it, col);
             if(! tx.isValid()) continue;
 
-	    // align one char
+	    // halign one char
             if(halign == AlignCenter)
                 dst.x = dpt.x - tx.width() / 2;
             else if(halign == AlignRight)
@@ -1394,7 +1399,7 @@ SWE::Rect SWE::Display::renderTextFixedVertical(const FontRender & frs, const Un
                 if(res.w < tx.width()) res.w = tx.width();
             }
 
-            dst.y += tx.height();
+	    dst.y += frs.lineSkipHeight();
         }
 
         res.h = dst.y - res.y;
@@ -1518,4 +1523,13 @@ std::list<SWE::Size> SWE::Display::hardwareVideoModes(bool landscape)
     result.sort();
     result.unique();
     return result;
+}
+
+void SWE::Display::setWindowIcon(const Surface & sf)
+{
+#if OLDENGINE
+    SDL_WM_SetIcon(sf.toSDLSurface(), NULL);
+#else
+    SDL_SetWindowIcon(_window, sf.toSDLSurface());
+#endif
 }

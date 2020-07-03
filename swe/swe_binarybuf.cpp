@@ -54,6 +54,11 @@ namespace SWE
         swap(v);
     }
 
+    BinaryBuf::BinaryBuf(std::vector<u8> && v) noexcept
+    {
+        swap(v);
+    }
+
     BinaryBuf & BinaryBuf::operator= (const BinaryBuf & v)
     {
         assign(v.begin(), v.end());
@@ -61,6 +66,12 @@ namespace SWE
     }
 
     BinaryBuf & BinaryBuf::operator= (BinaryBuf && v) noexcept
+    {
+        swap(v);
+        return *this;
+    }
+
+    BinaryBuf & BinaryBuf::operator= (std::vector<u8> && v) noexcept
     {
         swap(v);
         return *this;
@@ -106,16 +117,15 @@ namespace SWE
         if(size())
         {
             StringList list;
+            std::ostringstream os;
 
-            for(const_iterator it = begin(); it != end(); ++it)
-            {
-                std::ostringstream os;
-
-                if(prefix) os << "0x";
-
-                os << std::setw(2) << std::setfill('0') << std::uppercase << std::hex << static_cast<int>(*it);
-                list << os.str();
-            }
+	    std::transform(begin(), end(), std::back_inserter(list),
+		[&](const u8 & val)
+		{
+		    os.str(prefix ? "0x" : "");
+            	    os << std::setw(2) << std::setfill('0') << std::uppercase << std::hex << static_cast<int>(val);
+		    return os.str();
+		});
 
             return list.join(sep);
         }

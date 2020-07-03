@@ -29,9 +29,9 @@ namespace SWE
 {
     class WindowToolTipArea : public Window
     {
+    protected:
         Texture			tooltip;
 
-    protected:
 	virtual const FontRender & fontRender(void) const;
 	virtual	Color		fontColor(void) const;
 	virtual	Color		backColor(void) const;
@@ -47,7 +47,9 @@ namespace SWE
         void			renderToolTip(const StringList &, const FontRender &, const Color & fn, const Color & bg, const Color & rt);
 
         void                    setToolTip(const std::string &);
+        void                    setToolTip(const std::string &, int width);
         void                    setToolTip(const StringList &);
+	void			resetToolTip(void) { tooltip.reset(); }
 
         const Texture & 	tooltipTexture(void) const;
 

@@ -50,13 +50,13 @@ namespace SWE
     void ListWidgetItem::setSelected(bool select)
     {
 	auto list = listWidget();
-	if(list) list->setCurrentItem(this);
+	if(list) list->setCurrentItem(select ? this : NULL);
     }
 
     bool ListWidgetItem::mousePressEvent(const ButtonEvent & be)
     {
 	auto list = listWidget();
-	if(list) list->itemPressed(this);
+	if(list) list->itemPressed(this, be.button());
 
         return true;
     }
@@ -64,13 +64,26 @@ namespace SWE
     bool ListWidgetItem::mouseClickEvent(const ButtonsEvent & be)
     {
 	auto list = listWidget();
-        if(be.isButtonLeft())
-        {
-	    if(list && isSelected()) list->itemDoubleClicked(this);
-	    setSelected(true);
-        }
-
-	if(list) list->itemClicked(this);
+	if(list)
+	{
+	    if(be.isButtonLeft())
+	    {
+    		if(isSelected())
+		{
+		    list->itemClicked(this, be.press().button());
+		    list->itemDoubleClicked(this);
+		}
+		else
+		{
+		    setSelected(true);
+		    list->itemClicked(this, be.press().button());
+		}
+	    }
+	    else
+	    {
+		list->itemClicked(this, be.press().button());
+	    }
+	}
 
         return true;
     }
@@ -79,6 +92,12 @@ namespace SWE
     {
 	auto list = listWidget();
 	if(list) list->itemEntered(this);
+    }
+
+    void ListWidgetItem::mouseLeaveEvent(void)
+    {
+	auto list = listWidget();
+	if(list) list->itemEntered(NULL);
     }
 
 
@@ -123,7 +142,7 @@ namespace SWE
         for(auto it = listItems.begin(); it != listItems.end(); ++it)
             delete *it;
 	listItems.clear();
-	setCurrentItem(NULL);
+	curItem = NULL;
 	skipItems = 0;
 	signalEmit(Signal::ListWidgetChanged);
     }
@@ -182,15 +201,7 @@ namespace SWE
     {
 	auto it = std::find(listItems.begin(), listItems.end(), item);
 	if(it != listItems.end())
-	{
-	    if(*it == currentItem())
-		setCurrentItem(NULL);
-
-	    listItems.erase(it);
-	    delete *it;
-
-	    signalEmit(Signal::ListWidgetChanged);
-	}
+	    pushEventAction(Signal::ListWidgetRemoveItem, this, *it);
     }
 
     int ListWidget::row(const ListWidgetItem* item) const
@@ -241,7 +252,7 @@ namespace SWE
 	if(curItem != previous)
 	{
 	    currentItemChanged(curItem, previous);
-	    renderWindow();
+	    setDirty(true);
 	}
     }
 
@@ -250,17 +261,22 @@ namespace SWE
 	setCurrentItem(item(row));
     }
 
+    bool sortItemsFunc(const ListWidgetItem* a, const ListWidgetItem* b)
+    {
+	return *a < *b;
+    }
+
+    void ListWidget::sortItems(void)
+    {
+	std::sort(listItems.begin(), listItems.end(), sortItemsFunc);
+    }
+
     ListWidgetItem* ListWidget::takeItem(int row)
     {
 	auto it = std::find(listItems.begin(), listItems.end(), item(row));
 	if(it != listItems.end())
 	{
-	    if(*it == currentItem())
-		setCurrentItem(NULL);
-
-	    listItems.erase(it);
-	    signalEmit(Signal::ListWidgetChanged);
-
+	    pushEventAction(Signal::ListWidgetTakeItem, this, *it);
 	    return *it;
 	}
 	return NULL;
@@ -274,6 +290,11 @@ namespace SWE
     Rect ListWidget::listArea(void) const
     {
 	return rect();
+    }
+
+    int ListWidget::scrollItems(void) const
+    {
+	return 1;
     }
 
     int ListWidget::visibleItems(void) const
@@ -291,12 +312,12 @@ namespace SWE
     
         	if(isVerticalOrientation())
 		{
-                    itemPos.y += item->height();
+                    itemPos.y += item->height() + itemSpacer();
 		    if(itemPos.y + item->height() > area.y + area.h) break;
                 }
 		else
 		{
-                    itemPos.x += item->width();
+                    itemPos.x += item->width() + itemSpacer();
 		    if(itemPos.x + item->width() > area.x + area.w) break;
 		}
 	    }
@@ -313,7 +334,7 @@ namespace SWE
 	    if(0 > skipItems) skipItems = 0;
 
             signalEmit(Signal::ListWidgetScrolled);
-            renderWindow();
+            setDirty(true);
             return true;
         }
         return false;
@@ -330,7 +351,7 @@ namespace SWE
 	    if(skipItems > listItems.size() - visible) skipItems = listItems.size() - visible;
 
     	    signalEmit(Signal::ListWidgetScrolled);
-    	    renderWindow();
+    	    setDirty(true);
     	    return true;
 	}
 
@@ -339,21 +360,37 @@ namespace SWE
 
     bool ListWidget::scrollUpEvent(void)
     {
-	return scrollUp();
+	return scrollUp(scrollItems());
     }
 
     bool ListWidget::scrollDownEvent(void)
     {
-	return scrollDown();
+	return scrollDown(scrollItems());
     }
 
-    bool ListWidget::userEvent(int ev, void*)
+    bool ListWidget::userEvent(int ev, void* ptr)
     {
         if(ev == Signal::FingerMoveUp)
-            return scrollUp();
-
-        if(ev == FingerMoveDown)
-            return scrollDown();
+            return scrollUp(scrollItems());
+	else
+        if(ev == Signal::FingerMoveDown)
+            return scrollDown(scrollItems());
+	else
+	if(ev == Signal::ListWidgetRemoveItem || ev == Signal::ListWidgetTakeItem)
+	{
+	    auto item = reinterpret_cast<ListWidgetItem*>(ptr);
+	    if(item)
+	    {
+		auto it = std::find(listItems.begin(), listItems.end(), item);
+		if(it == listItems.end()) return false;
+		if(*it == currentItem())
+		    setCurrentItem(NULL);
+		if(ev == Signal::ListWidgetRemoveItem) delete *it;
+		listItems.erase(it);
+		signalEmit(Signal::ListWidgetChanged);
+		return true;
+	    }
+	}
 
         return false;
     }
@@ -372,7 +409,7 @@ namespace SWE
 		    if(0 <= top)
 		    {
 			skipItems = top;
-    			renderWindow();
+    			setDirty(true);
 		    }
                 }
             }
@@ -388,31 +425,47 @@ namespace SWE
         return checkState(FlagVertical);
     }
 
+    void ListWidget::renderVisibleItem(ListWidgetItem* item, int visibleIndex, int visibleItems)
+    {
+	Point itemPos = listArea().toPoint();
+	for(int row = skipItems; row < skipItems + visibleItems; ++row)
+	{
+	    ListWidgetItem* item2 = ListWidget::item(row);
+	    if(item2 == item) break;
+
+    	    if(isVerticalOrientation())
+	    {
+        	itemPos.y += (item2->height() + itemSpacer());
+	    }
+	    else
+	    {
+        	itemPos.x += (item2->width() + itemSpacer());
+	    }
+	}
+	item->setPosition(itemPos);
+	item->setHidden(false);
+    }
+
     void ListWidget::renderWindow(void)
     {
         if(listItems.size())
         {
-	    Point itemPos = listArea().toPoint();
 	    int visible = visibleItems();
-            std::for_each(listItems.begin(), listItems.end(), std::bind2nd(std::mem_fun(&Window::setHidden), true));
 
-	    for(int row = skipItems; row < skipItems + visible; ++row)
-	    {
+            for(int row = 0; row < listItems.size(); ++row)
+            {
 		ListWidgetItem* item = ListWidget::item(row);
-		if(! item) break;
+		if(! item) continue;
 
-		item->setPosition(itemPos);
-		item->setHidden(false);
-
-                if(isVerticalOrientation())
-		{
-                    itemPos.y += item->height();
+	        if(skipItems <= row && row < skipItems + visible)
+	        {
+		    renderVisibleItem(item, row - skipItems, visible);
+	        }
+	        else
+                {
+                    item->setHidden(true);
                 }
-		else
-		{
-                    itemPos.x += item->width();
-		}
-	    }
+            }
         }
     }
 

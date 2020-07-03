@@ -41,6 +41,7 @@ namespace SWE
         bool			mousePressEvent(const ButtonEvent &) override final;
         bool			mouseClickEvent(const ButtonsEvent &) override final;
 	void			mouseFocusEvent(void) override final;
+	void			mouseLeaveEvent(void) override final;
 
     public:
         ListWidgetItem(ListWidget &);
@@ -50,6 +51,8 @@ namespace SWE
 	void			setSelected(bool);
 
 	virtual bool		isValid(void) const { return true; }
+	virtual bool		operator< (const ListWidgetItem & v) const { return this < &v; }
+	virtual void		swap(ListWidgetItem*) {}
 	const char*             className(void) const override { return "SWE::ListWidgetItem"; }
     };
 
@@ -65,6 +68,8 @@ namespace SWE
         bool			scrollDownEvent(void) override;
         void			signalReceive(int, const SignalMember*) override;
         bool			userEvent(int, void*) override;
+
+	virtual int		itemSpacer(void) const { return 0; }
 
     public:
         ListWidget(bool vertical, Window*);
@@ -94,19 +99,21 @@ namespace SWE
 	void			scrollToItem(const ListWidgetItem*);
 	void			setCurrentItem(ListWidgetItem*);
 	void 			setCurrentRow(int row);
-	
+	void			sortItems(void);
 
 	ListWidgetItem*		takeItem(int row);
 	virtual int		visibleItems(void) const;
+	virtual int		scrollItems(void) const;
 	virtual Rect		listArea(void) const;
 
 	virtual void		currentItemChanged(ListWidgetItem* current, ListWidgetItem* previous) {}
 	virtual void		itemEntered(ListWidgetItem*) {}
-	virtual void		itemPressed(ListWidgetItem*) {}
-	virtual void		itemClicked(ListWidgetItem*) {}
+	virtual void		itemPressed(ListWidgetItem*, int) {}
+	virtual void		itemClicked(ListWidgetItem*, int) {}
 	virtual void		itemDoubleClicked(ListWidgetItem*) {}
 
 	virtual void		renderWindow(void) override;
+	virtual void		renderVisibleItem(ListWidgetItem*, int visibleIndex, int visibleItems);
 
 	bool			isAreaPoint(const Point &) const override;
         bool			isVerticalOrientation(void) const;

@@ -27,13 +27,6 @@
 
 namespace SWE
 {
-
-#ifdef OLDENGINE
-    enum { FlipNone, FlipHorizontal, FlipVertical };
-#else
-    enum { FlipNone = SDL_FLIP_NONE, FlipHorizontal = SDL_FLIP_HORIZONTAL, FlipVertical = SDL_FLIP_VERTICAL };
-#endif
-
     class Window;
     class FontRender;
     class UCString;
@@ -53,6 +46,7 @@ namespace SWE
         bool		scaleUsed(void);
         Point		scaleValue(const Point &);
 
+	void		setWindowIcon(const Surface &);
         void		hardwareCursorHide(void);
         void		hardwareCursorShow(void);
         std::list<Size>	hardwareVideoModes(bool landscape);
@@ -86,8 +80,9 @@ namespace SWE
         Texture         renderText(const FontRender &, const UnicodeString &, const Color &, const Color & = Color::transparent());
         Texture         renderText(const FontRender &, const UCString &);
 
-        Surface		createSurface(const Texture &);
+	Surface		createSurface(const Texture &);
         Texture		createTexture(const Texture &, int flip = FlipNone);
+        Texture		createTexture(const Texture &, const Rect &);
         Texture		createTexture(const Surface &);
         Texture		createTexture(const BinaryBuf &);
         Texture		createTexture(const std::string &);

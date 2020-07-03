@@ -34,6 +34,11 @@ namespace SWE
 
     class BinaryBuf;
 
+#ifdef OLDENGINE
+    enum { FlipNone = 0, FlipHorizontal = 0x01, FlipVertical = 0x02 };
+#else
+    enum { FlipNone = SDL_FLIP_NONE, FlipHorizontal = SDL_FLIP_HORIZONTAL, FlipVertical = SDL_FLIP_VERTICAL };
+#endif
 
 #ifdef OLDENGINE
     typedef SDL_Surface SDL_Texture;
@@ -50,6 +55,16 @@ namespace SWE
 
     class Surface : public ObjectClass
     {
+	u32		pixel1(const Point &) const;
+	u32		pixel2(const Point &) const;
+	u32		pixel3(const Point &) const;
+	u32		pixel4(const Point &) const;
+
+	void		draw1(const Point &, u32 pixel);
+	void		draw2(const Point &, u32 pixel);
+	void		draw3(const Point &, u32 pixel);
+	void		draw4(const Point &, u32 pixel);
+
     protected:
         SDL_Surface*	ptr;
 
@@ -60,11 +75,13 @@ namespace SWE
         Surface(const Surface &);
         Surface(const std::string &);
         Surface(const BinaryBuf &);
-        ~Surface();
+        virtual ~Surface();
 
         Surface &	operator= (const Surface &);
-        Surface		copy(void) const;
-        static Surface	copy(SDL_Surface*);
+
+        static Surface	copy(const Surface &, int flip = FlipNone);
+        static Surface	copy(const Surface &, const Rect &);
+	static Surface	scale(const Surface &, const Size &);
 
         bool		isValid(void) const;
         SDL_Surface*	toSDLSurface(void) const;
@@ -75,24 +92,28 @@ namespace SWE
         void		setSurface(const Surface &);
         void		reset(void);
 
+#ifdef OLDENGINE
+	void		convertToDisplayFormat(void);
+#endif
+
         int		width(void) const;
         int		height(void) const;
         Size		size(void) const;
         Rect		rect(void) const;
         int		alphaMod(void) const;
-        int		amask(void) const;
+        u32		amask(void) const;
         int		flags(void) const;
         Color		colorKey(void) const;
         u32		pixel(const Point &) const;
 
-        u32		mapRGB(const Color &);
+        u32		mapRGB(const Color &) const;
         Color		RGBmap(u32) const;
 
         void		blit(const Rect &, const Rect &, Surface &) const;
         void		fill(const Rect &, const Color &);
         void		clear(const Color & col);
         void		drawPoint(const Point &, const Color &);
-        void		drawPixel(const Point &, int);
+        void		drawPixel(const Point &, u32);
         bool		save(const std::string &) const;
         void		swap(Surface &);
 
@@ -101,39 +122,58 @@ namespace SWE
         void		setFlags(int);
         void		resetFlags(int);
 
+	static Surface	renderGrayScale(const Surface &);
+	static Surface	renderSepia(const Surface &);
+
+        std::string	toString(void) const;
 	const char*	className(void) const override { return "SWE::Surface"; }
 #ifdef WITH_JSON
         JsonObject      toJson(void) const override;
 #endif
     };
 
-    const char* blendModeString(int);
-    struct SDLTexture;
+    class SurfaceRef : public Surface
+    {
+    public:
+	SurfaceRef(SDL_Surface* sf)
+	{
+    	    if(sf) sf->refcount++;
+    	    ptr = sf;
+	}
+    };
 
+    const char* blendModeString(int);
+    //struct SDLTexture;
+
+#ifdef OLDENGINE
+    class Texture : public Surface
+    {
+#else
     class Texture : public ObjectClass
     {
     protected:
-        std::shared_ptr<SDLTexture> ptr;
-
+        std::shared_ptr<SDL_Texture> ptr;
+#endif
     public:
         Texture() {}
+
 #ifdef OLDENGINE
-        Texture(const Surface &);
+        Texture(const Surface & sf) : Surface(sf) {};
 #endif
         Texture(SDL_Texture*);
 	virtual ~Texture() {}
 
+#ifndef OLDENGINE
         Texture(const Texture &) = default;
         Texture &	operator=(const Texture &) = default;
+#endif
 
-        Texture		copy(void) const;
+	static Texture	scale(const Texture &, const Size &);
+        static Texture	copy(const Texture &, const Rect &);
+        static Texture	copy(const Texture &, int flip = FlipNone);
 
         bool		operator== (const Texture &) const;
         bool		operator!= (const Texture &) const;
-
-#ifdef OLDENGINE
-        void		convertToDisplayFormat(void);
-#endif
 
         void		setTexture(const Texture &);
         void		setAlphaMod(int);
@@ -157,8 +197,6 @@ namespace SWE
         bool		save(const std::string &) const;
 
         std::string	toString(void) const;
-        std::string	toStringID(void) const;
-
 	const char*	className(void) const override { return "SWE::Texture"; }
 #ifdef WITH_JSON
         JsonObject      toJson(void) const override;

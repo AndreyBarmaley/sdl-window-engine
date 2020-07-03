@@ -20,13 +20,14 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <cctype>
 #include <ctime>
+#include <cctype>
 #include <cstring>
+#include <climits>
 #include <sstream>
 #include <iomanip>
+#include <numeric>
 #include <algorithm>
-#include <climits>
 
 #include "swe_tools.h"
 #include "swe_systems.h"
@@ -102,11 +103,9 @@ namespace SWE
         if(! str.empty())
         {
             auto it1 = str.begin();
-
             while(it1 != str.end() && std::isspace(*it1)) ++it1;
 
             auto it2 = str.end() - 1;
-
             while(it2 != str.begin() && std::isspace(*it2)) --it2;
 
             return std::string(it1, it2 + 1);
@@ -152,7 +151,7 @@ namespace SWE
 
             // hex
             if(str.size() > 2 && str[0] == '0' && std::tolower(str[1]) == 'x' &&
-               str.end() == std::find_if(str.begin() + 2, str.end(), std::not1(std::ptr_fun<int, int>(std::isxdigit))))
+               std::all_of(str.begin() + 2, str.end(), [](int ch){ return std::isxdigit(ch); }))
                 ss >> std::hex;
 
             ss >> res;
@@ -273,40 +272,9 @@ namespace SWE
         return replace(src, pred, number(val));
     }
 
-    std::list<std::string>
-    split(const std::string & str, const std::string & sep)
+    StringList String::split(const std::string & str, const std::string & sep)
     {
         return Tools::AdvancedSplit<std::string>(str, sep);
-    }
-
-    /* StringList */
-    StringList::StringList()
-    {
-    }
-
-    StringList::StringList(const std::list<std::string> & v) : std::list<std::string>(v)
-    {
-    }
-
-    StringList::StringList(const StringList & v) : std::list<std::string>(v)
-    {
-    }
-
-    StringList::StringList(StringList && v) noexcept
-    {
-        swap(v);
-    }
-
-    StringList StringList::operator= (const StringList & v)
-    {
-        assign(v.begin(), v.end());
-        return *this;
-    }
-
-    StringList StringList::operator= (StringList && v) noexcept
-    {
-        swap(v);
-        return *this;
     }
 
     StringList String::split(const std::string & str, int sep)
@@ -329,12 +297,53 @@ namespace SWE
         return list;
     }
 
-    StringFormat::StringFormat(const char* str, size_t reserver)
+    /* StringList */
+    StringList::StringList()
+    {
+    }
+
+    StringList::StringList(const std::list<std::string> & v) : std::list<std::string>(v)
+    {
+    }
+
+    StringList::StringList(const StringList & v) : std::list<std::string>(v)
+    {
+    }
+
+    StringList::StringList(std::list<std::string> && v) noexcept
+    {
+        swap(v);
+    }
+
+    StringList::StringList(StringList && v) noexcept
+    {
+        swap(v);
+    }
+
+    StringList & StringList::operator= (const StringList & v)
+    {
+        assign(v.begin(), v.end());
+        return *this;
+    }
+
+    StringList & StringList::operator= (StringList && v) noexcept
+    {
+        swap(v);
+        return *this;
+    }
+
+    StringList & StringList::operator= (std::list<std::string> && v) noexcept
+    {
+        swap(v);
+        return *this;
+    }
+
+    /* StringFormat */
+    StringFormat::StringFormat(const std::string & str, size_t reserver)
         : cur(1)
     {
         if(reserver) reserve(reserver);
-
-        if(str) append(str);
+        append(str);
     }
 
     StringFormat & StringFormat::arg(const char* val)
@@ -359,7 +368,7 @@ namespace SWE
 
             if(std::isdigit(*(it1 + 1)))
             {
-                it2 = std::find_if(it1 + 1, end(), std::not1(std::ptr_fun<int, int>(std::isdigit)));
+                it2 = std::find_if(it1 + 1, end(), [](int ch){ return ! std::isdigit(ch); });
                 int argc = String::toInt(substr(std::distance(begin(), it1 + 1), it2 - it1 - 1));
 
                 if(0 == argc)
@@ -403,12 +412,16 @@ namespace SWE
 
     size_t StringList::maxStringWidth(void) const
     {
-        size_t res = 0;
+	if(empty()) return 0;
 
-        for(const_iterator it = begin(); it != end(); ++it)
-            if((*it).size() > res) res = (*it).size();
+	auto it = std::max_element(begin(), end(), [](const std::string & str1, const std::string & str2) { return str1.size() < str2.size(); });
+	return it != end() ? (*it).size() : front().size();
+    }
 
-        return res;
+    size_t StringList::totalStringsWidth(void) const
+    {
+        return std::accumulate(begin(), end(), 0,
+                    [](size_t v, const std::string & str){ return v + str.size(); });
     }
 
     StringList & StringList::append(const std::string & val)

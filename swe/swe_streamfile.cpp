@@ -76,6 +76,31 @@ namespace SWE
         rw.close();
     }
 
+    size_t StreamFile::size(void) const
+    {
+	return rw.size();
+    }
+
+    size_t StreamFile::tell(void) const
+    {
+	return rw.tell();
+    }
+
+    bool StreamFile::isValid(void) const
+    {
+        return rw.isValid();
+    }
+
+    bool StreamFile::seek(int offset, int whence /* RW_SEEK_SET */) const
+    {
+        return rw.seek(offset, whence);
+    }
+
+    bool StreamFile::skip(size_t len) const
+    {
+        return rw.skip(len);
+    }
+
     StreamBuf StreamFile::toStreamBuf(size_t sz)
     {
         StreamBuf sb;

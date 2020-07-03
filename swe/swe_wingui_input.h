@@ -38,7 +38,9 @@ namespace SWE
         bool            	textInputEvent(const std::string &) override;
 
         virtual Color   	textColor(void) const;
-        virtual Texture		cursorTexture(int sym) const;
+	virtual Color		cursorColor(void) const;
+	virtual int		cursorHeight(void) const;
+	virtual	int		cursorOffset(void) const;
         const FontRender & 	fontRender(void) const override;
 
     public:

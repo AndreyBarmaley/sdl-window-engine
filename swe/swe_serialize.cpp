@@ -80,67 +80,67 @@ namespace SWE
     }
 
 
-    StreamBase & StreamBase::operator>> (bool & v)
+    const StreamBase & StreamBase::operator>> (bool & v) const
     {
         v = get8();
         return *this;
     }
 
-    StreamBase & StreamBase::operator>> (char & v)
+    const StreamBase & StreamBase::operator>> (char & v) const
     {
         v = get8();
         return *this;
     }
 
-    StreamBase & StreamBase::operator>> (u8 & v)
+    const StreamBase & StreamBase::operator>> (u8 & v) const
     {
         v = get8();
         return *this;
     }
 
-    StreamBase & StreamBase::operator>> (s8 & v)
+    const StreamBase & StreamBase::operator>> (s8 & v) const
     {
         v = get8();
         return *this;
     }
 
-    StreamBase & StreamBase::operator>> (u16 & v)
+    const StreamBase & StreamBase::operator>> (u16 & v) const
     {
         v = get16();
         return *this;
     }
 
-    StreamBase & StreamBase::operator>> (s16 & v)
+    const StreamBase & StreamBase::operator>> (s16 & v) const
     {
         v = get16();
         return *this;
     }
 
-    StreamBase & StreamBase::operator>> (u32 & v)
+    const StreamBase & StreamBase::operator>> (u32 & v) const
     {
         v = get32();
         return *this;
     }
 
-    StreamBase & StreamBase::operator>> (s32 & v)
+    const StreamBase & StreamBase::operator>> (s32 & v) const
     {
         v = get32();
         return *this;
     }
 
-    StreamBase & StreamBase::operator>> (u64 & v)
+    const StreamBase & StreamBase::operator>> (u64 & v) const
     {
         v = get64();
         return *this;
     }
 
-    StreamBase & StreamBase::operator>> (s64 & v)
+    const StreamBase & StreamBase::operator>> (s64 & v) const
     {
         v = get64();
         return *this;
     }
 
-    StreamBase & StreamBase::operator>> (float & v)
+    const StreamBase & StreamBase::operator>> (float & v) const
     {
         s32 intpart;
         s32 decpart;
@@ -149,7 +149,7 @@ namespace SWE
         return *this;
     }
 
-    StreamBase & StreamBase::operator>> (std::string & v)
+    const StreamBase & StreamBase::operator>> (std::string & v) const
     {
         u32 size = get32();
         v.resize(size);
@@ -160,24 +160,24 @@ namespace SWE
         return *this;
     }
 
-    StreamBase & StreamBase::operator>> (Rect & v)
+    const StreamBase & StreamBase::operator>> (Rect & v) const
     {
         Point & p = v;
         Size  & s = v;
         return *this >> p >> s;
     }
 
-    StreamBase & StreamBase::operator>> (Point & v)
+    const StreamBase & StreamBase::operator>> (Point & v) const
     {
         return *this >> v.x >> v.y;
     }
 
-    StreamBase & StreamBase::operator>> (Size & v)
+    const StreamBase & StreamBase::operator>> (Size & v) const
     {
         return *this >> v.w >> v.h;
     }
 
-    StreamBase & StreamBase::operator>> (BinaryBuf & v)
+    const StreamBase & StreamBase::operator>> (BinaryBuf & v) const
     {
         u32 size = get32();
         v.resize(size);
@@ -322,6 +322,28 @@ rep:
     }
 
     /* StreamRWops */
+    StreamRWops::~StreamRWops()
+    {
+        close();
+    }
+            
+    StreamRWops::StreamRWops(SDL_RWops* val) : rw(val)
+    {
+    }
+
+    StreamRWops::StreamRWops(StreamRWops && srw) noexcept
+    {
+        rw = srw.rw;
+        srw.rw = NULL;
+    }
+
+    StreamRWops & StreamRWops::operator=(StreamRWops && srw) noexcept
+    {
+        rw = srw.rw;
+        srw.rw = NULL;
+        return *this;
+    }
+
     void StreamRWops::close(void)
     {
         if(rw)
@@ -331,12 +353,12 @@ rep:
         }
     }
 
-    bool StreamRWops::seek(int offset, int whence /* RW_SEEK_SET */)
+    bool StreamRWops::seek(int offset, int whence /* RW_SEEK_SET */) const
     {
         return rw ? 0 <= SDL_RWseek(rw, offset, whence) : false;
     }
 
-    bool StreamRWops::skip(size_t len)
+    bool StreamRWops::skip(size_t len) const
     {
         return rw ? 0 <= SDL_RWseek(rw, len, RW_SEEK_CUR) : false;
     }

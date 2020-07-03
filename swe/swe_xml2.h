@@ -20,55 +20,11 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef _SWE_OBJECT_
-#define _SWE_OBJECT_
+#ifndef _SWE_XML2_
+#define _SWE_XML2_
 
-#ifdef WITH_JSON
-#include "swe_json_ext.h"
+#ifdef WITH_XML
+ #include "tinyxml2/tinyxml2.h"
 #endif
-
-namespace SWE
-{
-    class DisplayScene;
-
-    class ObjectClass
-    {
-    public:
-	virtual ~ObjectClass() {}
-
-	virtual const char* className(void) const
-	{
-	    return "SWE::ObjectClass";
-	}
-
-#ifdef WITH_JSON
-	virtual JsonObject toJson(void) const
-	{
-	    JsonObject res;
-	    res.addString("className", className());
-	    return res;
-	}
-#endif
-    };
-
-    class ObjectEvent : public ObjectClass
-    {
-    protected:
-	friend class DisplayScene;
-
-        virtual bool    userEvent(int, void*) { return false; }
-        virtual void    tickEvent(u32 ms) {}
-
-    public:
-	virtual ~ObjectEvent() {}
-
-	void		pushEventAction(int code, ObjectEvent* dst, void* data);
-
-	const char*	className(void) const override
-	{
-	    return "SWE::ObjectEvent";
-	}
-    };
-}
 
 #endif

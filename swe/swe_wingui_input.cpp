@@ -138,7 +138,7 @@ namespace SWE
 #ifndef OLDENGINE
 	// 
 	else
-	if(key.keycode() == Key::INSERT && key.isShift() &&
+	if(key.keycode() == Key::INSERT && key.keymod().isShift() &&
     	    SDL_HasClipboardText())
 	{
     	    std::string str = SDL_GetClipboardText();
@@ -191,10 +191,19 @@ namespace SWE
 	return Color::White;
     }
 
-    Texture LineEdit::cursorTexture(int sym) const
+    Color LineEdit::cursorColor(void) const
     {
-	const FontRender & frs = fontRender();
-	return Display::renderRect(Color::Silver, Color::Transparent, Size(frs.symbolAdvance(sym), frs.lineSkipHeight()));
+	return Color::Silver;
+    }
+
+    int LineEdit::cursorHeight(void) const
+    {
+	return fontRender().lineSkipHeight();
+    }
+
+    int LineEdit::cursorOffset(void) const
+    {
+	return 0;
     }
 
     const FontRender & LineEdit::fontRender(void) const
@@ -265,6 +274,18 @@ namespace SWE
 	return content;
     }
 
+    int calcOffset(const SWE::FontRender & frs, const std::string & content, int txwidth, int width)
+    {
+	int pos = 0;
+	while(pos < content.size())
+	{
+	    auto strsz = frs.stringSize(content.substr(pos));
+	    if(strsz.w + txwidth <= width) break;
+	    pos = pos + 1;
+	}
+	return pos;
+    }
+
     void LineEdit::renderWindow(void)
     {
 	const FontRender & frs = fontRender();
@@ -274,28 +295,57 @@ namespace SWE
 
 	if(0 > curpos || curpos == content.size())
 	{
+	    int cursorW = frs.symbolAdvance(0x20);
+
 	    if(content.size())
-		pos = renderText(frs, content, textColor(), Point(0, offy));
+	    {
+		auto strsz = frs.stringSize(content);
+		// align right
+		if(strsz.w + cursorW > width())
+		    pos = renderText(frs, content, textColor(), Point(width() - cursorW, offy), SWE::AlignRight);
+		// align left
+		else
+		    pos = renderText(frs, content, textColor(), Point(0, offy));
+	    }
 	    if(0 <= curpos)
-		renderTexture(cursorTexture(0x20), Point(pos.x + pos.w, 0));
+		renderColor(cursorColor(), Rect(pos.x + pos.w, cursorOffset(), cursorW, cursorHeight()));
 	}
 	else
 	{
-	    pos = renderText(frs, content.substr(0, curpos), textColor(), Point(0, offy));
 	    const std::string sym = std::string(1, content[curpos]);
-	    renderTexture(cursorTexture(content[curpos]), Point(pos.x + pos.w, 0));
-	    pos = renderText(frs, sym, textColor(), Point(pos.x + pos.w, offy));
-	    pos = renderText(frs, content.substr(curpos + 1), textColor(), Point(pos.x + pos.w, offy));
+	    int cursorW = frs.symbolAdvance(content[curpos]);
+
+	    auto strsz = frs.stringSize(content.substr(0, curpos));
+	    // align right
+	    if(strsz.w + cursorW > width())
+	    {
+		// cursor
+		renderColor(cursorColor(), Rect(width() - cursorW, cursorOffset(), cursorW, cursorHeight()));
+		pos = renderText(frs, sym, textColor(), Point(width() - cursorW, offy));
+		// prefix
+		pos = renderText(frs, content.substr(0, curpos), textColor(), Point(pos.x, offy), SWE::AlignRight);
+	    }
+	    // align left
+	    else
+	    {
+		// prefix
+		pos = renderText(frs, content.substr(0, curpos), textColor(), Point(0, offy));
+		// cursor
+		renderColor(cursorColor(), Rect(pos.x + pos.w, cursorOffset(), cursorW, cursorHeight()));
+		pos = renderText(frs, sym, textColor(), Point(pos.x + pos.w, offy));
+		// suffix
+		pos = renderText(frs, content.substr(curpos + 1), textColor(), Point(pos.x + pos.w, offy));
+	    }
 	}
     }
 
     void LineEdit::cursorPositionChanged(int oldpos, int newpos)
     {
-	renderWindow();
+	setDirty(true);
     }
 
     void LineEdit::textChanged(const std::string & text)
     {
-	renderWindow();
+	setDirty(true);
     }
 }

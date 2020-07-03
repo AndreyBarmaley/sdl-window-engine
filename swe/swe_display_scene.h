@@ -32,16 +32,17 @@
 
 namespace SWE
 {
-
     class Window;
     class Texture;
     struct KeySym;
+    class BaseObject;
 
     class DisplayScene
     {
     public:
         static Window*             rootWindow(void);
-	static SWE::Window*        focusedWindow(void);
+	static Window*             focusedWindow(void);
+	static Window*             windowsFocusHandle(void);
         static bool                keyHandle(const KeySym &, bool);
         static bool                textInputHandle(const std::string &);
         static bool                mouseButtonHandle(const ButtonEvent &, bool);
@@ -59,13 +60,15 @@ namespace SWE
         static void                displayResizeHandle(const Size &, bool);
         static void                displayFocusHandle(bool);
 
-    public:
         static std::list<Window*>  findChilds(const Window &);
         static std::list<Window*>  findParents(const Window &);
 
+	static void		addObject(BaseObject &);
+	static void		removeObject(const BaseObject &);
+
         static void		addItem(Window &);
         static void		removeItem(const Window &);
-        static void		pushEvent(const Window* dst, int code, void* data);
+        static void		pushEvent(const ObjectEvent* dst, int code, void* data);
 	static void		moveTopLayer(const Window &);
 
         static void		sceneRedraw(void);

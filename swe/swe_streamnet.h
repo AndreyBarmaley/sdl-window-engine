@@ -32,10 +32,10 @@ namespace SWE
     class StreamNetwork : public StreamBase
     {
         StreamNetwork(const StreamNetwork &) {}
-        StreamNetwork &	operator= (const StreamNetwork &)
-        {
-            return *this;
-        }
+        StreamNetwork &	operator= (const StreamNetwork &) { return *this; }
+
+        size_t          	tell(void) const override { return 0; }
+        bool            	skip(size_t len) override { return false; }
 
     protected:
         TCPsocket		sd;
@@ -53,30 +53,26 @@ namespace SWE
         StreamNetwork(StreamNetwork &&) noexcept;
         StreamNetwork &	operator=(StreamNetwork &&) noexcept;
 
-        static StringList   localAddresses(void);
+        static StringList   	localAddresses(void);
         static std::pair<std::string, int>
-        peerAddress(TCPsocket);
+    				peerAddress(TCPsocket);
         TCPsocket		accept(void);
 
-        bool		isValid(void) const
-        {
-            return sd;
-        }
-
+        bool		isValid(void) const { return sd; }
         bool		open(TCPsocket);
         bool		connect(const std::string &, int);
         bool		listen(int port);
         void		close(void);
         bool		ready(u32 timeout = 100 /* ms */) const;
 
-        int			get8(void) const override;
-        int			getBE16(void) const override;
-        int			getLE16(void) const override;
-        int			getBE32(void) const override;
-        int			getLE32(void) const override;
-        s64			getBE64(void) const override;
-        s64			getLE64(void) const override;
-        BinaryBuf		get(size_t = 0 /* all data */) const override;
+        int		get8(void) const override;
+        int		getBE16(void) const override;
+        int		getLE16(void) const override;
+        int		getBE32(void) const override;
+        int		getLE32(void) const override;
+        s64		getBE64(void) const override;
+        s64		getLE64(void) const override;
+        BinaryBuf	get(size_t = 0 /* all data */) const override;
 
         void		put8(char) override;
         void		putBE64(u64) override;

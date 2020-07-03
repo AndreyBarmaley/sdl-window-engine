@@ -161,12 +161,18 @@ namespace SWE
 
         SDL_Rect	toSDLRect(void) const;
 
+        Rect    intersected(const Rect &) const;
+        bool    intersects(const Rect &) const;
+        bool    contains(const Point &) const;
+        bool    contains(const Rect &) const;
+
         // Rect include Point
         bool	operator& (const Point &) const;
         // Rect intersects Rect
         bool	operator& (const Rect &) const;
 
         static bool	intersection(const Rect &, const Rect &, Rect* res = NULL);
+	static Rect	around(const Rect &, const Rect &);
         std::string	toString(void) const;
     };
 

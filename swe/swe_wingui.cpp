@@ -66,6 +66,11 @@ namespace SWE
         renderToolTip(str, fontRender(), fontColor(), backColor(), rectColor());
     }
 
+    void WindowToolTipArea::setToolTip(const std::string & str, int width)
+    {
+	setToolTip(fontRender().splitStringWidth(str, width));
+    }
+
     void WindowToolTipArea::setToolTip(const StringList & list)
     {
         renderToolTip(list, fontRender(), fontColor(), backColor(), rectColor());

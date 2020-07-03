@@ -73,7 +73,7 @@ namespace SWE
     {
         const Texture* tx = NULL;
 
-        if(isDisabled())
+	if(isDisabled())
             tx = textureDisabled();
         else if(isPressed())
             tx = texturePressed();
@@ -85,14 +85,7 @@ namespace SWE
             tx = textureReleased();
 
         if(tx && tx->isValid() && ! size().isEmpty())
-        {
-            Point dst(0, 0);
-
-//            if(checkState(FlagButtonCentered))
-//                dst = dst + (size() - tx->size()) / 2;
-
-            renderTexture(*tx, dst);
-        }
+            renderTexture(*tx, SWE::Point(0, 0));
     }
 
     void WindowButton::setPressed(bool f)
@@ -111,14 +104,14 @@ namespace SWE
                 setClickedComplete();
         }
 
-        renderWindow();
+        setDirty(true);
     }
 
     void WindowButton::setReleased(void)
     {
         resetState(FlagPressed);
         signalEmit(Signal::ButtonReleased);
-        renderWindow();
+        setDirty(true);
     }
 
     void WindowButton::setClickedComplete(void)
@@ -145,7 +138,7 @@ namespace SWE
     void WindowButton::setDisabled(bool f)
     {
         setState(FlagDisabled, f);
-        renderWindow();
+        setDirty(true);
     }
 
     void WindowButton::setAction(int action)
@@ -202,7 +195,7 @@ namespace SWE
 
     void WindowButton::mouseFocusEvent(void)
     {
-        renderWindow();
+        setDirty(true);
     }
 
     void WindowButton::mouseLeaveEvent(void)
@@ -210,7 +203,7 @@ namespace SWE
         if(! checkState(FlagDisabled) && checkState(FlagPressed))
             setPressed(false);
         else
-            renderWindow();
+            setDirty(true);
     }
 
     bool WindowButton::keyPressEvent(const KeySym & key)

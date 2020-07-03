@@ -33,7 +33,7 @@ namespace SWE
     {
         int			code;
         const SignalMember*	sender;
-        SignalMember*	receiver;
+        SignalMember*		receiver;
 
         SignalChain() : code(0), sender(NULL), receiver(NULL) {}
         SignalChain(const SignalMember & sm1, int sig, SignalMember & sm2) : code(sig), sender(& sm1), receiver(& sm2) {}
@@ -65,10 +65,8 @@ void SWE::SignalMember::signalSubscribe(const SignalMember & sender, int sig, Si
 
 bool SWE::SignalMember::signalSubscribed(const SignalMember & sender, int sig)
 {
-    for(auto it = signalChains.begin(); it != signalChains.end(); ++it)
-        if((*it).sender == & sender && (sig == 0 || (*it).code == sig)) return true;
-
-    return false;
+    return std::any_of(signalChains.begin(), signalChains.end(),
+	    [&](const SignalChain & memb) { return memb.sender == & sender && (sig == 0 || memb.code == sig); });
 }
 
 void SWE::SignalMember::signalSubscribe(const SignalMember & sender, int sig)
@@ -78,19 +76,23 @@ void SWE::SignalMember::signalSubscribe(const SignalMember & sender, int sig)
 
 void SWE::SignalMember::signalUnsubscribe(const SignalMember & sender)
 {
-    signalChains.remove_if(std::bind2nd(std::mem_fun_ref(&SignalChain::isMember), sender));
+    signalChains.remove_if([&](const SignalChain & memb){ return memb.isMember(sender); });
 }
 
 void SWE::SignalMember::signalEmit(int sig)
 {
-    for(auto it = signalChains.begin(); it != signalChains.end(); ++it)
-        if((*it).sender == this && (*it).code == sig)
-            (*it).receiver->signalReceive(sig, (*it).sender);
+    for(auto & memb : signalChains)
+    {
+        if(memb.sender == this && memb.code == sig)
+            memb.receiver->signalReceive(sig, memb.sender);
+    }
 }
 
 void SWE::SignalMember::signalEmit(const SignalMember & sender, int sig)
 {
-    for(auto it = signalChains.begin(); it != signalChains.end(); ++it)
-        if((*it).sender == & sender && (*it).code == sig)
-            (*it).receiver->signalReceive(sig, (*it).sender);
+    for(auto & memb : signalChains)
+    {
+	if(memb.sender == & sender && memb.code == sig)
+            memb.receiver->signalReceive(sig, memb.sender);
+    }
 }

@@ -209,6 +209,9 @@ namespace SWE
         if(str1.empty())
             return str2;
 
+        if(str2.empty())
+            return str1;
+
         if(str1.size() >= sep.size() &&
            str1.substr(str1.size() - sep.size()) == sep)
             return std::string(str1).append(str2);

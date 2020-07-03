@@ -34,7 +34,6 @@ namespace SWE
     enum align_t { AlignNone, AlignLeft, AlignRight, AlignTop, AlignBottom, AlignCenter };
 
     struct CharsetID;
-    struct SDLFont;
 
 #if (SDL_VERSIONNUM(SDL_TTF_MAJOR_VERSION, SDL_TTF_MINOR_VERSION, SDL_TTF_PATCHLEVEL) <= SDL_VERSIONNUM(2, 0, 10))
 #define TTF_STYLE_STRIKETHROUGH 0x08
@@ -77,11 +76,21 @@ namespace SWE
         void	setHinting(int v);
     };
 
-    struct FontID : packint2
+    struct FontID
     {
+	u16	val1;
+	u8	val2;
+	u8	val3;
+
         /* font id 16 bit, font size 8 bit, charset property 8 bit */
         FontID() {}
         FontID(int id, int sz, const CharsetProperty & cp = CharsetProperty());
+
+        int	operator()(void) const;
+        int	value(void) const;
+	bool	operator<(const FontID &) const;
+	bool	operator>(const FontID &) const;
+	bool	operator==(const FontID &) const;
 
         int 	id(void) const;
         int 	size(void) const;
@@ -112,7 +121,7 @@ namespace SWE
         virtual Size	stringSize(const std::string &, bool horizontal = true) const = 0;
         virtual Size	unicodeSize(const UnicodeString &, bool horizontal = true) const = 0;
 
-        virtual int	symbolAdvance(int) const = 0;
+        virtual int	symbolAdvance(int = 0x20) const = 0;
         virtual int	lineSkipHeight(void) const = 0;
 
         virtual Surface	renderCharset(int, const Color &, int blend = -1, int style = -1, int hinting = -1) const = 0;
@@ -155,7 +164,7 @@ namespace SWE
 #ifndef DISABLE_TTF
     class FontRenderTTF : public FontRender
     {
-        std::shared_ptr<SDLFont> ptr;
+        std::shared_ptr<TTF_Font> ptr;
         FontID		fid;
 
         Size		char1Size(int ch) const;

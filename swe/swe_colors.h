@@ -42,6 +42,7 @@ namespace SWE
         ARGB(int a, int r, int g, int b) : packint4(a, r, g, b) {}
         ARGB(int val) : packint4(val) {}
         ARGB(const std::string &);
+	virtual ~ARGB() {}
 
         int	a(void) const;
         int	r(void) const;

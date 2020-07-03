@@ -110,195 +110,100 @@ using namespace std;
 #define S_IXOTH 00001
 #endif
 
+#define _(s)            SWE::Translation::gettext(s)
+#define _n(a,b,c)       SWE::Translation::ngettext(a,b,c)
+
 namespace SWE
 {
-
-#define _(s)            Translation::gettext(s)
-#define _n(a,b,c)       Translation::ngettext(a,b,c)
-
     class StreamBase;
 
     struct packshort
     {
     protected:
-        u16 val;
-
-        friend StreamBase & operator<< (StreamBase &, const packshort &);
-        friend StreamBase & operator>> (StreamBase &, packshort &);
-
+        u8 v1, v2;
+	
     public:
-        packshort(int v = 0) : val(v) {}
-        packshort(int val1, int val2) : val((0xFF00 & (val1 << 8)) | (0x00FF & val2)) {}
+        packshort(u16 val = 0);
+        packshort(u8 val1, u8 val2);
 
-        int operator()(void) const
-        {
-            return val;
-        }
-        const u16 & value(void) const
-        {
-            return val;
-        }
+        u16		operator()(void) const;
+        u16		value(void) const;
 
-        int val1(void) const
-        {
-            return 0xFF & (value() >> 8);
-        }
-        int val2(void) const
-        {
-            return 0xFF & value();
-        }
+        const u8 &	val1(void) const;
+        const u8 &	val2(void) const;
 
-        packshort & set1(int v)
-        {
-            val = (val | 0xFF00) & (0x00FF | (0xFF00 & (v << 8)));
-            return *this;
-        }
-        packshort & set2(int v)
-        {
-            val = (val | 0x00FF) & (0xFF00 | (0x00FF & v));
-            return *this;
-        }
+        packshort &	set1(u8);
+        packshort &	set2(u8);
+        void		setvalue(u16);
 
-        void setvalue(u16 v)
-        {
-            val = v;
-        }
-
-        bool operator< (const packshort & p) const
-        {
-            return val < p.val;
-        }
-        bool operator> (const packshort & p) const
-        {
-            return val > p.val;
-        }
-        bool operator== (const packshort & p) const
-        {
-            return val == p.val;
-        }
-        bool operator!= (const packshort & p) const
-        {
-            return val != p.val;
-        }
+        bool		operator< (const packshort &) const;
+        bool		operator> (const packshort &) const;
+        bool		operator== (const packshort &) const;
+        bool		operator!= (const packshort &) const;
     };
 
     StreamBase & operator<< (StreamBase &, const packshort &);
-    StreamBase & operator>> (StreamBase &, packshort &);
+    const StreamBase & operator>> (const StreamBase &, packshort &);
 
-    class packint
+    struct packint
     {
-    protected:
-        u32 val;
+	~packint() {}
 
-        friend StreamBase & operator<< (StreamBase &, const packint &);
-        friend StreamBase & operator>> (StreamBase &, packint &);
+        u32		operator()(void) const { return value(); }
 
-    public:
-        packint(int v = 0) : val(v) {}
+        virtual u32	value(void) const = 0;
+        virtual void	setvalue(u32) = 0;
 
-        int operator()(void) const
-        {
-            return val;
-        }
-        const u32 & value(void) const
-        {
-            return val;
-        }
-
-        void setvalue(u32 v)
-        {
-            val = v;
-        }
-
-        bool operator< (const packint & p) const
-        {
-            return val < p.val;
-        }
-        bool operator> (const packint & p) const
-        {
-            return val > p.val;
-        }
-        bool operator== (const packint & p) const
-        {
-            return val == p.val;
-        }
-        bool operator!= (const packint & p) const
-        {
-            return val != p.val;
-        }
+        bool		operator< (const packint &) const;
+        bool		operator> (const packint &) const;
+        bool		operator== (const packint &) const;
+        bool		operator!= (const packint &) const;
     };
 
     StreamBase & operator<< (StreamBase &, const packint &);
-    StreamBase & operator>> (StreamBase &, packint &);
+    const StreamBase & operator>> (const StreamBase &, packint &);
 
-    struct packint4 : public packint
+    struct packint2 : packint
     {
-        packint4(int val = 0) : packint(val) {}
-        packint4(int val1, int val2, int val3, int val4) : packint((0xFF000000 & (val1 << 24)) | (0x00FF0000 & (val2 << 16))  | (0x0000FF00 & (val3 << 8)) | (0x000000FF & val4)) {}
+    protected:
+        u16 v1, v2;
+	
+    public:
+        packint2(u32 val = 0);
+        packint2(u16 val1, u16 val2);
 
-        int val1(void) const
-        {
-            return 0xFF & (value() >> 24);
-        }
-        int val2(void) const
-        {
-            return 0xFF & (value() >> 16);
-        }
-        int val3(void) const
-        {
-            return 0xFF & (value() >> 8);
-        }
-        int val4(void) const
-        {
-            return 0xFF & value();
-        }
+        u32		value(void) const override;
+        void		setvalue(u32) override;
 
-        packint4 & set1(int v)
-        {
-            val = (val | 0xFF000000) & (0x00FFFFFF | (0xFF000000 & (v << 24)));
-            return *this;
-        }
-        packint4 & set2(int v)
-        {
-            val = (val | 0x00FF0000) & (0xFF00FFFF | (0x00FF0000 & (v << 16)));
-            return *this;
-        }
-        packint4 & set3(int v)
-        {
-            val = (val | 0x0000FF00) & (0xFFFF00FF | (0x0000FF00 & (v <<  8)));
-            return *this;
-        }
-        packint4 & set4(int v)
-        {
-            val = (val | 0x000000FF) & (0xFFFFFF00 | (0x000000FF &  v));
-            return *this;
-        }
+        const u16 &	val1(void) const;
+        const u16 &	val2(void) const;
+
+        packint2 &	set1(u16);
+        packint2 &	set2(u16);
     };
 
-    struct packint2 : public packint
+    struct packint4 : packint
     {
-        packint2(int val = 0) : packint(val) {}
-        packint2(int val1, int val2) : packint((0xFFFF0000 & (val1 << 16)) | (0x0000FFFF & val2)) {}
+    protected:
+        packshort v1, v2;
+	
+    public:
+        packint4(u32 val = 0);
+        packint4(u16 val1, u16 val2);
+        packint4(u8 val1, u8 val2, u8 val3, u8 val4);
 
-        int val1(void) const
-        {
-            return 0xFFFF & (value() >> 16);
-        }
-        int val2(void) const
-        {
-            return 0xFFFF & value();
-        }
+        u32		value(void) const override;
+        void		setvalue(u32) override;
 
-        packint2 & set1(int v)
-        {
-            val = (val | 0xFFFF0000) & (0x0000FFFF | (0xFFFF0000 & (v << 16)));
-            return *this;
-        }
-        packint2 & set2(int v)
-        {
-            val = (val | 0x0000FFFF) & (0xFFFF0000 | (0x0000FFFF & v));
-            return *this;
-        }
+        const u8 &	val1(void) const;
+        const u8 &	val2(void) const;
+        const u8 &	val3(void) const;
+        const u8 &	val4(void) const;
+
+        packint4 &	set1(u8);
+        packint4 &	set2(u8);
+        packint4 &	set3(u8);
+        packint4 &	set4(u8);
     };
 
     class BitFlags
@@ -306,7 +211,7 @@ namespace SWE
         u32		state;
 
         friend StreamBase & operator<< (StreamBase &, const BitFlags &);
-        friend StreamBase & operator>> (StreamBase &, BitFlags &);
+        friend const StreamBase & operator>> (const StreamBase &, BitFlags &);
 
     public:
         BitFlags(int v = 0) : state(v) {}
@@ -351,7 +256,7 @@ namespace SWE
     };
 
     StreamBase & operator<< (StreamBase &, const BitFlags &);
-    StreamBase & operator>> (StreamBase &, BitFlags &);
+    const StreamBase & operator>> (const StreamBase &, BitFlags &);
 
 } // SWE
 #endif

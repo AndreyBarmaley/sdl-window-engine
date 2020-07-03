@@ -44,7 +44,7 @@ namespace SWE
 	if(std::end(args) != it)
 	{
     	    y = *it;
-    	    it = std::next(it);
+    	    //it = std::next(it);
 	}
     }
 
@@ -156,7 +156,7 @@ namespace SWE
 	if(std::end(args) != it)
 	{
     	    z = *it;
-    	    it = std::next(it);
+    	    //it = std::next(it);
 	}
     }
 
@@ -255,7 +255,7 @@ namespace SWE
 	if(std::end(args) != it)
 	{
     	    h = *it;
-    	    it = std::next(it);
+    	    //it = std::next(it);
 	}
     }
 
@@ -431,7 +431,7 @@ namespace SWE
 	if(std::end(args) != it)
 	{
     	    h = *it;
-    	    it = std::next(it);
+    	    //it = std::next(it);
 	}
     }
 
@@ -477,12 +477,12 @@ namespace SWE
 
     bool Rect::operator& (const Point & pt) const
     {
-        return !(pt.x < x || pt.y < y || pt.x >= (x + w) || pt.y >= (y + h));
+	return contains(pt);
     }
 
     bool Rect::operator& (const Rect & rt) const
     {
-        return !(x > rt.x + rt.w || x + w < rt.x || y > rt.y + rt.h || y + h < rt.y);
+	return intersects(rt);
     }
 
     Point Rect::topLeft(void) const
@@ -505,9 +505,44 @@ namespace SWE
         return Point(x + w - 1, y + h - 1);
     }
 
+    bool Rect::contains(const Point & pt) const
+    {
+        return !(pt.x < x || pt.y < y || pt.x >= (x + w) || pt.y >= (y + h));
+    }
+
+
+    bool Rect::contains(const Rect & rt) const
+    {
+	return contains(rt.topLeft()) && contains(rt.topRight()) &&
+		    contains(rt.bottomLeft()) && contains(rt.bottomRight());
+    }
+
+    Rect Rect::intersected(const Rect & rt) const
+    {
+	Rect res;
+	intersection(*this, rt, &res);
+	return res;
+    }
+
+    bool Rect::intersects(const Rect & rt) const
+    {
+        return !(x > rt.x + rt.w || x + w < rt.x || y > rt.y + rt.h || y + h < rt.y);
+    }
+
+    // max
+    Rect Rect::around(const Rect & rt1, const Rect & rt2)
+    {
+	Rect rt3;
+        rt3.x = rt1.x < rt2.x ? rt1.x : rt2.x;
+        rt3.y = rt1.y < rt2.y ? rt1.y : rt2.y;
+        rt3.w = rt1.x + rt1.w > rt2.x + rt2.w ? rt1.x + rt1.w - rt3.x : rt2.x + rt2.w - rt3.x;
+        rt3.h = rt1.y + rt1.h > rt2.y + rt2.h ? rt1.y + rt1.h - rt3.y : rt2.y + rt2.h - rt3.y;
+	return rt3;
+    }
+
     bool Rect::intersection(const Rect & rt1, const Rect & rt2, Rect* res)
     {
-        if(rt1 & rt2)
+        if(rt1.intersects(rt2))
         {
             if(res)
             {

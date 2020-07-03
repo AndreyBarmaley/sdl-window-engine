@@ -46,7 +46,7 @@ namespace SWE
         }
         virtual const Texture* 	texturePressed(void) const
         {
-            return NULL;
+            return textureReleased();
         }
         virtual const Texture* 	textureReleased(void) const
         {

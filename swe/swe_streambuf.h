@@ -41,27 +41,27 @@ namespace SWE
         void		put8(char) override {}
 
         StreamBufRO(const StreamBufRO &) {}
-        StreamBufRO & operator=(const StreamBufRO &)
-        {
-            return *this;
-        }
+        StreamBufRO & operator=(const StreamBufRO &) { return *this; }
 
     protected:
-        StreamRWops		sr;
+        StreamRWops	sr;
 
     public:
         StreamBufRO() {}
         StreamBufRO(const BinaryBuf &);
         StreamBufRO(const u8*, size_t);
-        virtual ~ StreamBufRO() {}
 
         virtual void	setBuf(const u8*, size_t);
         virtual void	setBuf(const BinaryBuf &);
 
         size_t          lastg(void) const;
         size_t          tellg(void) const;
-        bool            seekg(size_t pos);
-        bool            skipg(size_t len);
+        bool            seekg(size_t pos, int whence = RW_SEEK_SET) const;
+        bool            skipg(size_t len) const;
+
+        size_t          tell(void) const override { return tellg(); }
+        bool            skip(size_t len) const override { return skipg(len); }
+	bool            seek(int offset, int whence = RW_SEEK_SET) const override { return seekg(offset, whence); }
 
         int		getBE16(void) const override;
         int         	getLE16(void) const override;
@@ -76,9 +76,13 @@ namespace SWE
 
     class StreamBufRW : public StreamBufRO
     {
+        size_t          tell(void) const override { return 0; }
+        bool            skip(size_t len) const override { return false; }
+	bool		seek(int offset, int whence = RW_SEEK_SET) const override { return false; }
+
     protected:
-        BinaryBuf		buf;
-        StreamRWops		sw;
+        BinaryBuf	buf;
+        StreamRWops	sw;
 
         bool		resize(size_t);
 
@@ -96,8 +100,8 @@ namespace SWE
 
         size_t          lastp(void) const;
         size_t          tellp(void) const;
-        bool            seekp(size_t pos);
-        bool            skipp(size_t len);
+        bool            seekp(size_t pos, int whence = RW_SEEK_SET) const;
+        bool            skipp(size_t len) const;
 
         const u8*       data(void) const;
         size_t          size(void) const;

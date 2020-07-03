@@ -34,7 +34,7 @@
 #include "swe_cunicode_color.h"
 #include "swe_cstring.h"
 #include "swe_rect.h"
-#include "jsmn.h"
+#include "jsmn/jsmn.h"
 
 namespace SWE
 {

@@ -29,6 +29,7 @@
 #include "swe_surface.h"
 #include "swe_fontset.h"
 #include "swe_events.h"
+#include "swe_display.h"
 
 namespace SWE
 {
@@ -79,8 +80,15 @@ namespace SWE
         void		setSize(int, int);
         void		setPosition(int, int);
 
-        // SignalMember
-        // virtual void	signalReceive(int, const SignalMember*) {}
+        // SignalMember:
+        // virtual void	signalReceive(int, const SignalMember*) override {}
+	//
+	// ObjectEvent:
+        // virtual bool	userEvent(int, void*) override { return false; }
+        // virtual void	tickEvent(u32 ms) override {}
+
+	// target
+	virtual Texture & targetTexture(void);
 
         // Window
         virtual void	textureInvalidEvent(void) {}
@@ -98,10 +106,8 @@ namespace SWE
         virtual void	mouseLeaveEvent(void) {}
         virtual void	mouseTrackingEvent(const Point &, u32 buttons) {}
         virtual bool	mouseMotionEvent(const Point &, u32 buttons) { return false; }
-        virtual bool	userEvent(int, void*) { return false; }
         virtual bool	scrollUpEvent(void) { return false; }
         virtual bool	scrollDownEvent(void) { return false; }
-        virtual void	tickEvent(u32 ms) {}
         virtual void	renderPresentEvent(u32 ms) {}
         virtual void	displayResizeEvent(const Size &, bool) {}
         virtual void	displayFocusEvent(bool gain) {}
@@ -124,6 +130,14 @@ namespace SWE
         Window(const Window &);
         Window 	&	operator= (const Window &);
 
+	// Signal Member:
+        // void         signalSubscribe(const SignalMember & sender, int sig);
+        // void         signalUnsubscribe(const SignalMember &);
+        // void         signalEmit(int);
+	//
+	// ObjectEvent:
+        // void		pushEventAction(int code, const ObjectEvent* dst, void* data);
+
         bool		isID(const WindowId &) const;
         bool		isVisible(void) const;
         bool		isHidden(void) const;
@@ -141,6 +155,7 @@ namespace SWE
         int		resultCode(void) const;
         Rect		rect(void) const;
 
+	void		setDirty(bool);
         void		setParent(Window*);
         void		setVisible(bool);
 	void		setHidden(bool);
@@ -149,23 +164,22 @@ namespace SWE
         virtual void	setSize(const Size &);
         virtual void	setPosition(const Point &);
 
-
         int		exec(void);
-        void		pushEventAction(int, Window*, void*);
 
-        void            renderSurface(const Surface &, const Point &) const;
-        void            renderSurface(const Surface &, const Rect &, const Point &) const;
-        void            renderTexture(const Texture &, const Point &) const;
-        void            renderTexture(const Texture &, const Rect &, const Point &) const;
-        void            renderTexture(const TexturePos &) const;
 
-        Rect		renderText(const FontRender &, const UnicodeString &, const Color &, const Point &, int halign = AlignLeft, int valign = AlignTop, bool horizontal = true) const;
+        void            renderSurface(const Surface &, const Point &, int flip = FlipNone);
+        void            renderSurface(const Surface &, const Rect &, const Point &, int flip = FlipNone);
+        void            renderTexture(const Texture &, const Point &, int flip = FlipNone);
+        void            renderTexture(const Texture &, const Rect &, const Point &, int flip = FlipNone);
+        void            renderTexture(const TexturePos &);
 
-        virtual void    renderClear(const Color &) const;
-        void            renderColor(const Color &, const Rect &) const;
-        void            renderRect(const Color &, const Rect &) const;
-        void            renderLine(const Color &, const Point &, const Point &) const;
-        void            renderPoint(const Color &, const Point &) const;
+        Rect		renderText(const FontRender &, const UnicodeString &, const Color &, const Point &, int halign = AlignLeft, int valign = AlignTop, bool horizontal = true);
+
+        virtual void    renderClear(const Color &);
+        void            renderColor(const Color &, const Rect &);
+        void            renderRect(const Color &, const Rect &);
+        void            renderLine(const Color &, const Point &, const Point &);
+        void            renderPoint(const Color &, const Point &);
 
         virtual void	renderWindow(void) = 0;
 
@@ -199,5 +213,13 @@ namespace SWE
 	const char*	className(void) const override { return "SWE::CenteredWindow"; }
     };
 
+    class TargetWindow : public Window, public Texture
+    {
+    protected:
+	    Texture &	targetTexture(void) { return *this; }
+
+    public:
+	    TargetWindow(const Size &);
+    };
 } // SWE
 #endif

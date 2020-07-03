@@ -20,9 +20,9 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include <array>
 #include <sstream>
 #include <algorithm>
-#include <iterator>
 #include <iomanip>
 
 #include "swe_types.h"
@@ -31,43 +31,29 @@
 
 namespace SWE
 {
-    const int _colors[] =
+    struct colname_t
     {
-        0x00000000 /* Black */, 0x00000080 /* Navy */, 0x0000008B /* DarkBlue */, 0x000000CD /* MediumBlue */, 0x000000FF /* Blue */, 0x00006400 /* DarkGreen */, 0x00008000 /* Green */, 0x00008080 /* Teal */, 0x00008B8B /* DarkCyan */, 0x0000BFFF /* DeepSkyBlue */,
-        0x0000CED1 /* DarkTurquoise */, 0x0000FA9A /* MediumSpringGreen */, 0x0000FF00 /* Lime */, 0x0000FF7F /* SpringGreen */, 0x0000FFFE /* Aqua */, 0x0000FFFF /* Cyan */, 0x00191970 /* MidnightBlue */, 0x001E90FF /* DodgerBlue */, 0x0020B2AA /* LightSeaGreen */, 0x00228B22 /* ForestGreen */,
-        0x002E8B57 /* SeaGreen */, 0x002F4F4F /* DarkSlateGray */, 0x0032CD32 /* LimeGreen */, 0x003CB371 /* MediumSeaGreen */, 0x0040E0D0 /* Turquoise */, 0x004169E1 /* RoyalBlue */, 0x004682B4 /*SteelBlue */, 0x00483D8B /* DarkSlateBlue */, 0x0048D1CC /* MediumTurquoise */, 0x004B0082 /* Indigo */,
-        0x00556B2F /* DarkOliveGreen */, 0x005F9EA0 /* CadetBlue */, 0x006495ED /* CornflowerBlue */, 0x0066CDAA /* MediumAquamarine */, 0x00696969 /* DimGray */, 0x006A5ACD /* SlateBlue */, 0x006B8E23 /* OliveDrab */, 0x00708090 /* SlateGray */, 0x00778899 /* LightSlateGray */, 0x007B68EE /* MediumSlateBlue */,
-        0x007CFC00 /* LawnGreen */, 0x007FFF00 /* Chartreuse */, 0x007FFFD4 /* Aquamarine */, 0x00800000 /* Maroon */, 0x00800080 /* Purple */, 0x00808000 /* Olive */, 0x00808080 /* Gray */, 0x0087CEEB /* SkyBlue */, 0x0087CEFA /* LightSkyBlue */, 0x008A2BE2 /* BlueViolet */,
-        0x008B0000 /* DarkRed */, 0x008B008B /* DarkMagenta */, 0x008B4513 /* SaddleBrown */, 0x008FBC8F /* DarkSeaGreen */, 0x0090EE90 /* LightGreen */, 0x009370DB /* MediumPurple */, 0x009400D3 /* DarkViolet */, 0x0098FB98 /* PaleGreen */, 0x009932CC /* DarkOrchid */, 0x009966CC /* Amethyst */,
-        0x009ACD32 /* YellowGreen */, 0x00A0522D /* Sienna */, 0x00A52A2A /* Brown */, 0x00A9A9A9 /* DarkGray */, 0x00ADD8E6 /* LightBlue */, 0x00ADFF2F /* GreenYellow */, 0x00AFEEEE /* PaleTurquoise */, 0x00B0C4DE /* LightSteelBlue */, 0x00B0E0E6 /* PowderBlue */, 0x00B22222 /* FireBrick */,
-        0x00B8860B /* DarkGoldenrod */, 0x00BA55D3 /* MediumOrchid */, 0x00BC8F8F /* RosyBrown */, 0x00BDB76B /* DarkKhaki */, 0x00C0C0C0 /* Silver */, 0x00C71585 /* MediumVioletRed */, 0x00CD5C5C /* IndianRed */, 0x00CD853F /* Peru */, 0x00D2691E /* Chocolate */, 0x00D2B48C /* Tan */,
-        0x00D3D3D3 /* LightGrey */, 0x00D8BFD8 /* Thistle */, 0x00DA70D6 /* Orchid */, 0x00DAA520 /* Goldenrod */, 0x00DB7093 /* PaleVioletRed */, 0x00DC143C /* Crimson */, 0x00DCDCDC /* Gainsboro */, 0x00DDA0DD /* Plum */, 0x00DEB887 /* BurlyWood */, 0x00E0FFFF /* LightCyan */,
-        0x00E6E6FA /* Lavender */, 0x00E9967A /* DarkSalmon */, 0x00EE82EE /* Violet */, 0x00EEE8AA /* PaleGoldenrod */, 0x00F08080 /* LightCoral */, 0x00F0E68C /* Khaki */, 0x00F0F8FF /* AliceBlue*/, 0x00F0FFF0 /* Honeydew */, 0x00F0FFFF /* Azure */, 0x00F4A460 /* SandyBrown */,
-        0x00F5DEB3 /* Wheat */, 0x00F5F5DC /* Beige */, 0x00F5F5F5 /* WhiteSmoke */, 0x00F5FFFA /* MintCream */, 0x00F8F8FF /* GhostWhite */, 0x00FA8072 /* Salmon */, 0x00FAEBD7 /* AntiqueWhite */, 0x00FAF0E6 /* Linen */, 0x00FAFAD2 /* LightGoldenrodYellow */, 0x00FDF5E6 /* OldLace */,
-        0x00FF0000 /* Red */, 0x00FF00FF /* Fuchsia */, 0x00FF01FF /* Magenta */, 0x00FF1493 /* DeepPink */, 0x00FF4500 /* OrangeRed */, 0x00FF6347 /* Tomato */, 0x00FF69B4 /* HotPink */, 0x00FF7F50 /* Coral */, 0x00FF8C00 /* DarkOrange */, 0x00FFA07A /* LightSalmon */,
-        0x00FFA500 /* Orange */, 0x00FFB6C1 /* LightPink */, 0x00FFC0CB /* Pink */, 0x00FFD700 /* Gold */, 0x00FFDAB9 /* PeachPuff */, 0x00FFDEAD /* NavajoWhite */, 0x00FFE4B5 /* Moccasin */, 0x00FFE4C4 /* Bisque */, 0x00FFE4E1 /* MistyRose */, 0x00FFEBCD /* BlanchedAlmond */,
-        0x00FFEFD5 /* PapayaWhip */, 0x00FFF0F5 /* LavenderBlush */, 0x00FFF5EE /* Seashell */, 0x00FFF8DC /* Cornsilk */, 0x00FFFACD /* LemonChiffon */, 0x00FFFAF0 /* FloralWhite */, 0x00FFFAFA /*Snow */, 0x00FFFF00 /* Yellow */, 0x00FFFFE0 /* LightYellow */, 0x00FFFFF0 /* Ivory */,
-        0x00FFFFFF /* White */, -1 /* Transparent */
+	int         color;
+	const char* name;
     };
 
-    const char* _names[] =
-    {
-        "Black", "Navy", "DarkBlue", "MediumBlue", "Blue", "DarkGreen", "Green", "Teal", "DarkCyan", "DeepSkyBlue",
-        "DarkTurquoise", "MediumSpringGreen", "Lime", "SpringGreen", "Aqua", "Cyan", "MidnightBlue", "DodgerBlue", "LightSeaGreen", "ForestGreen",
-        "SeaGreen", "DarkSlateGray", "LimeGreen", "MediumSeaGreen", "Turquoise", "RoyalBlue", "SteelBlue", "DarkSlateBlue", "MediumTurquoise", "Indigo",
-        "DarkOliveGreen", "CadetBlue", "CornflowerBlue", "MediumAquamarine", "DimGray", "SlateBlue", "OliveDrab", "SlateGray", "LightSlateGray", "MediumSlateBlue",
-        "LawnGreen", "Chartreuse", "Aquamarine", "Maroon", "Purple", "Olive", "Gray", "SkyBlue", "LightSkyBlue", "BlueViolet",
-        "DarkRed", "DarkMagenta", "SaddleBrown", "DarkSeaGreen", "LightGreen", "MediumPurple", "DarkViolet", "PaleGreen", "DarkOrchid", "Amethyst",
-        "YellowGreen", "Sienna", "Brown", "DarkGray", "LightBlue", "GreenYellow", "PaleTurquoise", "LightSteelBlue", "PowderBlue", "FireBrick",
-        "DarkGoldenrod", "MediumOrchid", "RosyBrown", "DarkKhaki", "Silver", "MediumVioletRed", "IndianRed", "Peru", "Chocolate", "Tan",
-        "LightGrey", "Thistle", "Orchid", "Goldenrod", "PaleVioletRed", "Crimson", "Gainsboro", "Plum", "BurlyWood", "LightCyan",
-        "Lavender", "DarkSalmon", "Violet", "PaleGoldenrod", "LightCoral", "Khaki", "AliceBlue", "Honeydew", "Azure", "SandyBrown",
-        "Wheat", "Beige", "WhiteSmoke", "MintCream", "GhostWhite", "Salmon", "AntiqueWhite", "Linen", "LightGoldenrodYellow", "OldLace",
-        "Red", "Fuchsia", "Magenta", "DeepPink", "OrangeRed", "Tomato", "HotPink", "Coral", "DarkOrange", "LightSalmon",
-        "Orange", "LightPink", "Pink", "Gold", "PeachPuff", "NavajoWhite", "Moccasin", "Bisque", "MistyRose", "BlanchedAlmond",
-        "PapayaWhip", "LavenderBlush", "Seashell", "Cornsilk", "LemonChiffon", "FloralWhite", "Snow", "Yellow", "LightYellow", "Ivory",
-        "White", "Transparent"
-    };
+    std::array<colname_t, Color::Transparent + 1> _colors = { {
+        { 0x00000000, "black" }, { 0x00000080, "navy" }, { 0x0000008b, "darkblue" }, { 0x000000cd, "mediumblue" }, { 0x000000ff, "blue" }, { 0x00006400, "darkgreen" }, { 0x00008000, "green" }, { 0x00008080, "teal" }, { 0x00008b8b, "darkcyan" }, { 0x0000bfff, "deepskyblue" },
+        { 0x0000ced1, "darkturquoise" }, { 0x0000fa9a, "mediumspringgreen" }, { 0x0000ff00, "lime" }, { 0x0000ff7f, "springgreen" }, { 0x0000fffe, "aqua" }, { 0x0000ffff, "cyan" }, { 0x00191970, "midnightblue" }, { 0x001e90ff, "dodgerblue" }, { 0x0020b2aa, "lightseagreen" }, { 0x00228b22, "forestgreen" },
+        { 0x002e8b57, "seagreen" }, { 0x002f4f4f, "darkslategray" }, { 0x0032cd32, "limegreen" }, { 0x003cb371, "mediumseagreen" }, { 0x0040e0d0, "turquoise" }, { 0x004169e1, "royalblue" }, { 0x004682b4, "steelblue" }, { 0x00483d8b, "darkslateblue" }, { 0x0048d1cc, "mediumturquoise" }, { 0x004b0082, "indigo" },
+        { 0x00556b2f, "darkolivegreen" }, { 0x005f9ea0, "cadetblue" }, { 0x006495ed, "cornflowerblue" }, { 0x0066cdaa, "mediumaquamarine" }, { 0x00696969, "dimgray" }, { 0x006a5acd, "slateblue" }, { 0x006b8e23, "olivedrab" }, { 0x00708090, "slategray" }, { 0x00778899, "lightslategray" }, { 0x007b68ee, "mediumslateblue" },
+        { 0x007cfc00, "lawngreen" }, { 0x007fff00, "chartreuse" }, { 0x007fffd4, "aquamarine" }, { 0x00800000, "maroon" }, { 0x00800080, "purple" }, { 0x00808000, "olive" }, { 0x00808080, "gray" }, { 0x0087ceeb, "skyblue" }, { 0x0087cefa, "lightskyblue" }, { 0x008a2be2, "blueviolet" },
+        { 0x008b0000, "darkred" }, { 0x008b008b, "darkmagenta" }, { 0x008b4513, "saddlebrown" }, { 0x008fbc8f, "darkseagreen" }, { 0x0090ee90, "lightgreen" }, { 0x009370db, "mediumpurple" }, { 0x009400d3, "darkviolet" }, { 0x0098fb98, "palegreen" }, { 0x009932cc, "darkorchid" }, { 0x009966cc, "amethyst" },
+        { 0x009acd32, "yellowgreen" }, { 0x00a0522d, "sienna" }, { 0x00a52a2a, "brown" }, { 0x00a9a9a9, "darkgray" }, { 0x00add8e6, "lightblue" }, { 0x00adff2f, "greenyellow" }, { 0x00afeeee, "paleturquoise" }, { 0x00b0c4de, "lightsteelblue" }, { 0x00b0e0e6, "powderblue" }, { 0x00b22222, "firebrick" },
+        { 0x00b8860b, "darkgoldenrod" }, { 0x00ba55d3, "mediumorchid" }, { 0x00bc8f8f, "rosybrown" }, { 0x00bdb76b, "darkkhaki" }, { 0x00c0c0c0, "silver" }, { 0x00c71585, "mediumvioletred" }, { 0x00cd5c5c, "indianred" }, { 0x00cd853f, "peru" }, { 0x00d2691e, "chocolate" }, { 0x00d2b48c, "tan" },
+        { 0x00d3d3d3, "lightgrey" }, { 0x00d8bfd8, "thistle" }, { 0x00da70d6, "orchid" }, { 0x00daa520, "goldenrod" }, { 0x00db7093, "palevioletred" }, { 0x00dc143c, "crimson" }, { 0x00dcdcdc, "gainsboro" }, { 0x00dda0dd, "plum" }, { 0x00deb887, "burlywood" }, { 0x00e0ffff, "lightcyan" },
+        { 0x00e6e6fa, "lavender" }, { 0x00e9967a, "darksalmon" }, { 0x00ee82ee, "violet" }, { 0x00eee8aa, "palegoldenrod" }, { 0x00f08080, "lightcoral" }, { 0x00f0e68c, "khaki" }, { 0x00f0f8ff, "aliceblue", }, {0x00f0fff0, "honeydew" }, { 0x00f0ffff, "azure" }, { 0x00f4a460, "sandybrown" },
+        { 0x00f5deb3, "wheat" }, { 0x00f5f5dc, "beige" }, { 0x00f5f5f5, "whitesmoke" }, { 0x00f5fffa, "mintcream" }, { 0x00f8f8ff, "ghostwhite" }, { 0x00fa8072, "salmon" }, { 0x00faebd7, "antiquewhite" }, { 0x00faf0e6, "linen" }, { 0x00fafad2, "lightgoldenrodyellow" }, { 0x00fdf5e6, "oldlace" },
+        { 0x00ff0000, "red" }, { 0x00ff00ff, "fuchsia" }, { 0x00ff01ff, "magenta" }, { 0x00ff1493, "deeppink" }, { 0x00ff4500, "orangered" }, { 0x00ff6347, "tomato" }, { 0x00ff69b4, "hotpink" }, { 0x00ff7f50, "coral" }, { 0x00ff8c00, "darkorange" }, { 0x00ffa07a, "lightsalmon" },
+        { 0x00ffa500, "orange" }, { 0x00ffb6c1, "lightpink" }, { 0x00ffc0cb, "pink" }, { 0x00ffd700, "gold" }, { 0x00ffdab9, "peachpuff" }, { 0x00ffdead, "navajowhite" }, { 0x00ffe4b5, "moccasin" }, { 0x00ffe4c4, "bisque" }, { 0x00ffe4e1, "mistyrose" }, { 0x00ffebcd, "blanchedalmond" },
+        { 0x00ffefd5, "papayawhip" }, { 0x00fff0f5, "lavenderblush" }, { 0x00fff5ee, "seashell" }, { 0x00fff8dc, "cornsilk" }, { 0x00fffacd, "lemonchiffon" }, { 0x00fffaf0, "floralwhite" }, { 0x00fffafa, "snow" }, { 0x00ffff00, "yellow" }, { 0x00ffffe0, "lightyellow" }, { 0x00fffff0, "ivory" },
+        { 0x00ffffff, "white" }, { -1, "transparent" }
+    } };
 
     std::vector<ARGB> others_argb;
 
@@ -86,38 +72,31 @@ namespace SWE
 
     int names2index(const std::string & str)
     {
-        auto _names_end = std::end(_names);
-        auto _names_its = std::begin(_names);
-
-        while(_names_its != _names_end)
-        {
-            if(String::compareInSensitive(*_names_its, str)) break;
-
-            _names_its++;
-        }
-
-        return _names_its != _names_end ? std::distance(std::begin(_names), _names_its) : -1;
+        auto it = std::find_if(_colors.begin(), _colors.end(),
+			    [&](const colname_t & item){ return String::compareInSensitive(str, item.name); });
+        return it != _colors.end() ? std::distance(_colors.begin(), it) : -1;
     }
 
     int colors2index(int color)
     {
-        auto _colors_end = std::end(_colors);
-        auto _colors_its = std::find(std::begin(_colors), _colors_end, color);
-        return _colors_its != _colors_end ? std::distance(std::begin(_colors), _colors_its) : -1;
+        auto it = std::find_if(_colors.begin(), _colors.end(),
+			    [=](const colname_t & item){ return item.color == color; });
+        return it != _colors.end() ? std::distance(_colors.begin(), it) : -1;
     }
 
     ARGB index2argb(int index)
     {
-        int argbsz = others_argb.size();
+        if(index == Color::Transparent)
+    	    return Color::transparent();
 
-        if(Color::Black <= index && index < Color::Transparent)
-            return ARGB(colors2argb(_colors[index]));
-        else if(index > Color::Transparent && argbsz  >= index - Color::Transparent)
-            return others_argb[index - Color::Transparent - 1];
-        else if(index != Color::Transparent)
-            ERROR("unknown color index: " << index);
+        if(0 <= index && index < _colors.size())
+            return ARGB(colors2argb(_colors[index].color));
 
-        // default: transparent
+	index -= _colors.size();
+        if(0 <= index && index < others_argb.size())
+            return others_argb[index];
+
+        ERROR("unknown color index: " << index);
         return Color::transparent();
     }
 
@@ -257,8 +236,8 @@ namespace SWE
     {
         ColorIndex col = toColorIndex();
 
-        if(Color::Black <= col.index() && col.index() <= Color::Transparent)
-            return _names[col.index()];
+        if(0 <= col.index() && col.index() < _colors.size())
+            return _colors[col.index()].name;
         else if(hasAlpha())
             return toHexString();
 
@@ -272,7 +251,7 @@ namespace SWE
 
     const char* Color::name(color_t col)
     {
-        return _names[col];
+        return _colors[col].name;
     }
 
     bool Color::isColor(color_t col) const

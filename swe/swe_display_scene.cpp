@@ -73,12 +73,20 @@ namespace SWE
 	}
 #endif
 
+        void resetVisibleTimeout(void)
+        {
+            setVisible(false);
+            mouseIdle = Tools::ticks() - Display::timeStart();
+        }
+
     protected:
         Point fixPosition(const Point & mousepos, const Size & winsz, const Size & displaysz)
         {
             const int offset = 2;
             int posx = mousepos.x + winsz.w + offset > displaysz.w ? mousepos.x - winsz.w - offset : mousepos.x + offset;
             int posy = mousepos.y - winsz.h - offset;
+	    if(posx < 0) posx = 0;
+	    if(posy < 0) posy = 0;
             return Point(posx, posy);
         }
 
@@ -137,6 +145,8 @@ namespace SWE
 	}
     };
 */
+    std::list<BaseObject*>
+			sceneObjects;
     std::list<Window*>	sceneItems;
     bool		sceneDirty = false;
     DisplayToolTip*	sceneToolTip = NULL;
@@ -147,7 +157,7 @@ namespace SWE
     bool		markTopWidget = false;
 #ifdef OLDENGINE
     // SDL12 small queue events, resize it, see pushEvent
-    std::list<SDL_Event> events;
+    std::list<UserEvent> events;
 #endif
 }
 
@@ -164,11 +174,13 @@ SWE::Window* SWE::DisplayScene::focusedWindow(void)
 {
     for(auto it = sceneItems.rbegin(); it != sceneItems.rend(); ++it)
     {
-        if((*it)->isVisible() && !(*it)->isHidden() &&
-                (*it)->isAreaPoint(Display::mouseCursorPosition()))
+        if((*it)->isVisible() && !(*it)->isHidden())
 	{
-	    (*it)->focusHandle(true);
-	    return *it;
+	    if((*it)->isModality())
+		return *it;
+
+            if((*it)->isAreaPoint(Display::mouseCursorPosition()))
+		return *it;
 	}
     }
 
@@ -232,6 +244,17 @@ std::list<SWE::Window*> SWE::DisplayScene::findChilds(const Window & self)
     return childs;
 }
 
+void SWE::DisplayScene::addObject(BaseObject & obj)
+{
+    /* back: top level */
+    sceneObjects.push_back(& obj);
+}
+
+void SWE::DisplayScene::removeObject(const BaseObject & obj)
+{
+    sceneObjects.remove(const_cast<BaseObject*>(& obj));
+}
+
 void SWE::DisplayScene::addItem(Window & win)
 {
     /* back: top level */
@@ -287,13 +310,26 @@ void SWE::DisplayScene::sceneDestroy(void)
 
 void SWE::DisplayScene::sceneRedraw(void)
 {
-    u32 tickCurrent = Tools::ticks();
-
     if(isDirty())
     {
-	// redraw only root items
+	u32 tickCurrent = Tools::ticks();
+	const Size & dsz = Display::size();
+	auto full = std::find_if(sceneItems.rbegin(), sceneItems.rend(),
+				[&](Window* win){ return win->isModality() && win->area().contains(dsz); });
+
+	// redraw root or modality
 	for(auto it = sceneItems.begin(); it != sceneItems.end(); ++it)
-    	    if((*it)->parent() == NULL)(*it)->redraw();
+	{
+	    // start redraw from full screen
+	    if(full != sceneItems.rend())
+	    {
+		if(*it != *full) continue;
+		(*it)->redraw();
+		full = sceneItems.rend();
+	    }
+
+	    if(NULL == (*it)->parent() || (*it)->isModality()) (*it)->redraw();
+	}
 
 #ifdef SWE_DEBUG
 	// mark top focused
@@ -336,19 +372,35 @@ void SWE::DisplayScene::handleWhileVisible(const Window & win)
     }
 }
 
-void SWE::DisplayScene::pushEvent(const Window* dst, int code, void* data)
+void SWE::DisplayScene::handleEvents(u32 interval)
+{
+    u32 start = Tools::ticks();
+
+    while(true)
+    {
+        if(Display::handleEvents())
+            sceneRedraw();
+
+        if(0 == interval || start + interval < Tools::ticks())
+            break;
+
+        Tools::delay(1);
+    }
+}
+
+void SWE::DisplayScene::pushEvent(const ObjectEvent* dst, int code, void* data)
 {
     SDL_Event event;
     std::memset(&event, 0, sizeof(event));
     event.type = SDL_USEREVENT;
     event.user.code = code;
-    event.user.data1 = const_cast<Window*>(dst);
+    event.user.data1 = const_cast<ObjectEvent*>(dst);
     event.user.data2 = data;
 
     if(0 > SDL_PushEvent(&event))
     {
 #ifdef OLDENGINE
-	events.emplace_back(event);
+	events.emplace_back(UserEvent(event.user.code, event.user.data1, event.user.data2));
 #else
         ERROR("win: " << String::pointer(dst) << ", " << "code: " << String::hex(code) << ", " << "error: " << SDL_GetError());
 #endif
@@ -361,18 +413,18 @@ void SWE::DisplayScene::pushEvent(const Window* dst, int code, void* data)
 bool SWE::DisplayScene::keyHandle(const KeySym & key, bool press)
 {
 #ifdef SWE_DEBUG
-    if(press && key.isLeftShift() && key.isKeyCode(Key::F8))
+    if(press && key.keymod().isLeftShift() && key.isKeyCode(Key::F8))
     {
         markTopWidget = !markTopWidget;
 	sceneDirty = true;
     }
 
-    if(press && key.isLeftShift() && key.isKeyCode(Key::F9))
+    if(press && key.keymod().isLeftShift() && key.isKeyCode(Key::F9))
     {
 	dumpScene();
     }
 
-    if(press && key.isLeftShift() && key.isKeyCode(Key::F10))
+    if(press && key.keymod().isLeftShift() && key.isKeyCode(Key::F10))
     {
 	if(Systems::saveString2File(toJson().toString(), "scene.json"))
 	    VERBOSE("DisplayScene saved to scene.json");
@@ -423,7 +475,7 @@ bool SWE::DisplayScene::textInputHandle(const std::string & str)
     return false;
 }
 
-bool SWE::DisplayScene::mouseButtonHandle(const ButtonEvent & st, bool press)
+SWE::Window* SWE::DisplayScene::windowsFocusHandle(void)
 {
     Window* topWin = focusedWindow();
 
@@ -431,8 +483,25 @@ bool SWE::DisplayScene::mouseButtonHandle(const ButtonEvent & st, bool press)
     for(auto it = sceneItems.rbegin(); it != sceneItems.rend(); ++it)
 	if(*it != topWin) (*it)->focusHandle(false);
 
-    if(topWin && topWin->mouseButtonHandle(st, press))
-	return true;
+    if(topWin)
+        topWin->focusHandle(true);
+
+    return topWin;
+}
+
+bool SWE::DisplayScene::mouseButtonHandle(const ButtonEvent & st, bool press)
+{
+    Window* topWin = windowsFocusHandle();
+
+    // mouse manip: hide tooltip
+    if(sceneToolTip && sceneToolTip->isVisible())
+        sceneToolTip->resetVisibleTimeout();
+
+    if(topWin)
+    {
+        if(topWin->mouseButtonHandle(st, press) || topWin->isModality())
+	    return true;
+    }
 
     for(auto it = sceneItems.rbegin(); it != sceneItems.rend(); ++it)
     {
@@ -459,14 +528,13 @@ bool SWE::DisplayScene::mouseButtonHandle(const ButtonEvent & st, bool press)
 
 bool SWE::DisplayScene::mouseClickHandle(const ButtonsEvent & st)
 {
-    Window* topWin = focusedWindow();
+    Window* topWin = windowsFocusHandle();
 
-    // global reset focus
-    for(auto it = sceneItems.rbegin(); it != sceneItems.rend(); ++it)
-	if(*it != topWin) (*it)->focusHandle(false);
-
-    if(topWin && topWin->mouseClickHandle(st))
-	return true;
+    if(topWin)
+    {
+        if(topWin->mouseClickHandle(st) || topWin->isModality())
+	    return true;
+    }
 
     for(auto it = sceneItems.rbegin(); it != sceneItems.rend(); ++it)
     {
@@ -497,20 +565,24 @@ bool SWE::DisplayScene::mouseMotionHandle(const Point & pos, u32 buttons)
     if(cursorTexture.isValid())
         setDirty(true);
 
-    Window* topWin = focusedWindow();
+    Window* topWin = windowsFocusHandle();
 
-    // global reset focus
+    // mouse manip: hide tooltip
+    if(sceneToolTip && sceneToolTip->isVisible())
+        sceneToolTip->resetVisibleTimeout();
+
     for(auto it = sceneItems.rbegin(); it != sceneItems.rend(); ++it)
     {
-	if(*it != topWin) (*it)->focusHandle(false);
-
         // global mouse tracking event
         if((*it)->checkState(FlagMouseTracking))
             (*it)->mouseTrackingEvent(pos, buttons);
     }
 
-    if(topWin && topWin->mouseMotionHandle(pos, buttons))
-	return true;
+    if(topWin)
+    {
+        if(topWin->mouseMotionHandle(pos, buttons) || topWin->isModality())
+	    return true;
+    }
 
     for(auto it = sceneItems.rbegin(); it != sceneItems.rend(); ++it)
     {
@@ -537,14 +609,13 @@ bool SWE::DisplayScene::mouseMotionHandle(const Point & pos, u32 buttons)
 
 bool SWE::DisplayScene::scrollHandle(bool isup)
 {
-    Window* topWin = focusedWindow();
+    Window* topWin = windowsFocusHandle();
 
-    // global reset focus
-    for(auto it = sceneItems.rbegin(); it != sceneItems.rend(); ++it)
-	if(*it != topWin) (*it)->focusHandle(false);
-
-    if(topWin && topWin->scrollHandle(isup))
-	return true;
+    if(topWin)
+    {
+        if(topWin->scrollHandle(isup) || topWin->isModality())
+	    return true;
+    }
 
     for(auto it = sceneItems.rbegin(); it != sceneItems.rend(); ++it)
     {
@@ -580,21 +651,30 @@ bool SWE::DisplayScene::userHandle(const SDL_UserEvent & ev)
     {
         if(sceneItems.end() != std::find(sceneItems.begin(), sceneItems.end(), ev.data1))
         {
-            // dst always Window type
-            Window* win = static_cast<Window*>(ev.data1);
-
             if(ev.code == Signal::WindowCreated)
             {
+        	Window* win = static_cast<Window*>(ev.data1);
                 win->windowCreateEvent();
                 return true;
             }
+	    else
+            if(ev.code == Signal::WindowCheckFocus)
+            {
+		// rescan focused
+		windowsFocusHandle();
+		return true;
+	    }
 
-            return  win->userEvent(ev.code, ev.data2);
+    	    ObjectEvent* dst = static_cast<ObjectEvent*>(ev.data1);
+            return  dst->userEvent(ev.code, ev.data2);
         }
         else
         {
             // skip signal, temp win
             if(ev.code == WindowCreated)
+                return true;
+            else
+	    if(ev.code == WindowCheckFocus)
                 return true;
 
             DEBUG("skip signal: " << String::hex(ev.code) << ", win not found: " << String::hex(reinterpret_cast<std::uintptr_t>(ev.data1)));
@@ -626,9 +706,13 @@ bool SWE::DisplayScene::userHandle(const SDL_UserEvent & ev)
                 break;
         }
 
-        // other signal for alls
-        for(auto it = sceneItems.rbegin(); it != sceneItems.rend(); ++it)
-            if(! (*it)->isHidden())(*it)->userEvent(ev.code, ev.data2);
+        // other signal for alls windows
+        for(auto & item : sceneItems)
+            if(! item->isHidden()) item->userEvent(ev.code, ev.data2);
+
+        // other signal for alls objects
+        for(auto & object : sceneObjects)
+            if(object->isValidObject()) object->userEvent(ev.code, ev.data2);
 
         return true;
     }
@@ -638,21 +722,29 @@ bool SWE::DisplayScene::userHandle(const SDL_UserEvent & ev)
 
 void SWE::DisplayScene::tickHandle(u32 ms)
 {
-    for(auto it = sceneItems.begin(); it != sceneItems.end(); ++it)
+    for(auto & win : sceneItems)
     {
-        if(! (*it)->isHidden() && ! (*it)->checkState(FlagSystemTickSkip)) (*it)->tickEvent(ms);
+        if(! win->isHidden() && ! win->checkState(FlagSystemTickSkip)) win->tickEvent(ms);
         if(sceneToolTip) static_cast<Window*>(sceneToolTip)->tickEvent(ms);
     }
+
+    for(auto & object : sceneObjects)
+        if(object->isValidObject()) object->tickEvent(ms);
 
     // find top focused
     auto it = sceneItems.rbegin();
     for(; it != sceneItems.rend(); ++it)
     {
 	if((*it)->isVisible() && !(*it)->isHidden() &&
+		(*it)->isModality()) break;
+
+	if((*it)->isVisible() && !(*it)->isHidden() &&
 		(*it)->isAreaPoint(Display::mouseCursorPosition())) break;
     }
 
-    if(it != sceneItems.rend())
+    if(it != sceneItems.rend() &&
+	// maybe modality break
+	(*it)->isAreaPoint(Display::mouseCursorPosition()))
     {
 	auto win = dynamic_cast<WindowToolTipArea*>(*it);
         if(win && win->tooltipTexture().isValid())
@@ -683,9 +775,9 @@ void SWE::DisplayScene::tickHandle(u32 ms)
 
 #ifdef OLDENGINE
     // push event if present
-    while(events.size() &&
-	0 == SDL_PushEvent(& events.front()))
+    while(events.size())
     {
+	userHandle(events.front());
 	events.pop_front();
     }
 #endif
@@ -693,45 +785,31 @@ void SWE::DisplayScene::tickHandle(u32 ms)
 
 void SWE::DisplayScene::renderPresentHandle(u32 ms)
 {
-    std::for_each(sceneItems.begin(), sceneItems.end(), std::bind2nd(std::mem_fun(&Window::renderPresentEvent), ms));
+    for(auto & win : sceneItems)
+        win->renderPresentEvent(ms);
 }
 
 void SWE::DisplayScene::textureInvalidHandle(void)
 {
-    std::for_each(sceneItems.begin(), sceneItems.end(), std::mem_fun(&Window::textureInvalidEvent));
+    for(auto & win : sceneItems)
+        win->textureInvalidEvent();
 }
 
 void SWE::DisplayScene::displayResizeHandle(const Size & sz, bool sdlmode)
 {
-    for(auto it = sceneItems.begin(); it != sceneItems.end(); ++it)
+    for(auto & win : sceneItems)
     {
-        if((*it)->isVisible() && !(*it)->isHidden())
-            (*it)->displayResizeEvent(sz, sdlmode);
+    	if(win->isVisible() && !win->isHidden())
+    	    win->displayResizeEvent(sz, sdlmode);
     }
 }
 
 void SWE::DisplayScene::displayFocusHandle(bool gain)
 {
-    for(auto it = sceneItems.begin(); it != sceneItems.end(); ++it)
+    for(auto & win : sceneItems)
     {
-        if((*it)->isVisible() && !(*it)->isHidden())
-            (*it)->displayFocusEvent(gain);
-    }
-}
-
-void SWE::DisplayScene::handleEvents(u32 interval)
-{
-    u32 start = Tools::ticks();
-
-    while(true)
-    {
-        if(Display::handleEvents())
-            sceneRedraw();
-
-        if(0 == interval || start + interval < Tools::ticks())
-            break;
-
-        Tools::delay(1);
+        if(win->isVisible() && !win->isHidden())
+            win->displayFocusEvent(gain);
     }
 }
 
@@ -747,8 +825,10 @@ SWE::JsonObject SWE::DisplayScene::toJson(void)
 
 
     JsonArray windows;
-    for(auto it = sceneItems.begin(); it != sceneItems.end(); ++it)
-	windows.addObject((*it)->toJson());
+    for(auto & win : sceneItems)
+    {
+	windows.addObject(win->toJson());
+    }
     scene.addArray("windows", windows);
 
     scene.addObject("cursorTexture", cursorTexture.toJson());
@@ -767,6 +847,9 @@ void SWE::DisplayScene::dumpScene(void)
     VERBOSE("items: " << sceneItems.size());
     VERBOSE("TOP LAYER");
 
-    std::for_each(sceneItems.rbegin(), sceneItems.rend(), std::mem_fun(&Window::dumpState));
+    for(auto it = sceneItems.rbegin(); it != sceneItems.rend(); ++it)
+    {
+	(*it)->dumpState();
+    }
 }
 #endif

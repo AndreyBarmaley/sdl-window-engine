@@ -20,11 +20,12 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <cctype>
 #include <ctime>
+#include <cctype>
 #include <cstring>
 #include <sstream>
 #include <iomanip>
+#include <numeric>
 #include <algorithm>
 
 #include "swe_tools.h"
@@ -422,7 +423,7 @@ namespace SWE
 
             if(std::isdigit(*(it1 + 1)))
             {
-                it2 = std::find_if(it1 + 1, end(), std::not1(std::ptr_fun<int, int>(std::isdigit)));
+                it2 = std::find_if(it1 + 1, end(), [](int ch){ return ! std::isdigit(ch); });
                 int argc = String::toInt(substr(std::distance(begin(), it1 + 1), it2 - it1 - 1).toString());
 
                 if(0 == argc)
@@ -487,6 +488,11 @@ namespace SWE
         swap(v);
     }
 
+    UnicodeList::UnicodeList(std::list<UnicodeString> && v) noexcept
+    {
+        swap(v);
+    }
+
     UnicodeList & UnicodeList::operator= (const UnicodeList & v)
     {
         assign(v.begin(), v.end());
@@ -499,24 +505,24 @@ namespace SWE
         return *this;
     }
 
+    UnicodeList & UnicodeList::operator= (std::list<UnicodeString> && v) noexcept
+    {
+        swap(v);
+        return *this;
+    }
+
     size_t UnicodeList::maxStringWidth(void) const
     {
-        size_t res = 0;
+        if(empty()) return 0;
 
-        for(const_iterator it = begin(); it != end(); ++it)
-            if((*it).size() > res) res = (*it).size();
-
-        return res;
+        auto it = std::max_element(begin(), end(), [](const UnicodeString & str1, const UnicodeString & str2) { return str1.size() < str2.size(); });
+        return it != end() ? (*it).size() : front().size();
     }
 
     size_t UnicodeList::totalStringsWidth(void) const
     {
-        size_t res = 0;
-
-        for(const_iterator it = begin(); it != end(); ++it)
-            res += (*it).size();
-
-        return res;
+        return std::accumulate(begin(), end(), 0,
+                    [](size_t v, const UCString & str){ return v + str.size(); });
     }
 
     UnicodeString UnicodeList::join(void) const

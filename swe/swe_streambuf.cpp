@@ -71,12 +71,12 @@ namespace SWE
         return sr.tell();
     }
 
-    bool StreamBufRO::seekg(size_t pos)
+    bool StreamBufRO::seekg(size_t pos, int whence) const
     {
-        return sr.seek(pos);
+        return sr.seek(pos, whence);
     }
 
-    bool StreamBufRO::skipg(size_t len)
+    bool StreamBufRO::skipg(size_t len) const
     {
         return sr.skip(len);
     }
@@ -280,12 +280,12 @@ namespace SWE
         return sw.tell();
     }
 
-    bool StreamBufRW::seekp(size_t pos)
+    bool StreamBufRW::seekp(size_t pos, int whence) const
     {
-        return sw.seek(pos);
+        return sw.seek(pos, whence);
     }
 
-    bool StreamBufRW::skipp(size_t len)
+    bool StreamBufRW::skipp(size_t len) const
     {
         return sw.skip(len);
     }
@@ -386,8 +386,8 @@ namespace SWE
 
         const u32 size0 = sf.getBE32(); // raw size
         const u32 size1 = sf.getBE32(); // zip size
-        buf = sf.get(size1).zlibUncompress(size0);
-        seekg(0);
+	sf.skip(4);			// reserved
+        setBuf(sf.get(size1).zlibUncompress(size0));
         return ! fail();
     }
 
@@ -404,6 +404,7 @@ namespace SWE
 
         sf.putBE32(size());
         sf.putBE32(zip.size());
+	sf.putBE32(0);
         sf.put(reinterpret_cast<const char*>(zip.data()), zip.size());
         return ! sf.fail();
     }

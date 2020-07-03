@@ -6,6 +6,12 @@ ifndef DISABLE_IMAGE
 SOURCEDIR       := $(SOURCEDIR) ../swe/savepng
 endif
 endif
+ifdef WITH_JSON
+SOURCEDIR       := $(SOURCEDIR) ../swe/jsmn
+endif
+ifdef WITH_XML
+SOURCEDIR       := $(SOURCEDIR) ../swe/tinyxml2
+endif
 
 SEARCH          := $(addsuffix /*.cpp, $(SOURCEDIR))
 
@@ -20,7 +26,6 @@ VPATH		:= $(SOURCEDIR)
 
 %.o: %.cpp
 	$(CXX) -c -MD $< $(CFLAGS)
-#	$(CXX) -c -MD $(addprefix -I, $(SRCDIRLIST)) $< $(CFLAGS)
 
 include $(wildcard *.d)
 

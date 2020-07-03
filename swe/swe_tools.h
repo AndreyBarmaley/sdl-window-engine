@@ -77,6 +77,8 @@ namespace SWE
         template<typename T>
         const T*	rand(const std::vector<T> & vec)
         {
+	    if(vec.empty()) return NULL;
+	    if(vec.size() == 1) return &vec.front();
             typename std::vector<T>::const_iterator it = vec.begin();
             std::advance(it, rand(0, vec.size() - 1));
             return it == vec.end() ? NULL : &(*it);
@@ -85,14 +87,17 @@ namespace SWE
         template<typename T>
         const T*	rand(const std::list<T> & list)
         {
+	    if(list.empty()) return NULL;
+	    if(list.size() == 1) return &list.front();
             typename std::list<T>::const_iterator it = list.begin();
             std::advance(it, rand(0, list.size() - 1));
             return it == list.end() ? NULL : &(*it);
         }
 
         template<typename T>
-        class RandQueue : private std::vector< std::pair<T, size_t> >
+        class RandQueue : protected std::vector< std::pair<T, size_t> >
         {
+	protected:
             size_t getMaxWeight(void) const
             {
                 size_t max = 0;
@@ -110,13 +115,18 @@ namespace SWE
                     this->reserve(size);
             }
 
-            void	push(const T & value, size_t weight)
+            void push(const T & value, size_t weight)
             {
                 if(weight)
                     this->push_back(std::make_pair(value, weight));
             }
 
-            T	get(void)
+	    bool isValid(void) const
+	    {
+		return this->size();
+	    }
+
+            T	 get(void)
             {
                 if(this->size())
                 {

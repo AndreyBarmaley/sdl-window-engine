@@ -22,10 +22,6 @@
 
 #include <ctime>
 
-#ifdef OLDENGINE
-#include "SDL_rotozoom.h"
-#endif
-
 #include "swe_engine.h"
 #include "swe_events.h"
 #include "swe_music.h"
@@ -165,6 +161,11 @@ bool SWE::Engine::init(bool debug)
 #ifdef __MINGW32__
     Display::fingerEventEmulation = true;
 #endif
+
+#ifdef OLDENGINE
+    SDL_EnableKeyRepeat(400, 75);
+#endif
+
     return true;
 }
 

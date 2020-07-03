@@ -32,6 +32,7 @@ namespace SWE
     /* CharsetProperty */
     CharsetProperty::CharsetProperty(int blend, int style, int hinting) : val(0)
     {
+	/* blended 2 bit, style 4 bit, hinting 2 bit */
         setRender(blend);
         setStyle(style);
         setHinting(hinting);
@@ -93,42 +94,65 @@ namespace SWE
         setSize(sz);
         setProperty(cp());
     }
-        
+
+    int FontID::operator()(void) const
+    {   
+        return value();
+    }
+
+    int FontID::value(void) const
+    {   
+        return (static_cast<int>(val1) << 16) | (static_cast<int>(val2) << 8) | static_cast<int>(val3);
+    }
+
+    bool FontID::operator<(const FontID & fd) const
+    {
+	return value() < fd.value();
+    }
+
+    bool FontID::operator>(const FontID & fd) const
+    {
+	return value() > fd.value();
+    }
+
+    bool FontID::operator==(const FontID & fd) const
+    {
+	return value() == fd.value();
+    }
+
     int FontID::id(void) const
     {
-        return val1();
+        return val1;
     }
         
     int FontID::size(void) const
     {
-        return packshort(val2()).val1();
+        return val2;
     }
         
     CharsetProperty FontID::property(void) const
     {
-        CharsetProperty res;
-        res.val = packshort(val2()).val2();
-        return res;
+        return val3;
     }
         
     void FontID::reset(void)
     {
-        setvalue(0);
+	val1 = 0; val2 = 0; val3 = 0;
     }
     
     void FontID::setId(int v)
     {
-        set1(v);
+        val1 = v;
     }
 
     void FontID::setSize(int v)
     {
-        set2(packshort(val2()).set1(v).value());
+	val2 = v;
     }
         
     void FontID::setProperty(int v)
     {
-        set2(packshort(val2()).set2(v).value());
+	val3 = v;
     }
 
     /* UnicodeAll */
@@ -194,22 +218,6 @@ namespace SWE
                    arg(uc().fgcolor().toString());
         }
     };
-
-#ifndef DISABLE_TTF
-    struct SDLFont
-    {
-        TTF_Font*	raw;
-
-        SDLFont(TTF_Font* ptr = NULL) : raw(ptr)
-        {
-        }
-
-        ~SDLFont()
-        {
-            if(raw) TTF_CloseFont(raw);
-        }
-    };
-#endif
 
     struct HasherCID
     {
@@ -393,7 +401,7 @@ bool SWE::FontRenderTTF::load(const BinaryBuf & raw, int size, int blend, int st
 
         if(ttf)
         {
-            ptr = std::make_shared<SDLFont>(ttf);
+            ptr = std::shared_ptr<TTF_Font>(ttf, TTF_CloseFont);
             fid = FontID(raw.crc16b(), size, CharsetProperty(blend, style, hinting));
             FontRender::fsz = Size(symbolAdvance(0x20), lineSkipHeight());
             return true;
@@ -411,7 +419,7 @@ bool SWE::FontRenderTTF::open(const std::string & fn, int size, int blend, int s
 
     if(ttf)
     {
-        ptr = std::make_shared<SDLFont>(ttf);
+        ptr = std::shared_ptr<TTF_Font>(ttf, TTF_CloseFont);
         fid = FontID(Tools::crc16b(fn.c_str()), size, CharsetProperty(blend, style, hinting));
         FontRender::fsz = Size(symbolAdvance(0x20), lineSkipHeight());
         return true;
@@ -438,8 +446,7 @@ bool SWE::FontRenderTTF::isTTF(void) const
 
 TTF_Font* SWE::FontRenderTTF::toSDLFont(void) const
 {
-    SDLFont* res = ptr.get();
-    return res ? res->raw : NULL;
+    return ptr.get();
 }
 
 int SWE::FontRenderTTF::lineSkipHeight(void) const

@@ -9,4 +9,6 @@ DISABLE_NETWORK - disable SDL_net
 DISABLE_AUDIO - disable SDL_mixer
 DISABLE_IMAGE - disable SDL_image
 DISABLE_TTF - disable SDL_ttf
+DISABLE_TERMGUI - disable build termwin_gui
 BUILD_DEBUG_MESSAGES - DEBUG works
+BUILD_STACKTRACE - stack trace on exception

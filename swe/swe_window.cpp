@@ -119,7 +119,7 @@ namespace SWE
     {
         setVisible(false);
         auto childs = DisplayScene::findChilds(*this);
-        std::for_each(childs.begin(), childs.end(), std::mem_fun(&Window::destroy));
+        std::for_each(childs.begin(), childs.end(), [](Window* win){ win->destroy(); });
         DisplayScene::removeItem(*this);
         prnt = NULL;
         result = 0;
@@ -141,10 +141,9 @@ namespace SWE
         {
             gfxpos.setSize(sz);
 
-            if(isVisible())
+            if(isVisible() && (isAreaPoint(Display::mouseCursorPosition()) || isFocused()))
             {
-                bool focus = isAreaPoint(Display::mouseCursorPosition());
-		focusHandle(focus);
+    		pushEventAction(Signal::WindowCheckFocus, this, NULL);
             }
 
             windowResizeEvent(sz);
@@ -174,10 +173,9 @@ namespace SWE
         for(auto it = childs.begin(); it != childs.end(); ++it)
             (*it)->setPosition((*it)->position() - diff);
 
-        if(isVisible())
+        if(isVisible() && (isAreaPoint(Display::mouseCursorPosition()) || isFocused()))
         {
-            bool focus = isAreaPoint(Display::mouseCursorPosition());
-	    focusHandle(focus);
+    	    pushEventAction(Signal::WindowCheckFocus, this, NULL);
         }
 
         windowMoveEvent(pos);
@@ -258,27 +256,38 @@ namespace SWE
 
     void Window::focusHandle(bool focus)
     {
-        if(focus && ! isFocused())
+        if(focus && ! checkState(FlagFocused))
         {
             setState(FlagFocused);
             mouseFocusEvent();
         }
-        else if(! focus && isFocused())
+        else if(! focus && checkState(FlagFocused))
         {
+	    if(isModality() && isVisible()) return;
             resetState(FlagFocused);
             mouseLeaveEvent();
         }
     }
 
+    Texture & Window::targetTexture(void)
+    {
+	return Display::texture();
+    }
+
+    void Window::setDirty(bool f)
+    {
+	if(f) DisplayScene::setDirty(f);
+    }
+
     void Window::setHidden(bool f)
     {
-        // set for all childrens
-        auto childs = DisplayScene::findChilds(*this);
-        std::for_each(childs.begin(), childs.end(), std::bind2nd(std::mem_fun(&Window::setHidden), f));
-
         if((checkState(FlagLayoutHidden) && !f) ||
            (! checkState(FlagLayoutHidden) && f))
         {
+    	    // set for all childrens (if for parent applies)
+    	    auto childs = DisplayScene::findChilds(*this);
+    	    std::for_each(childs.begin(), childs.end(), [=](Window* win){ win->setHidden(f); });
+
             setState(FlagLayoutHidden, f);
             if(f) resetState(FlagFocused);
 	}
@@ -288,23 +297,23 @@ namespace SWE
     {
         // set for all childrens
         auto childs = DisplayScene::findChilds(*this);
-        std::for_each(childs.begin(), childs.end(), std::bind2nd(std::mem_fun(&Window::setVisible), f));
+        std::for_each(childs.begin(), childs.end(), [=](Window* win){ win->setVisible(f); });
 
         if((checkState(FlagVisible) && !f) ||
            (! checkState(FlagVisible) && f))
         {
             setState(FlagVisible, f);
-	    bool focus = false;
 
             if(f)
             {
 		// modality upper move
 		if(isModality()) DisplayScene::moveTopLayer(*this);
-                focus = isAreaPoint(Display::mouseCursorPosition());
             }
 
-	    focusHandle(focus);
-            DisplayScene::setDirty(true);
+    	    if((!f && isFocused()) || (f && isAreaPoint(Display::mouseCursorPosition())))
+    		pushEventAction(Signal::WindowCheckFocus, this, NULL);
+
+            setDirty(true);
             windowVisibleEvent(f);
         }
     }
@@ -314,20 +323,32 @@ namespace SWE
         if(isVisible() && ! isHidden())
         {
             //bool redraw = force;
-            renderWindow();
             auto childs = DisplayScene::findChilds(*this);
 
             // redraw childs: order background
             for(auto it = childs.begin(); it != childs.end(); ++it)
+	    {
+		// modality is redraw on displayscene::redraw
+		if((*it)->isModality()) continue;
                 if((*it)->isVisible() && (*it)->checkState(FlagLayoutBackground))(*it)->redraw();
+	    }
 
+            renderWindow();
             // redraw childs: order normal
             for(auto it = childs.begin(); it != childs.end(); ++it)
+	    {
+		// modality is redraw on displayscene::redraw
+		if((*it)->isModality()) continue;
                 if((*it)->isVisible() && !(*it)->checkState(FlagLayoutBackground) && !(*it)->checkState(FlagLayoutForeground))(*it)->redraw();
+	    }
 
             // redraw childs: order foreground
             for(auto it = childs.begin(); it != childs.end(); ++it)
+	    {
+		// modality is redraw on displayscene::redraw
+		if((*it)->isModality()) continue;
                 if((*it)->isVisible() && (*it)->checkState(FlagLayoutForeground))(*it)->redraw();
+	    }
         }
     }
 
@@ -418,11 +439,6 @@ namespace SWE
         state.switched(v);
     }
 
-    void Window::pushEventAction(int code, Window* dstWindow, void* data)
-    {
-        DisplayScene::pushEvent((dstWindow ? dstWindow : this), code, data);
-    }
-
     Rect transformRect(const Rect & trans, const Rect & local)
     {
 	Rect crop;
@@ -433,85 +449,87 @@ namespace SWE
         return trans;
     }
 
-    void Window::renderClear(const Color & col) const
+    void Window::renderClear(const Color & col)
     {
-        Display::renderColor(col, Display::texture(), gfxpos);
+        Display::renderColor(col, targetTexture(), gfxpos);
     }
 
-    void Window::renderColor(const Color & col, const Rect & dstrt) const
-    {
-        if(rect() & dstrt)
-            Display::renderColor(col, Display::texture(), transformRect(dstrt + gfxpos.toPoint(), gfxpos));
-    }
-
-    void Window::renderRect(const Color & col, const Rect & dstrt) const
+    void Window::renderColor(const Color & col, const Rect & dstrt)
     {
         if(rect() & dstrt)
-            Display::renderRect(col, Display::texture(), transformRect(dstrt + gfxpos.toPoint(), gfxpos));
+            Display::renderColor(col, targetTexture(), transformRect(dstrt + gfxpos.toPoint(), gfxpos));
     }
 
-    void Window::renderLine(const Color & col, const Point & pt1, const Point & pt2) const
+    void Window::renderRect(const Color & col, const Rect & dstrt)
+    {
+        if(rect() & dstrt)
+            Display::renderRect(col, targetTexture(), transformRect(dstrt + gfxpos.toPoint(), gfxpos));
+    }
+
+    void Window::renderLine(const Color & col, const Point & pt1, const Point & pt2)
     {
         if((rect() & pt1) && (rect() & pt2))
-            Display::renderLine(col, Display::texture(), pt1 + position(), pt2 + position());
+            Display::renderLine(col, targetTexture(), pt1 + position(), pt2 + position());
     }
 
-    void Window::renderPoint(const Color & col, const Point & dstpt) const
+    void Window::renderPoint(const Color & col, const Point & dpt)
     {
-        if(rect() & dstpt)
-            Display::renderPoint(col, Display::texture(), dstpt + position());
+        if(rect() & dpt)
+            Display::renderPoint(col, targetTexture(), dpt + position());
     }
 
-    void Window::renderSurface(const Surface & sf, const Point & dstpt) const
+    void Window::renderSurface(const Surface & sf, const Point & dpt, int flip)
     {
-        renderSurface(sf, sf.rect(), dstpt);
+        renderSurface(sf, sf.rect(), dpt, flip);
     }
 
-    void Window::renderSurface(const Surface & sf, const Rect & srcrt, const Point & dstpt) const
+    void Window::renderSurface(const Surface & sf, const Rect & srcrt, const Point & dpt, int flip)
     {
 	Rect srt = transformRect(srcrt, sf.rect());
-	Rect drt = transformRect(Rect(dstpt, srt.toSize()) + gfxpos.toPoint(), gfxpos);
+	Rect drt = transformRect(Rect(dpt, srt.toSize()) + gfxpos.toPoint(), gfxpos);
 
         if(gfxpos & drt)
         {
-	    // crop width
+	    // crop
+	    if(dpt.x < 0) { srt.x += std::abs(dpt.x); srt.w -= std::abs(dpt.x); }
+	    if(dpt.y < 0) { srt.y += std::abs(dpt.y); srt.h -= std::abs(dpt.y); }
 	    if(srt.w > drt.w) { srt.w = drt.w; }
-	    // crop height
-	    if(srt.h < drt.h) { srt.h = drt.h; }
+	    if(srt.h > drt.h) { srt.h = drt.h; }
 
-            Display::renderSurface(sf, srt, Display::texture(), drt);
+            Display::renderSurface(sf, srt, targetTexture(), drt, flip);
 	}
     }
 
-    void Window::renderTexture(const TexturePos & sp) const
+    void Window::renderTexture(const TexturePos & sp)
     {
         renderTexture(sp.texture(), sp.texture().rect(), sp.position());
     }
 
-    void Window::renderTexture(const Texture & tx, const Point & dstpt) const
+    void Window::renderTexture(const Texture & tx, const Point & dpt, int flip)
     {
-        renderTexture(tx, tx.rect(), dstpt);
+        renderTexture(tx, tx.rect(), dpt, flip);
     }
 
-    void Window::renderTexture(const Texture & tx, const Rect & srcrt, const Point & dstpt) const
+    void Window::renderTexture(const Texture & tx, const Rect & srcrt, const Point & dpt, int flip)
     {
 	Rect srt = transformRect(srcrt, tx.rect());
-	Rect drt = transformRect(Rect(dstpt, srt.toSize()) + gfxpos.toPoint(), gfxpos);
+	Rect drt = transformRect(Rect(dpt, srt.toSize()) + gfxpos.toPoint(), gfxpos);
 
         if(gfxpos & drt)
         {
-	    // crop width
+	    // crop
+	    if(dpt.x < 0) { srt.x += std::abs(dpt.x); srt.w -= std::abs(dpt.x); }
+	    if(dpt.y < 0) { srt.y += std::abs(dpt.y); srt.h -= std::abs(dpt.y); }
 	    if(srt.w > drt.w) { srt.w = drt.w; }
-	    // crop height
 	    if(srt.h > drt.h) { srt.h = drt.h; }
 
-            Display::renderTexture(tx, srt, Display::texture(), drt);
+            Display::renderTexture(tx, srt, targetTexture(), drt, flip);
 	}
     }
 
-    Rect Window::renderText(const FontRender & fs, const UnicodeString & ustr, const Color & col, const Point & dpt, int halign, int valign, bool horizontal) const
+    Rect Window::renderText(const FontRender & fs, const UnicodeString & ustr, const Color & col, const Point & dpt, int halign, int valign, bool horizontal)
     {
-        return Display::renderTextFixed(fs, ustr, col, Display::texture(), dpt, gfxpos, halign, valign, horizontal);
+        return Display::renderTextFixed(fs, ustr, col, targetTexture(), dpt, gfxpos, halign, valign, horizontal);
     }
 
 #ifdef WITH_JSON
@@ -594,5 +612,13 @@ namespace SWE
     void DisplayWindow::renderWindow(void)
     {
         renderClear(backcolor);
+    }
+
+    /* TargetWindow */
+    TargetWindow::TargetWindow(const Size & wsz) : Window(wsz, NULL)
+    {
+	setModality(false);
+        DisplayScene::removeItem(*this);
+	setTexture(Display::createTexture(wsz));
     }
 }

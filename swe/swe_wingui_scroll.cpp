@@ -180,7 +180,7 @@ namespace SWE
 		{
 		    Point curpos = transformToScrollCursor(*listWidget, *this);
 		    txcur.setPosition(curpos);
-		    renderWindow();
+		    setDirty(true);
 		}
             }
             break;
@@ -197,7 +197,7 @@ namespace SWE
 	{
 	    Point curpos = transformToScrollCursor(*listWidget, *this);
 	    txcur.setPosition(curpos);
-	    renderWindow();
+	    setDirty(true);
 	}
     }
 
@@ -208,7 +208,7 @@ namespace SWE
 	{
 	    Point curpos = transformToScrollCursor(*listWidget, *this);
 	    txcur.setPosition(curpos);
-	    renderWindow();
+	    setDirty(true);
 	}
     }
 
@@ -236,7 +236,7 @@ namespace SWE
 	    Point curpos = transformToScrollCursor(be.position(), *this);
 	    txcur.setPosition(curpos);
             signalEmit(Signal::ScrollBarMoved);
-            renderWindow();
+            setDirty(true);
 
             return true;
         }
@@ -268,7 +268,7 @@ namespace SWE
 	    Point curpos = transformToScrollCursor(pos1, *this);
 	    txcur.setPosition(curpos);
             signalEmit(Signal::ScrollBarMoved);
-            renderWindow();
+            setDirty(true);
 
             return true;
         }

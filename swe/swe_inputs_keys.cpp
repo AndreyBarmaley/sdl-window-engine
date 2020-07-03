@@ -256,8 +256,7 @@ namespace SWE
 
     int Key::toKey(const std::string & name)
     {
-        auto it = std::find_if(allkeys.begin(), allkeys.end(), std::bind2nd(std::mem_fun_ref(& KeyName::isname), name));
-
+        auto it = std::find_if(allkeys.begin(), allkeys.end(), [&](const KeyName & kn){ return kn.isname(name); });
         if(it != allkeys.end()) return (*it).key;
 
         FIXME("key not found: " << name);
@@ -266,17 +265,28 @@ namespace SWE
 
     const char* Key::toName(int key)
     {
-        auto it = std::find_if(allkeys.begin(), allkeys.end(), std::bind2nd(std::mem_fun_ref(& KeyName::iskey), key));
-
+        auto it = std::find_if(allkeys.begin(), allkeys.end(), [=](const KeyName & kn){ return kn.iskey(key); });
         if(it != allkeys.end()) return (*it).name;
 
         FIXME("key not found: " << key);
         return NULL;
     }
 
+    bool Key::isPressed(int key)
+    {
+	int numkeys = 0;
+#ifdef OLDENGINE
+	u8* keystate = SDL_GetKeyState(& numkeys);
+	return key < numkeys ? keystate[key] : false;
+#else
+	const u8* keystate = SDL_GetKeyboardState(& numkeys);
+	return key < numkeys ? keystate[key] : false;
+#endif
+    }
+
     int KeySym::keychar(void) const
     {
-        if(isCaps() || isShift())
+        if(keymod().isCaps() || keymod().isShift())
         {
             switch(keycode())
             {
@@ -595,7 +605,7 @@ namespace SWE
                 break;
         }
 
-        FIXME("unknown keycode: " << String::hex(keycode()) << ", mod: " << keymod());
+        FIXME("unknown keycode: " << String::hex(keycode()) << ", mod: " << String::hex(keymod().mod, 4));
         return 0;
     }
 }
