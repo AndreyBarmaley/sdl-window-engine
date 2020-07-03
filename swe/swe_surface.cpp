@@ -32,7 +32,7 @@
  #include "./savepng/IMG_savepng.h"
  #endif
 #else
- #include "SDL2_rotozoom.h"
+ #include "./rotozoom/SDL2_rotozoom.h"
 #endif
 
 #ifdef WITH_JSON

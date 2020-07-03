@@ -5,6 +5,8 @@ ifdef OLDENGINE
 ifndef DISABLE_IMAGE
 SOURCEDIR       := $(SOURCEDIR) ../swe/savepng
 endif
+else
+SOURCEDIR       := $(SOURCEDIR) ../swe/rotozoom
 endif
 ifdef WITH_JSON
 SOURCEDIR       := $(SOURCEDIR) ../swe/jsmn
