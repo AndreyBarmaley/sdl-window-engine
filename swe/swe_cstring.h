@@ -102,6 +102,10 @@ namespace SWE
         StringFormat &	arg(const char*);
         StringFormat &	arg(int);
         StringFormat &	arg(double, int prec);
+
+        StringFormat &	replace(const char*, int);
+        StringFormat &	replace(const char*, const std::string &);
+        StringFormat &	replace(const char*, double, int prec);
     };
 
 } // SWE

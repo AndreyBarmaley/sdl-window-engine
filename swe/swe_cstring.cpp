@@ -400,6 +400,23 @@ namespace SWE
         return arg(String::number(val, prec));
     }
 
+    StringFormat & StringFormat::replace(const char* id, const std::string & val)
+    {
+	std::string str = String::replace(*this, id, val);
+	std::swap(*this, str);
+	return *this;
+    }
+
+    StringFormat & StringFormat::replace(const char* id, int val)
+    {
+        return replace(id, String::number(val));
+    }
+
+    StringFormat & StringFormat::replace(const char* id, double val, int prec)
+    {
+        return replace(id, String::number(val, prec));
+    }
+
     StringList & StringList::operator<< (const std::string & str)
     {
         return append(str);

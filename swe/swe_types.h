@@ -28,6 +28,7 @@
 
 #define ARRAY_COUNT(A)	       	sizeof(A) / sizeof(A[0])
 #define ARRAY_COUNT_END(A)   	A + ARRAY_COUNT(A)
+#define ARRAY_LAST(A)   	A + ARRAY_COUNT(A) - 1
 
 #ifdef OLDENGINE
 #define SDLENGINE		12
