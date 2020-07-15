@@ -39,6 +39,7 @@ namespace SWE
 #else
     enum { FlipNone = SDL_FLIP_NONE, FlipHorizontal = SDL_FLIP_HORIZONTAL, FlipVertical = SDL_FLIP_VERTICAL };
 #endif
+    enum { Rotate90Degrees = 0x04, Rotate180Degrees = 0x08, Rotate270Degrees = 0x10, FlipRotate = Rotate90Degrees | Rotate180Degrees | Rotate270Degrees };
 
 #ifdef OLDENGINE
     typedef SDL_Surface SDL_Texture;
@@ -195,6 +196,9 @@ namespace SWE
         void		swap(Texture &);
         void		fill(const Rect &, const Color &);
         bool		save(const std::string &) const;
+
+	static Texture	renderGrayScale(const Texture &);
+	static Texture	renderSepia(const Texture &);
 
         std::string	toString(void) const;
 	const char*	className(void) const override { return "SWE::Texture"; }

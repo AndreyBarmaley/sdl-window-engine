@@ -35,6 +35,11 @@ namespace SWE
         resetState(FlagModality);
     }
 
+    ListWidgetItem::ListWidgetItem(const SWE::Size & wsz, ListWidget & parent) : WindowToolTipArea(wsz, & parent)
+    {
+        resetState(FlagModality);
+    }
+
     bool ListWidgetItem::isSelected(void) const
     {
 	auto list = listWidget();

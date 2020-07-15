@@ -25,6 +25,7 @@
 #include <algorithm>
 #include <zlib.h>
 
+#include "swe_display.h"
 #include "swe_types.h"
 #include "swe_tools.h"
 
@@ -431,6 +432,32 @@ namespace SWE
         if(res.back() != pt2) res.push_back(pt2);
 
         return res;
+    }
+
+    /* TickTrigger */
+    TickTrigger::TickTrigger() : latest(0)
+    {
+	reset();
+    }
+
+    bool TickTrigger::check(u32 ms, u32 period) const
+    {
+        if(0 < latest && ms - latest >= period)
+        {
+            latest = ms;
+            return true;
+        }
+        return false;
+    }
+
+    void TickTrigger::reset(void)
+    {
+        latest = Tools::ticks() - Display::timeStart();
+    }
+
+    void TickTrigger::disabled(bool f)
+    {
+        if(f) latest = 0; else reset();
     }
 
     /* packshort */

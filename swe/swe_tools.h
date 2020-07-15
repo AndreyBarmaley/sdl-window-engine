@@ -256,6 +256,17 @@ namespace SWE
         }
     };
 
+    struct TickTrigger
+    {
+	mutable u32 latest;
+
+	TickTrigger();
+
+	bool	check(u32 ms, u32 period) const;
+	void	reset(void);
+	void	disabled(bool f);
+    };
+
     template<typename T>
     struct KeyValue : std::pair<std::string, T>
     {

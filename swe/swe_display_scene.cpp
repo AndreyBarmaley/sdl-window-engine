@@ -649,7 +649,7 @@ bool SWE::DisplayScene::userHandle(const SDL_UserEvent & ev)
     // receiver exists
     if(ev.data1)
     {
-        if(sceneItems.end() != std::find(sceneItems.begin(), sceneItems.end(), ev.data1))
+        if(std::any_of(sceneItems.begin(), sceneItems.end(), [&](const Window* win){ return win == ev.data1; }))
         {
             if(ev.code == Signal::WindowCreated)
             {
@@ -669,6 +669,12 @@ bool SWE::DisplayScene::userHandle(const SDL_UserEvent & ev)
             return  dst->userEvent(ev.code, ev.data2);
         }
         else
+        if(std::any_of(sceneObjects.begin(), sceneObjects.end(), [&](const BaseObject* obj){ return obj == ev.data1; }))
+        {
+    	    ObjectEvent* dst = static_cast<ObjectEvent*>(ev.data1);
+            return  dst->userEvent(ev.code, ev.data2);
+	}
+	else
         {
             // skip signal, temp win
             if(ev.code == WindowCreated)

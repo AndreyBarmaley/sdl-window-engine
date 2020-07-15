@@ -136,9 +136,9 @@ namespace SWE
     /* TextureButton */
     class TextureButton : public WindowButton
     {
+    protected:
         Texture     txRelease, txPress;
 
-    protected:
         const Texture* textureDisabled(void) const override;
         const Texture* texturePressed(void) const override;
         const Texture* textureReleased(void) const override;

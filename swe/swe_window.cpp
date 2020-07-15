@@ -456,18 +456,40 @@ namespace SWE
 
     void Window::renderColor(const Color & col, const Rect & dstrt)
     {
-        if(rect() & dstrt)
-            Display::renderColor(col, targetTexture(), transformRect(dstrt + gfxpos.toPoint(), gfxpos));
+	Rect drt = transformRect(dstrt + gfxpos.toPoint(), gfxpos);
+        if(gfxpos & drt)
+            Display::renderColor(col, targetTexture(), drt);
     }
 
     void Window::renderRect(const Color & col, const Rect & dstrt)
     {
-        if(rect() & dstrt)
-            Display::renderRect(col, targetTexture(), transformRect(dstrt + gfxpos.toPoint(), gfxpos));
+	Rect drt = transformRect(dstrt + gfxpos.toPoint(), gfxpos);
+        if(gfxpos & drt)
+            Display::renderRect(col, targetTexture(), drt);
     }
 
     void Window::renderLine(const Color & col, const Point & pt1, const Point & pt2)
     {
+	// render horizontal crop
+	if(pt1.y == pt2.y)
+	{
+	    Rect srt = Rect(pt1, pt2);
+	    Rect drt = transformRect(srt + gfxpos.toPoint(), gfxpos);
+
+    	    if(gfxpos & drt)
+    		Display::renderLine(col, targetTexture(), drt.topLeft(), drt.topRight());
+	}
+	else
+	// render vertical crop
+	if(pt1.x == pt2.x)
+	{
+	    Rect srt = Rect(pt1, pt2);
+	    Rect drt = transformRect(srt + gfxpos.toPoint(), gfxpos);
+
+    	    if(gfxpos & drt)
+    		Display::renderLine(col, targetTexture(), drt.topLeft(), drt.bottomLeft());
+	}
+	else
         if((rect() & pt1) && (rect() & pt2))
             Display::renderLine(col, targetTexture(), pt1 + position(), pt2 + position());
     }

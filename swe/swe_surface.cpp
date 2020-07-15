@@ -153,29 +153,44 @@ namespace SWE
     {
         Surface sf2 = Surface(SDL_ConvertSurface(sf1.ptr, sf1.ptr->format, sf1.ptr->flags));
 
-    	switch(flip)
-    	{
-	    case FlipNone:
-		break;
+    	if((flip & FlipVertical) && (flip & FlipHorizontal))
+	{
+    	    for(int py = 0; py < sf1.height(); ++py)
+            	for(int px = 0; px < sf1.width(); ++px)
+            	    sf2.drawPixel(Point(sf1.width() - px - 1, sf1.height() - py - 1), sf1.pixel(Point(px, py)));
+        }
+	else
+    	if(flip & FlipVertical)
+	{
+    	    for(int py = 0; py < sf1.height(); ++py)
+		for(int px = 0; px < sf1.width(); ++px)
+            	    sf2.drawPixel(Point(px, sf1.height() - py - 1), sf1.pixel(Point(px, py)));
+        }
+	else
+	if(flip & FlipHorizontal)
+	{
+    	    for(int py = 0; py < sf1.height(); ++py)
+            	for(int px = 0; px < sf1.width(); ++px)
+            	    sf2.drawPixel(Point(sf1.width() - px - 1, py), sf1.pixel(Point(px, py)));
+        }
 
-    	    case FlipVertical:
-        	for(int py = 0; py < sf1.height(); ++py)
-		    for(int px = 0; px < sf1.width(); ++px)
-                	sf2.drawPixel(Point(px, sf1.height() - py - 1), sf1.pixel(Point(px, py)));
-        	break;
-        
-    	    case FlipHorizontal:
-        	for(int py = 0; py < sf1.height(); ++py)
-            	    for(int px = 0; px < sf1.width(); ++px)
-                	sf2.drawPixel(Point(sf1.width() - px - 1, py), sf1.pixel(Point(px, py)));
-        	break;
-        
-    	    default:
-        	for(int py = 0; py < sf1.height(); ++py)
-            	    for(int px = 0; px < sf1.width(); ++px)
-                	sf2.drawPixel(Point(sf1.width() - px - 1, sf1.height() - py - 1), sf1.pixel(Point(px, py)));
-        	break;
-    	}
+	if(flip & Rotate90Degrees)
+	{
+	    Surface tmp(rotateSurface90Degrees(sf2.ptr, 1));
+	    sf2.swap(tmp);
+	}
+	else
+	if(flip & Rotate180Degrees)
+	{
+	    Surface tmp(rotateSurface90Degrees(sf2.ptr, 2));
+	    sf2.swap(tmp);
+	}
+	else
+	if(flip & Rotate270Degrees)
+	{
+	    Surface tmp(rotateSurface90Degrees(sf2.ptr, 3));
+	    sf2.swap(tmp);
+	}
 
         return sf2;
     }
@@ -605,13 +620,12 @@ namespace SWE
 
     std::string Surface::toString(void) const
     {
-        std::ostringstream os;
+    	std::ostringstream os;
+        os << "self" << "(" << String::pointer(this) << "), ";
 
         if(isValid())
         {
-            os <<
-    		"self" << "(" << String::pointer(this) << "), " <<
-               "size" << "(" << size().toString() << "), " <<
+	    os << "size" << "(" << size().toString() << "), " <<
                "bpp" << "(" << 32 << "), " <<
                "alphaMod" << "(" << alphaMod() << "), " <<
                "amask" << "(" << String::hex(amask()) << "), " <<
@@ -619,8 +633,10 @@ namespace SWE
                "colorKey" << "(" << colorKey().toString() << "), " <<
     	       "refCount" << "(" << (ptr ? ptr->refcount : 0) << ")";
         }
+	else
+	    os << "invalid";
 
-        return os.str();
+    	return os.str();
     }
 
 #ifdef WITH_JSON

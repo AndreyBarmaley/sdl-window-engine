@@ -45,6 +45,7 @@ namespace SWE
 
     public:
         ListWidgetItem(ListWidget &);
+        ListWidgetItem(const SWE::Size &, ListWidget &);
 
         bool			isSelected(void) const;
 	ListWidget*		listWidget(void) const;

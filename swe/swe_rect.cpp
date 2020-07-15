@@ -526,7 +526,7 @@ namespace SWE
 
     bool Rect::intersects(const Rect & rt) const
     {
-        return !(x > rt.x + rt.w || x + w < rt.x || y > rt.y + rt.h || y + h < rt.y);
+        return !(x >= rt.x + rt.w || x + w <= rt.x || y >= rt.y + rt.h || y + h <= rt.y);
     }
 
     // max

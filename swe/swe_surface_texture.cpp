@@ -296,6 +296,24 @@ namespace SWE
 #endif
     }
 
+    Texture Texture::renderGrayScale(const Texture & tx)
+    {
+#ifdef OLDENGINE
+	return Surface::renderGrayScale(tx);
+#else
+	return Display::createTexture(Surface::renderGrayScale(Display::createSurface(tx)));
+#endif
+    }
+
+    Texture Texture::renderSepia(const Texture & tx)
+    {
+#ifdef OLDENGINE
+	return Surface::renderSepia(tx);
+#else
+	return Display::createTexture(Surface::renderSepia(Display::createSurface(tx)));
+#endif
+    }
+
     std::string Texture::toString(void) const
     {
 #ifdef OLDENGINE

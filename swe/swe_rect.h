@@ -62,6 +62,7 @@ namespace SWE
         bool	operator< (const Size &) const;
         bool	operator> (const Size &) const;
 
+	Size	swap(void) const { return Size(h, w); }
         std::string	toString(void) const;
     };
 
@@ -92,12 +93,10 @@ namespace SWE
         Point	operator* (int) const;
         Point	operator/ (int) const;
 
-        Size	toSize(void) const
-        {
-            return Size(x, y);
-        }
-        std::string	toString(void) const;
+	Point	swap(void) const { return Point(y, x); }
+        Size	toSize(void) const { return Size(x, y); }
 
+        std::string	toString(void) const;
         static int	distance(const Point &, const Point &);
     };
 
@@ -155,6 +154,7 @@ namespace SWE
 
         void	setPoint(const Point &);
         void	setSize(const Size &);
+	Rect	swapSize(void) const { return Rect(x, y, h, w); }
 
         Point	toPoint(void) const;
         Size	toSize(void) const;

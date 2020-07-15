@@ -639,29 +639,6 @@ void SWE::Display::renderCursor(const Texture & tx)
     DisplayScene::setCursor(tx, Point(0, 0));
 }
 
-/*
-#ifdef OLDENGINE
-int compat_blit(SDL_Surface* ss, SDL_Rect* srt, SDL_Surface* ds, SDL_Rect* drt)
-{
-    if(ds != SDL_GetVideoSurface() &&
-       // only equal bpp
-       ss->format->BitsPerPixel == ds->format->BitsPerPixel &&
-       // RGBA -> RGBA
-       0 != ss->format->Amask && 0 != ds->format->Amask &&
-       (ss->flags & SDL_SRCALPHA))
-    {
-        int alpha = ss->format->alpha;
-        SDL_SetAlpha(ss, 0, 0);
-        int res = SDL_BlitSurface(ss, srt, ds, drt);
-        SDL_SetAlpha(ss, SDL_SRCALPHA, alpha);
-        return res;
-    }
-
-    return SDL_BlitSurface(ss, srt, ds, drt);
-}
-#endif
-*/
-
 void SWE::Display::renderCopyEx(const Texture & stx, const Rect & srt, Texture & dtx, const Rect & drt, int flip)
 {
 #ifdef OLDENGINE
@@ -673,12 +650,18 @@ void SWE::Display::renderCopyEx(const Texture & stx, const Rect & srt, Texture &
 	if(FlipNone == flip)
 	    dtx2.blit(dtx2.rect(), drt, dtx);
 	else
+	if(flip & (Rotate90Degrees | Rotate180Degrees))
+	    Texture::copy(dtx2, flip).blit(dtx2.rect().swapSize(), drt.swapSize(), dtx);
+	else
 	    Texture::copy(dtx2, flip).blit(dtx2.rect(), drt, dtx);
     }
     else
     {
 	if(FlipNone == flip)
 	    stx.blit(srt, drt, dtx);
+	else
+	if(flip & (Rotate90Degrees | Rotate180Degrees))
+	    Texture::copy(stx, flip).blit(srt.swapSize(), drt.swapSize(), dtx);
 	else
 	    Texture::copy(stx, flip).blit(srt, drt, dtx);
     }
@@ -692,8 +675,19 @@ void SWE::Display::renderCopyEx(const Texture & stx, const Rect & srt, Texture &
 
     if(renderReset(dtx.toSDLTexture()))
     {
+	int angle = 0;
+
+        if(flip & Rotate90Degrees)
+	    angle = 90;
+        else
+        if(flip & Rotate180Degrees)
+	    angle = 180;
+        else
+        if(flip & Rotate270Degrees)
+	    angle = 270;
+
         int res = flip == FlipNone ? SDL_RenderCopy(_renderer, stx.toSDLTexture(), &srcrt, &dstrt) :
-                  SDL_RenderCopyEx(_renderer, stx.toSDLTexture(), &srcrt, &dstrt, 0, NULL, (SDL_RendererFlip) flip);
+                  SDL_RenderCopyEx(_renderer, stx.toSDLTexture(), &srcrt, &dstrt, angle, NULL, (SDL_RendererFlip) flip);
 
         if(res)
             ERROR(SDL_GetError() << ", " << String::pointer(stx.toSDLTexture()));
