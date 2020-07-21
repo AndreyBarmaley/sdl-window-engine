@@ -36,26 +36,11 @@ namespace SWE
         int         hotkey;
 
     protected:
-        virtual const Texture* 	textureFocused(void) const
-        {
-            return NULL;
-        }
-        virtual const Texture* 	textureDisabled(void) const
-        {
-            return texturePressed();
-        }
-        virtual const Texture* 	texturePressed(void) const
-        {
-            return textureReleased();
-        }
-        virtual const Texture* 	textureReleased(void) const
-        {
-            return NULL;
-        }
-        virtual const Texture* 	textureInformed(void) const
-        {
-            return NULL;    // second sprite, if informed mode
-        }
+        virtual const Texture* 	textureFocused(void) const  { return NULL; }
+        virtual const Texture* 	textureDisabled(void) const { return texturePressed(); }
+        virtual const Texture* 	texturePressed(void) const  { return textureReleased(); }
+        virtual const Texture* 	textureReleased(void) const { return NULL; }
+        virtual const Texture* 	textureInformed(void) const { return NULL; }
 
         bool        		mousePressEvent(const ButtonEvent &) override;
         bool        		mouseReleaseEvent(const ButtonEvent &) override;
@@ -69,6 +54,12 @@ namespace SWE
         void			setReleased(void);
 
         static u32		renderButtonComplete(u32 tick, void* ptr);
+
+        virtual void		renderFocused(void);
+        virtual void		renderDisabled(void);
+        virtual void		renderPressed(void);
+        virtual void		renderReleased(void);
+        virtual void		renderInformed(void);
 
     public:
         WindowButton(Window*);

@@ -23,7 +23,7 @@
 #ifndef _SWE_ENGINE_
 #define _SWE_ENGINE_
 
-#define SWE_VERSION 20200625
+#define SWE_VERSION 20200720
 
 namespace SWE
 {

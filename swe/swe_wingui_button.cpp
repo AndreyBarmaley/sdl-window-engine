@@ -69,23 +69,61 @@ namespace SWE
         setState(FlagInformed, f);
     }
 
-    void WindowButton::renderWindow(void)
+    void WindowButton::renderDisabled(void)
     {
-        const Texture* tx = NULL;
-
-	if(isDisabled())
-            tx = textureDisabled();
-        else if(isPressed())
-            tx = texturePressed();
-        else if(isFocused() && textureFocused() && textureFocused()->isValid())
-            tx = textureFocused();
-        else if(checkState(FlagInformed) && textureInformed() && textureInformed()->isValid())
-            tx = textureInformed();
-        else
-            tx = textureReleased();
+        auto tx = textureDisabled();
 
         if(tx && tx->isValid() && ! size().isEmpty())
             renderTexture(*tx, SWE::Point(0, 0));
+    }
+
+    void WindowButton::renderPressed(void)
+    {
+        auto tx = texturePressed();
+
+        if(tx && tx->isValid() && ! size().isEmpty())
+            renderTexture(*tx, SWE::Point(0, 0));
+    }
+
+    void WindowButton::renderFocused(void)
+    {
+        auto tx = textureFocused();
+
+        if(tx && tx->isValid() && ! size().isEmpty())
+            renderTexture(*tx, SWE::Point(0, 0));
+    }
+
+    void WindowButton::renderInformed(void)
+    {
+        auto tx = textureInformed();
+
+        if(tx && tx->isValid() && ! size().isEmpty())
+            renderTexture(*tx, SWE::Point(0, 0));
+    }
+
+    void WindowButton::renderReleased(void)
+    {
+        auto tx = textureReleased();
+
+        if(tx && tx->isValid() && ! size().isEmpty())
+            renderTexture(*tx, SWE::Point(0, 0));
+    }
+
+    void WindowButton::renderWindow(void)
+    {
+	if(isDisabled())
+            renderDisabled();
+        else
+	if(isPressed())
+            renderPressed();
+        else
+	if(isFocused() && textureFocused() && textureFocused()->isValid())
+            renderFocused();
+        else
+	if(checkState(FlagInformed) && textureInformed() && textureInformed()->isValid())
+            renderInformed();
+        else
+            renderReleased();
     }
 
     void WindowButton::setPressed(bool f)

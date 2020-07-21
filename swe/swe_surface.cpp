@@ -139,7 +139,7 @@ namespace SWE
 
     Surface Surface::copy(const Surface & sf1, const Rect & rt)
     {
-	Surface sf2(rt.toSize(), sf1.ptr->format->Amask);
+	Surface sf2(rt.toSize(), false);
 	sf1.blit(rt, sf2.rect(), sf2);
 	return sf2;
     }

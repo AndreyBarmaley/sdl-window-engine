@@ -121,6 +121,9 @@ namespace SWE
         void		resetState(size_t);
         void		switchedState(size_t);
 
+	virtual void	renderBackground(void) {}
+	virtual void	renderForeground(void) {}
+
     public:
         Window(Window*);
         Window(const Size &, Window*);

@@ -30,12 +30,6 @@
 #define ARRAY_COUNT_END(A)   	A + ARRAY_COUNT(A)
 #define ARRAY_LAST(A)   	A + ARRAY_COUNT(A) - 1
 
-#ifdef OLDENGINE
-#define SDLENGINE		12
-#else
-#define SDLENGINE		20
-#endif
-
 #include "SDL.h"
 #ifndef DISABLE_TTF
 #include "SDL_ttf.h"

@@ -394,6 +394,8 @@ namespace SWE
         Points res;
         res.reserve(Point::distance(pt1, pt2));
         res.push_back(pt1);
+	if(pt1 == pt2) return res;
+
         const int dx = std::abs(pt2.x - pt1.x);
         const int dy = std::abs(pt2.y - pt1.y);
         int ns = std::div((dx > dy ? dx : dy), 2).quot;

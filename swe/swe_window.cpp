@@ -322,6 +322,8 @@ namespace SWE
     {
         if(isVisible() && ! isHidden())
         {
+	    renderBackground();
+
             //bool redraw = force;
             auto childs = DisplayScene::findChilds(*this);
 
@@ -334,6 +336,7 @@ namespace SWE
 	    }
 
             renderWindow();
+
             // redraw childs: order normal
             for(auto it = childs.begin(); it != childs.end(); ++it)
 	    {
@@ -349,6 +352,8 @@ namespace SWE
 		if((*it)->isModality()) continue;
                 if((*it)->isVisible() && (*it)->checkState(FlagLayoutForeground))(*it)->redraw();
 	    }
+
+	    renderForeground();
         }
     }
 

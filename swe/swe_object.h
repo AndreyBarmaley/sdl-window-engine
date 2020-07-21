@@ -23,6 +23,8 @@
 #ifndef _SWE_OBJECT_
 #define _SWE_OBJECT_
 
+#include "swe_types.h"
+
 #ifdef WITH_JSON
 #include "swe_json_ext.h"
 #endif
