@@ -244,6 +244,9 @@ namespace SWE
 
     bool Window::mouseMotionHandle(const Point & abspos, u32 buttons)
     {
+	if(! isAreaPoint(abspos))
+		return false;
+
 	Point relpos = abspos - position();
 	return mouseMotionEvent(relpos, buttons);
     }

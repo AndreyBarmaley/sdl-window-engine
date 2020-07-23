@@ -24,8 +24,6 @@
 #ifndef _SWE_JSMN_H_
 #define _SWE_JSMN_H_
 
-#ifdef WITH_JSON
-
 /**
  * JSON type identifier. Basic types are:
  * 	o Object
@@ -89,6 +87,4 @@ void jsmn_init(jsmn_parser *parser);
 int jsmn_parse(jsmn_parser *parser, const char *js, const size_t len,
                         jsmntok_t *tokens, const unsigned int num_tokens);
 
-#endif /* WITH_JSON */
 #endif /* JSMN_H */
-

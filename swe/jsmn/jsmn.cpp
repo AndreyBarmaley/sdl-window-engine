@@ -21,8 +21,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifdef WITH_JSON
-
 #include <stddef.h>
 #include "jsmn.h"
 
@@ -387,6 +385,4 @@ void jsmn_init(jsmn_parser *parser) {
   parser->toknext = 0;
   parser->toksuper = -1;
 }
-
-#endif /* WITH_JSON */
 

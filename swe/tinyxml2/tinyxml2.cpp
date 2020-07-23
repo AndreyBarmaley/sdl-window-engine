@@ -21,8 +21,6 @@ must not be misrepresented as being the original software.
 distribution.
 */
 
-#ifdef WITH_XML
-
 #include "tinyxml2.h"
 
 #include <new>		// yes, this one new style header, is in the Android SDK.
@@ -2740,5 +2738,3 @@ bool XMLPrinter::Visit( const XMLUnknown& unknown )
 }
 
 }   // namespace tinyxml2
-
-#endif

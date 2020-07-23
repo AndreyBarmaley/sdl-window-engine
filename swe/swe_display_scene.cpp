@@ -313,23 +313,9 @@ void SWE::DisplayScene::sceneRedraw(void)
     if(isDirty())
     {
 	u32 tickCurrent = Tools::ticks();
-	const Size & dsz = Display::size();
-	auto full = std::find_if(sceneItems.rbegin(), sceneItems.rend(),
-				[&](Window* win){ return win->isModality() && win->area().contains(dsz); });
 
-	// redraw root or modality
-	for(auto it = sceneItems.begin(); it != sceneItems.end(); ++it)
-	{
-	    // start redraw from full screen
-	    if(full != sceneItems.rend())
-	    {
-		if(*it != *full) continue;
-		(*it)->redraw();
-		full = sceneItems.rend();
-	    }
-
-	    if(NULL == (*it)->parent() || (*it)->isModality()) (*it)->redraw();
-	}
+	std::for_each(sceneItems.begin(), sceneItems.end(),
+	    [](Window* win){ if(NULL == win->parent() || win->isModality()) win->redraw(); });
 
 #ifdef SWE_DEBUG
 	// mark top focused
@@ -596,11 +582,8 @@ bool SWE::DisplayScene::mouseMotionHandle(const Point & pos, u32 buttons)
                 return true;
             }
             else
-	    if((*it)->isAreaPoint(pos))
-	    {
-                if((*it)->mouseMotionHandle(pos, buttons))
-            	    return true;
-            }
+            if((*it)->mouseMotionHandle(pos, buttons))
+            	return true;
         }
     }
 

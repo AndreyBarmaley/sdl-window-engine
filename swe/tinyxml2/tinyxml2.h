@@ -24,8 +24,6 @@ distribution.
 #ifndef TINYXML2_INCLUDED
 #define TINYXML2_INCLUDED
 
-#ifdef WITH_XML
-
 #if defined(ANDROID_NDK) || defined(__BORLANDC__) || defined(__QNXNTO__)
 #   include <ctype.h>
 #   include <limits.h>
@@ -2261,8 +2259,6 @@ private:
 
 #if defined(_MSC_VER)
 #   pragma warning(pop)
-#endif
-
 #endif
 
 #endif // TINYXML2_INCLUDED
