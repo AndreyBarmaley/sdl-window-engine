@@ -36,6 +36,7 @@ namespace SWE
         u32				currentId = 0;
     }
 
+    /* Music */
     void Music::setHookFinished(void (*ptr)())
     {
         Mix_HookMusicFinished(ptr);
@@ -130,6 +131,7 @@ namespace SWE
         return isPlaying() && currentId == Tools::crc32b(name.c_str());
     }
 
+    /* Sound*/
     void FreeChannel(int channel)
     {
         Mix_Chunk* sample = Mix_GetChunk(channel);
@@ -138,6 +140,11 @@ namespace SWE
     }
 
     bool Sound::play(const BinaryBuf & raw)
+    {
+	return 0 <= playChannel(raw, -1, false);
+    }
+
+    int Sound::playChannel(const BinaryBuf & raw, int channel, bool loop)
     {
         SDL_RWops* rw = SDL_RWFromConstMem(raw.data(), raw.size());
 
@@ -148,17 +155,21 @@ namespace SWE
             if(sample)
             {
                 Mix_ChannelFinished(FreeChannel);
-
-                if(0 <= Mix_PlayChannel(-1, sample, 0))
-                    return true;
+                int ch = Mix_PlayChannel(channel, sample, loop ? -1 : 0);
+                if(0 <= ch) return ch;
             }
         }
 
         ERROR(Mix_GetError());
-        return false;
+        return -1;
     }
 
     bool Sound::play(const std::string & name)
+    {
+	return 0 <= playChannel(name, -1, false);
+    }
+
+    int Sound::playChannel(const std::string & name, int channel, bool loop)
     {
         Mix_Chunk* sample = Mix_LoadWAV(name.c_str());
 
@@ -166,17 +177,37 @@ namespace SWE
         {
             Mix_ChannelFinished(FreeChannel);
 
-            if(0 <= Mix_PlayChannel(-1, sample, 0))
-                return true;
+            int ch = Mix_PlayChannel(channel, sample, loop ? -1 : 0);
+            if(0 <= ch) return ch;
         }
 
         ERROR(Mix_GetError());
-        return false;
+        return -1;
     }
 
-    bool Sound::isPlaying(void)
+    bool Sound::isPlaying(int channel)
     {
-        return 0 < Mix_Playing(-1);
+        return 0 < Mix_Playing(channel);
+    }
+
+    int Sound::volume(int channel, int vol)
+    {
+	return Mix_Volume(channel, vol > MIX_MAX_VOLUME ? MIX_MAX_VOLUME : vol);
+    }
+
+    void Sound::pause(int channel)
+    {
+	Mix_Pause(channel);
+    }
+
+    void Sound::resume(int channel)
+    {
+	Mix_Resume(channel);
+    }
+
+    void Sound::stop(int channel)
+    {
+	Mix_HaltChannel(channel);
     }
 }
 

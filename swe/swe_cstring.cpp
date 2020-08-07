@@ -126,6 +126,13 @@ namespace SWE
         return hex(value, 16);
     }
 
+    const char* String::sign(int val)
+    {
+	if(val < 0) return "-";
+	if(val > 0) return "+";
+	return "";
+    }
+
     std::string String::pointer(const void* ptr)
     {
         return ptr ? hex(reinterpret_cast<uintptr_t>(ptr), sizeof(ptr)) : "NULL";

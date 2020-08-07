@@ -132,25 +132,26 @@ namespace SWE
 
     void Window::setSize(int sw, int sh)
     {
-	setSize(Size(sw, sh));
-    }
-
-    void Window::setSize(const Size & sz)
-    {
-        if(! sz.isEmpty())
+        if(0 < sw && 0 < sh)
         {
-            gfxpos.setSize(sz);
+            gfxpos.w = sw;
+            gfxpos.h = sh;
 
             if(isVisible() && (isAreaPoint(Display::mouseCursorPosition()) || isFocused()))
             {
     		pushEventAction(Signal::WindowCheckFocus, this, NULL);
             }
 
-            windowResizeEvent(sz);
+            windowResizeEvent(gfxpos);
 
             if(isVisible())
                 DisplayScene::setDirty(true);
         }
+    }
+
+    void Window::setSize(const Size & sz)
+    {
+	setSize(sz.w, sz.h);
     }
 
     void Window::setPosition(int px, int py)

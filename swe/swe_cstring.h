@@ -89,6 +89,8 @@ namespace SWE
 
         std::string     number(int);
         std::string     number(double, int prec);
+
+	const char*	sign(int);
     }
 
     class StringFormat : public std::string

@@ -28,7 +28,7 @@
 
 namespace SWE
 {
-    const std::vector<KeyName> allkeys =
+    std::initializer_list<KeyName> allkeys =
     {
         { Key::NONE, "NONE" },
         { Key::BACKSPACE, "BACKSPACE" },
@@ -170,7 +170,7 @@ namespace SWE
         return name && 0 == v.compare(name);
     }
 
-    const std::vector<KeyName> & Key::allKeys(void)
+    const std::initializer_list<KeyName> & Key::allKeys(void)
     {
         return allkeys;
     }

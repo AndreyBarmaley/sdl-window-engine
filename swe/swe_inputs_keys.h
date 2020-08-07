@@ -209,7 +209,7 @@ namespace SWE
         const char*	toName(int);
 	bool		isPressed(int);
 
-        const std::vector<KeyName> & allKeys(void);
+        const std::initializer_list<KeyName> & allKeys(void);
     }
 
     struct KeyMod

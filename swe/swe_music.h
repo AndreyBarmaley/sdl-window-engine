@@ -50,7 +50,13 @@ namespace SWE
     {
         bool	play(const std::string &);
         bool	play(const BinaryBuf &);
-        bool	isPlaying(void);
+        int	playChannel(const std::string &, int channel = -1, bool loop = false);
+        int	playChannel(const BinaryBuf &, int channel = -1, bool loop = false);
+        bool	isPlaying(int channel = -1);
+	int	volume(int channel, int volume);
+        void	pause(int channel);
+        void	resume(int channel);
+        void	stop(int channel);
     }
 
 } // SWE

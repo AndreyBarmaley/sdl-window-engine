@@ -184,7 +184,6 @@ namespace SWE
         bool		isValid(void) const;
         SDL_Texture*	toSDLTexture(void) const;
 
-        //Texture             copy(const Rect &) const;
         int		width(void) const;
         int		height(void) const;
         int		alphaMod(void) const;

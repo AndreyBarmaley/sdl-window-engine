@@ -1422,7 +1422,7 @@ SWE::Texture SWE::Display::renderText(const FontRender & frs, const UCString & u
     {
         Size sz = frs.unicodeSize(ustr.toUnicodeString());
 #ifdef OLDENGINE
-        res = createTexture(sz, false);
+        res = createTexture(sz, true);
 #else
         res = createTexture(sz);
 #endif
@@ -1440,8 +1440,16 @@ SWE::Texture SWE::Display::renderText(const FontRender & frs, const UCString & u
                 if(! bgcolor.isTransparent())
                     renderColor(bgcolor, res, Rect(dst, tx.size()));
 
+#ifdef OLDENGINE
+		tx.setAlphaMod(0);
+#endif
+
                 renderTexture(tx, tx.rect(), res, Rect(dst, tx.size()));
                 dst.x += frs.symbolAdvance(us.unicode());
+
+#ifdef OLDENGINE
+		tx.setAlphaMod(SDL_ALPHA_OPAQUE);
+#endif
             }
         }
     }

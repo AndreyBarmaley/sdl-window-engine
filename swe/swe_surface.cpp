@@ -198,7 +198,7 @@ namespace SWE
     Surface Surface::renderGrayScale(const Surface & sf)
     {
 	Surface res = Surface(SDL_ConvertSurface(sf.ptr, sf.ptr->format, sf.ptr->flags));
-	u32 colkey = sf.mapRGB(sf.colorKey());
+	u32 colkey = sf.amask() ? 0 : sf.mapRGB(sf.colorKey());
 	u32 pixel = 0;
 
 	for(int py = 0; py < sf.height(); ++py)
@@ -219,7 +219,7 @@ namespace SWE
     Surface Surface::renderSepia(const Surface & sf)
     {
 	Surface res = Surface(SDL_ConvertSurface(sf.ptr, sf.ptr->format, sf.ptr->flags));
-	u32 colkey = sf.mapRGB(sf.colorKey());
+	u32 colkey = sf.amask() ? 0 : sf.mapRGB(sf.colorKey());
 	u32 pixel = 0;
 
 	for(int py = 0; py < sf.height(); ++py)
@@ -377,10 +377,8 @@ namespace SWE
 #ifdef OLDENGINE
             res = ptr->format->alpha;
 #else
-
             if(0 != SDL_GetSurfaceAlphaMod(ptr, & res))
                 ERROR(SDL_GetError());
-
 #endif
         }
 
@@ -394,15 +392,11 @@ namespace SWE
         if(ptr)
         {
 #ifdef OLDENGINE
-
             if(ptr->flags & SDL_SRCCOLORKEY)
                 key = ptr->format->colorkey;
-
 #else
-
             if(0 != SDL_GetColorKey(ptr, &key))
                 ERROR(SDL_GetError());
-
 #endif
         }
 

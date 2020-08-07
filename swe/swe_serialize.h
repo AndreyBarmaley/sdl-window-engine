@@ -135,7 +135,7 @@ namespace SWE
         const StreamBase & operator>> (std::vector<Type> & v) const
         {
             size_t size = get32();
-            v.clear();
+            v.clear(); v.reserve(size);
             for(size_t it = 0; it < size; ++it)
             {
                 Type t; *this >> t; v.emplace_back(t);

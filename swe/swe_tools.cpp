@@ -396,12 +396,15 @@ namespace SWE
         res.push_back(pt1);
 	if(pt1 == pt2) return res;
 
-        const int dx = std::abs(pt2.x - pt1.x);
-        const int dy = std::abs(pt2.y - pt1.y);
+        int dx = std::abs(pt2.x - pt1.x);
+        int dy = std::abs(pt2.y - pt1.y);
+
         int ns = std::div((dx > dy ? dx : dy), 2).quot;
+	int ii = 0;
+
         Point pt(pt1);
 
-        for(int i = 0; i <= (dx > dy ? dx : dy); ++i)
+        while(pt != pt2)
         {
             if(dx > dy)
             {
@@ -428,10 +431,11 @@ namespace SWE
                 }
             }
 
-            if(2 > step || 0 == (i % step)) res.push_back(pt);
-        }
+            if(2 > step || 0 == (ii % step) || pt == pt2)
+		res.push_back(pt);
 
-        if(res.back() != pt2) res.push_back(pt2);
+	    ii++;
+        }
 
         return res;
     }

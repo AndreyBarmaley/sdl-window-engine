@@ -75,6 +75,16 @@ namespace SWE
         Points		renderLine(const Point &, const Point &, int step = 1);
 
         template<typename T>
+        const T*	rand(const std::initializer_list<T> & list)
+        {
+	    if(list.size() == 0) return NULL;
+            typename std::initializer_list<T>::const_iterator it = list.begin();
+	    if(list.size() == 1) return &(*it);
+            std::advance(it, rand(0, list.size() - 1));
+            return it == list.end() ? NULL : &(*it);
+        }
+
+        template<typename T>
         const T*	rand(const std::vector<T> & vec)
         {
 	    if(vec.empty()) return NULL;
