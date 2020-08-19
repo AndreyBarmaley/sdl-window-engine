@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.14)
 
-project(SWE VERSION 20200725.1)
+project(SWE VERSION 20200730.1)
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED True)

@@ -187,7 +187,7 @@ namespace SWE
         virtual void	renderWindow(void) = 0;
 
 	const char*	className(void) const override { return "SWE::Window"; }
-#ifdef WITH_JSON
+#ifdef SWE_WITH_JSON
 	JsonObject 	toJson(void) const override;
 #endif
 	void		dumpState(void) const;
@@ -204,7 +204,7 @@ namespace SWE
         void	renderWindow(void) override;
 
 	const char*	className(void) const override { return "SWE::DisplayWindow"; }
-#ifdef WITH_JSON
+#ifdef SWE_WITH_JSON
 	JsonObject 	toJson(void) const override;
 #endif
     };

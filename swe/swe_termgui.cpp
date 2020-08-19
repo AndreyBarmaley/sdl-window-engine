@@ -20,7 +20,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef DISABLE_TERMGUI
+#ifndef SWE_DISABLE_TERMGUI
 
 #include <algorithm>
 

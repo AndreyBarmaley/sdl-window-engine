@@ -26,7 +26,7 @@
 #include <list>
 #include "swe_events.h"
 
-#ifdef WITH_JSON
+#ifdef SWE_WITH_JSON
 #include "swe_json_ext.h"
 #endif
 
@@ -48,7 +48,7 @@ namespace SWE
         static bool                mouseButtonHandle(const ButtonEvent &, bool);
         static bool                mouseClickHandle(const ButtonsEvent &);
         static bool                mouseMotionHandle(const Point &, u32 buttons);
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
         static bool                userHandle(const UserEvent &);
 #else
         static bool                userHandle(const SDL_UserEvent &);
@@ -81,7 +81,7 @@ namespace SWE
         static void		setDirty(bool);
         static void		handleEvents(u32 interval = 0);
 
-#ifdef WITH_JSON
+#ifdef SWE_WITH_JSON
 	static JsonObject	toJson(void);
 #endif
         static void		dumpScene(void);

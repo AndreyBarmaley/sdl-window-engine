@@ -23,11 +23,11 @@
 #ifndef _SWE_LUAWRAPPER_
 #define _SWE_LUAWRAPPER_
 
-#ifdef WITH_LUA
+#ifdef SWE_WITH_LUA
 #include <string>
 #include <unordered_map>
 
-#ifdef WITH_JSON
+#ifdef SWE_WITH_JSON
 #include "swe_json_ext.h"
 #endif
 
@@ -213,7 +213,7 @@ namespace SWE
         int		countFieldsTableIndex(int);
         bool		isSequenceTableIndex(int);
 
-#ifdef WITH_JSON
+#ifdef SWE_WITH_JSON
         JsonArray	toJsonArrayTableIndex(int);
         JsonObject	toJsonObjectTableIndex(int);
 #endif

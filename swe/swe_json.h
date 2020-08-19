@@ -23,7 +23,7 @@
 #ifndef _SWE_JSONWRAPPER_
 #define _SWE_JSONWRAPPER_
 
-#ifdef WITH_JSON
+#ifdef SWE_WITH_JSON
 
 #include <utility>
 #include <unordered_map>

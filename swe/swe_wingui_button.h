@@ -89,7 +89,7 @@ namespace SWE
         std::string		toString(void) const override;
 
 	const char*     	className(void) const override { return "SWE::WindowButton"; }
-#ifdef WITH_JSON
+#ifdef SWE_WITH_JSON
         JsonObject		toJson(void) const override
 	{
 	    JsonObject res = WindowToolTipArea::toJson();
@@ -144,7 +144,7 @@ namespace SWE
         void			setSprites(const Texture & release, const Texture & press);
 
 	const char*     	className(void) const override { return "SWE::TextureButton"; }
-#ifdef WITH_JSON
+#ifdef SWE_WITH_JSON
         JsonObject		toJson(void) const override
 	{
 	    JsonObject res = WindowButton::toJson();

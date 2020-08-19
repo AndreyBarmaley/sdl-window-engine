@@ -44,7 +44,7 @@ namespace SWE
     {
         bool		fingerEventEmulation = false;
 
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
         SDL_Surface*	_window = NULL;
 #else
         SDL_Renderer*   _renderer = NULL;
@@ -83,7 +83,7 @@ namespace SWE
         void            handleKeyboard(const SDL_KeyboardEvent &);
         void            handleUserEvent(const SDL_UserEvent &);
         void            handleFocusEvent(bool);
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
         void            handleMouseWheel(int, int);
 #else
         void            handleMouseWheel(const SDL_MouseWheelEvent &);
@@ -162,7 +162,7 @@ bool SWE::Display::init(const std::string & title, const Size & winsz, const Siz
     DEBUG("render params: " << rensz.toString());
     // reset old size
     rendersz = Size(0, 0);
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
     int flags = accel ? SDL_SWSURFACE | SDL_HWSURFACE | SDL_DOUBLEBUF : SDL_SWSURFACE;
 #else
     int flags = 0;
@@ -171,7 +171,7 @@ bool SWE::Display::init(const std::string & title, const Size & winsz, const Siz
     if(Systems::isEmbeded())
         fullscreen = true;
 
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
 
     if(fullscreen)
         flags |= SDL_FULLSCREEN;
@@ -205,7 +205,7 @@ bool SWE::Display::createWindow(const std::string & title, const Size & newsz, i
     mouseButtons[4] = ButtonsEvent(ButtonX1);
     mouseButtons[5] = ButtonsEvent(ButtonX2);
     winsz = newsz;
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
     SDL_WM_SetCaption(title.c_str(), NULL);
     _window = SDL_SetVideoMode(winsz.w, winsz.h, 32, flags);
     winsz.w = _window->w;
@@ -237,7 +237,7 @@ bool SWE::Display::resizeWindow(const Size & newsz, bool sdl)
         bool accel = renderAccelerated();
         DEBUG("new sz: " << newsz.toString());
         FontRender::clearCache();
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
         _window = SDL_SetVideoMode(newsz.w, newsz.h, _window->format->BitsPerPixel, _window->flags);
 #else
         SDL_SetWindowSize(_window, newsz.w, newsz.h);
@@ -264,7 +264,7 @@ bool SWE::Display::renderInit(const Size & newsz, bool accel)
     if(displayTexture.isValid())
         displayTexture.reset();
 
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
     _window = SDL_GetVideoSurface();
     // update winsz
     winsz.w = _window->w;
@@ -378,7 +378,7 @@ void SWE::Display::closeWindow(void)
     if(displayTexture.isValid())
         displayTexture.reset();
 
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
 
     if(_window)
         _window = NULL;
@@ -402,7 +402,7 @@ void SWE::Display::closeWindow(void)
 
 bool SWE::Display::renderAccelerated(void)
 {
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
 
     if(_window)
         return _window->flags & SDL_HWACCEL;
@@ -428,7 +428,7 @@ bool SWE::Display::renderAccelerated(void)
 
 bool SWE::Display::renderReset(SDL_Texture* target)
 {
-#ifndef OLDENGINE
+#ifndef SWE_SDL12
 
     if(! _renderer)
         return false;
@@ -459,7 +459,7 @@ bool SWE::Display::renderReset(SDL_Texture* target)
 
 void SWE::Display::renderClear(const Color & cl, Texture & dtx)
 {
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
     renderColor(cl, dtx, dtx.rect());
 #else
     if(renderReset(dtx.toSDLTexture()))
@@ -479,7 +479,7 @@ void SWE::Display::renderClear(const Color & cl, Texture & dtx)
 
 void SWE::Display::renderColor(const Color & cl, Texture & dtx, const Rect & drt)
 {
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
     dtx.fill(drt, cl);
 #else
     if(renderReset(dtx.toSDLTexture()))
@@ -515,7 +515,7 @@ SWE::Texture SWE::Display::renderRect(const Color & col, const Color & fill, con
 
 void SWE::Display::renderRect(const Color & cl, Texture & dtx, const Rect & drt)
 {
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
     int pixel = dtx.mapRGB(cl);
 
     for(int ox = 0; ox < drt.w; ++ox)
@@ -567,7 +567,7 @@ void SWE::Display::renderPolygon(const Color & cl, Texture & dtx, const Points &
 
 void SWE::Display::renderLine(const Color & cl, Texture & dtx, const Point & pt1, const Point & pt2)
 {
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
     Points points = Tools::renderLine(pt1, pt2);
     int pixel = dtx.mapRGB(cl);
 
@@ -594,7 +594,7 @@ void SWE::Display::renderLine(const Color & cl, Texture & dtx, const Point & pt1
 
 void SWE::Display::renderPoint(const Color & cl, Texture & dtx, const Point & pt)
 {
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
     dtx.drawPoint(pt, cl);
 #else
 
@@ -624,11 +624,11 @@ void SWE::Display::renderTexture(const Texture & stx, const Rect & srt, Texture 
 {
     if(stx.isValid() && stx != dtx)
     {
-#ifndef OLDENGINE
+#ifndef SWE_SDL12
         dtx.setBlendMode(BlendMode::None);
 #endif
         renderCopyEx(stx, srt, dtx, drt, flip);
-#ifndef OLDENGINE
+#ifndef SWE_SDL12
         dtx.setBlendMode(BlendMode::Blend);
 #endif
     }
@@ -641,7 +641,7 @@ void SWE::Display::renderCursor(const Texture & tx)
 
 void SWE::Display::renderCopyEx(const Texture & stx, const Rect & srt, Texture & dtx, const Rect & drt, int flip)
 {
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
     if(srt.toSize() != drt.toSize())
     {
 	auto stx2 = Texture::copy(stx, srt);
@@ -704,7 +704,7 @@ void SWE::Display::renderCopyEx(const Texture & stx, const Rect & srt, Texture &
 
 void SWE::Display::renderSurface(const Surface & sf, const Rect & srt, Texture & dtx, const Rect & drt, int flip)
 {
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
 
     if(sf.isValid())
         renderTexture(Texture(sf), srt, dtx, drt, flip);
@@ -717,13 +717,13 @@ void SWE::Display::renderSurface(const Surface & sf, const Rect & srt, Texture &
 #endif
 }
 
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
  #include "SDL_rotozoom.h"
 #endif
 
 void SWE::Display::renderPresent(void)
 {
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
 
     if(winsz != rendersz)
     {
@@ -777,7 +777,7 @@ void SWE::Display::renderPresent(void)
 
 bool SWE::Display::renderScreenshot(const std::string & file)
 {
-    return createTexture(displayTexture, FlipVertical).save(file);
+    return createSurface(displayTexture).save(file);
 }
 
 bool SWE::Display::scaleUsed(void)
@@ -802,7 +802,7 @@ const SWE::Size & SWE::Display::size(void)
 
 bool SWE::Display::fullscreen(void)
 {
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
     SDL_Surface* sf = SDL_GetVideoSurface();
     return sf ? sf->flags & SDL_FULLSCREEN : false;
 #else
@@ -824,7 +824,7 @@ u32 SWE::Display::timeStart(void)
 
 SWE::Texture SWE::Display::createTexture(const Surface & sf)
 {
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
     return Texture(sf);
 #else
     return Texture(SDL_CreateTextureFromSurface(_renderer, sf.toSDLSurface()));
@@ -838,10 +838,10 @@ SWE::Texture SWE::Display::createTexture(const BinaryBuf & raw)
     if(! rw)
         ERROR(SDL_GetError());
 
-#ifdef DISABLE_IMAGE
+#ifdef SWE_DISABLE_IMAGE
     return createTexture(Surface(SDL_LoadBMP_RW(rw, 1)));
 #else
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
     return Texture(IMG_Load_RW(rw, 1));
 #else
     return Texture(IMG_LoadTexture_RW(_renderer, rw, 1));
@@ -851,10 +851,10 @@ SWE::Texture SWE::Display::createTexture(const BinaryBuf & raw)
 
 SWE::Texture SWE::Display::createTexture(const std::string & file)
 {
-#ifdef DISABLE_IMAGE
+#ifdef SWE_DISABLE_IMAGE
     return createTexture(Surface(SDL_LoadBMP(file.c_str())));
 #else
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
     return Texture(IMG_Load(file.c_str()));
 #else
     return Texture(IMG_LoadTexture(_renderer, file.c_str()));
@@ -864,7 +864,7 @@ SWE::Texture SWE::Display::createTexture(const std::string & file)
 
 SWE::Texture SWE::Display::createTexture(const Size & sz, bool alpha)
 {
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
     return Texture(Surface(sz, alpha));
 #else
     Texture res(SDL_CreateTexture(_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, sz.w, sz.h));
@@ -895,11 +895,11 @@ SWE::Texture & SWE::Display::texture(void)
 
 SWE::Surface SWE::Display::createSurface(const Texture & tx)
 {
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
     return Texture::copy(tx);
 #else
     SDL_Surface* sf = NULL;
-    Texture tx2 = createTexture(tx, FlipVertical);
+    Texture tx2 = createTexture(tx, FlipNone);
 
     if(renderReset(tx2.toSDLTexture()))
     {
@@ -923,7 +923,7 @@ bool SWE::Display::handleEvents(void)
     {
         switch(current.type)
         {
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
 
             case SDL_VIDEORESIZE:
                 resizeWindow(Size(current.resize.w, current.resize.h), true);
@@ -990,7 +990,7 @@ bool SWE::Display::handleEvents(void)
                 //DEBUG("MOTION: " << current.button.x << ", " << current.button.y);
                 handleMouseMotion(current.motion);
                 break;
-#ifndef OLDENGINE
+#ifndef SWE_SDL12
 
             case SDL_MOUSEWHEEL:
                 handleMouseWheel(current.wheel);
@@ -1077,7 +1077,7 @@ void SWE::Display::handleMouseButton(const SDL_MouseButtonEvent & ev)
 
     switch(ev.button)
     {
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
 
         case SDL_BUTTON_WHEELUP:
         case SDL_BUTTON_WHEELDOWN:
@@ -1179,7 +1179,7 @@ void SWE::Display::handleFocusEvent(bool gain)
     DisplayScene::displayFocusHandle(gain);
 }
 
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
 void SWE::Display::handleMouseWheel(int button, int type)
 {
     if(SDL_MOUSEBUTTONUP == type)
@@ -1421,7 +1421,7 @@ SWE::Texture SWE::Display::renderText(const FontRender & frs, const UCString & u
     if(frs.isValid() && ustr.length())
     {
         Size sz = frs.unicodeSize(ustr.toUnicodeString());
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
         res = createTexture(sz, true);
 #else
         res = createTexture(sz);
@@ -1440,14 +1440,14 @@ SWE::Texture SWE::Display::renderText(const FontRender & frs, const UCString & u
                 if(! bgcolor.isTransparent())
                     renderColor(bgcolor, res, Rect(dst, tx.size()));
 
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
 		tx.setAlphaMod(0);
 #endif
 
                 renderTexture(tx, tx.rect(), res, Rect(dst, tx.size()));
                 dst.x += frs.symbolAdvance(us.unicode());
 
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
 		tx.setAlphaMod(SDL_ALPHA_OPAQUE);
 #endif
             }
@@ -1470,7 +1470,7 @@ bool SWE::Display::resize(const Size & winsz)
 std::list<SWE::Size> SWE::Display::hardwareVideoModes(bool landscape)
 {
     std::list<Size> result;
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
     SDL_Rect** modes = SDL_ListModes(NULL, SDL_FULLSCREEN | SDL_HWSURFACE);
 
     if(modes == (SDL_Rect**) 0)
@@ -1529,7 +1529,7 @@ std::list<SWE::Size> SWE::Display::hardwareVideoModes(bool landscape)
 
 void SWE::Display::setWindowIcon(const Surface & sf)
 {
-#if OLDENGINE
+#if SWE_SDL12
     SDL_WM_SetIcon(sf.toSDLSurface(), NULL);
 #else
     SDL_SetWindowIcon(_window, sf.toSDLSurface());

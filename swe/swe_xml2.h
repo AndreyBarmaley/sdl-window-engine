@@ -23,7 +23,7 @@
 #ifndef _SWE_XML2_
 #define _SWE_XML2_
 
-#ifdef WITH_XML
+#ifdef SWE_WITH_XML
  #include "tinyxml2/tinyxml2.h"
 #endif
 

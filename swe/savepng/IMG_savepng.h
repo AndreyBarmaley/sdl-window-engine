@@ -1,4 +1,4 @@
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
 /*
   Based on zlib license - see http://www.gzip.org/zlib/zlib_license.html
 

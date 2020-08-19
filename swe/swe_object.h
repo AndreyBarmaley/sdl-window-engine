@@ -25,7 +25,7 @@
 
 #include "swe_types.h"
 
-#ifdef WITH_JSON
+#ifdef SWE_WITH_JSON
 #include "swe_json_ext.h"
 #endif
 
@@ -43,7 +43,7 @@ namespace SWE
 	    return "SWE::ObjectClass";
 	}
 
-#ifdef WITH_JSON
+#ifdef SWE_WITH_JSON
 	virtual JsonObject toJson(void) const
 	{
 	    JsonObject res;

@@ -51,6 +51,11 @@ namespace SWE
 
         return res;
     }
+            
+    int Tools::signValue(int s)
+    {   
+        return (s < 0 ? -1 : (s > 0 ? 1 : 0));
+    }
 
     int Tools::rand(int min, int max)
     {
@@ -448,7 +453,7 @@ namespace SWE
 
     bool TickTrigger::check(u32 ms, u32 period) const
     {
-        if(0 < latest && ms - latest >= period)
+        if(0 < period && 0 < latest && ms - latest >= period)
         {
             latest = ms;
             return true;

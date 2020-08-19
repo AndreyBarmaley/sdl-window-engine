@@ -275,7 +275,7 @@ namespace SWE
     bool Key::isPressed(int key)
     {
 	int numkeys = 0;
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
 	u8* keystate = SDL_GetKeyState(& numkeys);
 	return key < numkeys ? keystate[key] : false;
 #else

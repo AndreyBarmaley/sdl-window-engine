@@ -23,7 +23,7 @@
 #ifndef _SWE_JSONWRAPPER_EXT_
 #define _SWE_JSONWRAPPER_EXT_
 
-#ifdef WITH_JSON
+#ifdef SWE_WITH_JSON
 
 #include "swe_json.h"
 

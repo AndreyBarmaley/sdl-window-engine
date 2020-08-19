@@ -53,6 +53,7 @@ namespace SWE
         int		crc16b(const u8*, size_t);
 
         u32		ticks(void);
+        int		signValue(int v);
 
         std::pair<int, float>
     			modf(float);

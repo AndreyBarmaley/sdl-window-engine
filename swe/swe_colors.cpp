@@ -214,7 +214,7 @@ namespace SWE
         res.b = b();
         res.g = g();
         res.r = r();
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
         res.unused = a();
 #else
         res.a = a();

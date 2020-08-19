@@ -135,7 +135,7 @@ namespace SWE
             }
 	    return true;
 	}
-#ifndef OLDENGINE
+#ifndef SWE_SDL12
 	// 
 	else
 	if(key.keycode() == Key::INSERT && key.keymod().isShift() &&
@@ -147,7 +147,7 @@ namespace SWE
 	}
 #endif
 
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
 	// text input SDL12: ascii only
 	if(0x20 <= key.keychar() && key.keychar() < 255)
 	{

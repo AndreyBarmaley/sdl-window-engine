@@ -132,8 +132,7 @@ namespace SWE
 
     ListWidget::~ListWidget()
     {
-        for(auto it = listItems.begin(); it != listItems.end(); ++it)
-            delete *it;
+	std::for_each(listItems.begin(), listItems.end(), std::default_delete<ListWidgetItem>());
     }
 
     void ListWidget::addItem(ListWidgetItem* item)
@@ -144,8 +143,7 @@ namespace SWE
 
     void ListWidget::clear(void)
     {
-        for(auto it = listItems.begin(); it != listItems.end(); ++it)
-            delete *it;
+	std::for_each(listItems.begin(), listItems.end(), std::default_delete<ListWidgetItem>());
 	listItems.clear();
 	curItem = NULL;
 	skipItems = 0;
@@ -187,13 +185,12 @@ namespace SWE
 
     ListWidgetItem* ListWidget::itemAt(const Point & pos) const
     {
-	for(auto it = listItems.begin(); it != listItems.end(); ++it)
+	auto it = std::find_if(listItems.begin(), listItems.end(), [&](const ListWidgetItem* item)
 	{
-	    auto item = *it;
-	    if(item->isVisibleNotHidden() &&
-		(item->area() & pos)) return item;
-        }
-	return NULL;
+	    return item->isVisibleNotHidden() && (item->area() & pos);
+	});
+
+	return it != listItems.end() ? *it : NULL;
     }
 
     const std::vector<ListWidgetItem*> &
@@ -266,14 +263,10 @@ namespace SWE
 	setCurrentItem(item(row));
     }
 
-    bool sortItemsFunc(const ListWidgetItem* a, const ListWidgetItem* b)
-    {
-	return *a < *b;
-    }
-
     void ListWidget::sortItems(void)
     {
-	std::sort(listItems.begin(), listItems.end(), sortItemsFunc);
+	std::sort(listItems.begin(), listItems.end(),
+	    [](const ListWidgetItem* a, const ListWidgetItem* b){ return *a < *b; });
     }
 
     ListWidgetItem* ListWidget::takeItem(int row)

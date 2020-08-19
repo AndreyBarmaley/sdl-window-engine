@@ -1,15 +1,15 @@
 cmake_minimum_required(VERSION 3.14)
 
-if(WITH_JSON)
+if(SWE_WITH_JSON)
     target_sources(swe PUBLIC jsmn/jsmn.cpp)
 endif()
 
-if(WITH_XML)
+if(SWE_WITH_XML)
     target_sources(swe PUBLIC tinyxml2/tinyxml2.cpp)
 endif()
 
-if(OLDENGINE)
-    if(NOT DISABLE_IMAGE)
+if(SWE_SDL12)
+    if(NOT SWE_DISABLE_IMAGE)
 	target_sources(swe PUBLIC savepng/IMG_savepng.cpp)
     endif()
     target_sources(swe PUBLIC rotozoom/SDL_rotozoom.cpp)

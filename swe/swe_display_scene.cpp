@@ -61,7 +61,7 @@ namespace SWE
 	    return "SWE::DisplayToolTip";
 	}
 
-#ifdef WITH_JSON
+#ifdef SWE_WITH_JSON
 	JsonObject toJson(void) const override
 	{
     	    JsonObject res = Window::toJson();
@@ -155,7 +155,7 @@ namespace SWE
     Point		cursorOffset;
 
     bool		markTopWidget = false;
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
     // SDL12 small queue events, resize it, see pushEvent
     std::list<UserEvent> events;
 #endif
@@ -385,7 +385,7 @@ void SWE::DisplayScene::pushEvent(const ObjectEvent* dst, int code, void* data)
 
     if(0 > SDL_PushEvent(&event))
     {
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
 	events.emplace_back(UserEvent(event.user.code, event.user.data1, event.user.data2));
 #else
         ERROR("win: " << String::pointer(dst) << ", " << "code: " << String::hex(code) << ", " << "error: " << SDL_GetError());
@@ -623,7 +623,7 @@ bool SWE::DisplayScene::scrollHandle(bool isup)
     return false;
 }
 
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
 bool SWE::DisplayScene::userHandle(const UserEvent & ev)
 #else
 bool SWE::DisplayScene::userHandle(const SDL_UserEvent & ev)
@@ -762,7 +762,7 @@ void SWE::DisplayScene::tickHandle(u32 ms)
         sceneToolTip = NULL;
     }
 
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
     // push event if present
     while(events.size())
     {
@@ -802,7 +802,7 @@ void SWE::DisplayScene::displayFocusHandle(bool gain)
     }
 }
 
-#ifdef WITH_JSON
+#ifdef SWE_WITH_JSON
 
 SWE::JsonObject SWE::DisplayScene::toJson(void)
 {

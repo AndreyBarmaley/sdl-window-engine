@@ -72,7 +72,7 @@ namespace SWE
         int		setEnvironment(const char* name, const char* value);
         const char*	environment(const char*);
 
-#ifdef WITH_DLL
+#ifdef SWE_DLOPEN
         void*		openLib(const std::string &);
         void		closeLib(void*);
         void*		procAddressLib(void*, const std::string &);
@@ -126,7 +126,7 @@ namespace SWE
 #define ERROR(x)   { PRETTY("ERROR", x) }
 #define FIXME(x)   { PRETTY("FIXME", x) }
 
-#ifdef BUILD_DEBUG_MESSAGES
+#ifdef SWE_DEBUG_MESSAGES
 #define DEBUG(x)   { if(SWE::Engine::debugMode()) PRETTY("DEBUG",x); }
 #else
 #define DEBUG(x)   ;

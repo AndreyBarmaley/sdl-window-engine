@@ -84,7 +84,7 @@ namespace SWE
         Color() {}
         explicit Color(const ARGB & argb) : ARGB(argb) {}
         Color(int r, int g, int b, int a = SDL_ALPHA_OPAQUE) : ARGB(a, r, g, b) {}
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
         Color(const SDL_Color & col) : ARGB(col.unused, col.r, col.g, col.b) {}
 #else
         Color(const SDL_Color & col) : ARGB(col.a, col.r, col.g, col.b) {}

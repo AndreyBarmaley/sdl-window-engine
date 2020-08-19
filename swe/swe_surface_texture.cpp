@@ -26,7 +26,7 @@
 #include "swe_cstring.h"
 #include "swe_surface.h"
 
-#ifdef WITH_JSON
+#ifdef SWE_WITH_JSON
 #include "swe_json_ext.h"
 #endif
 
@@ -55,7 +55,7 @@ namespace SWE
         return "Unknown";
     }
 
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
     Texture::Texture(SDL_Texture* tx) : Surface(tx)
     {
     }
@@ -69,7 +69,7 @@ namespace SWE
 
     void Texture::reset(void)
     {
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
 	Surface::reset();
 #else
         ptr.reset();
@@ -93,7 +93,7 @@ namespace SWE
 
     void Texture::setTexture(const Texture & tx)
     {
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
 	setSurface(tx);
 #else
         ptr = tx.ptr;
@@ -102,7 +102,7 @@ namespace SWE
 
     void Texture::setBlendMode(int mode)
     {
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
         ERROR("not supported");
 #else
         SDL_BlendMode val = static_cast<SDL_BlendMode>(mode);
@@ -117,7 +117,7 @@ namespace SWE
 
     void Texture::setColorMod(const Color & col)
     {
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
         ERROR("not supported");
 #else
         if(isValid())
@@ -132,7 +132,7 @@ namespace SWE
     {
         if(isValid())
         {
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
             Surface::setAlphaMod(alpha);
 #else
             if(0 != SDL_SetTextureAlphaMod(toSDLTexture(), alpha))
@@ -143,7 +143,7 @@ namespace SWE
 
     int Texture::blendMode(void) const
     {
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
         return BlendMode::None;
 #else
         SDL_BlendMode val = SDL_BLENDMODE_NONE;
@@ -164,7 +164,7 @@ namespace SWE
 
         if(isValid())
         {
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
 	    return Surface::alphaMod();
 #else
             if(0 != SDL_GetTextureAlphaMod(toSDLTexture(), &res))
@@ -183,7 +183,7 @@ namespace SWE
 
         if(isValid())
         {
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
             ERROR("not supported");
 #else
             if(0 != SDL_GetTextureColorMod(toSDLTexture(), &r, &g, &b))
@@ -196,7 +196,7 @@ namespace SWE
 
     void Texture::swap(Texture & tx)
     {
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
 	Surface::swap(tx);
 #else
         ptr.swap(tx.ptr);
@@ -220,7 +220,7 @@ namespace SWE
 
     SDL_Texture* Texture::toSDLTexture(void) const
     {
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
 	return toSDLSurface();
 #else
         return ptr.get();
@@ -234,7 +234,7 @@ namespace SWE
 
         if(isValid())
         {
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
 	    return Surface::size();
 #else
             if(0 != SDL_QueryTexture(toSDLTexture(), NULL, NULL, &w, &h))
@@ -247,7 +247,7 @@ namespace SWE
 
     void Texture::fill(const Rect & drt, const Color & col)
     {
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
         Surface::fill(drt, col);
 #else
         Display::renderColor(col, *this, drt);
@@ -256,7 +256,7 @@ namespace SWE
 
     bool Texture::save(const std::string & file) const
     {
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
 	return Surface::save(file);
 #else
 	return Display::createSurface(*this).save(file);
@@ -265,7 +265,7 @@ namespace SWE
 
     Texture Texture::scale(const Texture & tx, const Size & sz)
     {
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
 	return Surface::scale(tx, sz);
 #else
         Texture res = Display::createTexture(sz);
@@ -276,7 +276,7 @@ namespace SWE
 
     Texture Texture::copy(const Texture & tx, const Rect & rt)
     {
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
 	return Surface::copy(tx, rt);
 #else
         Texture res = Display::createTexture(rt.toSize());
@@ -287,7 +287,7 @@ namespace SWE
 
     Texture Texture::copy(const Texture & tx, int flip)
     {
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
 	return Surface::copy(tx, flip);
 #else
         Texture res = Display::createTexture(tx.size());
@@ -298,7 +298,7 @@ namespace SWE
 
     Texture Texture::renderGrayScale(const Texture & tx)
     {
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
 	return Surface::renderGrayScale(tx);
 #else
 	return Display::createTexture(Surface::renderGrayScale(Display::createSurface(tx)));
@@ -307,7 +307,7 @@ namespace SWE
 
     Texture Texture::renderSepia(const Texture & tx)
     {
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
 	return Surface::renderSepia(tx);
 #else
 	return Display::createTexture(Surface::renderSepia(Display::createSurface(tx)));
@@ -316,7 +316,7 @@ namespace SWE
 
     std::string Texture::toString(void) const
     {
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
 	return Surface::toString();
 #else
         std::ostringstream os;
@@ -374,10 +374,10 @@ namespace SWE
         std::swap(pos, tp.pos);
     }
 
-#ifdef WITH_JSON
+#ifdef SWE_WITH_JSON
     JsonObject Texture::toJson(void) const
     {
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
 	return Surface::toJson();
 #else
 	JsonObject res = ObjectClass::toJson();

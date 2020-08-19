@@ -29,7 +29,7 @@
 #include "swe_inputs_keys.h"
 #include "swe_window.h"
 
-#ifdef WITH_JSON
+#ifdef SWE_WITH_JSON
 #include "swe_json_ext.h"
 #endif
 
@@ -563,7 +563,7 @@ namespace SWE
         return Display::renderTextFixed(fs, ustr, col, targetTexture(), dpt, gfxpos, halign, valign, horizontal);
     }
 
-#ifdef WITH_JSON
+#ifdef SWE_WITH_JSON
     JsonObject Window::toJson(void) const
     {
 	JsonObject res = SignalMember::toJson();
@@ -631,7 +631,7 @@ namespace SWE
         setVisible(true);
     }
 
-#ifdef WITH_JSON
+#ifdef SWE_WITH_JSON
     JsonObject DisplayWindow::toJson(void) const
     {
 	JsonObject res = Window::toJson();

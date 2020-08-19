@@ -1,17 +1,17 @@
 TARGET		:= libswe
 SOURCEDIR       := ../swe
 
-ifdef OLDENGINE
-ifndef DISABLE_IMAGE
+ifdef SWE_SDL12
+ifndef SWE_DISABLE_IMAGE
 SOURCEDIR       := $(SOURCEDIR) ../swe/savepng
 endif
 else
 SOURCEDIR       := $(SOURCEDIR) ../swe/rotozoom
 endif
-ifdef WITH_JSON
+ifdef SWE_WITH_JSON
 SOURCEDIR       := $(SOURCEDIR) ../swe/jsmn
 endif
-ifdef WITH_XML
+ifdef SWE_WITH_XML
 SOURCEDIR       := $(SOURCEDIR) ../swe/tinyxml2
 endif
 

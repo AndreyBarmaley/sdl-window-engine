@@ -26,16 +26,16 @@
 #include "swe_cstring.h"
 #include "swe_surface.h"
 
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
  #include "SDL_rotozoom.h"
- #ifndef DISABLE_IMAGE
+ #ifndef SWE_DISABLE_IMAGE
  #include "./savepng/IMG_savepng.h"
  #endif
 #else
  #include "./rotozoom/SDL2_rotozoom.h"
 #endif
 
-#ifdef WITH_JSON
+#ifdef SWE_WITH_JSON
 #include "swe_json_ext.h"
 #endif
 
@@ -53,7 +53,7 @@ namespace SWE
 
     Surface::Surface(const Size & sz, bool alpha) : ptr(NULL)
     {
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
         int flag = SDL_SWSURFACE;
 #else
         int flag = 0;
@@ -88,7 +88,7 @@ namespace SWE
 
     Surface::Surface(const std::string & file) : ptr(NULL)
     {
-#ifdef DISABLE_IMAGE
+#ifdef SWE_DISABLE_IMAGE
         ptr = SDL_LoadBMP(file.c_str());
 #else
         ptr = IMG_Load(file.c_str());
@@ -105,7 +105,7 @@ namespace SWE
         if(! rw)
             ERROR(SDL_GetError());
 
-#ifdef DISABLE_IMAGE
+#ifdef SWE_DISABLE_IMAGE
         ptr = SDL_LoadBMP_RW(rw, 1);
 #else
         ptr = IMG_Load_RW(rw, 1);
@@ -259,7 +259,7 @@ namespace SWE
             }
             else
             {
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
                 if(ptr != SDL_GetVideoSurface())
                     SDL_FreeSurface(ptr);
 
@@ -271,7 +271,7 @@ namespace SWE
         }
     }
 
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
     void Surface::convertToDisplayFormat(void)
     {
 	if(ptr)
@@ -374,7 +374,7 @@ namespace SWE
 
         if(ptr)
         {
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
             res = ptr->format->alpha;
 #else
             if(0 != SDL_GetSurfaceAlphaMod(ptr, & res))
@@ -391,7 +391,7 @@ namespace SWE
 
         if(ptr)
         {
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
             if(ptr->flags & SDL_SRCCOLORKEY)
                 key = ptr->format->colorkey;
 #else
@@ -407,7 +407,7 @@ namespace SWE
     {
         if(ptr)
         {
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
             SDL_SetColorKey(ptr, SDL_SRCCOLORKEY, mapRGB(col));
 #else
             SDL_SetColorKey(ptr, SDL_TRUE, mapRGB(col));
@@ -419,7 +419,7 @@ namespace SWE
     {
         if(ptr)
         {
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
             if(0 != SDL_SetAlpha(ptr, (0 < val ? SDL_SRCALPHA : 0), val))
                 ERROR(SDL_GetError());
 
@@ -598,10 +598,10 @@ namespace SWE
     {
         if(ptr)
         {
-#ifdef DISABLE_IMAGE
+#ifdef SWE_DISABLE_IMAGE
             return 0 == SDL_SaveBMP(ptr, file.c_str());
 #else
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
             return 0 == IMG_SavePNG(file.c_str(), ptr, 7);
 #else
             return 0 == IMG_SavePNG(ptr, file.c_str());
@@ -633,7 +633,7 @@ namespace SWE
     	return os.str();
     }
 
-#ifdef WITH_JSON
+#ifdef SWE_WITH_JSON
     JsonObject Surface::toJson(void) const
     {
         JsonObject res = ObjectClass::toJson();

@@ -23,7 +23,7 @@
 #ifndef _SWE_STREAMNET_
 #define _SWE_STREAMNET_
 
-#ifndef DISABLE_NETWORK
+#ifndef SWE_DISABLE_NETWORK
 #include "swe_serialize.h"
 
 namespace SWE

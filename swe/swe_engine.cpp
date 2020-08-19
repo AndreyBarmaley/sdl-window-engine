@@ -43,7 +43,7 @@ namespace SWE
     }
 }
 
-#ifdef BUILD_STACKTRACE
+#ifdef SWE_STACKTRACE
 #include "boost/stacktrace.hpp"
 #endif
 
@@ -51,7 +51,7 @@ void SWE::Engine::except(const char* func, const char* message)
 {
     if(func && message) COUT(String::time() << ": [EXCEPTION]\t" << func << ":  " << message);
 
-#ifdef BUILD_STACKTRACE
+#ifdef SWE_STACKTRACE
 
     if(!message || strcmp(message, "SDL_QUIT"))
         LogWrapper() << boost::stacktrace::stacktrace();
@@ -78,7 +78,7 @@ bool SWE::Engine::init(bool debug)
     }
     else
     {
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
         const SDL_version* sdlver = SDL_Linked_Version();
         DEBUG("usage " << "SDL" << ", " << "version: " << static_cast<int>(sdlver->major) << "." << static_cast<int>(sdlver->minor) << "." << static_cast<int>(sdlver->patch));
 #else
@@ -89,7 +89,7 @@ bool SWE::Engine::init(bool debug)
 #endif
     }
 
-#ifndef DISABLE_NETWORK
+#ifndef SWE_DISABLE_NETWORK
 
     if(SDLNet_Init() < 0)
     {
@@ -105,7 +105,7 @@ bool SWE::Engine::init(bool debug)
     }
 
 #endif
-#ifndef DISABLE_IMAGE
+#ifndef SWE_DISABLE_IMAGE
 
     if(IMG_Init(IMG_INIT_PNG) == 0)
     {
@@ -121,7 +121,7 @@ bool SWE::Engine::init(bool debug)
     }
 
 #endif
-#ifndef DISABLE_TTF
+#ifndef SWE_DISABLE_TTF
 
     if(TTF_Init() != 0)
     {
@@ -137,7 +137,7 @@ bool SWE::Engine::init(bool debug)
     }
 
 #endif
-#ifndef DISABLE_AUDIO
+#ifndef SWE_DISABLE_AUDIO
 #if (SDL_VERSIONNUM(SDL_MIXER_MAJOR_VERSION, SDL_MIXER_MINOR_VERSION, SDL_MIXER_PATCHLEVEL) > SDL_VERSIONNUM(1,2,8))
 
     if((Mix_Init(MIX_INIT_OGG) & MIX_INIT_OGG) != MIX_INIT_OGG)
@@ -162,7 +162,7 @@ bool SWE::Engine::init(bool debug)
     Display::fingerEventEmulation = true;
 #endif
 
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
     SDL_EnableKeyRepeat(400, 75);
 #endif
 
@@ -188,20 +188,20 @@ void SWE::Engine::quit(void)
 {
     clearAllSignals();
     Display::closeWindow();
-#ifndef DISABLE_AUDIO
+#ifndef SWE_DISABLE_AUDIO
     Music::reset();
     Mix_CloseAudio();
 #if (SDL_VERSIONNUM(SDL_MIXER_MAJOR_VERSION, SDL_MIXER_MINOR_VERSION, SDL_MIXER_PATCHLEVEL) > SDL_VERSIONNUM(1,2,8))
     Mix_Quit();
 #endif
 #endif
-#ifndef DISABLE_IMAGE
+#ifndef SWE_DISABLE_IMAGE
     IMG_Quit();
 #endif
-#ifndef DISABLE_NETWORK
+#ifndef SWE_DISABLE_NETWORK
     SDLNet_Quit();
 #endif
-#ifndef DISABLE_TTF
+#ifndef SWE_DISABLE_TTF
     TTF_Quit();
 #endif
     SDL_Quit();

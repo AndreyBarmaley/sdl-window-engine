@@ -58,7 +58,7 @@ namespace SWE
 	virtual bool	isValidObject(void) const { return false; }
     };
 
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
     enum { ButtonNone, ButtonLeft = SDL_BUTTON(SDL_BUTTON_LEFT), ButtonRight = SDL_BUTTON(SDL_BUTTON_RIGHT), ButtonMiddle = SDL_BUTTON(SDL_BUTTON_MIDDLE),
            ButtonX1 = SDL_BUTTON(SDL_BUTTON_WHEELUP), ButtonX2 = SDL_BUTTON(SDL_BUTTON_WHEELDOWN), FingerTap = SDL_BUTTON(ButtonLeft)
          };

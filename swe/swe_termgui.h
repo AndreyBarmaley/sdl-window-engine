@@ -23,7 +23,7 @@
 #ifndef _SWE_TERMWIN_GUI_
 #define _SWE_TERMWIN_GUI_
 
-#ifndef DISABLE_TERMGUI
+#ifndef SWE_DISABLE_TERMGUI
 
 #include <memory>
 #include "swe_termwin.h"
@@ -396,5 +396,5 @@ namespace SWE
     } // namespace TermGUI
 
 } // SWE
-#endif // DISABLE_TERMGUI
+#endif // SWE_DISABLE_TERMGUI
 #endif

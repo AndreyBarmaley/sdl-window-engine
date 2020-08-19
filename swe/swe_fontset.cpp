@@ -367,7 +367,7 @@ void SWE::FontRender::renderString(const std::string & str, const Color & col, c
     }
 }
 
-#ifndef DISABLE_TTF
+#ifndef SWE_DISABLE_TTF
 SWE::FontRenderTTF::FontRenderTTF(const std::string & fn, int size, int blend, int style, int hinting)
 {
     open(fn, size, blend, style, hinting);
@@ -600,7 +600,7 @@ SWE::Surface SWE::FontRenderTTF::renderString(const std::string & str, const Col
             hinting = cp.hinting();
 
         TTF_SetFontStyle(ttf, style);
-#ifndef OLDENGINE
+#ifndef SWE_SDL12
         TTF_SetFontHinting(ttf, hinting);
 #endif
         sf = blend ? TTF_RenderUTF8_Blended(ttf, str.c_str(), col.toSDLColor()) :
@@ -635,7 +635,7 @@ SWE::Surface SWE::FontRenderTTF::renderUnicode(const UnicodeString & ustr, const
             hinting = cp.hinting();
 
         TTF_SetFontStyle(ttf, style);
-#ifndef OLDENGINE
+#ifndef SWE_SDL12
         TTF_SetFontHinting(ttf, hinting);
 #endif
         sf = blend ? TTF_RenderUNICODE_Blended(ttf, reinterpret_cast<const Uint16*>(ptr), col.toSDLColor()) :
@@ -671,7 +671,7 @@ SWE::Surface SWE::FontRenderTTF::renderCharset(int ch, const Color & col, int bl
             hinting = cp.hinting();
 
         TTF_SetFontStyle(ttf, style);
-#ifndef OLDENGINE
+#ifndef SWE_SDL12
         TTF_SetFontHinting(ttf, hinting);
 #endif
 

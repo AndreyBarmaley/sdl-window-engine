@@ -34,14 +34,14 @@ namespace SWE
 
     class BinaryBuf;
 
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
     enum { FlipNone = 0, FlipHorizontal = 0x01, FlipVertical = 0x02 };
 #else
     enum { FlipNone = SDL_FLIP_NONE, FlipHorizontal = SDL_FLIP_HORIZONTAL, FlipVertical = SDL_FLIP_VERTICAL };
 #endif
     enum { Rotate90Degrees = 0x04, Rotate180Degrees = 0x08, Rotate270Degrees = 0x10, FlipRotate = Rotate90Degrees | Rotate180Degrees | Rotate270Degrees };
 
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
     typedef SDL_Surface SDL_Texture;
     namespace BlendMode
     {
@@ -93,7 +93,7 @@ namespace SWE
         void		setSurface(const Surface &);
         void		reset(void);
 
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
 	void		convertToDisplayFormat(void);
 #endif
 
@@ -128,7 +128,7 @@ namespace SWE
 
         std::string	toString(void) const;
 	const char*	className(void) const override { return "SWE::Surface"; }
-#ifdef WITH_JSON
+#ifdef SWE_WITH_JSON
         JsonObject      toJson(void) const override;
 #endif
     };
@@ -146,7 +146,7 @@ namespace SWE
     const char* blendModeString(int);
     //struct SDLTexture;
 
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
     class Texture : public Surface
     {
 #else
@@ -158,13 +158,13 @@ namespace SWE
     public:
         Texture() {}
 
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
         Texture(const Surface & sf) : Surface(sf) {};
 #endif
         Texture(SDL_Texture*);
 	virtual ~Texture() {}
 
-#ifndef OLDENGINE
+#ifndef SWE_SDL12
         Texture(const Texture &) = default;
         Texture &	operator=(const Texture &) = default;
 #endif
@@ -201,7 +201,7 @@ namespace SWE
 
         std::string	toString(void) const;
 	const char*	className(void) const override { return "SWE::Texture"; }
-#ifdef WITH_JSON
+#ifdef SWE_WITH_JSON
         JsonObject      toJson(void) const override;
 #endif
     };
@@ -227,7 +227,7 @@ namespace SWE
         void		swap(TexturePos &);
 
 	const char*	className(void) const override { return "SWE::TexturePos"; }
-#ifdef WITH_JSON
+#ifdef SWE_WITH_JSON
         JsonObject      toJson(void) const override;
 #endif
     };

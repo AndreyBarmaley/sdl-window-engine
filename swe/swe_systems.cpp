@@ -152,7 +152,7 @@ namespace SWE
 
     int Systems::setEnvironment(const char* name, const char* value)
     {
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
         std::string str(name);
         str.append("=").append(value);
         return SDL_putenv(const_cast<char*>(str.c_str()));
@@ -498,7 +498,7 @@ namespace SWE
     std::string Systems::homeDirectory(const std::string & prog)
     {
         std::string res;
-#ifndef OLDENGINE
+#ifndef SWE_SDL12
         char* path = SDL_GetPrefPath("", prog.c_str());
 
         if(path)
@@ -675,7 +675,7 @@ namespace SWE
         return name.substr(begin, end - begin);
     }
 
-#ifdef WITH_DLL
+#ifdef SWE_DLOPEN
     void* Systems::openLib(const std::string & file)
     {
 #if defined(__WIN32__) || defined(__WIN64__)
@@ -711,7 +711,7 @@ namespace SWE
         return ".so";
 #endif
     }
-#endif // WITH_DLL
+#endif // SWE_DLOPEN
 
     /* fix char */
 #if defined(__MINGW32CE__)

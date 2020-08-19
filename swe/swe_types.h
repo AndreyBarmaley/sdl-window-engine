@@ -31,16 +31,16 @@
 #define ARRAY_LAST(A)   	A + ARRAY_COUNT(A) - 1
 
 #include "SDL.h"
-#ifndef DISABLE_TTF
+#ifndef SWE_DISABLE_TTF
 #include "SDL_ttf.h"
 #endif
-#ifndef DISABLE_IMAGE
+#ifndef SWE_DISABLE_IMAGE
 #include "SDL_image.h"
 #endif
-#ifndef DISABLE_AUDIO
+#ifndef SWE_DISABLE_AUDIO
 #include "SDL_mixer.h"
 #endif
-#ifndef DISABLE_NETWORK
+#ifndef SWE_DISABLE_NETWORK
 #include "SDL_net.h"
 #endif
 

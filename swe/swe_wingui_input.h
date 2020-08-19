@@ -66,7 +66,7 @@ namespace SWE
         virtual void    	returnPressed(void) {}
 
         const char*             className(void) const override { return "SWE::LineEdit"; }
-#ifdef WITH_JSON
+#ifdef SWE_WITH_JSON
         JsonObject              toJson(void) const override
         {
             JsonObject res = WindowToolTipArea::toJson();

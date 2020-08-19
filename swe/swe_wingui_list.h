@@ -76,7 +76,7 @@ namespace SWE
         ListWidget(bool vertical, Window*);
         ListWidget(const Size &, bool vertical, Window*);
         ListWidget(const Point &, const Size &, bool vertical, Window*);
-        ~ListWidget();
+        virtual ~ListWidget();
 
 	void			addItem(ListWidgetItem*);
 
@@ -122,7 +122,7 @@ namespace SWE
         bool			scrollDown(int rows = 1);
 
 	const char*             className(void) const override { return "SWE::ListWidget"; }
-#ifdef WITH_JSON
+#ifdef SWE_WITH_JSON
         JsonObject              toJson(void) const override
         {
             JsonObject res = Window::toJson();
@@ -149,7 +149,7 @@ namespace SWE
         void renderWindow(void) override;
 
 	const char*             className(void) const override { return "SWE::TextAreaItem"; }
-#ifdef WITH_JSON
+#ifdef SWE_WITH_JSON
         JsonObject              toJson(void) const override
         {
             JsonObject res = ListWidgetItem::toJson();

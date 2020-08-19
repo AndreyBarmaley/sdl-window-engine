@@ -69,6 +69,15 @@ namespace SWE
         return 0 == x && 0 == y;
     }
 
+    bool Point::inABC(const SWE::Point & a, const SWE::Point & b, const SWE::Point & c) const
+    {
+	int a1 = (a.x - x) * (b.y - a.y) - (b.x - a.x) * (a.y - y);
+	int b1 = (b.x - x) * (c.y - b.y) - (c.x - b.x) * (b.y - y);
+	int c1 = (c.x - x) * (a.y - c.y) - (a.x - c.x) * (c.y - y);
+
+	return ((a1 >= 0 && b1 >= 0 && c1 >= 0) || (a1 < 0 && b1 < 0 && c1 < 0));
+    }
+
     bool Point::operator== (const Point & pt) const
     {
         return x == pt.x && y == pt.y;

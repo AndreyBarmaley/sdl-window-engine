@@ -58,7 +58,7 @@ namespace SWE
 	void			renderWindow(void) override;
 
 	const char*             className(void) const override { return "SWE::ScrollBar"; }
-#ifdef WITH_JSON
+#ifdef SWE_WITH_JSON
         JsonObject              toJson(void) const override
         {
             JsonObject res = Window::toJson();

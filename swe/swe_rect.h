@@ -39,30 +39,30 @@ namespace SWE
         Size(int sw, int sh) : w(sw), h(sh) {}
 	Size(std::initializer_list<int>);
 
-        static Size parse(const std::string &, int sep = 'x');
+        static Size 	parse(const std::string &, int sep = 'x');
 
-        bool	isEmpty(void) const;
+        bool		isEmpty(void) const;
 
-        bool	operator== (const Size &) const;
-        bool	operator!= (const Size &) const;
-        bool	operator<= (const Size &) const;
-        bool	operator>= (const Size &) const;
+        bool		operator== (const Size &) const;
+        bool		operator!= (const Size &) const;
+        bool		operator<= (const Size &) const;
+        bool		operator>= (const Size &) const;
 
-        Size &	operator+= (const Size &);
-        Size &	operator-= (const Size &);
+        Size &		operator+= (const Size &);
+        Size &		operator-= (const Size &);
 
-        Size	operator+ (const Size &) const;
-        Size	operator- (const Size &) const;
+        Size		operator+ (const Size &) const;
+        Size		operator- (const Size &) const;
 
-        Size	operator* (const Size &) const;
-        Size	operator/ (const Size &) const;
-        Size	operator* (int) const;
-        Size	operator/ (int) const;
+        Size		operator* (const Size &) const;
+        Size		operator/ (const Size &) const;
+        Size		operator* (int) const;
+        Size		operator/ (int) const;
 
-        bool	operator< (const Size &) const;
-        bool	operator> (const Size &) const;
+        bool		operator< (const Size &) const;
+        bool		operator> (const Size &) const;
 
-	Size	swap(void) const { return Size(h, w); }
+	Size		swap(void) const { return Size(h, w); }
         std::string	toString(void) const;
     };
 
@@ -75,26 +75,27 @@ namespace SWE
         Point(int px, int py) : x(px), y(py) {}
 	Point(std::initializer_list<int>);
 
-        static Point parse(const std::string &, int sep = ':');
+        static Point 	parse(const std::string &, int sep = ':');
 
-        bool	isNull(void) const;
+        bool		isNull(void) const;
+	bool		inABC(const Point &, const Point &, const Point &) const;
 
-        bool	operator== (const Point &) const;
-        bool	operator!= (const Point &) const;
+        bool		operator== (const Point &) const;
+        bool		operator!= (const Point &) const;
 
-        Point &	operator+= (const Point &);
-        Point &	operator-= (const Point &);
+        Point &		operator+= (const Point &);
+        Point &		operator-= (const Point &);
 
-        Point	operator+ (const Point &) const;
-        Point	operator- (const Point &) const;
+        Point		operator+ (const Point &) const;
+        Point		operator- (const Point &) const;
 
-        Point	operator* (const Point &) const;
-        Point	operator/ (const Point &) const;
-        Point	operator* (int) const;
-        Point	operator/ (int) const;
+        Point		operator* (const Point &) const;
+        Point		operator/ (const Point &) const;
+        Point		operator* (int) const;
+        Point		operator/ (int) const;
 
-	Point	swap(void) const { return Point(y, x); }
-        Size	toSize(void) const { return Size(x, y); }
+	Point		swap(void) const { return Point(y, x); }
+        Size		toSize(void) const { return Size(x, y); }
 
         std::string	toString(void) const;
         static int	distance(const Point &, const Point &);
@@ -109,21 +110,21 @@ namespace SWE
         ZPoint(const Point & pt, int pz) : Point(pt), z(pz) {}
 	ZPoint(std::initializer_list<int>);
 
-        static ZPoint parse(const std::string &, int sep = ':');
+        static ZPoint 	parse(const std::string &, int sep = ':');
 
-        bool	operator== (const ZPoint &) const;
-        bool	operator!= (const ZPoint &) const;
+        bool		operator== (const ZPoint &) const;
+        bool		operator!= (const ZPoint &) const;
 
         ZPoint &	operator+= (const ZPoint &);
         ZPoint &	operator-= (const ZPoint &);
 
-        ZPoint	operator+ (const ZPoint &) const;
-        ZPoint	operator- (const ZPoint &) const;
+        ZPoint		operator+ (const ZPoint &) const;
+        ZPoint		operator- (const ZPoint &) const;
 
-        ZPoint	operator* (const ZPoint &) const;
-        ZPoint	operator/ (const ZPoint &) const;
-        ZPoint	operator* (int) const;
-        ZPoint	operator/ (int) const;
+        ZPoint		operator* (const ZPoint &) const;
+        ZPoint		operator/ (const ZPoint &) const;
+        ZPoint		operator* (int) const;
+        ZPoint		operator/ (int) const;
 
         std::string	toString(void) const;
     };
@@ -137,39 +138,39 @@ namespace SWE
         Rect(const SDL_Rect &);
 	Rect(std::initializer_list<int>);
 
-        bool	operator== (const Rect &) const;
-        bool	operator!= (const Rect &) const;
+        bool		operator== (const Rect &) const;
+        bool		operator!= (const Rect &) const;
 
-        Rect	operator+ (const Point &) const;
-        Rect	operator- (const Point &) const;
-        Rect	operator+ (const Size &) const;
-        Rect	operator- (const Size &) const;
-        Rect	operator+ (const Rect &) const;
-        Rect	operator- (const Rect &) const;
+        Rect		operator+ (const Point &) const;
+        Rect		operator- (const Point &) const;
+        Rect		operator+ (const Size &) const;
+        Rect		operator- (const Size &) const;
+        Rect		operator+ (const Rect &) const;
+        Rect		operator- (const Rect &) const;
 
-        Point	topLeft(void) const;
-        Point	topRight(void) const;
-        Point	bottomLeft(void) const;
-        Point	bottomRight(void) const;
+        Point		topLeft(void) const;
+        Point		topRight(void) const;
+        Point		bottomLeft(void) const;
+        Point		bottomRight(void) const;
 
-        void	setPoint(const Point &);
-        void	setSize(const Size &);
-	Rect	swapSize(void) const { return Rect(x, y, h, w); }
+        void		setPoint(const Point &);
+        void		setSize(const Size &);
+	Rect		swapSize(void) const { return Rect(x, y, h, w); }
 
-        Point	toPoint(void) const;
-        Size	toSize(void) const;
+        Point		toPoint(void) const;
+        Size		toSize(void) const;
 
         SDL_Rect	toSDLRect(void) const;
 
-        Rect    intersected(const Rect &) const;
-        bool    intersects(const Rect &) const;
-        bool    contains(const Point &) const;
-        bool    contains(const Rect &) const;
+        Rect    	intersected(const Rect &) const;
+        bool    	intersects(const Rect &) const;
+        bool    	contains(const Point &) const;
+        bool    	contains(const Rect &) const;
 
         // Rect include Point
-        bool	operator& (const Point &) const;
+        bool		operator& (const Point &) const;
         // Rect intersects Rect
-        bool	operator& (const Rect &) const;
+        bool		operator& (const Rect &) const;
 
         static bool	intersection(const Rect &, const Rect &, Rect* res = NULL);
 	static Rect	around(const Rect &, const Rect &);

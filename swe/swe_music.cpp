@@ -20,7 +20,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef DISABLE_AUDIO
+#ifndef SWE_DISABLE_AUDIO
 
 #include "swe_systems.h"
 #include "swe_tools.h"
@@ -69,7 +69,7 @@ namespace SWE
         {
             Mix_HaltMusic();
             Mix_FreeMusic(mixer);
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
             mixer = Mix_LoadMUS_RW(rw);
             SDL_FreeRW(rw);
 #else

@@ -29,7 +29,7 @@
 namespace SWE
 {
 
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
     typedef SDL_keysym SDL_Keysym;
 #endif
 
@@ -122,7 +122,7 @@ namespace SWE
             y = SDLK_y,
             z = SDLK_z,
             DELETE = SDLK_DELETE,
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
             KP_K0 = SDLK_KP0,
             KP_K1 = SDLK_KP1,
             KP_K2 = SDLK_KP2,
@@ -177,7 +177,7 @@ namespace SWE
             F14 = SDLK_F14,
             F15 = SDLK_F15,
             CAPSLOCK = SDLK_CAPSLOCK,
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
             SCROLLOCK = SDLK_SCROLLOCK,
 #else
             SCROLLOCK = SDLK_SCROLLLOCK,
@@ -190,7 +190,7 @@ namespace SWE
             LALT = SDLK_LALT,
             MODE = SDLK_MODE,
             HELP = SDLK_HELP,
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
             PRINT = SDLK_PRINT,
 #else
             PRINT = SDLK_PRINTSCREEN,
@@ -229,7 +229,7 @@ namespace SWE
         bool isLeftAlt(void) const { return mod & KMOD_LALT; }
         bool isRightAlt(void) const { return mod & KMOD_RALT; }
 
-#ifndef OLDENGINE
+#ifndef SWE_SDL12
         bool isGui(void) const { return mod & KMOD_GUI; }
         bool isLGui(void) const { return mod & KMOD_LGUI; }
         bool isRGui(void) const { return mod & KMOD_RGUI; }
@@ -257,7 +257,7 @@ namespace SWE
 
         int keychar(void) const;
 
-#ifdef OLDENGINE
+#ifdef SWE_SDL12
         int scancode(void) const
         {
             return 0;

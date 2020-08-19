@@ -21,7 +21,7 @@
  ***************************************************************************/
 
 /* http://www.lua.org/manual/5.1/manual.html */
-#ifdef WITH_LUA
+#ifdef SWE_WITH_LUA
 #include <cmath>
 #include <sstream>
 #include <algorithm>
@@ -440,7 +440,7 @@ namespace SWE
         return lua_absindex(ptr, index);
     }
 
-#ifdef WITH_JSON
+#ifdef SWE_WITH_JSON
     JsonArray LuaState::toJsonArrayTableIndex(int index)
     {
         JsonArray res;

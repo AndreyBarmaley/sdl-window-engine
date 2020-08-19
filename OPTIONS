@@ -1,14 +1,14 @@
 make build options:
-OLDENGINE - SDL1.2 support
-WITH_JSON - add json format
-WITH_LUA - add lua support
-WITH_DLL - add load shared libs support, with -ldl
-WITH_XML - add tinyxml2 support
+SWE_SDL12 - SDL1.2 support
+SWE_WITH_JSON - add json format
+SWE_WITH_LUA - add lua support
+SWE_DLOPEN - add load shared libs support, with -ldl
+SWE_WITH_XML - add tinyxml2 support
 WITH_ICONV - usage iconv for Tools::stringEncode
-DISABLE_NETWORK - disable SDL_net
-DISABLE_AUDIO - disable SDL_mixer
-DISABLE_IMAGE - disable SDL_image
-DISABLE_TTF - disable SDL_ttf
-DISABLE_TERMGUI - disable build termwin_gui
-BUILD_DEBUG_MESSAGES - DEBUG works
-BUILD_STACKTRACE - stack trace on exception
+SWE_DISABLE_NETWORK - disable SDL_net
+SWE_DISABLE_AUDIO - disable SDL_mixer (mp3, ogg support disabled)
+SWE_DISABLE_IMAGE - disable SDL_image (load tif, jpg, png disabled)
+SWE_DISABLE_TTF - disable SDL_ttf (builtin alt-8x16.psf used only)
+SWE_DISABLE_TERMGUI - disable build termwin_gui
+SWE_DEBUG_MESSAGES - DEBUG works
+SWE_STACKTRACE - stack trace on exception

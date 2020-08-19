@@ -43,7 +43,7 @@ namespace SWE
 #define TTF_HINTING_NONE   3
 #endif
 
-#ifdef DISABLE_TTF
+#ifdef SWE_DISABLE_TTF
 #define TTF_STYLE_NORMAL        0
 #define TTF_STYLE_BOLD          0x01
 #define TTF_STYLE_ITALIC        0x02
@@ -161,7 +161,7 @@ namespace SWE
         Texture		renderCharset(int ch, const Color &, int blend, int style, int hinting);
     };
 
-#ifndef DISABLE_TTF
+#ifndef SWE_DISABLE_TTF
     class FontRenderTTF : public FontRender
     {
         std::shared_ptr<TTF_Font> ptr;
