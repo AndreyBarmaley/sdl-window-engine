@@ -89,11 +89,11 @@ namespace SWE
         if(index == Color::Transparent)
     	    return Color::transparent();
 
-        if(0 <= index && index < _colors.size())
+        if(0 <= index && index < static_cast<int>(_colors.size()))
             return ARGB(colors2argb(_colors[index].color));
 
 	index -= _colors.size();
-        if(0 <= index && index < others_argb.size())
+        if(0 <= index && index < static_cast<int>(others_argb.size()))
             return others_argb[index];
 
         ERROR("unknown color index: " << index);

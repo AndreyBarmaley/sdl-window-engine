@@ -30,6 +30,11 @@
 #include <iterator>
 #include <list>
 
+#ifdef SWE_SDL12
+ #include "SDL_rotozoom.h"
+ #include "SDL_gfxPrimitives.h"
+#endif
+
 #include "swe_engine.h"
 #include "swe_music.h"
 #include "swe_display.h"
@@ -74,7 +79,7 @@ namespace SWE
 
         bool		renderInit(const Size &, bool);
         bool		renderReset(SDL_Texture*);
-        bool		renderAccelerated(void);
+        bool		isRenderAccelerated(void);
         void            renderPresent(void);
         void		renderCopyEx(const Texture &, const Rect &, Texture &, const Rect &, int);
 
@@ -234,7 +239,7 @@ bool SWE::Display::resizeWindow(const Size & newsz, bool sdl)
 {
     if(_window && winsz != newsz)
     {
-        bool accel = renderAccelerated();
+        bool accel = isRenderAccelerated();
         DEBUG("new sz: " << newsz.toString());
         FontRender::clearCache();
 #ifdef SWE_SDL12
@@ -273,12 +278,13 @@ bool SWE::Display::renderInit(const Size & newsz, bool accel)
     if(winsz != rendersz)
     {
 	displayTexture = createTexture(rendersz, true);
-	displayTexture.convertToDisplayFormat();
+	// sdl12 texture default converted
+	// displayTexture.convertToDisplayFormat();
 	DEBUG("set display to soft surface");
     }
     else
     {
-	displayTexture = Surface(SDL_GetVideoSurface());
+	displayTexture.setSurface(SDL_GetVideoSurface());
 	DEBUG("set display to video surface");
     }
 #else
@@ -400,7 +406,7 @@ void SWE::Display::closeWindow(void)
 #endif
 }
 
-bool SWE::Display::renderAccelerated(void)
+bool SWE::Display::isRenderAccelerated(void)
 {
 #ifdef SWE_SDL12
 
@@ -480,7 +486,7 @@ void SWE::Display::renderClear(const Color & cl, Texture & dtx)
 void SWE::Display::renderColor(const Color & cl, Texture & dtx, const Rect & drt)
 {
 #ifdef SWE_SDL12
-    dtx.fill(drt, cl);
+    boxRGBA(dtx.toSDLSurface(), drt.x, drt.y, drt.x + drt.w - 1, drt.y + drt.h - 1, cl.r(), cl.g(), cl.b(), cl.a());
 #else
     if(renderReset(dtx.toSDLTexture()))
     {
@@ -516,20 +522,7 @@ SWE::Texture SWE::Display::renderRect(const Color & col, const Color & fill, con
 void SWE::Display::renderRect(const Color & cl, Texture & dtx, const Rect & drt)
 {
 #ifdef SWE_SDL12
-    int pixel = dtx.mapRGB(cl);
-
-    for(int ox = 0; ox < drt.w; ++ox)
-    {
-        dtx.drawPixel(drt.toPoint() + Point(ox, 0), pixel);
-        dtx.drawPixel(drt.toPoint() + Point(ox, drt.h - 1), pixel);
-    }
-
-    for(int oy = 1; oy < drt.h - 1; ++oy)
-    {
-        dtx.drawPixel(drt.toPoint() + Point(0, oy), pixel);
-        dtx.drawPixel(drt.toPoint() + Point(drt.w - 1, oy), pixel);
-    }
-
+    rectangleRGBA(dtx.toSDLSurface(), drt.x, drt.y, drt.x + drt.w - 1, drt.y + drt.h - 1, cl.r(), cl.g(), cl.b(), cl.a());
 #else
 
     if(renderReset(dtx.toSDLTexture()))
@@ -539,6 +532,10 @@ void SWE::Display::renderRect(const Color & cl, Texture & dtx, const Rect & drt)
             const SDL_Rect dstrt = drt.toSDLRect();
 
             if(0 != SDL_RenderDrawRect(_renderer, &dstrt))
+                ERROR(SDL_GetError());
+
+	    // last point (bug)
+	    if(0 != SDL_RenderDrawPoint(_renderer, dstrt.x + dstrt.w - 1, dstrt.y + dstrt.h - 1))
                 ERROR(SDL_GetError());
         }
         else
@@ -568,11 +565,7 @@ void SWE::Display::renderPolygon(const Color & cl, Texture & dtx, const Points &
 void SWE::Display::renderLine(const Color & cl, Texture & dtx, const Point & pt1, const Point & pt2)
 {
 #ifdef SWE_SDL12
-    Points points = Tools::renderLine(pt1, pt2);
-    int pixel = dtx.mapRGB(cl);
-
-    for(auto it = points.begin(); it != points.end(); ++it)
-        dtx.drawPixel(*it, pixel);
+    lineRGBA(dtx.toSDLSurface(), pt1.x, pt1.y, pt2.x, pt2.y, cl.r(), cl.g(), cl.b(), cl.a());
 
 #else
 
@@ -595,7 +588,7 @@ void SWE::Display::renderLine(const Color & cl, Texture & dtx, const Point & pt1
 void SWE::Display::renderPoint(const Color & cl, Texture & dtx, const Point & pt)
 {
 #ifdef SWE_SDL12
-    dtx.drawPoint(pt, cl);
+    pixelRGBA(dtx.toSDLSurface(), pt.x, pt.y, cl.r(), cl.g(), cl.b(), cl.a());
 #else
 
     if(renderReset(dtx.toSDLTexture()))
@@ -716,10 +709,6 @@ void SWE::Display::renderSurface(const Surface & sf, const Rect & srt, Texture &
 
 #endif
 }
-
-#ifdef SWE_SDL12
- #include "SDL_rotozoom.h"
-#endif
 
 void SWE::Display::renderPresent(void)
 {
@@ -1032,7 +1021,6 @@ bool SWE::Display::handleEvents(void)
         }
     }
 
-    DisplayScene::tickHandle(Tools::ticks() - tickStart);
     return true;
 }
 

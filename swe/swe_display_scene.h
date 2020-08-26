@@ -60,6 +60,7 @@ namespace SWE
         static void                displayResizeHandle(const Size &, bool);
         static void                displayFocusHandle(bool);
 
+	static const std::list<Window*> & items(void);
         static std::list<Window*>  findChilds(const Window &);
         static std::list<Window*>  findParents(const Window &);
 

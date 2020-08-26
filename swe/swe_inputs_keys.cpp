@@ -280,7 +280,8 @@ namespace SWE
 	return key < numkeys ? keystate[key] : false;
 #else
 	const u8* keystate = SDL_GetKeyboardState(& numkeys);
-	return key < numkeys ? keystate[key] : false;
+	SDL_Scancode scan = SDL_GetScancodeFromKey(key);
+	return scan < numkeys ? keystate[scan] : false;
 #endif
     }
 

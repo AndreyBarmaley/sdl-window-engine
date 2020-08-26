@@ -175,7 +175,7 @@ namespace SWE
              };
 
         mofile*				current = NULL;
-        std::map<std::string, mofile>	domains;
+        std::unordered_map<std::string, mofile>	domains;
         int					locale = LOCALE_EN;
         char				context = 0;
 

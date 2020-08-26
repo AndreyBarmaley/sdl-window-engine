@@ -201,7 +201,8 @@ namespace SWE
     public:
         DisplayWindow(const Color & back = Color(Color::Black));
 
-        void	renderWindow(void) override;
+        void		renderBackground(void) override;
+        void		renderWindow(void) override {}
 
 	const char*	className(void) const override { return "SWE::DisplayWindow"; }
 #ifdef SWE_WITH_JSON

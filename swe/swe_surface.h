@@ -159,7 +159,7 @@ namespace SWE
         Texture() {}
 
 #ifdef SWE_SDL12
-        Texture(const Surface & sf) : Surface(sf) {};
+        Texture(const Surface &);
 #endif
         Texture(SDL_Texture*);
 	virtual ~Texture() {}

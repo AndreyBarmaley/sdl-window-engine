@@ -163,15 +163,13 @@ namespace SWE
     	if(flip & FlipVertical)
 	{
     	    for(int py = 0; py < sf1.height(); ++py)
-		for(int px = 0; px < sf1.width(); ++px)
-            	    sf2.drawPixel(Point(px, sf1.height() - py - 1), sf1.pixel(Point(px, py)));
+		sf1.blit(Rect(0, py, sf1.width(), 1), Rect(0, sf1.height() - py - 1, sf1.width(), 1), sf2);
         }
 	else
 	if(flip & FlipHorizontal)
 	{
-    	    for(int py = 0; py < sf1.height(); ++py)
-            	for(int px = 0; px < sf1.width(); ++px)
-            	    sf2.drawPixel(Point(sf1.width() - px - 1, py), sf1.pixel(Point(px, py)));
+            for(int px = 0; px < sf1.width(); ++px)
+		sf1.blit(Rect(px, 0, 1, sf1.height()), Rect(sf1.width() - px - 1, 0, 1, sf1.height()), sf2);
         }
 
 	if(flip & Rotate90Degrees)
@@ -276,7 +274,7 @@ namespace SWE
     {
 	if(ptr)
 	{
-    	    SDL_Surface* sf = SDL_DisplayFormat(ptr);
+    	    SDL_Surface* sf = amask() ? SDL_DisplayFormatAlpha(ptr) : SDL_DisplayFormat(ptr);
 	    reset();
 	    ptr = sf;
 	}
@@ -496,24 +494,6 @@ namespace SWE
                 ERROR("out of range: " << "pos: " << dpt.toString() << ", " << "size: " << size().toString());
         }
     }
-
-/*
-    u32 Surface::convertPixel(const Surface & sf, u32 pixel, bool alpha)
-    {
-	if(ptr && sf.ptr)
-	{
-	    Uint8 r, g, b, a;
-	    if(alpha)
-	    {
-		SDL_GetRGBA(pixel, sf.ptr->format, &r, &g, &b, &a);
-    		return SDL_MapRGBA(ptr->format, r, g, b, a);
-	    }
-	    SDL_GetRGB(pixel, sf.ptr->format, &r, &g, &b);
-    	    return SDL_MapRGB(ptr->format, r, g, b);
-	}
-	return 0;
-    }
-*/
 
     u32 Surface::pixel4(const Point & dpt) const
     {

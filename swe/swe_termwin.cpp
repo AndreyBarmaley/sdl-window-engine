@@ -849,7 +849,7 @@ namespace SWE
     {
         int pos = index();
 
-        if(pos < 0 || pos >= chars.size())
+        if(pos < 0 || pos >= static_cast<int>(chars.size()))
         {
             ERROR("out of range: " << ", " << "pos: " << pos << ", " << "size: " << chars.size());
             return NULL;
@@ -867,7 +867,7 @@ namespace SWE
         {
             int pos = index();
 
-            if(pos < 0 || pos >= chars.size())
+            if(pos < 0 || pos >= static_cast<int>(chars.size()))
             {
                 ERROR("out of range: " << ", " << "pos: " << pos << ", " << "size: " << chars.size());
                 return;
@@ -896,7 +896,7 @@ namespace SWE
 
         if(0 <= pos)
         {
-            if(pos >= chars.size())
+            if(pos >= static_cast<int>(chars.size()))
             {
                 ERROR("out of range: " << ", " << "pos: " << pos << ", " << "size: " << chars.size());
                 return;

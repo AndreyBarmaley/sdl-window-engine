@@ -103,7 +103,7 @@ namespace SWE
 	else
 	if(key.keycode() == Key::RIGHT)
 	{
-            if(curpos < content.size())
+            if(curpos < static_cast<int>(content.size()))
             {
                 curpos = curpos + 1;
                 cursorPositionChanged(curpos - 1, curpos);
@@ -126,7 +126,7 @@ namespace SWE
 	else
 	if(key.keycode() == Key::END)
 	{
-            if(curpos < content.size())
+            if(curpos < static_cast<int>(content.size()))
             {
                 int oldpos = curpos;
                 curpos = content.size();
@@ -234,7 +234,7 @@ namespace SWE
 
     void LineEdit::setCursorPosition(int pos)
     {
-	if(0 > pos || pos > content.size())
+	if(0 > pos || pos > static_cast<int>(content.size()))
 	    pos = content.size();
 
 	if(curpos != pos)
@@ -277,7 +277,8 @@ namespace SWE
     int calcOffset(const SWE::FontRender & frs, const std::string & content, int txwidth, int width)
     {
 	int pos = 0;
-	while(pos < content.size())
+	int csz = content.size();
+	while(pos < csz)
 	{
 	    auto strsz = frs.stringSize(content.substr(pos));
 	    if(strsz.w + txwidth <= width) break;
@@ -293,7 +294,7 @@ namespace SWE
 	int offy = height() - frs.lineSkipHeight();
 	Rect pos;
 
-	if(0 > curpos || curpos == content.size())
+	if(0 > curpos || curpos == static_cast<int>(content.size()))
 	{
 	    int cursorW = frs.symbolAdvance(0x20);
 

@@ -53,7 +53,7 @@ namespace SWE
 
         const Texture & 	tooltipTexture(void) const;
 
-        virtual int		tooltipTimeout(void) const
+        virtual u32		tooltipTimeout(void) const
 	{
 	    return 400; // ms
 	}

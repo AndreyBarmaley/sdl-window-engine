@@ -118,8 +118,11 @@ namespace SWE
     void Window::destroy(void)
     {
         setVisible(false);
-        auto childs = DisplayScene::findChilds(*this);
-        std::for_each(childs.begin(), childs.end(), [](Window* win){ win->destroy(); });
+
+	// destroy childs
+	for(auto & child : DisplayScene::items())
+    	    if(child->parent() == this) child->destroy();
+
         DisplayScene::removeItem(*this);
         prnt = NULL;
         result = 0;
@@ -169,10 +172,9 @@ namespace SWE
             // absolute position
             gfxpos.setPoint(pos);
 
-        auto childs = DisplayScene::findChilds(*this);
-
-        for(auto it = childs.begin(); it != childs.end(); ++it)
-            (*it)->setPosition((*it)->position() - diff);
+	// childs position
+        for(auto & child : DisplayScene::items())
+            if(child->parent() == this) child->setPosition(child->position() - diff);
 
         if(isVisible() && (isAreaPoint(Display::mouseCursorPosition()) || isFocused()))
         {
@@ -289,8 +291,8 @@ namespace SWE
            (! checkState(FlagLayoutHidden) && f))
         {
     	    // set for all childrens (if for parent applies)
-    	    auto childs = DisplayScene::findChilds(*this);
-    	    std::for_each(childs.begin(), childs.end(), [=](Window* win){ win->setHidden(f); });
+    	    for(auto & child : DisplayScene::items())
+        	if(child->parent() == this) child->setHidden(f);
 
             setState(FlagLayoutHidden, f);
             if(f) resetState(FlagFocused);
@@ -300,8 +302,8 @@ namespace SWE
     void Window::setVisible(bool f)
     {
         // set for all childrens
-        auto childs = DisplayScene::findChilds(*this);
-        std::for_each(childs.begin(), childs.end(), [=](Window* win){ win->setVisible(f); });
+        for(auto & child : DisplayScene::items())
+            if(child->parent() == this) child->setVisible(f);
 
         if((checkState(FlagVisible) && !f) ||
            (! checkState(FlagVisible) && f))
@@ -328,33 +330,35 @@ namespace SWE
         {
 	    renderBackground();
 
-            //bool redraw = force;
-            auto childs = DisplayScene::findChilds(*this);
-
             // redraw childs: order background
-            for(auto it = childs.begin(); it != childs.end(); ++it)
+    	    for(auto & child : DisplayScene::items())
+        	if(child->parent() == this)
 	    {
-		// modality is redraw on displayscene::redraw
-		if((*it)->isModality()) continue;
-                if((*it)->isVisible() && (*it)->checkState(FlagLayoutBackground))(*it)->redraw();
+		if(child->isModality()) continue;
+                if(child->isVisible() && child->checkState(FlagLayoutBackground))
+		    child->redraw();
 	    }
 
             renderWindow();
 
             // redraw childs: order normal
-            for(auto it = childs.begin(); it != childs.end(); ++it)
+    	    for(auto & child : DisplayScene::items())
+        	if(child->parent() == this)
 	    {
 		// modality is redraw on displayscene::redraw
-		if((*it)->isModality()) continue;
-                if((*it)->isVisible() && !(*it)->checkState(FlagLayoutBackground) && !(*it)->checkState(FlagLayoutForeground))(*it)->redraw();
+		if(child->isModality()) continue;
+                if(child->isVisible() && !child->checkState(FlagLayoutBackground) && !child->checkState(FlagLayoutForeground))
+		    child->redraw();
 	    }
 
             // redraw childs: order foreground
-            for(auto it = childs.begin(); it != childs.end(); ++it)
+    	    for(auto & child : DisplayScene::items())
+        	if(child->parent() == this)
 	    {
 		// modality is redraw on displayscene::redraw
-		if((*it)->isModality()) continue;
-                if((*it)->isVisible() && (*it)->checkState(FlagLayoutForeground))(*it)->redraw();
+		if(child->isModality()) continue;
+                if(child->isVisible() && child->checkState(FlagLayoutForeground))
+		    child->redraw();
 	    }
 
 	    renderForeground();
@@ -627,7 +631,6 @@ namespace SWE
     DisplayWindow::DisplayWindow(const Color & col) : Window(Display::size(), NULL), backcolor(col)
     {
         setState(FlagLayoutBackground);
-        renderWindow();
         setVisible(true);
     }
 
@@ -640,7 +643,7 @@ namespace SWE
     }
 #endif
 
-    void DisplayWindow::renderWindow(void)
+    void DisplayWindow::renderBackground(void)
     {
         renderClear(backcolor);
     }

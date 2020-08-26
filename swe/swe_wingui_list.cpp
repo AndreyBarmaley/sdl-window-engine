@@ -167,7 +167,7 @@ namespace SWE
 
     void ListWidget::insertItem(int row, ListWidgetItem* item)
     {
-	if(row < 0 || row >= listItems.size())
+	if(row < 0 || row >= static_cast<int>(listItems.size()))
 	    listItems.push_back(item);
 	else
 	{
@@ -179,7 +179,7 @@ namespace SWE
 
     ListWidgetItem* ListWidget::item(int row) const
     {
-	return row < 0 || row >= listItems.size() ?
+	return row < 0 || row >= static_cast<int>(listItems.size()) ?
 		NULL : listItems[row];
     }
 
@@ -235,7 +235,7 @@ namespace SWE
 	    if(skipItems + visible - 1 < pos)
 	    {
 		skipItems = pos;
-		if(skipItems > listItems.size() - visible) skipItems = listItems.size() - visible;
+		if(skipItems > static_cast<int>(listItems.size()) - visible) skipItems = listItems.size() - visible;
     		signalEmit(Signal::ListWidgetScrolled);
 	    }
 	}
@@ -341,12 +341,13 @@ namespace SWE
     bool ListWidget::scrollDown(int rows)
     {
         int visible = visibleItems();
+	int listsz = listItems.size();
 
-	if(visible < listItems.size() &&
-	    skipItems + visible < listItems.size())
+	if(visible < listsz &&
+	    skipItems + visible < listsz)
 	{
 	    skipItems += rows;
-	    if(skipItems > listItems.size() - visible) skipItems = listItems.size() - visible;
+	    if(skipItems > listsz - visible) skipItems = listItems.size() - visible;
 
     	    signalEmit(Signal::ListWidgetScrolled);
     	    setDirty(true);
@@ -449,8 +450,9 @@ namespace SWE
         if(listItems.size())
         {
 	    int visible = visibleItems();
+	    int listsz = listItems.size();
 
-            for(int row = 0; row < listItems.size(); ++row)
+            for(int row = 0; row < listsz; ++row)
             {
 		ListWidgetItem* item = ListWidget::item(row);
 		if(! item) continue;

@@ -161,6 +161,10 @@ namespace SWE
 #endif
 }
 
+const std::list<SWE::Window*> & SWE::DisplayScene::items(void)
+{
+    return sceneItems;
+}
 
 SWE::Window* SWE::DisplayScene::rootWindow(void)
 {
@@ -232,14 +236,13 @@ std::list<SWE::Window*> SWE::DisplayScene::findParents(const Window & self)
     return parents;
 }
 
-std::list<SWE::Window*> SWE::DisplayScene::findChilds(const Window & self)
+std::list<SWE::Window*> SWE::DisplayScene::findChilds(const Window & win)
 {
     std::list<Window*> childs;
 
-    for(auto it = sceneItems.begin(); it != sceneItems.end(); ++it)
-    {
-        if((*it)->parent() == & self) childs.push_back(*it);
-    }
+    for(auto & child : sceneItems)
+        if(child->parent() == & win)
+	    childs.push_back(child);
 
     return childs;
 }
@@ -312,10 +315,13 @@ void SWE::DisplayScene::sceneRedraw(void)
 {
     if(isDirty())
     {
-	u32 tickCurrent = Tools::ticks();
+	u32 renderStart = Tools::ticks();
 
-	std::for_each(sceneItems.begin(), sceneItems.end(),
-	    [](Window* win){ if(NULL == win->parent() || win->isModality()) win->redraw(); });
+	for(auto & win : sceneItems)
+	{
+	    if(NULL == win->parent() || win->isModality())
+		win->redraw();
+	}
 
 #ifdef SWE_DEBUG
 	// mark top focused
@@ -336,25 +342,32 @@ void SWE::DisplayScene::sceneRedraw(void)
 	}
 #endif
 
-	if(sceneToolTip) sceneToolTip->redraw();
+	if(sceneToolTip)
+	    sceneToolTip->redraw();
 
 	if(cursorTexture.isValid())
     	    Display::renderTexture(cursorTexture, Display::mouseCursorPosition() + cursorOffset);
 
 	// render present
         Display::renderPresent();
-        renderPresentHandle(Tools::ticks() - tickCurrent);
 
+        renderPresentHandle(Tools::ticks() - renderStart);
         setDirty(false);
+    }
+    else
+    {
+        Tools::delay(1);
     }
 }
 
 void SWE::DisplayScene::handleWhileVisible(const Window & win)
 {
-    while(win.isVisible() && Display::handleEvents())
+    while(win.isVisible())
     {
-        DisplayScene::sceneRedraw();
-        Tools::delay(1);
+	Display::handleEvents();
+
+	tickHandle(Tools::ticks() - Display::timeStart());
+        sceneRedraw();
     }
 }
 
@@ -364,13 +377,13 @@ void SWE::DisplayScene::handleEvents(u32 interval)
 
     while(true)
     {
-        if(Display::handleEvents())
-            sceneRedraw();
+        Display::handleEvents();
+
+	tickHandle(Tools::ticks() - Display::timeStart());
+        sceneRedraw();
 
         if(0 == interval || start + interval < Tools::ticks())
             break;
-
-        Tools::delay(1);
     }
 }
 
@@ -410,29 +423,26 @@ bool SWE::DisplayScene::keyHandle(const KeySym & key, bool press)
 	dumpScene();
     }
 
+#ifdef SWE_WITH_JSON
     if(press && key.keymod().isLeftShift() && key.isKeyCode(Key::F10))
     {
 	if(Systems::saveString2File(toJson().toString(), "scene.json"))
 	    VERBOSE("DisplayScene saved to scene.json");
     }
 #endif
+#endif
 
-    for(auto it = sceneItems.rbegin(); it != sceneItems.rend(); ++it)
+    // top modality processed
+    auto it = std::find_if(sceneItems.rbegin(), sceneItems.rend(),
+	    [](const Window* win) { return win->isVisible() && win->isModality(); });
+
+    if(it != sceneItems.rend() && (*it)->keyHandle(key, press))
+	return true;
+
+    for(auto & win : sceneItems)
     {
-        if((*it)->isVisible())
-        {
-            if((*it)->isModality())
-            {
-		(*it)->keyHandle(key, press);
-                return true;
-            }
-            else
-            if((*it)->checkState(FlagKeyHandle) || (*it)->isFocused())
-	    {
-		if((*it)->keyHandle(key, press))
-		    return true;
-	    }
-        }
+        if(win->checkState(FlagKeyHandle) && win != *it)
+	    win->keyHandle(key, press);
     }
 
     return false;
@@ -440,22 +450,17 @@ bool SWE::DisplayScene::keyHandle(const KeySym & key, bool press)
 
 bool SWE::DisplayScene::textInputHandle(const std::string & str)
 {
-    for(auto it = sceneItems.rbegin(); it != sceneItems.rend(); ++it)
+    // top modality processed
+    auto it = std::find_if(sceneItems.rbegin(), sceneItems.rend(),
+	    [](const Window* win) { return win->isVisible() && win->isModality(); });
+
+    if(it != sceneItems.rend() && (*it)->textInputEvent(str))
+	    return true;
+
+    for(auto & win : sceneItems)
     {
-        if((*it)->isVisible())
-        {
-            if((*it)->isModality())
-            {
-                (*it)->textInputEvent(str);
-                return true;
-            }
-            else
-            if((*it)->checkState(FlagKeyHandle) || (*it)->isFocused())
-	    {
-        	if((*it)->textInputEvent(str))
-		    return true;
-	    }
-        }
+        if(win->checkState(FlagKeyHandle) && win != *it)
+	    win->textInputEvent(str);
     }
 
     return false;
@@ -830,6 +835,7 @@ SWE::JsonObject SWE::DisplayScene::toJson(void)
 
     return res;
 }
+#endif
 
 void SWE::DisplayScene::dumpScene(void)
 {
@@ -841,4 +847,3 @@ void SWE::DisplayScene::dumpScene(void)
 	(*it)->dumpState();
     }
 }
-#endif
