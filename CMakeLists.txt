@@ -9,7 +9,12 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -ggdb -O0 ")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 ")
 
 include(libswe.cmake)
+option(SWE_EXAMPLES "build examples" OFF)
 
 add_library(swe STATIC)
 add_subdirectory(swe)
 set_target_properties(swe PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+
+if(SWE_EXAMPLES)
+    add_subdirectory(examples)
+endif()
