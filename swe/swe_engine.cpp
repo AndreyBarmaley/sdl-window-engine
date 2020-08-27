@@ -43,7 +43,7 @@ namespace SWE
     }
 }
 
-#ifdef SWE_STACKTRACE
+#ifdef BOOST_STACKTRACE_USE_ADDR2LINE
 #include "boost/stacktrace.hpp"
 #endif
 
@@ -51,7 +51,7 @@ void SWE::Engine::except(const char* func, const char* message)
 {
     if(func && message) COUT(String::time() << ": [EXCEPTION]\t" << func << ":  " << message);
 
-#ifdef SWE_STACKTRACE
+#ifdef BOOST_STACKTRACE_USE_ADDR2LINE
 
     if(!message || strcmp(message, "SDL_QUIT"))
         LogWrapper() << boost::stacktrace::stacktrace();
