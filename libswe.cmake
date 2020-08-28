@@ -22,6 +22,10 @@ INCLUDE(FindPkgConfig)
 
 set(CMAKE_FIND_FRAMEWORK LAST)
 
+if(SWE_EXAMPLES)
+    set(SWE_DISABLE_TERMGUI OFF CACHE BOOL "enable build termwin_gui" FORCE)
+endif()
+
 if(SWE_SDL12)
     pkg_search_module(SDL REQUIRED SDL>=1.2)
 
