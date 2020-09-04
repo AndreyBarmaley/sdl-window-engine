@@ -35,7 +35,7 @@ namespace SWE
         const SignalMember*	sender;
         SignalMember*		receiver;
 
-        SignalChain() : code(0), sender(NULL), receiver(NULL) {}
+        SignalChain() : code(0), sender(nullptr), receiver(nullptr) {}
         SignalChain(const SignalMember & sm1, int sig, SignalMember & sm2) : code(sig), sender(& sm1), receiver(& sm2) {}
 
         bool isMember(const SignalMember & sm) const

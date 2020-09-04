@@ -78,31 +78,31 @@ namespace SWE
         template<typename T>
         const T*	rand(const std::initializer_list<T> & list)
         {
-	    if(list.size() == 0) return NULL;
+	    if(list.size() == 0) return nullptr;
             typename std::initializer_list<T>::const_iterator it = list.begin();
 	    if(list.size() == 1) return &(*it);
             std::advance(it, rand(0, list.size() - 1));
-            return it == list.end() ? NULL : &(*it);
+            return it == list.end() ? nullptr : &(*it);
         }
 
         template<typename T>
         const T*	rand(const std::vector<T> & vec)
         {
-	    if(vec.empty()) return NULL;
+	    if(vec.empty()) return nullptr;
 	    if(vec.size() == 1) return &vec.front();
             typename std::vector<T>::const_iterator it = vec.begin();
             std::advance(it, rand(0, vec.size() - 1));
-            return it == vec.end() ? NULL : &(*it);
+            return it == vec.end() ? nullptr : &(*it);
         }
 
         template<typename T>
         const T*	rand(const std::list<T> & list)
         {
-	    if(list.empty()) return NULL;
+	    if(list.empty()) return nullptr;
 	    if(list.size() == 1) return &list.front();
             typename std::list<T>::const_iterator it = list.begin();
             std::advance(it, rand(0, list.size() - 1));
-            return it == list.end() ? NULL : &(*it);
+            return it == list.end() ? nullptr : &(*it);
         }
 
         template<typename T>
@@ -259,7 +259,7 @@ namespace SWE
         Timer(const SDL_TimerID & id = 0);
         ~Timer();
 
-        static Timer	create(u32 interval /* ms */, u32(*)(u32, void*), void* param = NULL);
+        static Timer	create(u32 interval /* ms */, u32(*)(u32, void*), void* param = nullptr);
         void		destroy(void);
         bool		isValid(void) const
         {

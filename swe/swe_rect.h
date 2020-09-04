@@ -172,7 +172,7 @@ namespace SWE
         // Rect intersects Rect
         bool		operator& (const Rect &) const;
 
-        static bool	intersection(const Rect &, const Rect &, Rect* res = NULL);
+        static bool	intersection(const Rect &, const Rect &, Rect* res = nullptr);
 	static Rect	around(const Rect &, const Rect &);
         std::string	toString(void) const;
     };
@@ -205,6 +205,8 @@ namespace SWE
 
         Points &	operator<< (const Point &);
         Points &	operator<< (const Points &);
+
+        std::string	toString(void) const;
     };
 
     struct Rects : std::vector<Rect>
@@ -236,6 +238,8 @@ namespace SWE
 
         Rects &	operator<< (const Rect &);
         Rects &	operator<< (const Rects &);
+
+        std::string	toString(void) const;
     };
 
     struct Polygon : Points

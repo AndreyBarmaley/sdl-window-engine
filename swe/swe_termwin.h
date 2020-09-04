@@ -513,7 +513,7 @@ namespace SWE
             return curpos;
         }
 
-        virtual void setCharset(int ch, const ColorIndex & fg = Color::Transparent, const ColorIndex & bg = Color::Transparent, const CharsetProperty* prop = NULL) = 0;
+        virtual void setCharset(int ch, const ColorIndex & fg = Color::Transparent, const ColorIndex & bg = Color::Transparent, const CharsetProperty* prop = nullptr) = 0;
         virtual void renderFlush(void) = 0;
 
         inline int cols(void) const
@@ -604,7 +604,7 @@ namespace SWE
 
         const TermCharset*	charset(void) const;
 
-        void		setCharset(int ch, const ColorIndex & fg = Color::Transparent, const ColorIndex & bg = Color::Transparent, const CharsetProperty* prop = NULL) override;
+        void		setCharset(int ch, const ColorIndex & fg = Color::Transparent, const ColorIndex & bg = Color::Transparent, const CharsetProperty* prop = nullptr) override;
         void		renderFlush(void) override;
 
         void		renderSymbol(int symx, int symy);
@@ -641,7 +641,7 @@ namespace SWE
             return termpos.posy();
         }
 
-        void		setCharset(int ch, const ColorIndex & fg = Color::Transparent, const ColorIndex & bg = Color::Transparent, const CharsetProperty* prop = NULL) override;
+        void		setCharset(int ch, const ColorIndex & fg = Color::Transparent, const ColorIndex & bg = Color::Transparent, const CharsetProperty* prop = nullptr) override;
         void		renderFlush(void) override;
 	const char*     className(void) const override { return "SWE::TermArea"; }
     };

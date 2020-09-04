@@ -644,6 +644,14 @@ namespace SWE
         return push_back(pts);
     }
 
+    std::string Points::toString(void) const
+    {
+	StringList res;
+	for(auto & pt : *this)
+	    res.push_back(SWE::StringFormat("[%1,%2]").arg(pt.x).arg(pt.y));
+	return res.join(", ");
+    }
+
     Rect Rects::around(void) const
     {
         Rect res;
@@ -714,6 +722,14 @@ namespace SWE
     Rects & Rects::operator<< (const Rect & rt)
     {
         return push_back(rt);
+    }
+
+    std::string Rects::toString(void) const
+    {
+	StringList res;
+	for(auto & rt : *this)
+	    res.push_back(SWE::StringFormat("[%1,%2,%3,%4]").arg(rt.x).arg(rt.y).arg(rt.w).arg(rt.h));
+	return res.join(", ");
     }
 
     Rect::Rect(const SDL_Rect & rt) : Point(rt.x, rt.y), Size(rt.w, rt.h)

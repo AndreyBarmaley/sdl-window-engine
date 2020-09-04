@@ -174,7 +174,7 @@ namespace SWE
                LOCALE_SR, LOCALE_SV, LOCALE_TR
              };
 
-        mofile*				current = NULL;
+        mofile*				current = nullptr;
         std::unordered_map<std::string, mofile>	domains;
         int					locale = LOCALE_EN;
         char				context = 0;
@@ -242,7 +242,7 @@ namespace SWE
                 setLocale();
                 bool res = (*dom.first).second.parse(buf);
 
-                if(res && current == NULL)
+                if(res && current == nullptr)
                     current = & (*dom.first).second;
 
                 return res;

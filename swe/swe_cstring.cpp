@@ -135,7 +135,7 @@ namespace SWE
 
     std::string String::pointer(const void* ptr)
     {
-        return ptr ? hex(reinterpret_cast<uintptr_t>(ptr), sizeof(ptr)) : "NULL";
+        return ptr ? hex(reinterpret_cast<uintptr_t>(ptr), sizeof(ptr)) : "nullptr";
     }
 
     int String::toInt(const std::string & str, bool* ok)
@@ -170,7 +170,7 @@ namespace SWE
             std::istringstream ss(str);
             ss >> res;
 #else
-            res = std::stol(str, NULL, 0);
+            res = std::stol(str, nullptr, 0);
 #endif
         }
 
@@ -193,7 +193,7 @@ namespace SWE
             std::istringstream ss(str);
             ss >> res;
 #else
-            res = std::stod(str, NULL);
+            res = std::stod(str, nullptr);
 #endif
         }
 

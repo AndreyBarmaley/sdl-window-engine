@@ -56,7 +56,7 @@ namespace SWE
         StreamRWops	rw;
 
     public:
-        StreamFile() : filemode(NULL) {}
+        StreamFile() : filemode(nullptr) {}
         StreamFile(const std::string &, const char* mode);
         StreamFile(const StreamFile &);
         ~StreamFile();

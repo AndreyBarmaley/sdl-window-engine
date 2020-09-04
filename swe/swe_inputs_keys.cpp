@@ -269,7 +269,7 @@ namespace SWE
         if(it != allkeys.end()) return (*it).name;
 
         FIXME("key not found: " << key);
-        return NULL;
+        return nullptr;
     }
 
     bool Key::isPressed(int key)

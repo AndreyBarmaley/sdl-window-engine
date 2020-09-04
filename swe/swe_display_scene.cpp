@@ -39,7 +39,7 @@ namespace SWE
         const WindowToolTipArea* owner;
 
     public:
-        DisplayToolTip(const WindowToolTipArea* win) : Window(NULL), mouseIdle(0), owner(win)
+        DisplayToolTip(const WindowToolTipArea* win) : Window(nullptr), mouseIdle(0), owner(win)
         {
     	    setSize(owner->tooltipTexture().size());
             setState(FlagLayoutForeground);
@@ -126,7 +126,7 @@ namespace SWE
 
 	bool operator() (const Window* lhs, const Window* rhs) const
 	{
-	    if(NULL == lhs->parent() && rhs->parent())
+	    if(nullptr == lhs->parent() && rhs->parent())
 		return true;
 	    // background vs normal
 	    if(lhs->checkState(FlagLayoutBackground) && !rhs->checkState(FlagLayoutBackground))
@@ -149,7 +149,7 @@ namespace SWE
 			sceneObjects;
     std::list<Window*>	sceneItems;
     bool		sceneDirty = false;
-    DisplayToolTip*	sceneToolTip = NULL;
+    DisplayToolTip*	sceneToolTip = nullptr;
 
     Texture		cursorTexture;
     Point		cursorOffset;
@@ -169,9 +169,9 @@ const std::list<SWE::Window*> & SWE::DisplayScene::items(void)
 SWE::Window* SWE::DisplayScene::rootWindow(void)
 {
     for(auto it = sceneItems.begin(); it != sceneItems.end(); ++it)
-        if((*it)->parent() == NULL) return *it;
+        if((*it)->parent() == nullptr) return *it;
 
-    return NULL;
+    return nullptr;
 }
 
 SWE::Window* SWE::DisplayScene::focusedWindow(void)
@@ -188,7 +188,7 @@ SWE::Window* SWE::DisplayScene::focusedWindow(void)
 	}
     }
 
-    return NULL;
+    return nullptr;
 }
 
 void SWE::DisplayScene::resetCursor(void)
@@ -272,7 +272,7 @@ void SWE::DisplayScene::removeItem(const Window & win)
     if(sceneToolTip && sceneToolTip->isOwner(win))
     {
         delete sceneToolTip;
-        sceneToolTip = NULL;
+        sceneToolTip = nullptr;
     }
 }
 
@@ -291,7 +291,7 @@ void SWE::DisplayScene::sceneDestroy(void)
     if(sceneToolTip)
     {
         delete sceneToolTip;
-        sceneToolTip = NULL;
+        sceneToolTip = nullptr;
     }
 
     if(cursorTexture.isValid())
@@ -304,7 +304,7 @@ void SWE::DisplayScene::sceneDestroy(void)
         if((*it)->checkState(FlagAllocated))
         {
             delete *it;
-            *it = NULL;
+            *it = nullptr;
         }
     }
 
@@ -319,7 +319,7 @@ void SWE::DisplayScene::sceneRedraw(void)
 
 	for(auto & win : sceneItems)
 	{
-	    if(NULL == win->parent() || win->isModality())
+	    if(nullptr == win->parent() || win->isModality())
 		win->redraw();
 	}
 
@@ -746,7 +746,7 @@ void SWE::DisplayScene::tickHandle(u32 ms)
             if(sceneToolTip && ! sceneToolTip->isOwner(*win))
             {
                 delete sceneToolTip;
-                sceneToolTip = NULL;
+                sceneToolTip = nullptr;
             }
 
             if(! sceneToolTip)
@@ -758,13 +758,13 @@ void SWE::DisplayScene::tickHandle(u32 ms)
         else if(sceneToolTip)
         {
             delete sceneToolTip;
-            sceneToolTip = NULL;
+            sceneToolTip = nullptr;
         }
     }
     else if(sceneToolTip)
     {
         delete sceneToolTip;
-        sceneToolTip = NULL;
+        sceneToolTip = nullptr;
     }
 
 #ifdef SWE_SDL12

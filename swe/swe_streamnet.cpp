@@ -92,14 +92,14 @@ int SDLNet_GetLocalAddresses(IPaddress* addresses, int maxcount)
     ULONG ulOutBufLen = sizeof(IP_ADAPTER_INFO);
     pAdapterInfo = (IP_ADAPTER_INFO*) SDL_malloc(sizeof(IP_ADAPTER_INFO));
 
-    if(pAdapterInfo == NULL)
+    if(pAdapterInfo == nullptr)
         return 0;
 
     if((dwRetVal = GetAdaptersInfo(pAdapterInfo, &ulOutBufLen)) == ERROR_BUFFER_OVERFLOW)
     {
         pAdapterInfo = (IP_ADAPTER_INFO*) SDL_realloc(pAdapterInfo, ulOutBufLen);
 
-        if(pAdapterInfo == NULL)
+        if(pAdapterInfo == nullptr)
             return 0;
 
         dwRetVal = GetAdaptersInfo(pAdapterInfo, &ulOutBufLen);
@@ -132,16 +132,16 @@ int SDLNet_GetLocalAddresses(IPaddress* addresses, int maxcount)
 
 namespace SWE
 {
-    StreamNetwork::StreamNetwork() : sd(NULL), sdset(NULL)
+    StreamNetwork::StreamNetwork() : sd(nullptr), sdset(nullptr)
     {
     }
 
-    StreamNetwork::StreamNetwork(TCPsocket sock) : sd(NULL), sdset(NULL)
+    StreamNetwork::StreamNetwork(TCPsocket sock) : sd(nullptr), sdset(nullptr)
     {
         open(sock);
     }
 
-    StreamNetwork::StreamNetwork(const std::string & name, int port) : sd(NULL), sdset(NULL)
+    StreamNetwork::StreamNetwork(const std::string & name, int port) : sd(nullptr), sdset(nullptr)
     {
         connect(name, port);
     }
@@ -156,8 +156,8 @@ namespace SWE
     {
         sd = sn.sd;
         sdset = sn.sdset;
-        sn.sd = NULL;
-        sn.sdset = NULL;
+        sn.sd = nullptr;
+        sn.sdset = nullptr;
     }
 
     StreamNetwork & StreamNetwork::operator= (StreamNetwork && sn) noexcept
@@ -165,8 +165,8 @@ namespace SWE
         close();
         sd = sn.sd;
         sdset = sn.sdset;
-        sn.sd = NULL;
-        sn.sdset = NULL;
+        sn.sd = nullptr;
+        sn.sdset = nullptr;
         return *this;
     }
 
@@ -195,7 +195,7 @@ namespace SWE
     {
         IPaddress ip;
 
-        if(0 > SDLNet_ResolveHost(&ip, name.size() ? name.c_str() : NULL, port))
+        if(0 > SDLNet_ResolveHost(&ip, name.size() ? name.c_str() : nullptr, port))
         {
             ERROR(SDLNet_GetError());
             return false;
@@ -228,7 +228,7 @@ namespace SWE
     {
         IPaddress ip;
 
-        if(0 > SDLNet_ResolveHost(&ip, NULL, port))
+        if(0 > SDLNet_ResolveHost(&ip, nullptr, port))
         {
             ERROR(SDLNet_GetError());
             return false;
@@ -253,13 +253,13 @@ namespace SWE
             if(sd) SDLNet_TCP_DelSocket(sdset, sd);
 
             SDLNet_FreeSocketSet(sdset);
-            sdset = NULL;
+            sdset = nullptr;
         }
 
         if(sd)
         {
             SDLNet_TCP_Close(sd);
-            sd = NULL;
+            sd = nullptr;
         }
     }
 
@@ -291,7 +291,7 @@ namespace SWE
     StreamNetwork::peerAddress(TCPsocket sock)
     {
         std::pair<std::string, int> res;
-        IPaddress* ipa = sock ? SDLNet_TCP_GetPeerAddress(sock) : NULL;
+        IPaddress* ipa = sock ? SDLNet_TCP_GetPeerAddress(sock) : nullptr;
 
         if(ipa)
         {

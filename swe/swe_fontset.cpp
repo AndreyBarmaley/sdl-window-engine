@@ -461,7 +461,7 @@ int SWE::FontRenderTTF::symbolAdvance(int sym) const
 
     if(isValid())
     {
-        if(0 != TTF_GlyphMetrics(toSDLFont(), sym, NULL, NULL, NULL, NULL, & res))
+        if(0 != TTF_GlyphMetrics(toSDLFont(), sym, nullptr, nullptr, nullptr, nullptr, & res))
             ERROR(SDL_GetError());
     }
 
@@ -587,7 +587,7 @@ SWE::Surface SWE::FontRenderTTF::renderString(const std::string & str, const Col
 
     if(ttf && str.size())
     {
-        SDL_Surface* sf = NULL;
+        SDL_Surface* sf = nullptr;
         CharsetProperty cp = fid.property();
 
         if(0 > blend)
@@ -606,7 +606,7 @@ SWE::Surface SWE::FontRenderTTF::renderString(const std::string & str, const Col
         sf = blend ? TTF_RenderUTF8_Blended(ttf, str.c_str(), col.toSDLColor()) :
              TTF_RenderUTF8_Solid(ttf, str.c_str(), col.toSDLColor());
 
-        if(sf != NULL)
+        if(sf != nullptr)
             return Surface(sf);
         else
             ERROR(SDL_GetError());
@@ -621,7 +621,7 @@ SWE::Surface SWE::FontRenderTTF::renderUnicode(const UnicodeString & ustr, const
 
     if(ttf && ustr.size())
     {
-        SDL_Surface* sf = NULL;
+        SDL_Surface* sf = nullptr;
         const char16_t* ptr = & ustr[0];
         CharsetProperty cp = fid.property();
 
@@ -641,7 +641,7 @@ SWE::Surface SWE::FontRenderTTF::renderUnicode(const UnicodeString & ustr, const
         sf = blend ? TTF_RenderUNICODE_Blended(ttf, reinterpret_cast<const Uint16*>(ptr), col.toSDLColor()) :
              TTF_RenderUNICODE_Solid(ttf, reinterpret_cast<const Uint16*>(ptr), col.toSDLColor());
 
-        if(sf != NULL)
+        if(sf != nullptr)
             return Surface(sf);
         else
             ERROR(SDL_GetError());
@@ -658,7 +658,7 @@ SWE::Surface SWE::FontRenderTTF::renderCharset(int ch, const Color & col, int bl
     {
         u16 buf[2] = { L'\0', L'\0' };
         buf[0] = ch;
-        SDL_Surface* sf = NULL;
+        SDL_Surface* sf = nullptr;
         CharsetProperty cp = fid.property();
 
         if(0 > blend)
@@ -680,7 +680,7 @@ SWE::Surface SWE::FontRenderTTF::renderCharset(int ch, const Color & col, int bl
         else
             sf = TTF_RenderUNICODE_Solid(ttf, buf, col.toSDLColor());
 
-        if(sf != NULL)
+        if(sf != nullptr)
             return Surface(sf);
         else
             ERROR(SDL_GetError());

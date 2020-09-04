@@ -130,6 +130,9 @@ namespace SWE
         Window(const Point &, const Size &, Window*);
         virtual ~Window();
 
+        Window(Window &&) noexcept;
+        Window 	&	operator= (Window &&) noexcept;
+
         Window(const Window &);
         Window 	&	operator= (const Window &);
 

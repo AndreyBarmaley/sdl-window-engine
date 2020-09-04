@@ -29,19 +29,15 @@ namespace SWE
 {
     class LineEdit : public WindowToolTipArea
     {
-        std::string     content;
-        int             curpos;
+        std::string     	content;
+        int             	curpos;
 
     protected:
         bool            	mouseClickEvent(const ButtonsEvent &) override;
         bool            	keyPressEvent(const KeySym &) override;
         bool            	textInputEvent(const std::string &) override;
 
-        virtual Color   	textColor(void) const;
-	virtual Color		cursorColor(void) const;
-	virtual int		cursorHeight(void) const;
-	virtual	int		cursorOffset(void) const;
-        const FontRender & 	fontRender(void) const override;
+	virtual const FontRender & fontRender(void) const;
 
     public:
         LineEdit(Window*);
@@ -58,8 +54,8 @@ namespace SWE
 
         const std::string & 	text(void) const;
 
+        void            	renderLineEdit(const Color & textColor, const Color & cursorColor, int cursorHeight, int cursorOffset);
         void            	renderWindow(void) override;
-
 
         virtual void    	cursorPositionChanged(int oldpos, int newpos);
         virtual void    	textChanged(const std::string & text);

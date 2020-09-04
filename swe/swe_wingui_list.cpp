@@ -49,13 +49,13 @@ namespace SWE
     ListWidget* ListWidgetItem::listWidget(void) const
     {
 	auto list = dynamic_cast<const ListWidget*>(parent());
-	return list ? const_cast<ListWidget*>(list) : NULL;
+	return list ? const_cast<ListWidget*>(list) : nullptr;
     }
 
     void ListWidgetItem::setSelected(bool select)
     {
 	auto list = listWidget();
-	if(list) list->setCurrentItem(select ? this : NULL);
+	if(list) list->setCurrentItem(select ? this : nullptr);
     }
 
     bool ListWidgetItem::mousePressEvent(const ButtonEvent & be)
@@ -102,7 +102,7 @@ namespace SWE
     void ListWidgetItem::mouseLeaveEvent(void)
     {
 	auto list = listWidget();
-	if(list) list->itemEntered(NULL);
+	if(list) list->itemEntered(nullptr);
     }
 
 
@@ -112,19 +112,19 @@ namespace SWE
     }
 
     /* ListWidget */
-    ListWidget::ListWidget(bool vertical, Window* parent) : Window(parent), skipItems(0), curItem(NULL)
+    ListWidget::ListWidget(bool vertical, Window* parent) : Window(parent), skipItems(0), curItem(nullptr)
     {
         if(vertical) setState(FlagVertical);
         resetState(FlagModality);
     }
 
-    ListWidget::ListWidget(const Size & sz, bool vertical, Window* parent) : Window(sz, parent), skipItems(0), curItem(NULL)
+    ListWidget::ListWidget(const Size & sz, bool vertical, Window* parent) : Window(sz, parent), skipItems(0), curItem(nullptr)
     {
         if(vertical) setState(FlagVertical);
         resetState(FlagModality);
     }
 
-    ListWidget::ListWidget(const Point & pos, const Size & sz, bool vertical, Window* parent) : Window(pos, sz, parent), skipItems(0), curItem(NULL)
+    ListWidget::ListWidget(const Point & pos, const Size & sz, bool vertical, Window* parent) : Window(pos, sz, parent), skipItems(0), curItem(nullptr)
     {
         if(vertical) setState(FlagVertical);
         resetState(FlagModality);
@@ -145,7 +145,7 @@ namespace SWE
     {
 	std::for_each(listItems.begin(), listItems.end(), std::default_delete<ListWidgetItem>());
 	listItems.clear();
-	curItem = NULL;
+	curItem = nullptr;
 	skipItems = 0;
 	signalEmit(Signal::ListWidgetChanged);
     }
@@ -180,7 +180,7 @@ namespace SWE
     ListWidgetItem* ListWidget::item(int row) const
     {
 	return row < 0 || row >= static_cast<int>(listItems.size()) ?
-		NULL : listItems[row];
+		nullptr : listItems[row];
     }
 
     ListWidgetItem* ListWidget::itemAt(const Point & pos) const
@@ -190,7 +190,7 @@ namespace SWE
 	    return item->isVisibleNotHidden() && (item->area() & pos);
 	});
 
-	return it != listItems.end() ? *it : NULL;
+	return it != listItems.end() ? *it : nullptr;
     }
 
     const std::vector<ListWidgetItem*> &
@@ -246,7 +246,7 @@ namespace SWE
 	ListWidgetItem* previous = curItem;
 
 	if(! item)
-	    curItem = NULL;
+	    curItem = nullptr;
 	else
 	if(listItems.end() != std::find(listItems.begin(), listItems.end(), item))
 	    curItem = item;
@@ -277,7 +277,7 @@ namespace SWE
 	    pushEventAction(Signal::ListWidgetTakeItem, this, *it);
 	    return *it;
 	}
-	return NULL;
+	return nullptr;
     }
 
     bool ListWidget::isAreaPoint(const Point & pt) const
@@ -383,7 +383,7 @@ namespace SWE
 		auto it = std::find(listItems.begin(), listItems.end(), item);
 		if(it == listItems.end()) return false;
 		if(*it == currentItem())
-		    setCurrentItem(NULL);
+		    setCurrentItem(nullptr);
 		if(ev == Signal::ListWidgetRemoveItem) delete *it;
 		listItems.erase(it);
 		signalEmit(Signal::ListWidgetChanged);

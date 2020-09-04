@@ -225,7 +225,7 @@ namespace SWE
         SDL_RWops*		rw;
 
     public:
-        StreamRWops(SDL_RWops* val = NULL);
+        StreamRWops(SDL_RWops* val = nullptr);
         StreamRWops(StreamRWops && srw) noexcept;
         ~StreamRWops();
 

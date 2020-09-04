@@ -36,11 +36,11 @@ namespace SWE
         int         hotkey;
 
     protected:
-        virtual const Texture* 	textureFocused(void) const  { return NULL; }
+        virtual const Texture* 	textureFocused(void) const  { return nullptr; }
         virtual const Texture* 	textureDisabled(void) const { return texturePressed(); }
         virtual const Texture* 	texturePressed(void) const  { return textureReleased(); }
-        virtual const Texture* 	textureReleased(void) const { return NULL; }
-        virtual const Texture* 	textureInformed(void) const { return NULL; }
+        virtual const Texture* 	textureReleased(void) const { return nullptr; }
+        virtual const Texture* 	textureInformed(void) const { return nullptr; }
 
         bool        		mousePressEvent(const ButtonEvent &) override;
         bool        		mouseReleaseEvent(const ButtonEvent &) override;

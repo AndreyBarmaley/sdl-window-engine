@@ -32,7 +32,7 @@ namespace SWE
 
     namespace Music
     {
-        Mix_Music*			mixer = NULL;
+        Mix_Music*			mixer = nullptr;
         u32				currentId = 0;
     }
 
@@ -109,10 +109,10 @@ namespace SWE
     {
         if(mixer)
         {
-            Mix_HookMusicFinished(NULL);
+            Mix_HookMusicFinished(nullptr);
             Mix_HaltMusic();
             Mix_FreeMusic(mixer);
-            mixer = NULL;
+            mixer = nullptr;
         }
     }
 

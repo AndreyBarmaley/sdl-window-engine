@@ -1,8 +1,8 @@
 /***************************************************************************
- *   Copyright (C) 2017 by SWE team <sdl.window.engine@gmail.com>          *
+ *   Copyright (C) 2018 by public.irkutsk@gmail.com                        *
  *                                                                         *
- *   Part of the SWE: SDL Window Engine:                                   *
- *   https://github.com/AndreyBarmaley/sdl-window-engine                   *
+ *   Part of the SWE (SDL Window Engine) examples:                         *
+ *   https://github.com/AndreyBarmaley/sdl-window-engine.git               *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -20,25 +20,41 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef _SWE_ENGINE_
-#define _SWE_ENGINE_
+#include "settings.h"
 
-#define SWE_VERSION 20200825
-
-namespace SWE
+std::string Settings::progName(void)
 {
+    return "TestTermCmd";
+}
 
-    namespace Engine
-    {
-        bool		init(bool debug = true);
-        bool		debugMode(void);
-        void		setDebugMode(bool);
-        int	        version(void);
-        void		quit(void);
+std::string Settings::progDomain(void)
+{
+    return "test-term-cmd";
+}
 
-        void		except(const char* func, const char* message);
-        class           exception {};
-    } // Engine
-
-} // SWE
+std::string Settings::progVersion(void)
+{
+    std::string version;
+#ifdef BUILDDATE
+    version.append(BUILDDATE);
+#ifdef SRCREVISION
+    version.append(".").append(SRCREVISION);
 #endif
+#endif
+    return version;
+}
+
+std::string Settings::dataPath(void)
+{
+    return "data";
+}
+
+std::string Settings::dataLang(const std::string & fn)
+{
+    return Systems::concatePath(Systems::concatePath(dataPath(), "lang"), fn);
+}
+
+std::string Settings::dataFonts(const std::string & fn)
+{
+    return Systems::concatePath(Systems::concatePath(dataPath(), "fonts"), fn);
+}

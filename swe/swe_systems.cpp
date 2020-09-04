@@ -78,7 +78,7 @@ namespace SWE
         return "/";
     }
 
-    std::ostream* LogWrapper::os = NULL;
+    std::ostream* LogWrapper::os = nullptr;
     std::string   LogWrapper::id;
 
 #if defined(__SYMBIAN32__)
@@ -344,7 +344,7 @@ namespace SWE
 
     bool Systems::saveFile(const BinaryBuf & raw, const std::string & file, int offset /* default: 0, endpos : -1 */)
     {
-        SDL_RWops* rw = NULL;
+        SDL_RWops* rw = nullptr;
 
         if(0 < offset)
         {
@@ -471,11 +471,11 @@ namespace SWE
     {
         std::string locname;
 #if defined(ANDROID)
-        char* clocale = setlocale(LC_MESSAGES, NULL);
+        char* clocale = setlocale(LC_MESSAGES, nullptr);
 #elif defined(__MINGW32CE__) || defined(__MINGW32__)
-        char* clocale = NULL;
+        char* clocale = nullptr;
 #else
-        char* clocale = std::setlocale(LC_MESSAGES, NULL);
+        char* clocale = std::setlocale(LC_MESSAGES, nullptr);
 #endif
 
         if(clocale)
@@ -588,7 +588,7 @@ namespace SWE
 
         struct dirent* ep;
 
-        while(NULL != (ep = readdir(dp)))
+        while(nullptr != (ep = readdir(dp)))
         {
             const std::string fullname = concatePath(path, ep->d_name);
 
@@ -629,7 +629,7 @@ namespace SWE
 
         struct dirent* ep;
 
-        while(NULL != (ep = readdir(dp)))
+        while(nullptr != (ep = readdir(dp)))
             if(0 != strcmp(ep->d_name, "."))
                 res.push_back(fullpath ? concatePath(path, ep->d_name) : ep->d_name);
 
@@ -649,7 +649,7 @@ namespace SWE
     char* Systems::GetOptionsArgument(void)
     {
 #if defined(__MINGW32CE__)
-        return NULL;
+        return nullptr;
 #else
         return optarg;
 #endif

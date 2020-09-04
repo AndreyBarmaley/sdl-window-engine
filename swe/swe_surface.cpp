@@ -41,7 +41,7 @@
 
 namespace SWE
 {
-    Surface::Surface() : ptr(NULL)
+    Surface::Surface() : ptr(nullptr)
     {
     }
 
@@ -51,7 +51,7 @@ namespace SWE
             ERROR(SDL_GetError());
     }
 
-    Surface::Surface(const Size & sz, bool alpha) : ptr(NULL)
+    Surface::Surface(const Size & sz, bool alpha) : ptr(nullptr)
     {
 #ifdef SWE_SDL12
         int flag = SDL_SWSURFACE;
@@ -81,12 +81,12 @@ namespace SWE
             ERROR(SDL_GetError());
     }
 
-    Surface::Surface(const Surface & other) : ptr(NULL)
+    Surface::Surface(const Surface & other) : ptr(nullptr)
     {
         setSurface(other);
     }
 
-    Surface::Surface(const std::string & file) : ptr(NULL)
+    Surface::Surface(const std::string & file) : ptr(nullptr)
     {
 #ifdef SWE_DISABLE_IMAGE
         ptr = SDL_LoadBMP(file.c_str());
@@ -98,7 +98,7 @@ namespace SWE
             ERROR(SDL_GetError());
     }
 
-    Surface::Surface(const BinaryBuf & raw) : ptr(NULL)
+    Surface::Surface(const BinaryBuf & raw) : ptr(nullptr)
     {
         SDL_RWops* rw = SDL_RWFromConstMem(raw.data(), raw.size());
 
@@ -253,7 +253,7 @@ namespace SWE
             if(1 < ptr->refcount)
             {
                 --ptr->refcount;
-                ptr = NULL;
+                ptr = nullptr;
             }
             else
             {
@@ -264,7 +264,7 @@ namespace SWE
 #else
                 SDL_FreeSurface(ptr);
 #endif
-                ptr = NULL;
+                ptr = nullptr;
             }
         }
     }

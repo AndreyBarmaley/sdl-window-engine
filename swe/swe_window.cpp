@@ -47,7 +47,7 @@ namespace SWE
         setState(FlagModality);
         //setParent(win);
         DisplayScene::addItem(*this);
-        pushEventAction(Signal::WindowCreated, this, NULL);
+        pushEventAction(Signal::WindowCreated, this, nullptr);
     }
 
     Window::Window(const Size & sz, Window* win) : prnt(win), result(0)
@@ -57,7 +57,7 @@ namespace SWE
         setSize(sz);
         //setParent(win);
         DisplayScene::addItem(*this);
-        pushEventAction(Signal::WindowCreated, this, NULL);
+        pushEventAction(Signal::WindowCreated, this, nullptr);
     }
 
     Window::Window(const Point & pos, const Size & sz, Window* win) : prnt(win), result(0)
@@ -69,19 +69,30 @@ namespace SWE
         setPosition(pos);
         //setParent(win);
         DisplayScene::addItem(*this);
-        pushEventAction(Signal::WindowCreated, this, NULL);
+        pushEventAction(Signal::WindowCreated, this, nullptr);
     }
 
-/*
-    Window::Window(Window && win) noexcept
+    Window::Window(Window && win) noexcept : prnt(nullptr), result(0)
     {
-        gfxpos = win.gfxpos;
-        prnt = win.prnt;
-        state = win.state;
-        result = win.result;
+        std::swap(gfxpos, win.gfxpos);
+        std::swap(prnt, win.prnt);
+        std::swap(state, win.state);
+        std::swap(result, win.result);
     }
-*/
-    Window::Window(const Window & win) : prnt(NULL), result(0)
+
+    Window & Window::operator=(Window && win) noexcept
+    {
+        if(this != & win)
+        {
+    	    std::swap(gfxpos, win.gfxpos);
+	    std::swap(prnt, win.prnt);
+    	    std::swap(state, win.state);
+    	    std::swap(result, win.result);
+	}
+        return *this;
+    }
+
+    Window::Window(const Window & win) : prnt(nullptr), result(0)
     {
         //gfxpos = win.gfxpos;
         state = win.state;
@@ -90,7 +101,7 @@ namespace SWE
         setSize(win.size());
         setParent(win.prnt);
         DisplayScene::addItem(*this);
-        pushEventAction(Signal::WindowCreated, this, NULL);
+        pushEventAction(Signal::WindowCreated, this, nullptr);
     }
 
     Window & Window::operator= (const Window & win)
@@ -120,11 +131,11 @@ namespace SWE
         setVisible(false);
 
 	// destroy childs
-	for(auto & child : DisplayScene::items())
-    	    if(child->parent() == this) child->destroy();
+	for(auto & child : DisplayScene::findChilds(*this))
+    	    child->destroy();
 
         DisplayScene::removeItem(*this);
-        prnt = NULL;
+        prnt = nullptr;
         result = 0;
     }
 
@@ -142,7 +153,7 @@ namespace SWE
 
             if(isVisible() && (isAreaPoint(Display::mouseCursorPosition()) || isFocused()))
             {
-    		pushEventAction(Signal::WindowCheckFocus, this, NULL);
+    		pushEventAction(Signal::WindowCheckFocus, this, nullptr);
             }
 
             windowResizeEvent(gfxpos);
@@ -178,7 +189,7 @@ namespace SWE
 
         if(isVisible() && (isAreaPoint(Display::mouseCursorPosition()) || isFocused()))
         {
-    	    pushEventAction(Signal::WindowCheckFocus, this, NULL);
+    	    pushEventAction(Signal::WindowCheckFocus, this, nullptr);
         }
 
         windowMoveEvent(pos);
@@ -302,8 +313,8 @@ namespace SWE
     void Window::setVisible(bool f)
     {
         // set for all childrens
-        for(auto & child : DisplayScene::items())
-            if(child->parent() == this) child->setVisible(f);
+        for(auto & child : DisplayScene::findChilds(*this))
+            child->setVisible(f);
 
         if((checkState(FlagVisible) && !f) ||
            (! checkState(FlagVisible) && f))
@@ -317,7 +328,7 @@ namespace SWE
             }
 
     	    if((!f && isFocused()) || (f && isAreaPoint(Display::mouseCursorPosition())))
-    		pushEventAction(Signal::WindowCheckFocus, this, NULL);
+    		pushEventAction(Signal::WindowCheckFocus, this, nullptr);
 
             setDirty(true);
             windowVisibleEvent(f);
@@ -628,7 +639,7 @@ namespace SWE
     }
 
     /* DisplayWindow */
-    DisplayWindow::DisplayWindow(const Color & col) : Window(Display::size(), NULL), backcolor(col)
+    DisplayWindow::DisplayWindow(const Color & col) : Window(Display::size(), nullptr), backcolor(col)
     {
         setState(FlagLayoutBackground);
         setVisible(true);
@@ -649,7 +660,7 @@ namespace SWE
     }
 
     /* TargetWindow */
-    TargetWindow::TargetWindow(const Size & wsz) : Window(wsz, NULL)
+    TargetWindow::TargetWindow(const Size & wsz) : Window(wsz, nullptr)
     {
 	setModality(false);
         DisplayScene::removeItem(*this);

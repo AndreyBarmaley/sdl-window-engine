@@ -174,10 +174,110 @@ namespace SWE
         return StringFormat("\"%1\"").arg(content);
     }
 
+    /* JsonValuePtr */
+    JsonValuePtr::JsonValuePtr()
+    {
+	reset(new JsonValue());
+    }
+
+    JsonValuePtr::JsonValuePtr(int v)
+    {
+	reset(new JsonInteger(v));
+    }
+
+    JsonValuePtr::JsonValuePtr(bool v)
+    {
+	reset(new JsonBoolean(v));
+    }
+
+    JsonValuePtr::JsonValuePtr(double v)
+    {
+	reset(new JsonDouble(v));
+    }
+
+    JsonValuePtr::JsonValuePtr(const std::string & v)
+    {
+	reset(new JsonString(v));
+    }
+
+    JsonValuePtr::JsonValuePtr(const JsonArray & v)
+    {
+	reset(new JsonArray(v));
+    }
+
+    JsonValuePtr::JsonValuePtr(const JsonObject & v)
+    {
+	reset(new JsonObject(v));
+    }
+
+    JsonValuePtr::JsonValuePtr(JsonValue* v)
+    {
+	reset(v);
+    }
+
+    JsonValuePtr::JsonValuePtr(const JsonValuePtr & v)
+    {
+	assign(v);
+    }
+
+    JsonValuePtr::JsonValuePtr(JsonValuePtr && v) noexcept
+    {
+	swap(v);
+    }
+
+    JsonValuePtr & JsonValuePtr::operator=(const JsonValuePtr & v)
+    {
+	assign(v);
+	return *this;
+    }
+
+    JsonValuePtr & JsonValuePtr::operator=(JsonValuePtr && v) noexcept
+    {
+	swap(v);
+	return *this;
+    }
+
+    void JsonValuePtr::assign(const JsonValuePtr & v)
+    {
+	JsonValue *val = nullptr;
+	switch(v->getType())
+	{
+	    default:
+	    case TypeNull:
+		val = new JsonValue();
+		break;
+
+	    case TypeInteger:
+		val = new JsonInteger(*static_cast<JsonInteger*>(v.get()));
+		break;
+
+	    case TypeBoolean:
+		val = new JsonBoolean(*static_cast<JsonBoolean*>(v.get()));
+		break;
+
+	    case TypeDouble:
+		val = new JsonDouble(*static_cast<JsonDouble*>(v.get()));
+		break;
+
+	    case TypeString:
+		val = new JsonString(*static_cast<JsonString*>(v.get()));
+		break;
+
+	    case TypeObject:
+		val = new JsonObject(*static_cast<JsonObject*>(v.get()));
+		break;
+
+	    case TypeArray:
+		val = new JsonArray(*static_cast<JsonArray*>(v.get()));
+		break;
+	}
+	reset(val);
+    }
+
     /* JsonContent */
     jsmntok_t* JsonContent::toJsmnTok(void)
     {
-        return size() ? reinterpret_cast<jsmntok_t*>(& front()) : NULL;
+        return size() ? reinterpret_cast<jsmntok_t*>(& front()) : nullptr;
     }
 
     bool JsonContent::isValid(void) const
@@ -225,6 +325,7 @@ namespace SWE
         content.assign(str, len);
         resize(counts);
 
+/*
         if(0)
         {
             VERBOSE("-------- tokens dump ----------");
@@ -235,6 +336,7 @@ namespace SWE
                 VERBOSE(std::distance(begin(), it) << ": " << tok.typeString() << ": " << content.substr(tok.start(), tok.size()) << ", counts: " << tok.counts());
             }
         }
+*/
 
         return true;
     }
@@ -264,82 +366,78 @@ namespace SWE
     JsonContent::getValue(const const_iterator & it, JsonContainer* cont) const
     {
         const JsmnToken & tok = *it;
-        JsonValue* res = NULL;
-        int skip = 0;
 
         if(tok.isArray())
         {
             int counts = tok.counts();
-            skip = 1;
+            int skip = 1;
             auto itval = it + skip;
-            JsonArray* arr = cont ? dynamic_cast<JsonArray*>(cont) : new JsonArray();
+            JsonArray* arr = cont ? static_cast<JsonArray*>(cont) : new JsonArray();
 
             while(counts-- && itval != end())
             {
-                auto valp = getValue(itval);
+                auto valp = getValue(itval, nullptr);
 
                 if(valp.first)
-                    arr->content.push_back(valp.first);
+                    arr->content.emplace_back(valp.first);
 
                 skip += valp.second;
                 itval = it + skip;
             }
 
-            res = arr;
+    	    return std::make_pair(arr, skip);
         }
-        else if(tok.isObject())
+    
+        if(tok.isObject())
         {
             int counts = tok.counts();
-            skip = 1;
+            int skip = 1;
             auto itkey = it + skip;
             auto itval = itkey + 1;
-            JsonObject* obj = cont ? dynamic_cast<JsonObject*>(cont) : new JsonObject();
-	    if(obj)
-	    {
-        	while(counts-- && itval != end())
-        	{
-            	    if(!(*itkey).isKey()) ERROR("not key, index: " << std::distance(begin(), itkey) << ", key: \"" << stringTocken(*itkey) << "\"");
+            JsonObject* obj = cont ? static_cast<JsonObject*>(cont) : new JsonObject();
 
-            	    std::string key = stringTocken(*itkey);
-            	    auto valp = getValue(itval);
+    	    while(counts-- && itval != end())
+    	    {
+                if(!(*itkey).isKey()) ERROR("not key, index: " << std::distance(begin(), itkey) << ", key: \"" << stringTocken(*itkey) << "\"");
 
-            	    if(valp.first)
-                	obj->content.insert(std::make_pair(key, valp.first));
+                std::string key = stringTocken(*itkey);
+                auto valp = getValue(itval, nullptr);
 
-            	    skip += 1 + valp.second;
-            	    itkey = it + skip;
-            	    itval = itkey + 1;
-        	}
+                if(valp.first)
+            	    obj->content.emplace(key, valp.first);
 
-        	res = obj;
-	    }
-	    else
-	    {
-		ERROR("invalid cast");
-	    }
+                skip += 1 + valp.second;
+                itkey = it + skip;
+                itval = itkey + 1;
+    	    }
+
+    	    return std::make_pair(obj, skip);
         }
-        else if(tok.isPrimitive())
+
+        JsonValue* res = nullptr;
+        int skip = 0;
+
+        if(tok.isPrimitive())
         {
             const std::string & val = stringTocken(tok);
 
             if(!(*it).isValue()) ERROR("not value, index: " << std::distance(begin(), it) << ", value: \"" << val << "\"");
 
             size_t dotpos = val.find(".");
-
             if(std::string::npos != dotpos)
             {
                 bool convok = false;
-                double vald = String::toDouble(val, &convok);
+                double vald = String::toDouble(val, & convok);
                 int prec = val.size() - dotpos - 1;
-
-                if(convok) res = new JsonDouble(vald, prec);
+                if(convok)
+		    res = new JsonDouble(vald, prec);
             }
             else
             {
                 bool convok = false;
                 int vali = String::toInt(val, &convok);
-
-                if(convok) res = new JsonInteger(vali);
+                if(convok)
+		    res = new JsonInteger(vali);
             }
 
             if(! res)
@@ -348,7 +446,7 @@ namespace SWE
                     res = new JsonBoolean(false);
                 else if(String::toLower(val).compare(0, 4, "true") == 0)
                     res = new JsonBoolean(true);
-                else if(String::toLower(val).compare(0, 4, "null") == 0)
+                else
                     res = new JsonValue();
             }
 
@@ -358,7 +456,8 @@ namespace SWE
         {
             const std::string & val = stringTocken(tok);
 
-            if(!(*it).isValue()) ERROR("not value, index: " << std::distance(begin(), it) << ", value: \"" << val << "\"");
+            if(!(*it).isValue())
+		ERROR("not value, index: " << std::distance(begin(), it) << ", value: \"" << val << "\"");
 
             res = new JsonString(String::replace(val, "\\\"", "\""));
             skip = 1;
@@ -381,7 +480,6 @@ namespace SWE
         return res;
     }
 
-
     JsonArray JsonContent::toArray(void) const
     {
         JsonArray res;
@@ -396,52 +494,10 @@ namespace SWE
         return res;
     }
 
-    JsonValue* JsonValueDup(const JsonValue* jv)
-    {
-        if(! jv)
-            return new JsonValue();
-
-        JsonValue* res = NULL;
-
-        switch(jv->getType())
-        {
-            case TypeInteger:
-                res = new JsonInteger(jv->getInteger());
-                break;
-
-            case TypeDouble:
-                res = new JsonDouble(jv->getDouble());
-                break;
-
-            case TypeString:
-                res = new JsonString(jv->getString());
-                break;
-
-            case TypeBoolean:
-                res = new JsonBoolean(jv->getBoolean());
-                break;
-
-            case TypeObject:
-                res = new JsonObject(*static_cast<const JsonObject*>(jv));
-                break;
-
-            case TypeArray:
-                res = new JsonArray(*static_cast<const JsonArray*>(jv));
-                break;
-
-            default:
-                res = new JsonValue();
-                break;
-        }
-
-        return res;
-    }
-
     /* JsonObject */
     JsonObject::JsonObject(const JsonObject & jo)
     {
-        for(auto it = jo.content.begin(); it != jo.content.end(); ++it)
-            content.insert(std::make_pair((*it).first, JsonValueDup((*it).second)));
+        content.insert(jo.content.begin(), jo.content.end());
     }
 
     JsonObject::JsonObject(JsonObject && jo) noexcept
@@ -451,14 +507,8 @@ namespace SWE
 
     JsonObject & JsonObject::operator=(const JsonObject & jo)
     {
-        for(auto it = content.begin(); it != content.end(); ++it)
-            delete(*it).second;
-
         content.clear();
-
-        for(auto it = jo.content.begin(); it != jo.content.end(); ++it)
-            content.insert(std::make_pair((*it).first, JsonValueDup((*it).second)));
-
+        content.insert(jo.content.begin(), jo.content.end());
         return *this;
     }
 
@@ -466,14 +516,6 @@ namespace SWE
     {
         content.swap(jo.content);
         return *this;
-    }
-
-    JsonObject::~JsonObject()
-    {
-        for(auto it = content.begin(); it != content.end(); ++it)
-            delete(*it).second;
-
-        content.clear();
     }
 
     bool JsonObject::isValid(void) const
@@ -491,7 +533,7 @@ namespace SWE
         return content.clear();
     }
 
-    int JsonObject::getType(void) const
+    JsonType JsonObject::getType(void) const
     {
         return TypeObject;
     }
@@ -576,10 +618,10 @@ namespace SWE
     const JsonValue* JsonObject::getValue(const std::string & key) const
     {
         auto it = content.find(key);
-        return it != content.end() ? (*it).second : NULL;
+        return it != content.end() ? (*it).second.get() : nullptr;
     }
 
-    int JsonObject::getType(const std::string & key) const
+    JsonType JsonObject::getType(const std::string & key) const
     {
         const JsonValue* jv = getValue(key);
         return jv ? jv->getType() : TypeNull;
@@ -611,13 +653,13 @@ namespace SWE
 
     const JsonObject* JsonObject::getObject(const std::string & key) const
     {
-        const JsonObject* jv = dynamic_cast<const JsonObject*>(getValue(key));
+        auto jv = dynamic_cast<const JsonObject*>(getValue(key));
         return jv;
     }
 
     const JsonArray* JsonObject::getArray(const std::string & key) const
     {
-        const JsonArray* jv = dynamic_cast<const JsonArray*>(getValue(key));
+        auto jv = dynamic_cast<const JsonArray*>(getValue(key));
         return jv;
     }
 
@@ -644,117 +686,46 @@ namespace SWE
     void JsonObject::addNull(const std::string & key)
     {
         auto it = content.find(key);
-
         if(it != content.end())
-        {
-            delete(*it).second;
-            (*it).second = new JsonValue();
-        }
+            (*it).second = JsonValuePtr();
         else
-            content.insert(std::make_pair(key, new JsonValue()));
+            content.emplace(key, JsonValuePtr());
     }
 
     void JsonObject::addInteger(const std::string & key, const int & val)
     {
-        auto it = content.find(key);
-
-        if(it != content.end())
-        {
-            delete(*it).second;
-            (*it).second = new JsonInteger(val);
-        }
-        else
-            content.insert(std::make_pair(key, new JsonInteger(val)));
+	addValue<int>(key, val);
     }
 
     void JsonObject::addString(const std::string & key, const std::string & val)
     {
-        auto it = content.find(key);
-
-        if(it != content.end())
-        {
-            delete(*it).second;
-            (*it).second = new JsonString(val);
-        }
-        else
-            content.insert(std::make_pair(key, new JsonString(val)));
+	addValue<std::string>(key, val);
     }
 
     void JsonObject::addDouble(const std::string & key, const double & val)
     {
-        auto it = content.find(key);
-
-        if(it != content.end())
-        {
-            delete(*it).second;
-            (*it).second = new JsonDouble(val);
-        }
-        else
-            content.insert(std::make_pair(key, new JsonDouble(val)));
+	addValue<double>(key, val);
     }
 
     void JsonObject::addBoolean(const std::string & key, const bool & val)
     {
-        auto it = content.find(key);
-
-        if(it != content.end())
-        {
-            delete(*it).second;
-            (*it).second = new JsonBoolean(val);
-        }
-        else
-            content.insert(std::make_pair(key, new JsonBoolean(val)));
+	addValue<bool>(key, val);
     }
 
     void JsonObject::addArray(const std::string & key, const JsonArray & val)
     {
-        auto it = content.find(key);
-
-        if(it != content.end())
-        {
-            delete(*it).second;
-            (*it).second = new JsonArray(val);
-        }
-        else
-            content.insert(std::make_pair(key, new JsonArray(val)));
+	addValue<JsonArray>(key, val);
     }
 
     void JsonObject::addObject(const std::string & key, const JsonObject & val)
     {
-        auto it = content.find(key);
-
-        if(it != content.end())
-        {
-            delete(*it).second;
-            (*it).second = new JsonObject(val);
-        }
-        else
-            content.insert(std::make_pair(key, new JsonObject(val)));
+	addValue<JsonObject>(key, val);
     }
 
     /* JsonArray */
-    JsonArray::JsonArray(const std::initializer_list<int> & ji)
-    {
-        content.reserve(ji.size());
-
-        for(auto it = ji.begin(); it != ji.end(); ++it)
-            content.push_back(new JsonInteger(*it));
-    }
-
-    JsonArray::JsonArray(const std::initializer_list<std::string> & ji)
-    {
-        content.reserve(ji.size());
-
-        for(auto it = ji.begin(); it != ji.end(); ++it)
-            content.push_back(new JsonString(*it));
-    }
-
     JsonArray::JsonArray(const JsonArray & ja)
     {
-        content.reserve(ja.content.size());
-
-        for(auto it = ja.content.begin(); it != ja.content.end(); ++it)
-            content.push_back(JsonValueDup(*it));
+        content.assign(ja.content.begin(), ja.content.end());
     }
 
     JsonArray::JsonArray(JsonArray && ja) noexcept
@@ -764,14 +735,7 @@ namespace SWE
 
     JsonArray & JsonArray::operator=(const JsonArray & ja)
     {
-        for(auto it = content.begin(); it != content.end(); ++it)
-            delete *it;
-
-        content.clear();
-
-        for(auto it = ja.content.begin(); it != ja.content.end(); ++it)
-            content.push_back(JsonValueDup(*it));
-
+        content.assign(ja.content.begin(), ja.content.end());
         return *this;
     }
 
@@ -779,14 +743,6 @@ namespace SWE
     {
         content.swap(ja.content);
         return *this;
-    }
-
-    JsonArray::~JsonArray()
-    {
-        for(auto it = content.begin(); it != content.end(); ++it)
-            delete *it;
-
-        content.clear();
     }
 
     int JsonArray::count(void) const
@@ -799,7 +755,7 @@ namespace SWE
         return content.clear();
     }
 
-    int JsonArray::getType(void) const
+    JsonType JsonArray::getType(void) const
     {
         return TypeArray;
     }
@@ -831,23 +787,23 @@ namespace SWE
 
     bool JsonArray::isValid(size_t index) const
     {
-        return index < content.size() && content[index];
+        return index < content.size();
     }
 
     const JsonValue* JsonArray::getValue(size_t index) const
     {
-        return index < content.size() ? content[index] : NULL;
+        return index < content.size() ? content[index].get() : nullptr;
     }
 
     const JsonObject* JsonArray::getObject(size_t index) const
     {
-        const JsonObject* jo = dynamic_cast<const JsonObject*>(getValue(index));
+        auto jo = dynamic_cast<const JsonObject*>(getValue(index));
         return jo;
     }
 
     const JsonArray* JsonArray::getArray(size_t index) const
     {
-        const JsonArray* ja = dynamic_cast<const JsonArray*>(getValue(index));
+        auto ja = dynamic_cast<const JsonArray*>(getValue(index));
         return ja;
     }
 
@@ -858,12 +814,8 @@ namespace SWE
 
         for(auto it = content.begin(); it != content.end(); ++it)
         {
-            if(*it)
-            {
-                os << (*it)->toString();
-
-                if(it + 1 != content.end()) os << ", ";
-            }
+            os << (*it)->toString();
+            if(std::next(it) != content.end()) os << ", ";
         }
 
         os << " ]";
@@ -872,36 +824,32 @@ namespace SWE
 
     void JsonArray::addInteger(const int & val)
     {
-        content.push_back(new JsonInteger(val));
+        content.emplace_back(val);
     }
 
     void JsonArray::addString(const std::string & val)
     {
-        content.push_back(new JsonString(val));
+        content.emplace_back(val);
     }
 
     void JsonArray::addDouble(const double & val)
     {
-        content.push_back(new JsonDouble(val));
+        content.emplace_back(val);
     }
 
     void JsonArray::addBoolean(const bool & val)
     {
-        content.push_back(new JsonBoolean(val));
+        content.emplace_back(val);
     }
 
     void JsonArray::addArray(const JsonArray & val)
     {
-        JsonArray* ja = new JsonArray(val);
-
-        if(ja) content.push_back(ja);
+        content.emplace_back(val);
     }
 
     void JsonArray::addObject(const JsonObject & val)
     {
-        JsonObject* jo = new JsonObject(val);
-
-        if(jo) content.push_back(jo);
+        content.emplace_back(val);
     }
 
     /* JsonContentFile */

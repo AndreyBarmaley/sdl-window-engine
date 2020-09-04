@@ -130,7 +130,7 @@ namespace SWE
         void*               data1;
         void*               data2;
 
-        UserEvent() : code(0), data1(NULL), data2(NULL) {}
+        UserEvent() : code(0), data1(nullptr), data2(nullptr) {}
         UserEvent(int v, void* p1, void* p2) : code(v), data1(p1), data2(p2) {}
         UserEvent(const SDL_UserEvent & ev) : code(ev.code), data1(ev.data1), data2(ev.data2) {}
 

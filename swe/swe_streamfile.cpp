@@ -25,12 +25,12 @@
 
 namespace SWE
 {
-    StreamFile::StreamFile(const std::string & fn, const char* mode) : filemode(NULL)
+    StreamFile::StreamFile(const std::string & fn, const char* mode) : filemode(nullptr)
     {
         open(fn, mode);
     }
 
-    StreamFile::StreamFile(const StreamFile & sf) : filemode(NULL)
+    StreamFile::StreamFile(const StreamFile & sf) : filemode(nullptr)
     {
         if(sf.isValid() && open(sf.filename, sf.filemode))
             seek(sf.tell());
@@ -62,7 +62,7 @@ namespace SWE
             if(! rw.isValid())
             {
                 filename.clear();
-                filemode = NULL;
+                filemode = nullptr;
                 ERROR(fn << ", error: " << SDL_GetError());
                 return false;
             }

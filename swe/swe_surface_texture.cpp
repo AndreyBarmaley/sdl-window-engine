@@ -244,7 +244,7 @@ namespace SWE
 #ifdef SWE_SDL12
 	    return Surface::size();
 #else
-            if(0 != SDL_QueryTexture(toSDLTexture(), NULL, NULL, &w, &h))
+            if(0 != SDL_QueryTexture(toSDLTexture(), nullptr, nullptr, &w, &h))
                 ERROR(SDL_GetError());
 #endif
         }

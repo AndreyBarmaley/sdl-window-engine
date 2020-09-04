@@ -172,6 +172,11 @@ namespace SWE
 	return true;
     }
 
+    const FontRender & LineEdit::fontRender(void) const
+    {
+	return systemFont();
+    }
+
     void LineEdit::clear(void)
     {
 	if(content.size())
@@ -184,31 +189,6 @@ namespace SWE
 	    signalEmit(Signal::LineEditTextChanged);
 	    signalEmit(Signal::LineEditCursorChanged);
 	}
-    }
-
-    Color LineEdit::textColor(void) const
-    {
-	return Color::White;
-    }
-
-    Color LineEdit::cursorColor(void) const
-    {
-	return Color::Silver;
-    }
-
-    int LineEdit::cursorHeight(void) const
-    {
-	return fontRender().lineSkipHeight();
-    }
-
-    int LineEdit::cursorOffset(void) const
-    {
-	return 0;
-    }
-
-    const FontRender & LineEdit::fontRender(void) const
-    {
-	return systemFont();
     }
 
     int LineEdit::cursorPosition(void) const
@@ -287,9 +267,10 @@ namespace SWE
 	return pos;
     }
 
-    void LineEdit::renderWindow(void)
+    void LineEdit::renderLineEdit(const Color & textColor, const Color & cursorColor, int cursorHeight, int cursorOffset)
     {
 	const FontRender & frs = fontRender();
+
 	// align bottom
 	int offy = height() - frs.lineSkipHeight();
 	Rect pos;
@@ -303,13 +284,13 @@ namespace SWE
 		auto strsz = frs.stringSize(content);
 		// align right
 		if(strsz.w + cursorW > width())
-		    pos = renderText(frs, content, textColor(), Point(width() - cursorW, offy), SWE::AlignRight);
+		    pos = renderText(frs, content, textColor, Point(width() - cursorW, offy), SWE::AlignRight);
 		// align left
 		else
-		    pos = renderText(frs, content, textColor(), Point(0, offy));
+		    pos = renderText(frs, content, textColor, Point(0, offy));
 	    }
 	    if(0 <= curpos)
-		renderColor(cursorColor(), Rect(pos.x + pos.w, cursorOffset(), cursorW, cursorHeight()));
+		renderColor(cursorColor(), Rect(pos.x + pos.w, cursorOffset, cursorW, cursorHeight));
 	}
 	else
 	{
@@ -321,19 +302,19 @@ namespace SWE
 	    if(strsz.w + cursorW > width())
 	    {
 		// cursor
-		renderColor(cursorColor(), Rect(width() - cursorW, cursorOffset(), cursorW, cursorHeight()));
-		pos = renderText(frs, sym, textColor(), Point(width() - cursorW, offy));
+		renderColor(cursorColor(), Rect(width() - cursorW, cursorOffset, cursorW, cursorHeight));
+		pos = renderText(frs, sym, textColor, Point(width() - cursorW, offy));
 		// prefix
-		pos = renderText(frs, content.substr(0, curpos), textColor(), Point(pos.x, offy), SWE::AlignRight);
+		pos = renderText(frs, content.substr(0, curpos), textColor, Point(pos.x, offy), SWE::AlignRight);
 	    }
 	    // align left
 	    else
 	    {
 		// prefix
-		pos = renderText(frs, content.substr(0, curpos), textColor(), Point(0, offy));
+		pos = renderText(frs, content.substr(0, curpos), textColor, Point(0, offy));
 		// cursor
-		renderColor(cursorColor(), Rect(pos.x + pos.w, cursorOffset(), cursorW, cursorHeight()));
-		pos = renderText(frs, sym, textColor(), Point(pos.x + pos.w, offy));
+		renderColor(cursorColor(), Rect(pos.x + pos.w, cursorOffset, cursorW, cursorHeight));
+		pos = renderText(frs, sym, textColor, Point(pos.x + pos.w, offy));
 		// suffix
 		pos = renderText(frs, content.substr(curpos + 1), textColor(), Point(pos.x + pos.w, offy));
 	    }
@@ -348,5 +329,10 @@ namespace SWE
     void LineEdit::textChanged(const std::string & text)
     {
 	setDirty(true);
+    }
+
+    void LineEdit::renderWindow(void)
+    {
+	renderLineEdit(Color::White, Color::Silver, fontRender().lineSkipHeight(), 0);
     }
 }

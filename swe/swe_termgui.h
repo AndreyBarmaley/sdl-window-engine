@@ -149,7 +149,7 @@ namespace SWE
             const ThemeColors* themedef;
 
         public:
-            CurrentTheme(const ThemeColors* = NULL);
+            CurrentTheme(const ThemeColors* = nullptr);
 
             void	setTheme(const ThemeColors &);
             const ThemeColors & theme(void) const;
@@ -171,8 +171,8 @@ namespace SWE
             void	clickAction(void);
 
         public:
-            LabelAction(const std::string &, int action, const TermPos &, TermWindow &, const ThemeColors* = NULL);
-            LabelAction(TermWindow &, const ThemeColors* = NULL);
+            LabelAction(const std::string &, int action, const TermPos &, TermWindow &, const ThemeColors* = nullptr);
+            LabelAction(TermWindow &, const ThemeColors* = nullptr);
 
             virtual void setLabel(const std::string &);
             const std::string & label(void) const;
@@ -203,9 +203,9 @@ namespace SWE
         class TextButton : public LabelAction
         {
         public:
-            TextButton(const std::string &, int action, const TermPos &, TermWindow &, const ThemeColors* = NULL);
-            TextButton(const buttons_t &, TermWindow &, const ThemeColors* = NULL);
-            TextButton(TermWindow & term, const ThemeColors* theme = NULL) : LabelAction(term, theme) {}
+            TextButton(const std::string &, int action, const TermPos &, TermWindow &, const ThemeColors* = nullptr);
+            TextButton(const buttons_t &, TermWindow &, const ThemeColors* = nullptr);
+            TextButton(TermWindow & term, const ThemeColors* theme = nullptr) : LabelAction(term, theme) {}
 
             void	setLabel(const std::string &) override;
             void	setLabel(const buttons_t &);
@@ -217,10 +217,10 @@ namespace SWE
         {
             LabelActionPtr(LabelAction* ptr) : std::shared_ptr<LabelAction>(ptr) {}
 
-            LabelActionPtr(TermWindow & term, const ThemeColors* theme = NULL)
+            LabelActionPtr(TermWindow & term, const ThemeColors* theme = nullptr)
                 : std::shared_ptr<LabelAction>(std::make_shared<LabelAction>(term, theme)) {}
 
-            LabelActionPtr(const std::string & str, int action, const TermPos & pos, TermWindow & term, const ThemeColors* theme = NULL)
+            LabelActionPtr(const std::string & str, int action, const TermPos & pos, TermWindow & term, const ThemeColors* theme = nullptr)
                 : std::shared_ptr<LabelAction>(std::make_shared<LabelAction>(str, action, pos, term, theme)) {}
         };
 
@@ -229,8 +229,8 @@ namespace SWE
         public:
             LabelActionGroup() {}
 
-            LabelAction*	addLabel(const std::string &, int action, const TermPos &, TermWindow &, const ThemeColors* = NULL);
-            LabelAction*	addLabel(TermWindow &, const ThemeColors* = NULL);
+            LabelAction*	addLabel(const std::string &, int action, const TermPos &, TermWindow &, const ThemeColors* = nullptr);
+            LabelAction*	addLabel(TermWindow &, const ThemeColors* = nullptr);
             LabelAction*	addLabel(LabelAction*);
 
             bool		findLabel(const LabelAction*) const;
@@ -241,7 +241,7 @@ namespace SWE
             LabelAction*	findIndex(size_t) const;
 
             bool		setSelected(const LabelAction*);
-            void		resetSelected(const LabelAction* exclude = NULL);
+            void		resetSelected(const LabelAction* exclude = nullptr);
             void		nextSelected(void);
             void		prevSelected(void);
             void		firstSelected(void);
@@ -263,7 +263,7 @@ namespace SWE
         class ButtonsGroup : public LabelActionGroup
         {
         public:
-            ButtonsGroup(int buttons, TermWindow &, const ThemeColors* = NULL);
+            ButtonsGroup(int buttons, TermWindow &, const ThemeColors* = nullptr);
         };
 
         class HeaderAreaBox : public TermWindow, public CurrentTheme
@@ -277,13 +277,13 @@ namespace SWE
             void		initHeaderAreaBox(const TermSize &);
 
         public:
-            HeaderAreaBox(const UnicodeString &, const TermSize &, TermWindow &, const ThemeColors* = NULL);
-            HeaderAreaBox(const UCString &, const TermSize &, TermWindow &, const ThemeColors* = NULL);
+            HeaderAreaBox(const UnicodeString &, const TermSize &, TermWindow &, const ThemeColors* = nullptr);
+            HeaderAreaBox(const UCString &, const TermSize &, TermWindow &, const ThemeColors* = nullptr);
             //
-            HeaderAreaBox(const UnicodeString &, TermWindow &, const ThemeColors* = NULL);
-            HeaderAreaBox(const UCString &, TermWindow &, const ThemeColors* = NULL);
-            HeaderAreaBox(const UnicodeString &, const FontRender &, Window &, const ThemeColors* = NULL);
-            HeaderAreaBox(const UCString &, const FontRender &, Window &, const ThemeColors* = NULL);
+            HeaderAreaBox(const UnicodeString &, TermWindow &, const ThemeColors* = nullptr);
+            HeaderAreaBox(const UCString &, TermWindow &, const ThemeColors* = nullptr);
+            HeaderAreaBox(const UnicodeString &, const FontRender &, Window &, const ThemeColors* = nullptr);
+            HeaderAreaBox(const UCString &, const FontRender &, Window &, const ThemeColors* = nullptr);
             virtual ~HeaderAreaBox() {}
 
             void		renderWindow(void) override;
@@ -307,13 +307,13 @@ namespace SWE
             void		initButtonsAreaBox(const TermSize &);
 
         public:
-            ButtonsAreaBox(const UnicodeString &, const TermSize &, int buttons, TermWindow &, const ThemeColors* = NULL);
-            ButtonsAreaBox(const UCString &, const TermSize &, int buttons, TermWindow &, const ThemeColors* = NULL);
+            ButtonsAreaBox(const UnicodeString &, const TermSize &, int buttons, TermWindow &, const ThemeColors* = nullptr);
+            ButtonsAreaBox(const UCString &, const TermSize &, int buttons, TermWindow &, const ThemeColors* = nullptr);
             //
-            ButtonsAreaBox(const UnicodeString &, int buttons, TermWindow &, const ThemeColors* = NULL);
-            ButtonsAreaBox(const UCString &, int buttons, TermWindow &, const ThemeColors* = NULL);
-            ButtonsAreaBox(const UnicodeString &, int buttons, const FontRender &, Window &, const ThemeColors* = NULL);
-            ButtonsAreaBox(const UCString &, int buttons, const FontRender &, Window &, const ThemeColors* = NULL);
+            ButtonsAreaBox(const UnicodeString &, int buttons, TermWindow &, const ThemeColors* = nullptr);
+            ButtonsAreaBox(const UCString &, int buttons, TermWindow &, const ThemeColors* = nullptr);
+            ButtonsAreaBox(const UnicodeString &, int buttons, const FontRender &, Window &, const ThemeColors* = nullptr);
+            ButtonsAreaBox(const UCString &, int buttons, const FontRender &, Window &, const ThemeColors* = nullptr);
 
 	    const char*		className(void) const override { return "SWE::TermGUI::ButtonsAreaBox"; }
         };
@@ -327,11 +327,11 @@ namespace SWE
             void		initMessageBox(const UCString &);
 
         public:
-            MessageBox(const UnicodeString &, const UnicodeString &, int buttons, TermWindow &, const ThemeColors* = NULL);
-            MessageBox(const UCString &, const UCString &, int buttons, TermWindow &, const ThemeColors* = NULL);
+            MessageBox(const UnicodeString &, const UnicodeString &, int buttons, TermWindow &, const ThemeColors* = nullptr);
+            MessageBox(const UCString &, const UCString &, int buttons, TermWindow &, const ThemeColors* = nullptr);
 
-            MessageBox(const UnicodeString &, const UnicodeString &, int buttons, const FontRender &, Window &, const ThemeColors* = NULL);
-            MessageBox(const UCString &, const UCString &, int buttons, const FontRender &, Window &, const ThemeColors* = NULL);
+            MessageBox(const UnicodeString &, const UnicodeString &, int buttons, const FontRender &, Window &, const ThemeColors* = nullptr);
+            MessageBox(const UCString &, const UCString &, int buttons, const FontRender &, Window &, const ThemeColors* = nullptr);
 
 	    const char*		className(void) const override { return "SWE::TermGUI::MessageBox"; }
         };
@@ -352,8 +352,8 @@ namespace SWE
             bool		checkFlagTermCursor(void) const;
 
         public:
-            InputBox(const UnicodeString &, size_t cols, const std::string & def, TermWindow &, const ThemeColors* = NULL);
-            InputBox(const UnicodeString &, size_t cols, const std::string & def, const FontRender &, Window &, const ThemeColors* = NULL);
+            InputBox(const UnicodeString &, size_t cols, const std::string & def, TermWindow &, const ThemeColors* = nullptr);
+            InputBox(const UnicodeString &, size_t cols, const std::string & def, const FontRender &, Window &, const ThemeColors* = nullptr);
 
             const std::string &	result(void) const
             {
@@ -382,8 +382,8 @@ namespace SWE
             bool		scrollDownContent(void);
 
         public:
-            ListBox(const UnicodeString &, const UCStringList &, size_t rows, TermWindow &, const ThemeColors* = NULL);
-            ListBox(const UnicodeString &, const UCStringList &, size_t rows, const FontRender &, Window &, const ThemeColors* = NULL);
+            ListBox(const UnicodeString &, const UCStringList &, size_t rows, TermWindow &, const ThemeColors* = nullptr);
+            ListBox(const UnicodeString &, const UCStringList &, size_t rows, const FontRender &, Window &, const ThemeColors* = nullptr);
 
             const std::string &	result(void) const
             {

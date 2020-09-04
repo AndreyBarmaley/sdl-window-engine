@@ -374,7 +374,7 @@ namespace SWE
             for(auto it = begin(); it != end(); ++it)
                 if((*it).get() && (*it).get()->isLabel(str)) return (*it).get();
 
-            return NULL;
+            return nullptr;
         }
 
         LabelAction* LabelActionGroup::findAction(int action) const
@@ -382,7 +382,7 @@ namespace SWE
             for(auto it = begin(); it != end(); ++it)
                 if((*it).get() && (*it).get()->isAction(action)) return (*it).get();
 
-            return NULL;
+            return nullptr;
         }
 
         LabelAction* LabelActionGroup::findHotKey(int key) const
@@ -390,7 +390,7 @@ namespace SWE
             for(auto it = begin(); it != end(); ++it)
                 if((*it).get() && (*it).get()->isHotKey(key)) return (*it).get();
 
-            return NULL;
+            return nullptr;
         }
 
         LabelAction* LabelActionGroup::findSelected(void) const
@@ -398,13 +398,13 @@ namespace SWE
             for(auto it = begin(); it != end(); ++it)
                 if((*it).get() && (*it).get()->isSelected()) return (*it).get();
 
-            return NULL;
+            return nullptr;
         }
 
         LabelAction* LabelActionGroup::findIndex(size_t dist) const
         {
             auto it = std::next(begin(), dist);
-            return it != end() ? (*it).get() : NULL;
+            return it != end() ? (*it).get() : nullptr;
         }
 
         int LabelActionGroup::index(LabelAction* ptr) const

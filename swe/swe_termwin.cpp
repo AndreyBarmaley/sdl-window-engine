@@ -248,7 +248,7 @@ namespace SWE
     }
 
     TermBase::TermBase() :
-        Window(Point(0, 0), Display::size(), NULL), fontRender(NULL)
+        Window(Point(0, 0), Display::size(), nullptr), fontRender(nullptr)
     {
         fontRender = & systemFont();
         *this << reset::defaults();
@@ -273,7 +273,7 @@ namespace SWE
     }
 
     TermBase::TermBase(const FontRender & font) :
-        Window(Point(0, 0), Display::size(), NULL), fontRender(& font)
+        Window(Point(0, 0), Display::size(), nullptr), fontRender(& font)
     {
         if(fontRender->size().isEmpty())
         {
@@ -852,7 +852,7 @@ namespace SWE
         if(pos < 0 || pos >= static_cast<int>(chars.size()))
         {
             ERROR("out of range: " << ", " << "pos: " << pos << ", " << "size: " << chars.size());
-            return NULL;
+            return nullptr;
         }
 
         return & chars[pos];

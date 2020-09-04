@@ -41,39 +41,19 @@ namespace SWE
 	resetState(FlagModality);
     }
 
-    const FontRender & WindowToolTipArea::fontRender(void) const
-    {
-	return systemFont();
-    }
-
-    Color WindowToolTipArea::fontColor(void) const
-    {
-	return Color::Black;
-    }
-
-    Color WindowToolTipArea::backColor(void) const
-    {
-	return Color::Wheat;
-    }
-
-    Color WindowToolTipArea::rectColor(void) const
-    {
-	return Color::MidnightBlue;
-    }
-
     void WindowToolTipArea::setToolTip(const std::string & str)
     {
-        renderToolTip(str, fontRender(), fontColor(), backColor(), rectColor());
+        renderToolTip(str, systemFont(), Color::Black, Color::Wheat, Color::MidnightBlue);
     }
 
     void WindowToolTipArea::setToolTip(const std::string & str, int width)
     {
-	setToolTip(fontRender().splitStringWidth(str, width));
+	setToolTip(systemFont().splitStringWidth(str, width));
     }
 
     void WindowToolTipArea::setToolTip(const StringList & list)
     {
-        renderToolTip(list, fontRender(), fontColor(), backColor(), rectColor());
+        renderToolTip(list, systemFont(), Color::Black, Color::Wheat, Color::MidnightBlue);
     }
 
     void WindowToolTipArea::renderToolTip(const std::string & str, const FontRender & frs, const Color & fncolor, const Color & bgcolor, const Color & rtcolor)

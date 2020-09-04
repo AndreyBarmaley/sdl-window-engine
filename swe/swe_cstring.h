@@ -62,9 +62,9 @@ namespace SWE
         std::string     ucFirst(std::string);
         std::string     toLower(std::string);
         std::string     toUpper(std::string);
-        int             toInt(const std::string &, bool* = NULL);
-        long int        toLong(const std::string &, bool* = NULL);
-        double          toDouble(const std::string &, bool* = NULL);
+        int             toInt(const std::string &, bool* = nullptr);
+        long int        toLong(const std::string &, bool* = nullptr);
+        double          toDouble(const std::string &, bool* = nullptr);
         int		index(const std::string &, int);
 
         std::string     trimmed(const std::string &);

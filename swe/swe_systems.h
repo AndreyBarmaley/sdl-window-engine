@@ -48,7 +48,7 @@ namespace SWE
         LogWrapper();
         ~LogWrapper();
 
-        static	void init(const std::string &, const char* = NULL);
+        static	void init(const std::string &, const char* = nullptr);
 
         template<class T>
         LogWrapper & operator<< (const T & t)

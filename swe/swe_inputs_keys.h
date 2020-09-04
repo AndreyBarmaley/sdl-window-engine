@@ -41,7 +41,7 @@ namespace SWE
         bool iskey(int v) const;
         bool isname(const std::string &) const;
 
-        KeyName() : key(0), name(NULL) {}
+        KeyName() : key(0), name(nullptr) {}
         KeyName(int k, const char* v) : key(k), name(v) {}
     };
 

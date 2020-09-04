@@ -50,10 +50,10 @@ namespace SWE
         bool		fingerEventEmulation = false;
 
 #ifdef SWE_SDL12
-        SDL_Surface*	_window = NULL;
+        SDL_Surface*	_window = nullptr;
 #else
-        SDL_Renderer*   _renderer = NULL;
-        SDL_Window*     _window = NULL;
+        SDL_Renderer*   _renderer = nullptr;
+        SDL_Window*     _window = nullptr;
         SDL_SpinLock	renderLock = 0;
 #endif
 
@@ -211,7 +211,7 @@ bool SWE::Display::createWindow(const std::string & title, const Size & newsz, i
     mouseButtons[5] = ButtonsEvent(ButtonX2);
     winsz = newsz;
 #ifdef SWE_SDL12
-    SDL_WM_SetCaption(title.c_str(), NULL);
+    SDL_WM_SetCaption(title.c_str(), nullptr);
     _window = SDL_SetVideoMode(winsz.w, winsz.h, 32, flags);
     winsz.w = _window->w;
     winsz.h = _window->h;
@@ -292,7 +292,7 @@ bool SWE::Display::renderInit(const Size & newsz, bool accel)
     if(_renderer)
     {
         SDL_DestroyRenderer(_renderer);
-        _renderer = NULL;
+        _renderer = nullptr;
     }
 
     _renderer = SDL_CreateRenderer(_window, -1, (accel ? SDL_RENDERER_ACCELERATED : SDL_RENDERER_SOFTWARE));
@@ -314,7 +314,7 @@ bool SWE::Display::renderInit(const Size & newsz, bool accel)
         }
     }
 
-    if(! renderReset(NULL))
+    if(! renderReset(nullptr))
         return false;
 
     // update winsz
@@ -351,7 +351,7 @@ bool SWE::Display::renderInit(const Size & newsz, bool accel)
     if(! renderReset(displayTexture.toSDLTexture()))
         return false;
 
-    renderReset(NULL);
+    renderReset(nullptr);
 
     if(winsz != rendersz)
     {
@@ -387,20 +387,20 @@ void SWE::Display::closeWindow(void)
 #ifdef SWE_SDL12
 
     if(_window)
-        _window = NULL;
+        _window = nullptr;
 
 #else
 
     if(_renderer)
     {
         SDL_DestroyRenderer(_renderer);
-        _renderer = NULL;
+        _renderer = nullptr;
     }
 
     if(_window)
     {
         SDL_DestroyWindow(_window);
-        _window = NULL;
+        _window = nullptr;
     }
 
 #endif
@@ -549,14 +549,14 @@ void SWE::Display::renderRect(const Color & cl, Texture & dtx, const Rect & drt)
 
 void SWE::Display::renderPolygon(const Color & cl, Texture & dtx, const Points & v, bool closure)
 {
-    const Point* pt1 = NULL;
-    const Point* pt2 = NULL;
+    const Point* pt1 = nullptr;
+    const Point* pt2 = nullptr;
 
     for(size_t it = 0; it < v.size(); ++it)
     {
         pt1 = & v[it];
         pt2 = it + 1 < v.size() ? & v[it + 1] :
-              (closure ? & v[0] : NULL);
+              (closure ? & v[0] : nullptr);
 
         if(pt2) renderLine(cl, dtx, *pt1, *pt2);
     }
@@ -680,7 +680,7 @@ void SWE::Display::renderCopyEx(const Texture & stx, const Rect & srt, Texture &
 	    angle = 270;
 
         int res = flip == FlipNone ? SDL_RenderCopy(_renderer, stx.toSDLTexture(), &srcrt, &dstrt) :
-                  SDL_RenderCopyEx(_renderer, stx.toSDLTexture(), &srcrt, &dstrt, angle, NULL, (SDL_RendererFlip) flip);
+                  SDL_RenderCopyEx(_renderer, stx.toSDLTexture(), &srcrt, &dstrt, angle, nullptr, (SDL_RendererFlip) flip);
 
         if(res)
             ERROR(SDL_GetError() << ", " << String::pointer(stx.toSDLTexture()));
@@ -723,7 +723,7 @@ void SWE::Display::renderPresent(void)
 
         if(zoomsf)
         {
-            if(0 > SDL_BlitSurface(zoomsf, NULL, _window, & dstrt))
+            if(0 > SDL_BlitSurface(zoomsf, nullptr, _window, & dstrt))
                 ERROR(SDL_GetError() << ", " << String::pointer(displayTexture.toSDLTexture()));
 
             SDL_FreeSurface(zoomsf);
@@ -738,7 +738,7 @@ void SWE::Display::renderPresent(void)
 #else
     SDL_AtomicLock(& renderLock);
 
-    if(renderReset(NULL))
+    if(renderReset(nullptr))
     {
         if(0 != SDL_SetRenderDrawColor(_renderer, 0, 0, 0, 0))
             ERROR("set color: " << SDL_GetError());
@@ -750,10 +750,10 @@ void SWE::Display::renderPresent(void)
         {
             SDL_Rect dstrt = scale.toSDLRect();
 
-            if(0 != SDL_RenderCopy(_renderer, displayTexture.toSDLTexture(), NULL, & dstrt))
+            if(0 != SDL_RenderCopy(_renderer, displayTexture.toSDLTexture(), nullptr, & dstrt))
                 ERROR("copy: " << SDL_GetError());
         }
-        else if(0 != SDL_RenderCopy(_renderer, displayTexture.toSDLTexture(), NULL, NULL))
+        else if(0 != SDL_RenderCopy(_renderer, displayTexture.toSDLTexture(), nullptr, nullptr))
             ERROR("copy: " << SDL_GetError());
 
         SDL_RenderPresent(_renderer);
@@ -887,7 +887,7 @@ SWE::Surface SWE::Display::createSurface(const Texture & tx)
 #ifdef SWE_SDL12
     return Texture::copy(tx);
 #else
-    SDL_Surface* sf = NULL;
+    SDL_Surface* sf = nullptr;
     Texture tx2 = createTexture(tx, FlipNone);
 
     if(renderReset(tx2.toSDLTexture()))
@@ -901,7 +901,7 @@ SWE::Surface SWE::Display::createSurface(const Texture & tx)
     else
         FIXME(String::pointer(tx2.toSDLTexture()));
 
-    renderReset(NULL);
+    renderReset(nullptr);
     return Surface(sf);
 #endif
 }
@@ -1061,7 +1061,7 @@ void SWE::Display::handleKeyboard(const SDL_KeyboardEvent & ev)
 
 void SWE::Display::handleMouseButton(const SDL_MouseButtonEvent & ev)
 {
-    ButtonsEvent* coords = NULL;
+    ButtonsEvent* coords = nullptr;
 
     switch(ev.button)
     {
@@ -1127,9 +1127,9 @@ void SWE::Display::handleMouseButton(const SDL_MouseButtonEvent & ev)
                 else if(fingerEventEmulation)
                 {
                     if(std::abs(delta.x) > std::abs(delta.y))
-                        DisplayScene::pushEvent(NULL, 0 > delta.x ? Signal::GestureFingerRight : Signal::GestureFingerLeft, NULL);
+                        DisplayScene::pushEvent(nullptr, 0 > delta.x ? Signal::GestureFingerRight : Signal::GestureFingerLeft, nullptr);
                     else if(std::abs(delta.x) < std::abs(delta.y))
-                        DisplayScene::pushEvent(NULL, 0 > delta.y ? Signal::GestureFingerDown : Signal::GestureFingerUp, NULL);
+                        DisplayScene::pushEvent(nullptr, 0 > delta.y ? Signal::GestureFingerDown : Signal::GestureFingerUp, nullptr);
                 }
 
                 break;
@@ -1156,9 +1156,9 @@ void SWE::Display::handleMouseMotion(const SDL_MouseMotionEvent & ev)
         const s32 & dy = ev.yrel;
 
         if(std::abs(dx) > std::abs(dy))
-            DisplayScene::pushEvent(NULL, 0 < dx ? Signal::FingerMoveRight : Signal::FingerMoveLeft, NULL);
+            DisplayScene::pushEvent(nullptr, 0 < dx ? Signal::FingerMoveRight : Signal::FingerMoveLeft, nullptr);
         else if(std::abs(dy) > std::abs(dx))
-            DisplayScene::pushEvent(NULL, 0 < dy ? Signal::FingerMoveDown : Signal::FingerMoveUp, NULL);
+            DisplayScene::pushEvent(nullptr, 0 < dy ? Signal::FingerMoveDown : Signal::FingerMoveUp, nullptr);
     }
 }
 
@@ -1222,9 +1222,9 @@ void SWE::Display::handleFingerTap(const SDL_TouchFingerEvent & ev)
             if(val > std::abs(delta.x) && val > std::abs(delta.y))
                 DisplayScene::mouseClickHandle(coords);
             else if(std::abs(delta.x) > std::abs(delta.y))
-                DisplayScene::pushEvent(NULL, 0 > delta.x ? Signal::GestureFingerRight : Signal::GestureFingerLeft, NULL);
+                DisplayScene::pushEvent(nullptr, 0 > delta.x ? Signal::GestureFingerRight : Signal::GestureFingerLeft, nullptr);
             else if(std::abs(delta.x) < std::abs(delta.y))
-                DisplayScene::pushEvent(NULL, 0 > delta.y ? Signal::GestureFingerDown : Signal::GestureFingerUp, NULL);
+                DisplayScene::pushEvent(nullptr, 0 > delta.y ? Signal::GestureFingerDown : Signal::GestureFingerUp, nullptr);
 
 #else
             // generate click
@@ -1251,9 +1251,9 @@ void SWE::Display::handleFingerMotion(const SDL_TouchFingerEvent & ev)
     float dy = dsz.h * ev.dy;
 
     if(std::fabs(dx) > std::fabs(dy))
-        DisplayScene::pushEvent(NULL, 0 < ev.dx ? Signal::FingerMoveRight : Signal::FingerMoveLeft, NULL);
+        DisplayScene::pushEvent(nullptr, 0 < ev.dx ? Signal::FingerMoveRight : Signal::FingerMoveLeft, nullptr);
     else if(std::fabs(dy) > std::fabs(dx))
-        DisplayScene::pushEvent(NULL, 0 < ev.dy ? Signal::FingerMoveDown : Signal::FingerMoveUp, NULL);
+        DisplayScene::pushEvent(nullptr, 0 < ev.dy ? Signal::FingerMoveDown : Signal::FingerMoveUp, nullptr);
 }
 #endif
 
@@ -1281,7 +1281,7 @@ SWE::Point SWE::Display::mouseCursorPosition(void)
 
 u32 SWE::Display::mouseButtonState(void)
 {
-    return SDL_GetMouseState(NULL, NULL);
+    return SDL_GetMouseState(nullptr, nullptr);
 }
 
 SWE::Rect SWE::Display::renderTextHorizontal(const FontRender & frs, const UnicodeString & ustr, const Color & col, Texture & dtx, const Point & dpt, int halign, int valign)
@@ -1459,7 +1459,7 @@ std::list<SWE::Size> SWE::Display::hardwareVideoModes(bool landscape)
 {
     std::list<Size> result;
 #ifdef SWE_SDL12
-    SDL_Rect** modes = SDL_ListModes(NULL, SDL_FULLSCREEN | SDL_HWSURFACE);
+    SDL_Rect** modes = SDL_ListModes(nullptr, SDL_FULLSCREEN | SDL_HWSURFACE);
 
     if(modes == (SDL_Rect**) 0)
     {
@@ -1518,7 +1518,7 @@ std::list<SWE::Size> SWE::Display::hardwareVideoModes(bool landscape)
 void SWE::Display::setWindowIcon(const Surface & sf)
 {
 #if SWE_SDL12
-    SDL_WM_SetIcon(sf.toSDLSurface(), NULL);
+    SDL_WM_SetIcon(sf.toSDLSurface(), nullptr);
 #else
     SDL_SetWindowIcon(_window, sf.toSDLSurface());
 #endif

@@ -147,7 +147,7 @@ namespace SWE
         const FontRender*	render;
 
     public:
-        FontsCache(const FontRender* font = NULL) : render(font) {}
+        FontsCache(const FontRender* font = nullptr) : render(font) {}
 
         static void	clear(void);
         static void	dump(void);

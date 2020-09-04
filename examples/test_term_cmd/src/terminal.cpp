@@ -1,8 +1,8 @@
 /***************************************************************************
- *   Copyright (C) 2017 by SWE team <sdl.window.engine@gmail.com>          *
+ *   Copyright (C) 2018 by public.irkutsk@gmail.com                        *
  *                                                                         *
- *   Part of the SWE: SDL Window Engine:                                   *
- *   https://github.com/AndreyBarmaley/sdl-window-engine                   *
+ *   Part of the SWE (SDL Window Engine) examples:                         *
+ *   https://github.com/AndreyBarmaley/sdl-window-engine.git               *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -20,25 +20,50 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef _SWE_ENGINE_
-#define _SWE_ENGINE_
+#include <clocale>
 
-#define SWE_VERSION 20200825
+#include "settings.h"
+#include "default_font.h"
+#include "mainscreen.h"
 
-namespace SWE
+bool translationInit(void)
 {
+    Translation::setStripContext('|');
+    const std::string trans = Settings::dataLang(Systems::messageLocale(1).append(".mo"));
 
-    namespace Engine
+    if(Translation::bindDomain(Settings::progDomain(), trans))
     {
-        bool		init(bool debug = true);
-        bool		debugMode(void);
-        void		setDebugMode(bool);
-        int	        version(void);
-        void		quit(void);
+        VERBOSE("loaded from: " << trans);
+        //Translation::setDomain(Settings::domain());
+        return true;
+    }
 
-        void		except(const char* func, const char* message);
-        class           exception {};
-    } // Engine
+    return false;
+}
 
-} // SWE
+int main(int argc, char **argv)
+{
+#ifndef ANDROID
+    try
 #endif
+    {
+        Systems::setLocale(LC_ALL, "");
+	Systems::setLocale(LC_NUMERIC, "C"); // fix xml parsing decimal point
+
+	translationInit();
+
+	const std::string title = Settings::progName().append(", version: ").append(Settings::progVersion());
+
+	if(! Engine::init())
+    	    return -1;
+
+	MainScreen & scr = MainScreen::init(title);
+	scr.exec();
+    }
+#ifndef ANDROID
+    catch(Engine::exception &)
+    {
+    }
+#endif
+    return EXIT_SUCCESS;
+}

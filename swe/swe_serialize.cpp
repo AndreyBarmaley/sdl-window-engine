@@ -334,13 +334,13 @@ rep:
     StreamRWops::StreamRWops(StreamRWops && srw) noexcept
     {
         rw = srw.rw;
-        srw.rw = NULL;
+        srw.rw = nullptr;
     }
 
     StreamRWops & StreamRWops::operator=(StreamRWops && srw) noexcept
     {
         rw = srw.rw;
-        srw.rw = NULL;
+        srw.rw = nullptr;
         return *this;
     }
 
@@ -349,7 +349,7 @@ rep:
         if(rw)
         {
             SDL_RWclose(rw);
-            rw = NULL;
+            rw = nullptr;
         }
     }
 

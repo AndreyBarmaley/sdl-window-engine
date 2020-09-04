@@ -70,94 +70,82 @@ bool SWE::Engine::init(bool debug)
     int init_flags = SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER;
     std::srand((u32) std::time(0));
     DEBUG("SDL Window Engine: " << "version: " << version());
+    const SDL_version* sdlver1 = nullptr;
+
+#ifdef SWE_SDL12
+    sdlver1 = SDL_Linked_Version();
+    DEBUG("usage " << "SDL" << ", " << "version: " << static_cast<int>(sdlver1->major) << "." << static_cast<int>(sdlver1->minor) << "." << static_cast<int>(sdlver1->patch));
+#else
+    SDL_version sdlver2;
+    SDL_GetVersion(&sdlver2);
+    DEBUG("usage " << "SDL" << ", " << "version: " << static_cast<int>(sdlver2.major) << "." << static_cast<int>(sdlver2.minor) << "." << static_cast<int>(sdlver2.patch) <<
+              ", revision: " << SDL_GetRevision());
+#endif
 
     if(SDL_Init(init_flags) != 0)
     {
         ERROR("SDL_Init" << ": " << SDL_GetError());
         return false;
     }
-    else
-    {
-#ifdef SWE_SDL12
-        const SDL_version* sdlver = SDL_Linked_Version();
-        DEBUG("usage " << "SDL" << ", " << "version: " << static_cast<int>(sdlver->major) << "." << static_cast<int>(sdlver->minor) << "." << static_cast<int>(sdlver->patch));
-#else
-        SDL_version sdlver;
-        SDL_GetVersion(&sdlver);
-        DEBUG("usage " << "SDL" << ", " << "version: " << static_cast<int>(sdlver.major) << "." << static_cast<int>(sdlver.minor) << "." << static_cast<int>(sdlver.patch) <<
-              ", revision: " << SDL_GetRevision());
-#endif
-    }
 
 #ifndef SWE_DISABLE_NETWORK
+    sdlver1 = SDLNet_Linked_Version();
+
+    if(sdlver1)
+        DEBUG("usage " << "SDL_net" << ", " << "version: " << static_cast<int>(sdlver1->major) << "." << static_cast<int>(sdlver1->minor) << "." << static_cast<int>(sdlver1->patch));
 
     if(SDLNet_Init() < 0)
     {
         ERROR("SDLNet_Init" << ": " << SDL_GetError());
         return false;
     }
-    else
-    {
-        const SDL_version* sdlver = SDLNet_Linked_Version();
+#endif // SWE_DISABLE_NETWORK
 
-        if(sdlver)
-            DEBUG("usage " << "SDL_net" << ", " << "version: " << static_cast<int>(sdlver->major) << "." << static_cast<int>(sdlver->minor) << "." << static_cast<int>(sdlver->patch));
-    }
-
-#endif
 #ifndef SWE_DISABLE_IMAGE
+    sdlver1 = IMG_Linked_Version();
+
+    if(sdlver1)
+        DEBUG("usage " << "SDL_image" << ", " << "version: " << static_cast<int>(sdlver1->major) << "." << static_cast<int>(sdlver1->minor) << "." << static_cast<int>(sdlver1->patch));
 
     if(IMG_Init(IMG_INIT_PNG) == 0)
     {
         ERROR("IMG_Init" << ": " << SDL_GetError());
         return false;
     }
-    else
-    {
-        const SDL_version* sdlver = IMG_Linked_Version();
+#endif // SWE_DISABLE_IMAGE
 
-        if(sdlver)
-            DEBUG("usage " << "SDL_image" << ", " << "version: " << static_cast<int>(sdlver->major) << "." << static_cast<int>(sdlver->minor) << "." << static_cast<int>(sdlver->patch));
-    }
-
-#endif
 #ifndef SWE_DISABLE_TTF
+    sdlver1 = TTF_Linked_Version();
+
+    if(sdlver1)
+        DEBUG("usage " << "SDL_ttf" << ", " << "version: " << static_cast<int>(sdlver1->major) << "." << static_cast<int>(sdlver1->minor) << "." << static_cast<int>(sdlver1->patch));
 
     if(TTF_Init() != 0)
     {
         ERROR("TTF_Init" << ": " << SDL_GetError());
-        return false;
+	return false;
     }
-    else
-    {
-        const SDL_version* sdlver = TTF_Linked_Version();
+#endif // SWE_DISABLE_TTF
 
-        if(sdlver)
-            DEBUG("usage " << "SDL_ttf" << ", " << "version: " << static_cast<int>(sdlver->major) << "." << static_cast<int>(sdlver->minor) << "." << static_cast<int>(sdlver->patch));
-    }
-
-#endif
 #ifndef SWE_DISABLE_AUDIO
 #if (SDL_VERSIONNUM(SDL_MIXER_MAJOR_VERSION, SDL_MIXER_MINOR_VERSION, SDL_MIXER_PATCHLEVEL) > SDL_VERSIONNUM(1,2,8))
+    sdlver1 = Mix_Linked_Version();
 
-    if((Mix_Init(MIX_INIT_OGG) & MIX_INIT_OGG) != MIX_INIT_OGG)
-    {
+    if(sdlver1)
+        DEBUG("usage " << "SDL_mixer" << ", " << "version: " << static_cast<int>(sdlver1->major) << "." << static_cast<int>(sdlver1->minor) << "." << static_cast<int>(sdlver1->patch));
+
+    int formats = MIX_INIT_MP3|MIX_INIT_OGG|MIX_INIT_MOD;
+    int res = Mix_Init(formats);
+
+    if(res != formats)
         ERROR("MIX_Init" << ": " << Mix_GetError());
-        return false;
-    }
-    else
-#endif
-    {
-        if(0 > Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 1024))
-            ERROR("MIX_OpenAudio" << ": " << Mix_GetError());
+#endif // SDL_VERSION
 
-        const SDL_version* sdlver = Mix_Linked_Version();
+    if(0 > Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 1024))
+        ERROR("MIX_OpenAudio" << ": " << Mix_GetError());
 
-        if(sdlver)
-            DEBUG("usage " << "SDL_mixer" << ", " << "version: " << static_cast<int>(sdlver->major) << "." << static_cast<int>(sdlver->minor) << "." << static_cast<int>(sdlver->patch));
-    }
+#endif // SWE_DISABLE_AUDIO
 
-#endif
 #ifdef __MINGW32__
     Display::fingerEventEmulation = true;
 #endif
