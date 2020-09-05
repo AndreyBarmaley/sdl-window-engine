@@ -92,7 +92,7 @@ namespace SWE
     {
         setId(id);
         setSize(sz);
-        setProperty(cp());
+        setProperty(cp);
     }
 
     int FontID::operator()(void) const
@@ -102,7 +102,7 @@ namespace SWE
 
     int FontID::value(void) const
     {   
-        return (static_cast<int>(val1) << 16) | (static_cast<int>(val2) << 8) | static_cast<int>(val3);
+        return (static_cast<int>(val1) << 16) | (static_cast<int>(val2) << 8) | static_cast<int>(val3.val);
     }
 
     bool FontID::operator<(const FontID & fd) const
@@ -130,7 +130,7 @@ namespace SWE
         return val2;
     }
         
-    CharsetProperty FontID::property(void) const
+    const CharsetProperty & FontID::property(void) const
     {
         return val3;
     }
@@ -150,7 +150,7 @@ namespace SWE
 	val2 = v;
     }
         
-    void FontID::setProperty(int v)
+    void FontID::setProperty(const CharsetProperty & v)
     {
 	val3 = v;
     }
@@ -404,6 +404,9 @@ bool SWE::FontRenderTTF::load(const BinaryBuf & raw, int size, int blend, int st
             ptr = std::shared_ptr<TTF_Font>(ttf, TTF_CloseFont);
             fid = FontID(raw.crc16b(), size, CharsetProperty(blend, style, hinting));
             FontRender::fsz = Size(symbolAdvance(0x20), lineSkipHeight());
+	    auto prop = fid.property();
+	    DEBUG("binary" << SWE::StringFormat(", id: %1, size: %2, render: %3, style: %4, hinting: %5").
+			    arg(String::hex(fid.id(), 4)).arg(fid.size()).arg(prop.render()).arg(prop.style()).arg(prop.hinting()));
             return true;
         }
     }
@@ -422,6 +425,9 @@ bool SWE::FontRenderTTF::open(const std::string & fn, int size, int blend, int s
         ptr = std::shared_ptr<TTF_Font>(ttf, TTF_CloseFont);
         fid = FontID(Tools::crc16b(fn.c_str()), size, CharsetProperty(blend, style, hinting));
         FontRender::fsz = Size(symbolAdvance(0x20), lineSkipHeight());
+	auto prop = fid.property();
+	    DEBUG("binary" << SWE::StringFormat(", id: %1, size: %2, render: %3, style: %4, hinting: %5").
+			    arg(String::hex(fid.id(), 4)).arg(fid.size()).arg(prop.render()).arg(prop.style()).arg(prop.hinting()));
         return true;
     }
 

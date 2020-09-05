@@ -78,9 +78,9 @@ namespace SWE
 
     struct FontID
     {
-	u16	val1;
-	u8	val2;
-	u8	val3;
+	u16			val1;
+	u8			val2;
+	CharsetProperty		val3;
 
         /* font id 16 bit, font size 8 bit, charset property 8 bit */
         FontID() {}
@@ -95,12 +95,12 @@ namespace SWE
         int 	id(void) const;
         int 	size(void) const;
 
-        CharsetProperty property(void) const;
+        const CharsetProperty & property(void) const;
 
         void 	reset(void);
         void 	setId(int v);
         void 	setSize(int v);
-        void 	setProperty(int v);
+        void 	setProperty(const CharsetProperty &);
     };
 
     class FontRender
