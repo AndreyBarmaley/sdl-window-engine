@@ -213,12 +213,9 @@ namespace SWE
         return String::time(raw);
     }
 
-    std::string String::time(time_t raw)
+    std::string String::time(const time_t & raw)
     {
-        char buf [13] = { 0 };
-        struct tm* tmi = std::localtime(&raw);
-        std::strftime(buf, sizeof(buf) - 1, "%X", tmi);
-        return std::string(buf);
+	return strftime("%X", raw);
     }
 
     std::string String::strftime(const std::string & format)
@@ -230,11 +227,11 @@ namespace SWE
 
     std::string String::strftime(const std::string & format, const time_t & raw)
     {
-        char buf[PATH_MAX];
+	const size_t len = format.size() < 32 ? 64 : format.size() * 2;
+	std::unique_ptr<char[]> buf(new char[len]);
         struct tm* timeinfo = std::localtime(&raw);
-        std::memset(buf, 0, sizeof(buf));
-        std::strftime(buf, sizeof(buf) - 1, format.c_str(), timeinfo);
-        return std::string(buf);
+        std::strftime(buf.get(), len - 1, format.c_str(), timeinfo);
+        return std::string(buf.get());
     }
 
     std::string String::number(int value)
@@ -317,6 +314,11 @@ namespace SWE
     {
     }
 
+    StringList::StringList(const std::initializer_list<const char*> & list)
+    {
+        assign(list.begin(), list.end());
+    }
+
     StringList::StringList(std::list<std::string> && v) noexcept
     {
         swap(v);
@@ -360,8 +362,8 @@ namespace SWE
 
     StringFormat & StringFormat::arg(const std::string & val)
     {
-        iterator it1 = begin();
-        iterator it2 = end();
+        auto it1 = begin();
+        auto it2 = end();
 
         while(true)
         {
@@ -438,7 +440,8 @@ namespace SWE
     {
 	if(empty()) return 0;
 
-	auto it = std::max_element(begin(), end(), [](const std::string & str1, const std::string & str2) { return str1.size() < str2.size(); });
+	auto it = std::max_element(begin(), end(),
+			    [](auto & str1, auto & str2) { return str1.size() < str2.size(); });
 	return it != end() ? (*it).size() : front().size();
     }
 
@@ -463,10 +466,7 @@ namespace SWE
     std::string StringList::join(void) const
     {
         std::ostringstream os;
-
-        for(const_iterator it = begin(); it != end(); ++it)
-            os << *it;
-
+	std::copy(begin(), end(), std::ostream_iterator<std::string>(os));
         return os.str();
     }
 
@@ -474,13 +474,10 @@ namespace SWE
     {
         std::ostringstream os;
 
-        for(const_iterator
-            it = begin(); it != end(); ++it)
+        for(auto it = begin(); it != end(); ++it)
         {
             os << *it;
-            const_iterator next = it;
-
-            if(++next != end())
+            if(std::next(it) != end())
                 os << sep;
         }
 

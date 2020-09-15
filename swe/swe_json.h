@@ -58,7 +58,7 @@ namespace SWE
         const char*	typeString(void) const;
     };
 
-    enum JsonType { TypeNull, TypeInteger, TypeDouble, TypeString, TypeBoolean, TypeObject, TypeArray };
+    enum class JsonType { Null, Integer, Double, String, Boolean, Object, Array };
 
     class JsonContent;
     class JsonObject;
@@ -71,16 +71,16 @@ namespace SWE
         JsonValue() {}
         virtual ~JsonValue() {}
 
-        virtual JsonType	getType(void) const { return TypeNull; }
+        virtual JsonType	getType(void) const { return JsonType::Null; }
         virtual std::string	toString(void) const { return "null"; }
 
-        bool			isNull(void) const { return getType() == TypeNull; }
-        bool			isBoolean(void) const { return getType() == TypeBoolean; }
-        bool			isInteger(void) const { return getType() == TypeInteger; }
-        bool			isDouble(void) const { return getType() == TypeDouble; }
-        bool			isString(void) const { return getType() == TypeString; }
-        bool			isObject(void) const { return getType() == TypeObject; }
-        bool			isArray(void) const { return getType() == TypeArray; }
+        bool			isNull(void) const { return getType() == JsonType::Null; }
+        bool			isBoolean(void) const { return getType() == JsonType::Boolean; }
+        bool			isInteger(void) const { return getType() == JsonType::Integer; }
+        bool			isDouble(void) const { return getType() == JsonType::Double; }
+        bool			isString(void) const { return getType() == JsonType::String; }
+        bool			isObject(void) const { return getType() == JsonType::Object; }
+        bool			isArray(void) const { return getType() == JsonType::Array; }
 
         virtual int		getInteger(void) const { return 0; }
         virtual std::string	getString(void) const { return ""; }
@@ -117,7 +117,7 @@ namespace SWE
     public:
         JsonString(const std::string & val) : content(val) {}
 
-        JsonType		getType(void) const override { return TypeString; }
+        JsonType		getType(void) const override { return JsonType::String; }
         int			getInteger(void) const override { return String::toInt(content); }
         std::string		getString(void) const override { return content; }
         double			getDouble(void) const override { return String::toDouble(content); }
@@ -139,7 +139,7 @@ namespace SWE
         std::string		getString(void)  const override { return String::number(content, prec); }
         double			getDouble(void) const override { return content; }
         bool			getBoolean(void) const override { return content; }
-        JsonType		getType(void) const override { return TypeDouble; }
+        JsonType		getType(void) const override { return JsonType::Double; }
     };
 
     /* JsonInteger */
@@ -154,7 +154,7 @@ namespace SWE
         std::string		getString(void)  const override { return String::number(content); }
         double			getDouble(void)  const override { return content; }
         bool			getBoolean(void) const override{ return content; }
-        JsonType		getType(void) const override { return TypeInteger; }
+        JsonType		getType(void) const override { return JsonType::Integer; }
     };
 
     /* JsonBoolean */
@@ -167,9 +167,9 @@ namespace SWE
 
         int			getInteger(void) const override { return content; }
         std::string		getString(void)  const override { return String::Bool(content); }
-        double			getDouble(void)  const override { return content; }
+        double			getDouble(void)  const override { return static_cast<int>(content); }
         bool			getBoolean(void) const override { return content; }
-        JsonType		getType(void) const override { return TypeBoolean; }
+        JsonType		getType(void) const override { return JsonType::Boolean; }
     };
 
     /* JsonContainer */

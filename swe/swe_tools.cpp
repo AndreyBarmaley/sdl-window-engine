@@ -21,7 +21,9 @@
  ***************************************************************************/
 
 #include <cmath>
+#include <numeric>
 #include <cstring>
+#include <iterator>
 #include <algorithm>
 #include <zlib.h>
 
@@ -60,87 +62,59 @@ namespace SWE
     int Tools::rand(int min, int max)
     {
         if(min > max) std::swap(min, max);
-
         return min + std::rand() / (RAND_MAX + 1.0) * (max - min + 1);
     }
 
     float Tools::randf(float min, float max)
     {
         if(min > max) std::swap(min, max);
-
         return min + std::rand() * (max - min) / static_cast<float>(RAND_MAX);
     }
 
-    u32 crc32i(u32 crc, int val)
+    u32 Tools::crc32b(const std::string & str)
     {
-        crc ^= val;
-
-        for(int bit = 0; bit < 8; ++bit)
-        {
-            u32 mask = crc & 1 ? 0xFFFFFFFF : 0;
-            crc = (crc >> 1) ^ (0xEDB88320 & mask);
-        }
-
-        return crc;
-    }
-
-    u32 Tools::crc32b(const char* str)
-    {
-        u32 crc = 0xFFFFFFFF;
-
-        while(str && *str)
-        {
-            crc = crc32i(crc, *str);
-            str++;
-        }
-
-        return ~crc;
+	return crc32b(reinterpret_cast<const u8*>(str.data()), str.size());
     }
 
     u32 Tools::crc32b(const u8* ptr, size_t size)
     {
-        u32 crc = 0xFFFFFFFF;
+	u32 res = std::accumulate(ptr, ptr + size, 0xFFFFFFFF, [](u32 crc, int val)
+	{
+    	    crc ^= val;
 
-        for(const u8* it = ptr; it < ptr + size; ++it)
-            crc = crc32i(crc, *it);
+    	    for(int bit = 0; bit < 8; ++bit)
+    	    {
+        	u32 mask = crc & 1 ? 0xFFFFFFFF : 0;
+        	crc = (crc >> 1) ^ (0xEDB88320 & mask);
+    	    }
 
-        return ~crc;
+	    return crc;
+	});
+
+        return ~res;
     }
 
-    u16 crc16i(u16 crc, int val)
+    int Tools::crc16b(const std::string & str)
     {
-        crc ^= val;
-
-        for(int bit = 0; bit < 8; ++bit)
-        {
-            u16 mask = crc & 1 ? 0xFFFF : 0;
-            crc = (crc >> 1) ^ (0x8320 & mask);
-        }
-
-        return crc;
-    }
-
-    int Tools::crc16b(const char* str)
-    {
-        u16 crc = 0xFFFF;
-
-        while(str && *str)
-        {
-            crc = crc16i(crc, *str);
-            str++;
-        }
-
-        return ~crc;
+	return crc32b(reinterpret_cast<const u8*>(str.data()), str.size());
     }
 
     int Tools::crc16b(const u8* ptr, size_t size)
     {
-        u16 crc = 0xFFFF;
+	u16 res = std::accumulate(ptr, ptr + size, 0xFFFF, [](u16 crc, int val)
+	{
+    	    crc ^= val;
 
-        for(const u8* it = ptr; it < ptr + size; ++it)
-            crc = crc16i(crc, *it);
+    	    for(int bit = 0; bit < 8; ++bit)
+    	    {
+        	u16 mask = crc & 1 ? 0xFFFF : 0;
+        	crc = (crc >> 1) ^ (0x8320 & mask);
+    	    }
 
-        return ~crc;
+	    return crc;
+	});
+
+        return ~res;
     }
 
     std::pair<int, float> Tools::modf(float num)
@@ -242,11 +216,11 @@ namespace SWE
             return v + 'A';
 
         // 26 <=> 51
-        if(26 <= v && v <= 26 + ('z' - 'a'))
+        if(v <= (26 + ('z' - 'a')))
             return v + 'a' - 26;
 
         // 52 <=> 61
-        if(52 <= v && v <= 52 + ('9' - '0'))
+        if(v <= (52 + ('9' - '0')))
             return v + '0' - 52;
 
         if(v == 62)
@@ -273,7 +247,6 @@ namespace SWE
             size_t dstsz = 3 * srcsz / 4;
 
             if(src[srcsz - 1] == '=') dstsz--;
-
             if(src[srcsz - 2] == '=') dstsz--;
 
             dst.reserve(dstsz);
@@ -317,6 +290,7 @@ namespace SWE
             u32 b2 = ii + 1 < srcsz ? src[ii + 1] : 0;
             u32 b3 = ii + 2 < srcsz ? src[ii + 2] : 0;
             u32 triple = (b1 << 16) | (b2 << 8) | b3;
+
             dst.push_back(base64EncodeChar(0x3F & (triple >> 18)));
             dst.push_back(base64EncodeChar(0x3F & (triple >> 12)));
             dst.push_back(ii + 1 < srcsz ? base64EncodeChar(0x3F & (triple >> 6)) : '=');
@@ -324,29 +298,6 @@ namespace SWE
         }
 
         return dst;
-    }
-
-    Timer::Timer(const SDL_TimerID & id) : ptr(std::make_shared<SDL_TimerID>(id))
-    {
-    }
-
-    Timer::~Timer()
-    {
-        destroy();
-    }
-
-    void Timer::destroy(void)
-    {
-        if(ptr.unique() && isValid())
-        {
-            SDL_RemoveTimer(*ptr);
-            *ptr = 0;
-        }
-    }
-
-    Timer Timer::create(u32 interval, u32(*fn)(u32, void*), void* param)
-    {
-        return Timer(SDL_AddTimer(interval, fn, param));
     }
 
     Points Tools::renderCircle(const Point & center, int radius, bool fill)
@@ -443,6 +394,35 @@ namespace SWE
         }
 
         return res;
+    }
+
+    /* Timer */
+    struct TimerDeleter
+    {
+        void operator()(SDL_TimerID* ptr)
+        {
+            SDL_RemoveTimer(*ptr);
+            std::default_delete<SDL_TimerID>() (ptr);
+        }
+    };
+
+    Timer::Timer(const SDL_TimerID & id) : ptr(new SDL_TimerID(id))
+    {
+    }
+
+    void Timer::destroy(void)
+    {
+        ptr.reset();
+    }
+
+    Timer Timer::create(u32 interval, u32(*fn)(u32, void*), void* param)
+    {
+        return Timer(SDL_AddTimer(interval, fn, param));
+    }
+
+    bool Timer::isValid(void) const
+    {
+        return ptr.get();
     }
 
     /* TickTrigger */

@@ -62,18 +62,21 @@ namespace SWE
     struct CharsetProperty
     {
         /* blended 2 bit, style 4 bit, hinting 2 bit */
-        u8                  val;
+        u8			val;
 
         CharsetProperty(int blend = RenderSolid, int style = StyleNormal, int hinting = HintingNormal);
 
-        int	operator()(void) const;
-        int	render(void) const;
-        int	style(void) const;
-        int	hinting(void) const;
-        void	reset(void);
-        void	setRender(int v);
-        void	setStyle(int v);
-        void	setHinting(int v);
+        int			operator()(void) const;
+        int			render(void) const;
+        int			style(void) const;
+        int			hinting(void) const;
+        void			reset(void);
+        void			setRender(int v);
+        void			setStyle(int v);
+        void			setHinting(int v);
+
+	bool			operator<(const CharsetProperty & cp) const;
+	bool			operator!=(const CharsetProperty &) const;
     };
 
     struct FontID
@@ -83,24 +86,24 @@ namespace SWE
 	CharsetProperty		val3;
 
         /* font id 16 bit, font size 8 bit, charset property 8 bit */
-        FontID() {}
+        FontID() : val1(0), val2(0) {}
         FontID(int id, int sz, const CharsetProperty & cp = CharsetProperty());
 
-        int	operator()(void) const;
-        int	value(void) const;
-	bool	operator<(const FontID &) const;
-	bool	operator>(const FontID &) const;
-	bool	operator==(const FontID &) const;
+        int			operator()(void) const;
+        int			value(void) const;
+	bool			operator<(const FontID &) const;
+	bool			operator>(const FontID &) const;
+	bool			operator==(const FontID &) const;
 
-        int 	id(void) const;
-        int 	size(void) const;
+        int 			id(void) const;
+        int 			size(void) const;
 
         const CharsetProperty & property(void) const;
 
-        void 	reset(void);
-        void 	setId(int v);
-        void 	setSize(int v);
-        void 	setProperty(const CharsetProperty &);
+        void 			reset(void);
+        void 			setId(int v);
+        void 			setSize(int v);
+        void 			setProperty(const CharsetProperty &);
     };
 
     class FontRender
@@ -113,33 +116,32 @@ namespace SWE
         FontRender(const Size & sz) : fsz(sz) {}
         virtual ~FontRender() {}
 
-        virtual const FontID &
-        id(void) const = 0;
-        virtual bool	isValid(void) const = 0;
-        virtual bool	isTTF(void) const = 0;
+        virtual const FontID &	id(void) const = 0;
+        virtual bool		isValid(void) const = 0;
+        virtual bool		isTTF(void) const = 0;
 
-        virtual Size	stringSize(const std::string &, bool horizontal = true) const = 0;
-        virtual Size	unicodeSize(const UnicodeString &, bool horizontal = true) const = 0;
+        virtual Size		stringSize(const std::string &, bool horizontal = true) const = 0;
+        virtual Size		unicodeSize(const UnicodeString &, bool horizontal = true) const = 0;
 
-        virtual int	symbolAdvance(int = 0x20) const = 0;
-        virtual int	lineSkipHeight(void) const = 0;
+        virtual int		symbolAdvance(int = 0x20) const = 0;
+        virtual int		lineSkipHeight(void) const = 0;
 
-        virtual Surface	renderCharset(int, const Color &, int blend = -1, int style = -1, int hinting = -1) const = 0;
+        virtual Surface		renderCharset(int, const Color &, int blend = -1, int style = -1, int hinting = -1) const = 0;
 
         //
-        UCStringList	splitUCStringWidth(const UCString &, int) const;
-        UnicodeList	splitUnicodeWidth(const UnicodeString &, int) const;
-        StringList	splitStringWidth(const std::string &, int) const;
+        UCStringList		splitUCStringWidth(const UCString &, int) const;
+        UnicodeList		splitUnicodeWidth(const UnicodeString &, int) const;
+        StringList		splitStringWidth(const std::string &, int) const;
 
-        const Size &	size(void) const
+        const Size &		size(void) const
         {
             return fsz;
         }
 
-        static void	clearCache(void);
-        static void	dumpCache(void);
+        static void		clearCache(void);
+        static void		dumpCache(void);
 
-        void 		renderString(const std::string &, const Color &, const Point &, Surface &) const;
+        void 			renderString(const std::string &, const Color &, const Point &, Surface &) const;
     };
 
     class FontsCache
@@ -149,26 +151,26 @@ namespace SWE
     public:
         FontsCache(const FontRender* font = nullptr) : render(font) {}
 
-        static void	clear(void);
-        static void	dump(void);
-        void		erase(void);
+        static void		clear(void);
+        static void		dump(void);
+        void			erase(void);
 
-        Texture		renderCharset(int ch, const Color & col)
+        Texture			renderCharset(int ch, const Color & col)
         {
             return renderCharset(ch, col, -1, -1, -1);
         }
 
-        Texture		renderCharset(int ch, const Color &, int blend, int style, int hinting);
+        Texture			renderCharset(int ch, const Color &, int blend, int style, int hinting);
     };
 
 #ifndef SWE_DISABLE_TTF
     class FontRenderTTF : public FontRender
     {
         std::shared_ptr<TTF_Font> ptr;
-        FontID		fid;
+        FontID			fid;
 
-        Size		char1Size(int ch) const;
-        Size		char2Size(int ch) const;
+        Size			char1Size(int ch) const;
+        Size			char2Size(int ch) const;
 
     public:
         FontRenderTTF() {}
@@ -176,64 +178,63 @@ namespace SWE
         FontRenderTTF(const BinaryBuf &, int size, int blend = RenderSolid, int style = StyleNormal, int hinting = HintingNormal);
         ~FontRenderTTF();
 
-        void        	reset(void);
+        void        		reset(void);
 
-        bool        	open(const std::string &, int, int blend = RenderSolid, int style = StyleNormal, int hinting = HintingNormal);
-        bool        	load(const BinaryBuf &, int, int blend = RenderSolid, int style = StyleNormal, int hinting = HintingNormal);
+        bool        		open(const std::string &, int, int blend = RenderSolid, int style = StyleNormal, int hinting = HintingNormal);
+        bool        		load(const BinaryBuf &, int, int blend = RenderSolid, int style = StyleNormal, int hinting = HintingNormal);
 
-        const FontID &	id(void) const override;
-        bool		isValid(void) const override;
-        bool		isTTF(void) const override;
+        const FontID &		id(void) const override;
+        bool			isValid(void) const override;
+        bool			isTTF(void) const override;
 
-        TTF_Font*	toSDLFont(void) const;
+        TTF_Font*		toSDLFont(void) const;
 
-        Size		stringSize(const std::string &, bool horizontal = true) const override;
-        Size		unicodeSize(const UnicodeString &, bool horizontal = true) const override;
+        Size			stringSize(const std::string &, bool horizontal = true) const override;
+        Size			unicodeSize(const UnicodeString &, bool horizontal = true) const override;
 
-        int		symbolAdvance(int sym) const override;
-        int		lineSkipHeight(void) const override;
+        int			symbolAdvance(int sym) const override;
+        int			lineSkipHeight(void) const override;
 
-        Surface	renderCharset(int, const Color &, int blend = -1, int style = -1, int hinting = -1) const override;
+        Surface			renderCharset(int, const Color &, int blend = -1, int style = -1, int hinting = -1) const override;
         // render ttf string
-        Surface	renderString(const std::string &, const Color &, int blend = -1, int style = -1, int hinting = -1) const;
-        Surface	renderUnicode(const UnicodeString &, const Color &, int blend = -1, int style = -1, int hinting = -1) const;
+        Surface			renderString(const std::string &, const Color &, int blend = -1, int style = -1, int hinting = -1) const;
+        Surface			renderUnicode(const UnicodeString &, const Color &, int blend = -1, int style = -1, int hinting = -1) const;
     };
 #endif
 
     class FontRenderPSF : public FontRender
     {
-        BinaryBuf	buf;
-        FontID		fid;
+        BinaryBuf		buf;
+        FontID			fid;
 
-        Size		fixedSize(size_t, bool) const;
+        Size			fixedSize(size_t, bool) const;
 
     public:
         FontRenderPSF(const u8*, size_t, const Size &);
         FontRenderPSF(const std::string &, const Size &);
 
-        const FontID &
-        id(void) const override
+        const FontID &		id(void) const override
         {
             return fid;
         }
 
-        bool isValid(void) const override
+        bool 			isValid(void) const override
         {
             return buf.size();
         }
 
-        bool isTTF(void) const override
+        bool 			isTTF(void) const override
         {
             return false;
         }
 
-        Size		stringSize(const std::string &, bool horizontal = true) const override;
-        Size		unicodeSize(const UnicodeString &, bool horizontal = true) const override;
+        Size			stringSize(const std::string &, bool horizontal = true) const override;
+        Size			unicodeSize(const UnicodeString &, bool horizontal = true) const override;
 
-        int		symbolAdvance(int sym) const override;
-        int		lineSkipHeight(void) const override;
+        int			symbolAdvance(int sym) const override;
+        int			lineSkipHeight(void) const override;
 
-        Surface	renderCharset(int, const Color &, int blend = -1, int style = -1, int hinting = -1) const override;
+        Surface			renderCharset(int, const Color &, int blend = -1, int style = -1, int hinting = -1) const override;
     };
 
     class FontAltC8x16 : public FontRenderPSF
@@ -244,7 +245,7 @@ namespace SWE
 
 #define FontRenderSystem	FontAltC8x16
 
-    const FontRenderSystem & systemFont(void);
+    const FontRenderSystem & 	systemFont(void);
 
 } // SWE
 #endif

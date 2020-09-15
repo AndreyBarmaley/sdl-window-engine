@@ -58,12 +58,11 @@ public:
 class FontRenderInit
 {
 protected:
-    Size		termsz;
     BinaryBuf		ttf;
     FontRenderTTF	frt;
 
 public:
-    FontRenderInit(const std::string &, const Size &, int);
+    FontRenderInit(const std::string &, const TermSize &, int);
 
     bool setFontSize(int, const TermSize &);
 };
@@ -114,7 +113,7 @@ public:
 };
 
 
-class MainScreen : protected FontRenderInit, public TermWindow
+class MainScreen : protected FontRenderInit, public FullTerminal
 {
     int			fontsz;
     int			renderContent(const UnicodeList &, int, const Point &);
@@ -125,9 +124,13 @@ protected:
     bool		keyPressEvent(const KeySym &) override;
     bool		scrollUpEvent(void) override;
     bool		scrollDownEvent(void) override;
-    void		displayResizeEvent(const Size &, bool) override;
     bool		userEvent(int act, void* data) override;
     void		renderPresentEvent(u32 ms) override;
+
+    SWE::CharsetProperty        defaultProperty(void) const override;
+    SWE::FBColors               defaultColors(void) const override;
+    SWE::TermSize               minimalTerminalSize(void) const override;
+    void                        terminalResizeEvent(void) override;
 
     void		panelsPositions(void);
 

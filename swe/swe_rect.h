@@ -31,6 +31,7 @@
 namespace SWE
 {
 
+    /// @brief класс двухмерной размерности
     struct Size
     {
         int w, h;
@@ -66,6 +67,7 @@ namespace SWE
         std::string	toString(void) const;
     };
 
+    /// @brief класс точки с двумя координатами
     struct Point
     {
         int x, y;
@@ -78,7 +80,12 @@ namespace SWE
         static Point 	parse(const std::string &, int sep = ':');
 
         bool		isNull(void) const;
-	bool		inABC(const Point &, const Point &, const Point &) const;
+
+	/// @brief функция определения включения объекта Point в треугольник
+	/// @param A координата трегольника
+	/// @param B координата трегольника
+	/// @param C координата трегольника
+	bool		inABC(const Point & A, const Point & B, const Point & C) const;
 
         bool		operator== (const Point &) const;
         bool		operator!= (const Point &) const;
@@ -98,9 +105,12 @@ namespace SWE
         Size		toSize(void) const { return Size(x, y); }
 
         std::string	toString(void) const;
+
+	/// @brief функция определения расстояния по двум точкам
         static int	distance(const Point &, const Point &);
     };
 
+    /// @brief класс точки с тремя координатами
     struct ZPoint : public Point
     {
         int z;
@@ -129,6 +139,7 @@ namespace SWE
         std::string	toString(void) const;
     };
 
+    /// @brief класс прямоугольника
     struct Rect : public Point, public Size
     {
         Rect() {}
@@ -167,16 +178,18 @@ namespace SWE
         bool    	contains(const Point &) const;
         bool    	contains(const Rect &) const;
 
-        // Rect include Point
+        /// @brief функция проверки включения Point в Rect
         bool		operator& (const Point &) const;
-        // Rect intersects Rect
+        /// @brief функция проверки пересечения Rect c Rect
         bool		operator& (const Rect &) const;
 
+        /// @brief функция проверки пересечения Rect c Rect
         static bool	intersection(const Rect &, const Rect &, Rect* res = nullptr);
 	static Rect	around(const Rect &, const Rect &);
         std::string	toString(void) const;
     };
 
+    /// @brief класс последовательности точек
     struct Points : std::vector<Point>
     {
         Points() {}

@@ -247,46 +247,9 @@ namespace SWE
         return 197;
     }
 
-    TermBase::TermBase() :
-        Window(Point(0, 0), Display::size(), nullptr), fontRender(nullptr)
-    {
-        fontRender = & systemFont();
-        *this << reset::defaults();
-    }
-
-    TermBase::TermBase(TermBase & win) :
-        Window(& win), fontRender(win.frs())
-    {
-        if(! fontRender)
-        {
-            fontRender = & systemFont();
-            ERROR("fontRender is null" << ", " << "used system font");
-        }
-
-        if(fontRender->size().isEmpty())
-        {
-            fontRender = & systemFont();
-            ERROR("font size empty" << ", " << "used system font");
-        }
-
-        *this << reset::defaults();
-    }
-
-    TermBase::TermBase(const FontRender & font) :
-        Window(Point(0, 0), Display::size(), nullptr), fontRender(& font)
-    {
-        if(fontRender->size().isEmpty())
-        {
-            fontRender = & systemFont();
-            ERROR("font size empty" << ", " << "used system font");
-        }
-
-        *this << reset::defaults();
-        setSize(Display::size());
-    }
-
-    TermBase::TermBase(const FontRender & font, Window & win) :
-        Window(& win), fontRender(& font)
+    /* TermBase */
+    TermBase::TermBase(const FontRender & font, Window* win)
+	: Window(win), fontRender(& font)
     {
         if(fontRender->size().isEmpty())
         {
@@ -297,8 +260,8 @@ namespace SWE
         *this << reset::defaults();
     }
 
-    TermBase::TermBase(const Point & gfxpt, const Size & gfxsz, const FontRender & font, Window & win) :
-        Window(gfxpt, gfxsz, &win), fontRender(& font)
+    TermBase::TermBase(const Size & gfxsz, const FontRender & font, Window* win)
+	: Window(win), fontRender(& font)
     {
         if(fontRender->size().isEmpty())
         {
@@ -306,28 +269,122 @@ namespace SWE
             ERROR("font size empty" << ", " << "used system font");
         }
 
+        setTermSize(gfx2sym(gfxsz));
         *this << reset::defaults();
-        setSize(gfxsz);
+    }
+
+    TermBase::TermBase(const TermSize & tsz, TermBase & term)
+	: Window(& term), fontRender(term.frs())
+    {
+        setTermSize(tsz);
+        *this << reset::defaults();
+    }
+
+    TermBase::TermBase(TermBase* term)
+	: Window(term), fontRender(term ? term->frs() : nullptr)
+    {
+        *this << reset::defaults();
+    }
+
+    CharsetProperty TermBase::defaultProperty(void) const
+    {
+        auto term = dynamic_cast<const TermBase*>(parent());
+        return term ? term->defaultProperty() : CharsetProperty(RenderSolid, StyleNormal, HintingNormal);
+    }
+
+    FBColors TermBase::defaultColors(void) const
+    {
+        auto term = dynamic_cast<const TermBase*>(parent());
+        return term ? term->defaultColors() : FBColors(fgColor(), bgColor());
+    }
+
+    void TermBase::setTermPos(const TermPos & tp)
+    {
+	auto win = parent();
+        auto term = dynamic_cast<TermBase*>(win);
+
+        if(term)
+        {
+	    setPosition(term->sym2gfx(tp));
+        }
+        else
+	if(win)
+        {
+	    setPosition(sym2gfx(tp));
+        }
+
+        termrt.setPos(tp.posx(), tp.posy());
+    }
+
+    void TermBase::setTermSize(const TermSize & tsz)
+    {
+        termrt.setSize(tsz.cols(), tsz.rows());
+        Window::setSize(sym2gfx(termSize()));
+    }
+
+    void TermBase::setSize(const Size & sz)
+    {
+        setTermSize(gfx2sym(sz));
+    }
+
+    void TermBase::setCursorPos(const TermPos & tp)
+    {
+        curpos = tp;
+    }
+
+    void TermBase::resetCursorPos(void)
+    {
+        curpos = TermPos();
+    }
+
+    const TermPos & TermBase::cursor(void) const
+    {
+        return curpos;
+    }
+
+    size_t TermBase::cols(void) const
+    {
+	return termSize().cols();
+    }
+
+    size_t TermBase::rows(void) const
+    {
+	return termSize().rows();
+    }
+
+    const TermPos & TermBase::termPos(void) const
+    {
+        return termrt;
+    }
+
+    const TermSize & TermBase::termSize(void) const
+    {
+        return termrt;
+    }
+
+    const FontRender* TermBase::frs(void) const
+    {
+        return fontRender;
     }
 
     void TermBase::setFGColor(const ColorIndex & col)
     {
-        defcols.set1(col());
+        curcols.set1(col());
     }
 
     void TermBase::setBGColor(const ColorIndex & col)
     {
-        defcols.set2(col());
+        curcols.set2(col());
     }
         
     ColorIndex TermBase::fgColor(void) const
     {
-        return ColorIndex(defcols.val1());
+        return ColorIndex(curcols.val1());
     }
 
     ColorIndex TermBase::bgColor(void) const
     {
-        return ColorIndex(defcols.val2());
+        return ColorIndex(curcols.val2());
     }
 
     FBColors TermBase::colors(void) const
@@ -337,24 +394,26 @@ namespace SWE
 
     void TermBase::setAlign(align_t v)
     {
-        termopt2.set1(v);
+        termopt.set1(v);
     }
 
     int TermBase::align(void) const
     {
-        return termopt2.val1();
+        return termopt.val1();
     }
 
-    void TermBase::setUnused8(int v)
+    void TermBase::setProperty(const CharsetProperty & prop)
     {
-        termopt2.set2(v);
+        termopt.set2(prop());
     }
 
-    int TermBase::unused8(void) const
+    CharsetProperty TermBase::property(void) const
     {
-        return termopt2.val2();
+	CharsetProperty prop;
+        prop.val = termopt.val2();
+	return prop;
     }
-        
+
     const set::padding & TermBase::paddings(void) const
     {
         return padding;
@@ -369,41 +428,13 @@ namespace SWE
 	else
         {
             fontRender = & frs;
-            setSize(0 == termsz.rows() && 0 == termsz.cols() ? Display::size() : sym2gfx(termsz));
+            setSize(0 == rows() && 0 == cols() ? Display::size() : sym2gfx(termSize()));
         }
-    }
-
-    void TermBase::setSize(const Size & sz)
-    {
-        setTermSize(gfx2sym(sz));
-    }
-
-    void TermBase::setTermSize(const TermSize & ts)
-    {
-        termsz = ts;
-        // first event
-        termResizeEvent();
-        Window::setSize(sym2gfx(termsz));
     }
 
     bool TermBase::lineWrap(void) const
     {
         return checkState(FlagWrap);
-    }
-
-    int TermBase::index(const Point & pos) const
-    {
-        if(0 <= pos.x && 0 <= pos.y &&
-           pos.x < cols() && pos.y < rows())
-            return cols() * pos.y + pos.x;
-
-        return -1;
-    }
-
-    int TermBase::index(void) const
-    {
-        const TermPos & cur = cursor();
-        return cols() * cur.posy() + cur.posx();
     }
 
     Point TermBase::sym2gfx(const TermPos & sym) const /* coordinate from current win */
@@ -752,6 +783,7 @@ namespace SWE
         setFGColor(Color::Transparent);
         setBGColor(Color::Transparent);
         setAlign(AlignLeft);
+	setProperty(CharsetProperty());
         padding = set::padding(0, 0, 0, 0);
         resetState(FlagWrap);
         return *this;
@@ -777,6 +809,18 @@ namespace SWE
     TermBase & TermBase::operator<< (const reset::padding & st)
     {
         padding = set::padding(0, 0, 0, 0);
+        return *this;
+    }
+
+    TermBase & TermBase::operator<< (const reset::align & st)
+    {
+        setAlign(AlignLeft);
+        return *this;
+    }
+
+    TermBase & TermBase::operator<< (const reset::property & st)
+    {
+	setProperty(CharsetProperty());
         return *this;
     }
 
@@ -816,6 +860,12 @@ namespace SWE
         return *this;
     }
 
+    TermBase & TermBase::operator<< (const set::property & st)
+    {
+        setProperty(st.prop);
+        return *this;
+    }
+
     TermBase & TermBase::operator<< (const set::align & st)
     {
         setAlign(st());
@@ -834,20 +884,129 @@ namespace SWE
         return *this;
     }
 
+#ifdef SWE_WITH_JSON
+    JsonObject TermBase::toJson(void) const
+    {
+        JsonObject res = Window::toJson();
+        res.addArray("curpos", JsonPack::point(curpos.toPoint()));
+        res.addArray("termsz", JsonPack::size(termSize().toSize()));
+        res.addObject("curcols", JsonPack::fbColors(colors()));
+        res.addInteger("align", align());
+
+	JsonObject joPadding;
+	joPadding.addInteger("left", padding.left());
+	joPadding.addInteger("right", padding.right());
+	joPadding.addInteger("top", padding.top());
+	joPadding.addInteger("bottom", padding.bottom());
+        res.addObject("padding", joPadding);
+
+	JsonObject joProp;
+	CharsetProperty prop = property();
+	joProp.addInteger("render", prop.render());
+	joProp.addInteger("style", prop.style());
+	joProp.addInteger("hinting", prop.hinting());
+        res.addObject("property", joProp);
+
+        return res;
+    }
+#endif
+
     /* TermWindow */
-    TermWindow::TermWindow(const Point & gfxpos, const Size & gfxsz, const FontRender & frs, Window & win) : TermBase(gfxpos, gfxsz, frs, win)
+    TermWindow::TermWindow(const FontRender & frs, Window* win) : TermBase(frs, win)
     {
-        termResizeEvent();
+        *this << reset::defaults();
+
+	// set full window terminal
+	if(win == nullptr)
+	{
+	    setTermSize(gfx2sym(Display::size()));
+	    setVisible(true);
+	}
     }
 
-    void TermWindow::termResizeEvent(void)
+    TermWindow::TermWindow(const Size & gfxsz, const FontRender & frs, Window* win) : TermBase(gfxsz, frs, win)
     {
-        chars.resize(rows() * cols(), TermCharset(UnicodeColor(0x20, FBColors(fgColor(), bgColor())), CharsetProperty()));
+        chars.resize(rows() * cols(), TermCharset(UnicodeColor(0x20, defaultColors()), CharsetProperty()));
+        *this << reset::defaults();
+	setVisible(true);
     }
 
-    const TermCharset* TermWindow::charset(void) const
+    TermWindow::TermWindow(const TermSize & tsz, TermBase & term) : TermBase(tsz, term)
     {
-        int pos = index();
+        chars.resize(rows() * cols(), TermCharset(UnicodeColor(0x20, defaultColors()), CharsetProperty()));
+        *this << reset::defaults();
+	setVisible(true);
+    }
+
+    void TermWindow::displayResizeEvent(const Size & sz, bool sdl)
+    {
+	// resized sdl window, cols and rows changed, maybe invisible positions
+	if(sdl)
+	{
+            TermSize termsz1 = gfx2sym(sz);
+            TermSize termsz2 = minimalTerminalSize();
+            Size gfxsz = sym2gfx(termsz1.cols() < termsz2.cols() ||
+                                termsz1.rows() < termsz2.rows() ? termsz2 : termsz1);
+
+    	    Display::resize(gfxsz);
+
+	    if(parent())
+	    {
+		setTermSize(termSize());
+		setTermPos(termPos());
+	    }
+	    else
+            {
+    		setSize(gfxsz);
+                DEBUG("resized, cols: " << cols() << ", rows: " << rows());
+            }
+
+            terminalResizeEvent();
+	}
+	else
+	// resized font size, restore terminal size,pos
+	{
+            Window::setSize(sym2gfx(termSize()));
+
+	    if(parent())
+		setTermPos(termPos());
+
+            fontResizeEvent();
+	}
+
+	renderWindow();
+    }
+
+    FBColors TermWindow::defaultColors(void) const
+    {
+	return FBColors(Color::Silver, Color::DimGray);
+    }
+
+    void TermWindow::setTermSize(const TermSize & tsz)
+    {
+	TermBase::setTermSize(tsz);
+        chars.resize(rows() * cols());
+	// geometry changed, reset content
+	*this << fill::defaults(defaultColors(), 0x20, defaultProperty()) << cursor::set(0, 0);
+    }
+
+    int TermWindow::index(const TermPos & tp) const
+    {
+        if(tp.posx() < cols() && tp.posy() < rows())
+            return cols() * tp.posy() + tp.posx();
+
+        return -1;
+    }
+
+    int TermWindow::index(void) const
+    {
+        const TermPos & cur = cursor();
+        return cols() * cur.posy() + cur.posx();
+    }
+
+    const TermCharset* TermWindow::charset(const TermPos & tp) const
+    {
+        int pos = index(tp);
 
         if(pos < 0 || pos >= static_cast<int>(chars.size()))
         {
@@ -856,6 +1015,11 @@ namespace SWE
         }
 
         return & chars[pos];
+    }
+
+    const TermCharset* TermWindow::charset(void) const
+    {
+	return charset(cursor());
     }
 
     void TermWindow::setCharset(int ch, const ColorIndex & fg, const ColorIndex & bg, const CharsetProperty* prop)
@@ -877,13 +1041,17 @@ namespace SWE
 
             if(ch != -1) tc.unicode(ch);
 
-            if(! fg.isTransparent()) tc.fgindex(fg);
-            else if(! fgColor().isTransparent()) tc.fgindex(fgColor());
+	    if(! fg.isTransparent()) tc.fgindex(fg);
+            else
+            if(! fgColor().isTransparent()) tc.fgindex(fgColor());
 
-            if(! bg.isTransparent()) tc.bgindex(bg);
-            else if(! bgColor().isTransparent()) tc.bgindex(bgColor());
+	    if(! bg.isTransparent()) tc.bgindex(bg);
+            else
+            if(! bgColor().isTransparent()) tc.bgindex(bgColor());
 
-            if(prop) chars[pos].setProperty(*prop);
+	    if(prop) chars[pos].setProperty(*prop);
+            else
+            if(property().val) chars[pos].setProperty(property());
         }
 
         *this << cursor::right(1);
@@ -891,7 +1059,7 @@ namespace SWE
 
     void TermWindow::renderSymbol(int symx, int symy)
     {
-        const Point sympt = Point(symx, symy);
+        const TermPos sympt(symx, symy);
         int pos = index(sympt);
 
         if(0 <= pos)
@@ -924,7 +1092,72 @@ namespace SWE
     }
 
 
+    void TermWindow::dumpState(void) const
+    {
+	Window::dumpState();
+
+        for(int symy = 0; symy < rows(); ++symy)
+	{
+    	    VERBOSE("row[" << symy << "]");
+
+            for(int symx = 0; symx < cols(); ++symx)
+	    {
+		const TermCharset* ch = charset(TermPos(symx, symy));
+		if(ch)
+		{
+    		    auto & uc = ch->charset();
+    		    auto & prop = ch->property();
+        
+    		    VERBOSE("col[" << symx << "]: " << SWE::StringFormat("unicode: %1, fgcolor: %2, bgcolor: %3, blend: %4, style: %5, hinting: %6").
+                        arg(SWE::String::hex(uc.unicode(), 4)).arg(uc.fgcolor().toString()).arg(uc.bgcolor().toString()).
+                        arg(prop.render()).arg(SWE::String::hex(prop.style(), 2)).arg(prop.hinting()));
+		}
+	    }
+	}
+    }
+
+#ifdef SWE_WITH_JSON
+    JsonObject TermWindow::toJson(void) const
+    {
+        JsonObject res = TermBase::toJson();
+	JsonArray joContent;
+
+        for(int symy = 0; symy < rows(); ++symy)
+	{
+            for(int symx = 0; symx < cols(); ++symx)
+	    {
+		const TermCharset* ch = charset(TermPos(symx, symy));
+		if(ch)
+		{
+    		    auto & uc = ch->charset();
+    		    auto & prop = ch->property();
+
+		    JsonObject joChar;
+		    joChar.addString("unicode", String::hex(uc.unicode(), 4));
+		    joChar.addObject("colors", JsonPack::fbColors(uc.colors()));
+
+		    JsonObject joProp;
+		    joProp.addInteger("render", prop.render());
+		    joProp.addInteger("style", prop.style());
+		    joProp.addInteger("hinting", prop.hinting());
+    		    joChar.addObject("property", joProp);
+
+		    joContent.addObject(joChar);
+		}
+	    }
+	}
+
+        res.addArray("content", joContent);
+	return res;
+    }
+#endif
+
     /* TermArea */
+    void TermArea::setTermPos(const TermPos & tp)
+    {
+        termpos = tp;
+    }
+
     void TermArea::setPosition(const Point & pos)
     {
         TermWindow* term = dynamic_cast<TermWindow*>(parent());
@@ -987,8 +1220,9 @@ namespace SWE
     }
 
     /* CenteredTerminal */
-    CenteredTerminal::CenteredTerminal(int cols, int rows, const FontRender & font, Window & win)
-        : TermWindow(Point(win.size() - Size(cols, rows) * font.size()) / 2, Size(cols, rows) * font.size(), font, win)
+    CenteredTerminal::CenteredTerminal(const TermSize & tsz, const FontRender & font, Window & win)
+        : TermWindow(tsz.toSize() * font.size(), font, & win)
     {
+	setPosition((win.size() - size()) / 2);
     }
 }

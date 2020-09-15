@@ -46,10 +46,10 @@ namespace SWE
         int		rand(int min, int max);
         float		randf(float min, float max);
 
-        u32		crc32b(const char*);
+        u32		crc32b(const std::string &);
         u32		crc32b(const u8*, size_t);
 
-        int		crc16b(const char*);
+        int		crc16b(const std::string &);
         int		crc16b(const u8*, size_t);
 
         u32		ticks(void);
@@ -105,6 +105,7 @@ namespace SWE
             return it == list.end() ? nullptr : &(*it);
         }
 
+	/* RandQueue */
         template<typename T>
         class RandQueue : protected std::vector< std::pair<T, size_t> >
         {
@@ -174,6 +175,7 @@ namespace SWE
             }
         };
 
+	/* RandomChance */
         class RandomChance
         {
             unsigned int chance;
@@ -250,34 +252,43 @@ namespace SWE
         }
     }
 
+    /* Timer */
     class Timer
     {
-        std::shared_ptr<SDL_TimerID>
-        ptr;
+	struct TimerDeleter
+	{
+	    void operator() (SDL_TimerID* ptr)
+	    {
+        	SDL_RemoveTimer(*ptr);
+        	delete ptr;
+    	    };
+	};
+
+    protected:
+        std::unique_ptr<SDL_TimerID, TimerDeleter> ptr;
+        Timer(const SDL_TimerID &);
 
     public:
-        Timer(const SDL_TimerID & id = 0);
-        ~Timer();
+	Timer() {}
 
-        static Timer	create(u32 interval /* ms */, u32(*)(u32, void*), void* param = nullptr);
-        void		destroy(void);
-        bool		isValid(void) const
-        {
-            return ptr && *ptr;
-        }
+        static Timer		create(u32 interval /* ms */, u32(*)(u32, void*), void* param = nullptr);
+        void			destroy(void);
+        bool			isValid(void) const;
     };
 
+    /* TickTrigger */
     struct TickTrigger
     {
 	mutable u32 latest;
 
 	TickTrigger();
 
-	bool	check(u32 ms, u32 period) const;
-	void	reset(void);
-	void	disabled(bool f);
+	bool			check(u32 ms, u32 period) const;
+	void			reset(void);
+	void			disabled(bool f);
     };
 
+    /* KeyValue */
     template<typename T>
     struct KeyValue : std::pair<std::string, T>
     {
@@ -288,7 +299,7 @@ namespace SWE
         {
             return this->first;
         }
-        const T 	&	value(void) const
+        const T &		value(void) const
         {
             return this->second;
         }

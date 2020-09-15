@@ -298,8 +298,7 @@ namespace SWE
 
     void Window::setHidden(bool f)
     {
-        if((checkState(FlagLayoutHidden) && !f) ||
-           (! checkState(FlagLayoutHidden) && f))
+        if(checkState(FlagLayoutHidden) != f)
         {
     	    // set for all childrens (if for parent applies)
     	    for(auto & child : DisplayScene::items())
@@ -316,8 +315,7 @@ namespace SWE
         for(auto & child : DisplayScene::findChilds(*this))
             child->setVisible(f);
 
-        if((checkState(FlagVisible) && !f) ||
-           (! checkState(FlagVisible) && f))
+        if(checkState(FlagVisible) != f)
         {
             setState(FlagVisible, f);
 
@@ -642,6 +640,7 @@ namespace SWE
     DisplayWindow::DisplayWindow(const Color & col) : Window(Display::size(), nullptr), backcolor(col)
     {
         setState(FlagLayoutBackground);
+        renderClear(backcolor);
         setVisible(true);
     }
 

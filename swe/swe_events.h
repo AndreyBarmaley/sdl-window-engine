@@ -28,33 +28,79 @@
 
 namespace SWE
 {
+    /// @protected
     void	clearAllSignals(void);
 
+    /// @brief класс объектов сцены DisplayScene, с возможностью отправки/получения сигналов
+/*!
+    @details
+    Алгоритм использования:
+        - подписка на событие
+        @code
+            void signalSubscribe(const SignalMember & sender, int signal, SignalMember & receiver);
+        @endcode
+        - отправка signal со стороны отправителя
+        @code
+            void signalEmit(int signal);
+        @endcode
+        - получение через виртуальную функцию
+        @code
+            void signalReceive(int signal, const SignalMember* sender) override;
+        @endcode
+        особенность данного метода - получение signal происходит в конце этой же итерации основного цикла обработки событий DisplayScene,
+        а также нет возможности отправки данных.
+
+    @see ObjectEvent
+*/
     class SignalMember : public ObjectEvent
     {
     public:
         virtual ~SignalMember();
 
+	/// @brief функция подписки на сигнал
+	/// @param sender отправитель сигнала
+	/// @param sig тип сигнала
+	/// @param receiver получатель сигнала
         static void	signalSubscribe(const SignalMember & sender, int sig, SignalMember & receiver);
+
+	/// @brief функция отписки от сигнала
+	/// @param receiver получатель сигнала
+        static void	signalUnsubscribe(const SignalMember & receiver);
+
+	/// @brief функция отправки сигнала с подстановкой отправителя
+	/// @param sender отправитель сигнала
+	/// @param sig тип сигнала
         static void	signalEmit(const SignalMember & sender, int sig);
-        static bool	signalSubscribed(const SignalMember & sender, int = 0 /* all signals */);
+
+	/// @brief функция проверки на подписку сигнала
+	/// @param sig тип сигнала, если равно нулю - проверяется на любой подписанный сигнал
+        static bool	signalSubscribed(const SignalMember & sender, int sig = 0 /* all signals */);
 
 	const char*	className(void) const override { return "SWE::SignalMember"; }
 
     protected:
+	/// @brief функция подписки на сигнал
+	/// @param sender отправитель сигнала
+	/// @param sig тип сигнала
         void		signalSubscribe(const SignalMember & sender, int sig);
-        void		signalUnsubscribe(const SignalMember &);
 
-        void		signalEmit(int);
-        virtual void	signalReceive(int, const SignalMember*) {}
+
+	/// @brief фунция отправки сигнала
+	/// @param sig тип сигнала
+        void		signalEmit(int sig);
+
+	/// @brief метод получатель, вызывается при signalEmit со стороны отправителя
+        virtual void	signalReceive(int sig, const SignalMember* sender) {}
     };
 
+    /// @brief базовый класс не графических объектов сцены DisplayScene
     class BaseObject : public SignalMember
     {
     public:
 	BaseObject();
 	virtual ~BaseObject();
 
+	/// @brief функция состояния объекта, используется для авторизации получения событий ObjectEvent::tickEvent и ObjectEvent::userEvent
 	virtual bool	isValidObject(void) const { return false; }
     };
 

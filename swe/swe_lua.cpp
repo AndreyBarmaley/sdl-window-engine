@@ -181,6 +181,106 @@ namespace SWE
         return lua_isthread(ptr, index);
     }
 
+    bool LuaState::isTopNil(void) const
+    {
+        return isNilIndex(-1);
+    }
+
+    bool LuaState::isTopBoolean(void) const
+    {
+        return isBooleanIndex(-1);
+    }
+
+    bool LuaState::isTopNumber(void) const
+    {
+        return isNumberIndex(-1);
+    }
+
+    bool LuaState::isTopInteger(void) const
+    {
+        return isIntegerIndex(-1);
+    }
+
+    bool LuaState::isTopString(void) const
+    {
+        return isStringIndex(-1);
+    }
+
+    bool LuaState::isTopTable(void) const
+    {
+        return isTableIndex(-1);
+    }
+
+    bool LuaState::isTopUserData(void) const
+    {
+        return isUserDataIndex(-1);
+    }
+
+    bool LuaState::isTopLightUserData(void) const
+    {
+        return isLightUserDataIndex(-1);
+    }
+
+    bool LuaState::isTopFunction(void) const
+    {
+        return isFunctionIndex(-1);
+    }
+
+    bool LuaState::isTopThread(void) const
+    {
+        return isThreadIndex(-1);
+    }
+
+    bool LuaState::getTopBoolean(void)
+    {
+        return toBooleanIndex(-1);
+    }
+
+    double LuaState::getTopNumber(void)
+    {
+        return toNumberIndex(-1);
+    }
+
+    int LuaState::getTopInteger(void)
+    {
+        return toIntegerIndex(-1);
+    }
+
+    std::string LuaState::getTopString(void)
+    {
+        return toStringIndex(-1);
+    }
+
+    void* LuaState::getTopUserData(void)
+    {
+        return toUserDataIndex(-1);
+    }
+
+    const void* LuaState::getTopPointer(void)
+    {
+        return toPointerIndex(-1);
+    }
+
+    lua_CFunction LuaState::getTopFunction(void)
+    {
+        return toFunctionIndex(-1);
+    }
+
+    lua_State* LuaState::getTopThread(void)
+    {
+        return toThreadIndex(-1);
+    }
+
+    int LuaState::getTopType(void) const
+    {
+        return getTypeIndex(-1);
+    }
+
+    const char* LuaState::getTopTypeName(void) const
+    {
+        return getTypeName(getTopType());
+    }
+
     bool LuaState::toBooleanIndex(int index) const
     {
         if(lua_isstring(ptr, index) &&

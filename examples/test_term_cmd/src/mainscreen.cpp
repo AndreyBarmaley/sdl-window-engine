@@ -124,12 +124,12 @@ bool SortFileInfoPred(const FileInfo & fn1, const FileInfo & fn2)
 };
 
 /* FontRenderInit */
-FontRenderInit::FontRenderInit(const std::string & title, const Size & minsz, int fsz) : termsz(minsz)
+FontRenderInit::FontRenderInit(const std::string & title, const TermSize & termsz, int fsz)
 {
     ttf = BinaryBuf(_default_ttf_h.data, sizeof(_default_ttf_h.data)).zlibUncompress(_default_ttf_h.size);
     frt = FontRenderTTF(ttf, fsz, false);
 
-    const Size defsz = termsz * frt.size();
+    const Size defsz = termsz.toSize() * frt.size();
 
     bool fullscreen = false;
     bool accel = false;
@@ -169,7 +169,7 @@ UnicodeString ShrinkFileName(const std::string & name, int smax)
 }
 
 /* TermPanel */
-TermPanel::TermPanel(TermWindow & term) : TermArea(term), cursorPos(0), skipList(0), focus(false)
+TermPanel::TermPanel(TermWindow & term) : TermArea(& term), cursorPos(0), skipList(0), focus(false)
 {
     resetState(FlagModality);
     setState(FlagKeyHandle);
@@ -493,7 +493,7 @@ void TermPanel::windowResizeEvent(const Size & sz)
 }
 
 /* MenuBar */
-MenuBar::MenuBar(TermWindow & term) : TermArea(term)
+MenuBar::MenuBar(TermWindow & term) : TermArea(& term)
 {
     setState(FlagModality);
     setVisible(false);
@@ -506,7 +506,8 @@ void MenuBar::renderWindow(void)
 }
 
 /* MainScreen */
-MainScreen::MainScreen(const std::string & title, int fsz) : FontRenderInit(title, Size(80, 25), fsz), fontsz(fsz), left(*this), right(*this)//, menu(*this)
+MainScreen::MainScreen(const std::string & title, int fsz)
+    : FontRenderInit(title, minimalTerminalSize(), fsz), fontsz(fsz), left(*this), right(*this)//, menu(*this)
 {
     setFontRender(FontRenderInit::frt);
 
@@ -517,8 +518,7 @@ MainScreen::MainScreen(const std::string & title, int fsz) : FontRenderInit(titl
     left.setFocus(true);
     right.setFocus(false);
 
-    // menu.addLabel("", 1025, const Point &, *this);
-
+    VERBOSE("you can change the window size and font size, also use mouse scroll.");
     setVisible(true);
 }
 
@@ -595,39 +595,30 @@ bool MainScreen::userEvent(int act, void* data)
 {
     switch(act)
     {
-	case 1025: VERBOSE("LabelAction: " << 1025); return true;
-	case 1026: VERBOSE("LabelAction: " << 1026); return true;
-	case 1027: VERBOSE("LabelAction: " << 1027); return true;
 	default: break;
     }
 
     return false;
 }
 
-void MainScreen::displayResizeEvent(const Size & sz, bool sdl)
+SWE::TermSize MainScreen::minimalTerminalSize(void) const
 {
-    if(sdl)
-    {
-	TermSize termsz1 = gfx2sym(sz);
-	const TermSize & termsz2 = FontRenderInit::termsz;
-	Size gfxsz = sym2gfx(termsz1.cols() < termsz2.cols() ||
-				termsz2.rows() < termsz2.rows() ? termsz2 : termsz1);
+    return SWE::TermSize(80, 25);
+}
 
-	Display::resize(gfxsz);
-	setSize(gfxsz);
+SWE::CharsetProperty MainScreen::defaultProperty(void) const
+{
+    return SWE::CharsetProperty(SWE::RenderBlended, SWE::StyleNormal, SWE::HintingNormal);
+}
 
+SWE::FBColors MainScreen::defaultColors(void) const
+{
+    return SWE::FBColors(SWE::Color::Silver, SWE::Color::Black);
+}
+
+void MainScreen::terminalResizeEvent(void)
+{
 	panelsPositions();
-	renderWindow();
-    }
-    else
-    {
-	// font size changed event
-	// VERBOSE("id: " << String::hex(id()) << ", " << sz.toString());
-	setSize(sz);
-
-	panelsPositions();
-	renderWindow();
-    }
 }
 
 void MainScreen::renderPresentEvent(u32 ms)

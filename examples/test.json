@@ -1,0 +1,18 @@
+{
+    "test string":	"Hello World!",
+    "test int":		1234567,
+    "test float":	1.234567,
+    "test point":	[ 123, 456 ],
+    "test size":	{ "width": 567, "height": 890 },
+    "test rect":	{ "x": 123, "y": 456, "w": 789, "h": 376, },
+    "array int":	[ 1, 2, 3 ,4 ,5 ,6 ,7 ,8 ,9, ],
+    "array str":	[ "1", "2", "3" ,"4" ,"5" ,"6" ,"7" ,"8" ,"9" ],
+    "test bool1":	true,
+    "array point":	[
+			    [ 4, 5 ],
+			    {"x": 1, "y": 2},
+			    {"x": 2, "y": 3},
+			    {"posx": 3, "posy": 4},
+			],
+    "test bool2":	false,
+}

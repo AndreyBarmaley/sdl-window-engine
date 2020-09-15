@@ -27,93 +27,87 @@
 
 namespace SWE
 {
-
+    /// @brief перечисление типа символьных линий
     enum line_t { LineNone, LineAscii, LineThin, LineBold, LineDouble };
+    /// @brief перечисление направления движения курсора в терминале
     enum move_t { MoveCenter, MoveUp, MoveDown, MoveLeft, MoveRight, MoveUpperLeft, MoveUpperRight, MoveLowerLeft, MoveLowerRight, MoveFirst, MoveLast };
 
+    /* line chars */
     namespace acs
     {
+	/// @brief код символа "вертикальная линия"
         int         vline(line_t);
+	/// @brief код символа "горизонтальная линия"
         int         hline(line_t);
+	/// @brief код символа "верхний левый угол"
         int         ulcorner(line_t);
+	/// @brief код символа "верхний правый угол"
         int         urcorner(line_t);
+	/// @brief код символа "нижний левый угол"
         int         llcorner(line_t);
+	/// @brief код символа "нижний правый угол"
         int         lrcorner(line_t);
+	/// @brief код символа "левый T"
         int         ltee(line_t);
+	/// @brief код символа "правый T"
         int         rtee(line_t);
+	/// @brief код символа "верхний T"
         int         ttee(line_t);
+	/// @brief код символа "нижний T"
         int         btee(line_t);
+	/// @brief код символа "+"
         int         plus(line_t);
     }
 
+    /// @brief класс двухмерной размерности в терминале
     struct TermSize : packshort
     {
         TermSize() {}
-        TermSize(int cols, int rows) : packshort(cols, rows) {}
+        TermSize(size_t cols, size_t rows) : packshort(cols, rows) {}
         TermSize(const Size & sz) : packshort(sz.w, sz.h) {}
-
-        int cols(void) const
-        {
-            return val1();
-        }
-        int rows(void) const
-        {
-            return val2();
-        }
-
-        TermSize operator+ (const TermSize & ts) const
-        {
-            return TermSize(cols() + ts.cols(), rows() + ts.rows());
-        }
-        TermSize operator- (const TermSize & ts) const
-        {
-            return TermSize(cols() - ts.cols(), rows() - ts.rows());
-        }
-
-        Size toSize(void) const
-        {
-            return Size(cols(), rows());
-        }
+ 
+        size_t                  cols(void) const { return val1(); }
+        size_t                  rows(void) const { return val2(); }
+ 
+        void                    setSize(size_t cols, size_t rows) { set1(cols); set2(rows); }
+ 
+        TermSize                operator+ (const TermSize & ts) const { return TermSize(cols() + ts.cols(), rows() + ts.rows()); }
+        TermSize                operator- (const TermSize & ts) const { return TermSize(cols() - ts.cols(), rows() - ts.rows()); }
+ 
+        TermSize &              operator+= (const TermSize & ts) { setSize(cols() + ts.cols(), rows() + ts.rows()); return *this; }
+        TermSize &              operator-= (const TermSize & ts) { setSize(cols() - ts.cols(), rows() - ts.rows()); return *this; }
+ 
+        Size                    toSize(void) const { return Size(cols(), rows()); }
     };
 
+    /// @brief класс двухмерной позиции в терминале
     struct TermPos : packshort
     {
         TermPos() {}
         TermPos(int posx, int posy) : packshort(posx, posy) {}
         TermPos(const Point & pt) : packshort(pt.x, pt.y) {}
 
-        int posx(void) const
-        {
-            return val1();
-        }
-        int posy(void) const
-        {
-            return val2();
-        }
+        int                     posx(void) const { return val1(); }
+        int                     posy(void) const { return val2(); }
 
-        TermPos operator+ (const TermPos & tp) const
-        {
-            return TermPos(posx() + tp.posx(), posy() + tp.posy());
-        }
-        TermPos operator- (const TermPos & tp) const
-        {
-            return TermPos(posx() - tp.posx(), posy() - tp.posy());
-        }
-        TermPos operator+ (const TermSize & ts) const
-        {
-            return TermPos(posx() + ts.cols(), posy() + ts.rows());
-        }
-        TermPos operator- (const TermSize & ts) const
-        {
-            return TermPos(posx() - ts.cols(), posy() - ts.rows());
-        }
+        void                    setPos(int posx, int posy) { set1(posx); set2(posy); }
 
-        Point toPoint(void) const
-        {
-            return Point(posx(), posy());
-        }
+        TermPos                 operator+ (const TermPos & tp) const { return TermPos(posx() + tp.posx(), posy() + tp.posy()); }
+        TermPos                 operator- (const TermPos & tp) const { return TermPos(posx() - tp.posx(), posy() - tp.posy()); }
+
+        TermPos                 operator+ (const TermSize & ts) const { return TermPos(posx() + ts.cols(), posy() + ts.rows()); }
+        TermPos                 operator- (const TermSize & ts) const { return TermPos(posx() - ts.cols(), posy() - ts.rows()); }
+
+        TermPos &               operator+= (const TermPos & tp) { setPos(posx() + tp.posx(), posy() + tp.posy()); return *this; }
+        TermPos &               operator-= (const TermPos & tp) { setPos(posx() - tp.posx(), posy() - tp.posy()); return *this; }
+
+        TermPos &               operator+= (const TermSize & ts) { setPos(posx() + ts.cols(), posy() + ts.rows()); return *this; }
+        TermPos &               operator-= (const TermSize & ts) { setPos(posx() - ts.cols(), posy() - ts.rows()); return *this; }
+
+        Point                   toPoint(void) const { return Point(posx(), posy()); }
     };
 
+    /// @brief класс прямоугольника в терминале
     struct TermRect : TermPos, TermSize
     {
         TermRect() {}
@@ -121,68 +115,62 @@ namespace SWE
         TermRect(const TermPos & tp, const TermSize & ts) : TermPos(tp), TermSize(ts) {}
         TermRect(const Rect & rt) : TermPos(rt.x, rt.y), TermSize(rt.w, rt.h) {}
 
-        Rect toRect(void) const
-        {
-            return Rect(toPoint(), toSize());
-        }
+        void                    setRect(int posx, int posy, size_t cols, size_t rows) { setPos(posx, posy); setSize(cols, rows); }
+        Rect                    toRect(void) const { return Rect(toPoint(), toSize()); }
     };
 
     namespace cursor
     {
+	/// @brief класс манипулятор, установка позиции курсора терминала
         struct set : public packint2
         {
             set(const TermPos & tp) : packint2(tp.posx(), tp.posy()) {}
             set(int x, int y) : packint2(x, y) {}
 
-            int posx(void) const
-            {
-                return val1();
-            }
-            int posy(void) const
-            {
-                return val2();
-            }
+            int			posx(void) const { return val1(); }
+            int			posy(void) const { return val2(); }
         };
 
+	/// @brief класс манипулятор, движение курсора по направлению в терминале
         struct move : public packint2
         {
             move(move_t dir, int count = 1) : packint2(dir, count) {}
 
-            int dir(void) const
-            {
-                return val1();
-            }
-            int count(void) const
-            {
-                return val2();
-            }
+            int			dir(void) const { return val1(); }
+            int			count(void) const { return val2(); }
         };
 
+	/// @brief класс манипулятор, перемещение курсора в терминале вверх
         struct up : public move
         {
             up(int count = 1) : move(MoveUp, count) {}
         };
 
+	/// @brief класс манипулятор, перемещение курсора в терминале вниз
         struct down : public move
         {
             down(int count = 1) : move(MoveDown, count) {}
         };
 
+	/// @brief класс манипулятор, перемещение курсора в терминале налево
         struct left : public move
         {
             left(int count = 1) : move(MoveLeft, count) {}
         };
 
+	/// @brief класс манипулятор, перемещение курсора в терминале направо
         struct right : public move
         {
             right(int count = 1) : move(MoveRight, count) {}
         };
 
+	/// @brief класс манипулятор, перемещение курсора в терминале в позицию "начало строки"
         struct first : public move
         {
             first() : move(MoveFirst) {}
         };
 
+	/// @brief класс манипулятор, перемещение курсора в терминале в позицию "окончание строки"
         struct last : public move
         {
             last() : move(MoveLast) {}
@@ -191,201 +179,197 @@ namespace SWE
 
     namespace set
     {
+	/// @brief класс манипулятор, установка состояния set::fgcolor
+	/// @see TermBase::operator<< (const set::fgcolor &)
         struct fgcolor
         {
-            ColorIndex color;
+            ColorIndex		color;
 
             fgcolor(const ColorIndex & col) : color(col) {}
         };
 
+	/// @brief класс манипулятор, установка состояния set::bgcolor
+	/// @see TermBase::operator<< (const set::ggcolor &)
         struct bgcolor
         {
-            ColorIndex color;
+            ColorIndex		color;
 
             bgcolor(const ColorIndex & col) : color(col) {}
         };
 
+	/// @brief класс манипулятор, установка состояния set::align
+	/// @see TermBase::operator<< (const set::align &)
         struct align
         {
             align_t val;
 
             align(align_t v) : val(v) {}
-            align_t operator()(void) const
-            {
-                return val;
-            }
+
+            const align_t &	operator()(void) const { return val; }
         };
 
+	/// @brief класс манипулятор, установка состояния set::wrap
+	/// @see TermBase::operator<< (const set::wrap &)
         struct wrap {};
 
+	/// @brief класс манипулятор, установка состояния set::padding
+	/// @see TermBase::operator<< (const set::padding &)
         struct padding : public packint4
         {
             padding() : packint4(0) {}
             padding(int left, int right, int top, int bottom) : packint4(left, right, top, bottom) {}
 
-            int left(void) const
-            {
-                return val1();
-            }
-            int right(void) const
-            {
-                return val2();
-            }
-            int top(void) const
-            {
-                return val3();
-            }
-            int bottom(void) const
-            {
-                return val4();
-            }
+            int			left(void) const { return val1(); }
+            int			right(void) const { return val2(); }
+            int			top(void) const { return val3(); }
+            int			bottom(void) const { return val4(); }
         };
 
+	/// @brief класс манипулятор, установка состояния set::colors
+	/// @see TermBase::operator<< (const set::colors &)
         struct colors : public packint2
         {
             colors(const FBColors & fbc) : packint2(fbc.fg(), fbc.bg()) {}
             colors(const ColorIndex & fg, const ColorIndex & bg) : packint2(fg(), bg()) {}
 
-            ColorIndex fgindex(void) const
-            {
-                return val1();
-            }
-            ColorIndex bgindex(void) const
-            {
-                return val2();
-            }
+            ColorIndex		fgindex(void) const { return val1(); }
+            ColorIndex 		bgindex(void) const { return val2(); }
         };
 
+	/// @brief класс манипулятор, установка состояния set::property
+	/// @see TermBase::operator<< (const set::property &)
+        struct property
+        {
+	    CharsetProperty	prop;
+
+	    property(int blend, int style = StyleNormal, int hinting = HintingNormal) : prop(blend, style, hinting) {}
+            property(const CharsetProperty & val) : prop(val) {}
+        };
+
+	/// @brief класс манипулятор, установка состояния set::rn
         struct rn {};
+
+	/// @brief класс манипулятор, установка состояния set::flush
         struct flush {};
     }
 
     namespace reset
     {
+	/// @brief класс манипулятор, сброс состояния set::fgcolor
         struct fgcolor {};
+
+	/// @brief класс манипулятор, сброс состояния set::bgcolor
         struct bgcolor {};
+
+	/// @brief класс манипулятор, сброс состояния set::colors
         struct colors {};
+
+	/// @brief класс манипулятор, сброс состояния set::align
+        struct align {};
+
+	/// @brief класс манипулятор, сброс состояния set::property
+        struct property {};
+
+	/// @brief класс манипулятор, сброс состояния set::padding
         struct padding {};
+
+	/// @brief класс манипулятор, сброс состояния set::wrap
         struct wrap {};
+
+	/// @brief класс манипулятор, сброс всех состояний
         struct defaults {};
     }
 
     namespace fill
     {
+	/// @brief класс манипулятор, заполнение области значением
         struct area : public std::pair<int, packint2>
         {
             area(int val, const TermSize & sz) : std::pair<int, packint2>(val, packint2(sz.cols(), sz.rows())) {}
 
-            int 		value(void) const
-            {
-                return first;
-            }
-            int		width(void) const
-            {
-                return second.val1();
-            }
-            int		height(void) const
-            {
-                return second.val2();
-            }
+            int 		value(void) const { return first; }
+            size_t		width(void) const { return second.val1(); }
+            size_t		height(void) const { return second.val2(); }
         };
 
+	/// @brief класс манипулятор, заполнение области символом
         struct charset : public area
         {
             charset(int ch, const TermSize & sz = TermSize(1, 1)) : area(ch, sz) {}
         };
 
+	/// @brief класс манипулятор, заполнение строки символом space
         struct space : public charset
         {
             space(int sz = 1) : charset(0x20, Size(sz, 1)) {}
         };
 
+	/* fill::fgcolor */
         struct fgcolor : public area
         {
             fgcolor(const ColorIndex & col, const TermSize & sz = TermSize(1, 1)) : area(col(), sz) {}
         };
 
+	/* fill::bgcolor */
         struct bgcolor : public area
         {
             bgcolor(const ColorIndex & col, const TermSize & sz = TermSize(1, 1)) : area(col(), sz) {}
         };
 
+	/* fill::colors */
         struct colors : public area
         {
             colors(const FBColors & fbc, const TermSize & sz = TermSize(1, 1)) : area(packshort(fbc.bg(), fbc.fg()).value(), sz) {}
             colors(const ColorIndex & fg, const ColorIndex & bg, const TermSize & sz = TermSize(1, 1)) : area(packshort(bg(), fg()).value(), sz) {}
-            ColorIndex	fgindex(void) const
-            {
-                return ColorIndex(packshort(value()).val2());
-            }
-            ColorIndex	bgindex(void) const
-            {
-                return ColorIndex(packshort(value()).val1());
-            }
+
+            ColorIndex		fgindex(void) const { return ColorIndex(packshort(value()).val2()); }
+            ColorIndex		bgindex(void) const { return ColorIndex(packshort(value()).val1()); }
         };
 
+	/* fill::property */
         struct property : public std::pair<CharsetProperty, packint2>
         {
             property(const CharsetProperty & cp, const TermSize & sz = TermSize(1, 1)) :
                 std::pair<CharsetProperty, packint2>(cp, packint2(sz.cols(), sz.rows())) {}
 
-            const CharsetProperty & toProperty(void) const
-            {
-                return first;
-            }
-            int                     width(void) const
-            {
-                return second.val1();
-            }
-            int                     height(void) const
-            {
-                return second.val2();
-            }
+            const CharsetProperty & toProperty(void) const { return first; }
+            size_t		width(void) const { return second.val1(); }
+            size_t		height(void) const { return second.val2(); }
         };
 
+	/* fill::defaults */
         struct defaults : public UnicodeColor
         {
-            CharsetProperty property;
+            CharsetProperty	property;
 
-            defaults(const FBColors & fbc, int ch = 0x20, int prop = 0) : UnicodeColor(ch, fbc), property(prop) {}
+            defaults(const FBColors & fbc, int ch = 0x20, const CharsetProperty & prop = CharsetProperty()) : UnicodeColor(ch, fbc), property(prop) {}
             defaults(const ColorIndex & fg, const ColorIndex & bg, int ch = 0x20, const CharsetProperty & prop = CharsetProperty()) : UnicodeColor(ch, FBColors(fg, bg)), property(prop) {}
-            const CharsetProperty  & prop(void) const
-            {
-                return property;
-            }
+
+            const CharsetProperty  & prop(void) const { return property; }
         };
     }
 
     namespace draw
     {
+	/* draw hline */
         struct hline : public packint2
         {
             hline(int count, int charset = acs::hline(LineThin)) : packint2(count, charset) {}
 
-            int count(void) const
-            {
-                return val1();
-            }
-            int charset(void) const
-            {
-                return val2();
-            }
+            int			count(void) const { return val1(); }
+            int			charset(void) const { return val2(); }
         };
 
+	/* draw vline */
         struct vline : public packint2
         {
             vline(int count, int charset = acs::vline(LineThin)) : packint2(count, charset) {}
 
-            int count(void) const
-            {
-                return val1();
-            }
-            int charset(void) const
-            {
-                return val2();
-            }
+            int			count(void) const { return val1(); }
+            int			charset(void) const { return val2(); }
         };
 
+	/* draw rect */
         struct rect : public TermRect
         {
             line_t line;
@@ -395,6 +379,7 @@ namespace SWE
         };
     }
 
+    /* TermCharset */
     struct TermCharset : std::pair<UnicodeColor, CharsetProperty>
     {
         TermCharset() {}
@@ -402,46 +387,28 @@ namespace SWE
         TermCharset(const UnicodeColor & uc, const CharsetProperty & cp = CharsetProperty())
             : std::pair<UnicodeColor, CharsetProperty>(uc, cp) {}
 
-        void setCharset(const UnicodeColor & uc)
-        {
-            first = uc;
-        }
-
-        void setProperty(const CharsetProperty & cp)
-        {
-            second = cp;
-        }
-
-        const UnicodeColor & charset(void) const
-        {
-            return first;
-        }
-
-        const CharsetProperty &	property(void) const
-        {
-            return second;
-        }
-
-        UnicodeColor & charset(void)
-        {
-            return first;
-        }
-
-        CharsetProperty & property(void)
-        {
-            return second;
-        }
+        void			setCharset(const UnicodeColor & uc) { first = uc; }
+        void			setProperty(const CharsetProperty & cp) { second = cp; }
+        const UnicodeColor &	charset(void) const { return first; }
+        const CharsetProperty &	property(void) const { return second; }
+        UnicodeColor &		charset(void) { return first; }
+        CharsetProperty &	property(void) { return second; }
     };
 
+    /// @brief базовый класс терминального окна
     class TermBase : public Window
     {
+    private:
+	    TermBase(const TermBase &) = delete;
+	    TermBase &		operator=(const TermBase &) = delete;
+
     protected:
         const FontRender*	fontRender;
         set::padding		padding;
         TermPos			curpos;
-        TermSize		termsz;
-        packshort		defcols;
-        packshort		termopt2; /* align, unused */
+        TermRect		termrt;
+        packshort		curcols;
+        packshort		termopt; /* align, property */
 
         /*
         protected:
@@ -465,192 +432,234 @@ namespace SWE
             virtual void        displayResizeEvent(const Size &, bool) {}
             virtual void        displayFocusEvent(bool gain) {}
         */
-        virtual void        termResizeEvent(void) {}
+        bool			lineWrap(void) const;
 
-        // protected: empty font render
-        TermBase();
-        TermBase(TermBase &);
+        void			setFGColor(const ColorIndex &);
+        void			setBGColor(const ColorIndex &);
 
-        bool		lineWrap(void) const;
+        ColorIndex		fgColor(void) const;
+        ColorIndex		bgColor(void) const;
+        FBColors		colors(void) const;
 
-        int		index(const Point &) const;
-        int		index(void) const;
+        void			setAlign(align_t v);
+        int			align(void) const;
 
-        void		setFGColor(const ColorIndex &);
-        void		setBGColor(const ColorIndex &);
+	void			setProperty(const CharsetProperty &);
+	CharsetProperty		property(void) const;
 
-        ColorIndex	fgColor(void) const;
-        ColorIndex	bgColor(void) const;
-        FBColors	colors(void) const;
+        const set::padding &	paddings(void) const;
 
-        void		setAlign(align_t v);
-        int		align(void) const;
+    protected:
+        TermBase(TermBase*);
 
-        void		setUnused8(int v);
-        int		unused8(void) const;
-
-        const set::padding & paddings(void) const;
+	virtual CharsetProperty defaultProperty(void) const;
+	virtual FBColors	defaultColors(void) const;
 
     public:
-        TermBase(const FontRender &);
-        TermBase(const FontRender &, Window &);
-        TermBase(const Point & gfxpt, const Size & gfxsz, const FontRender &, Window &);
+        TermBase(const FontRender &, Window*);
+        TermBase(const Size & gfxsz, const FontRender &, Window*);
+        TermBase(const TermSize &, TermBase &);
 
-        void		setFontRender(const FontRender &);
-        void            setSize(const Size &) override;
-        void		setTermSize(const TermSize &);
+        void			setFontRender(const FontRender &);
+        void            	setSize(const Size &) override;
+        virtual void		setTermSize(const TermSize &);
+	void			setTermPos(const TermPos &);
 
-        void		setCursorPos(const TermPos & tp)
-        {
-            curpos = tp;
-        }
-        void		resetCursorPos(void)
-        {
-            curpos = TermPos();
-        }
-        const TermPos &	cursor(void) const
-        {
-            return curpos;
-        }
 
-        virtual void setCharset(int ch, const ColorIndex & fg = Color::Transparent, const ColorIndex & bg = Color::Transparent, const CharsetProperty* prop = nullptr) = 0;
-        virtual void renderFlush(void) = 0;
+        void			setCursorPos(const TermPos &);
+        void			resetCursorPos(void);
+        const TermPos &		cursor(void) const;
 
-        inline int cols(void) const
-        {
-            return termsz.cols();
-        }
+        virtual void		setCharset(int ch, const ColorIndex & fg = Color::Transparent, const ColorIndex & bg = Color::Transparent, const CharsetProperty* prop = nullptr) = 0;
+        virtual void		renderFlush(void) = 0;
 
-        inline int rows(void) const
-        {
-            return termsz.rows();
-        }
+	/// @result количество столбцов в терминале
+        size_t                  cols(void) const;
+	/// @result количество строк в терминале
+        size_t                  rows(void) const;
 
-        const TermSize & termSize(void) const
-        {
-            return termsz;
-        }
+	/// @result позиция терминала в символах (относительно parent)
+        const TermPos &         termPos(void) const;
 
-        const FontRender* frs(void) const
-        {
-            return fontRender;
-        }
+	/// @result размер терминала в символах
+        const TermSize & 	termSize(void) const;
 
-        Point		sym2gfx(const TermPos &) const;   /* coord transformer: symbol to graphics (parent relative) */
-        TermPos		gfx2sym(const Point &) const;   /* coord transformer: graphics to symbol (parent relative) */
-        Size		sym2gfx(const TermSize &) const;    /* size transformer: symbol to graphics */
-        TermSize	gfx2sym(const Size &) const;    /* size transformer: graphics to symbol */
-        Rect		sym2gfx(const TermRect &) const;
-        TermRect	gfx2sym(const Rect &) const;
+	/// @result текуший рендер шрифтов окна
+        const FontRender* 	frs(void) const;
 
-        TermBase & operator<< (const fill::defaults &);
-        TermBase & operator<< (const fill::fgcolor &);
-        TermBase & operator<< (const fill::bgcolor &);
-        TermBase & operator<< (const fill::colors &);
-        TermBase & operator<< (const fill::charset &);
-        TermBase & operator<< (const fill::property &);
+	/// @brief coordinate transformer: symbol TermPos to graphics Point (parent relative)
+        Point			sym2gfx(const TermPos &) const;
+	/// @brief coordinate transformer: graphics Point to symbol TermPos (parent relative)
+        TermPos			gfx2sym(const Point &) const;
+	/// @brief size transformer: symbol TermSize to graphics Size
+        Size			sym2gfx(const TermSize &) const;
+	/// @brief size transformer: graphics Size to symbol TermSize
+        TermSize		gfx2sym(const Size &) const;
+	/// @brief rect transformer: symbol TermRect to graphics Rect
+        Rect			sym2gfx(const TermRect &) const;
+	/// @brief rect transformer: graphics Rect to symbol TermRect
+        TermRect		gfx2sym(const Rect &) const;
 
-        TermBase & operator<< (const cursor::set &);
-        TermBase & operator<< (const cursor::move &);
+        TermBase & 		operator<< (const fill::defaults &);
+        TermBase & 		operator<< (const fill::fgcolor &);
+        TermBase & 		operator<< (const fill::bgcolor &);
+        TermBase & 		operator<< (const fill::colors &);
+        TermBase & 		operator<< (const fill::charset &);
+        TermBase & 		operator<< (const fill::property &);
 
-        TermBase & operator<< (const set::colors &);
-        TermBase & operator<< (const set::fgcolor &);
-        TermBase & operator<< (const set::bgcolor &);
-        TermBase & operator<< (const set::align &);
-        TermBase & operator<< (const set::padding &);
-        TermBase & operator<< (const set::wrap &);
-        TermBase & operator<< (const set::rn &);
-        TermBase & operator<< (const set::flush &);
+	/// @brief установить текущую позицию курсора
+        TermBase & 		operator<< (const cursor::set &);
 
-        TermBase & operator<< (const reset::defaults &);
-        TermBase & operator<< (const reset::colors &);
-        TermBase & operator<< (const reset::fgcolor &);
-        TermBase & operator<< (const reset::bgcolor &);
-        TermBase & operator<< (const reset::padding &);
-        TermBase & operator<< (const reset::wrap &);
+	/// @brief подвинуть курсор
+        TermBase & 		operator<< (const cursor::move &);
 
-        TermBase & operator<< (const draw::hline &);
-        TermBase & operator<< (const draw::vline &);
-        TermBase & operator<< (const draw::rect &);
+	/// @brief установить цвет символа и цвет фона по умолчанию, для всех последующих действий
+	/// @details область действия до вызова reset::colors или reset::defaults и ограниченно до reset::bgcolor или reset::fgcolor
+        TermBase & 		operator<< (const set::colors &);
 
-        TermBase & operator<< (int);
-        TermBase & operator<< (const char*);
-        TermBase & operator<< (const std::string &);
-        TermBase & operator<< (const UnicodeString &);
-        TermBase & operator<< (const UCString &);
-        TermBase & operator<< (const UnicodeList &);
-        TermBase & operator<< (const UCStringList &);
+	/// @brief установить цвет символа по умолчанию, для всех последующих действий
+	/// @details область действия до вызова reset::fgcolor, reset::colors или reset::defaults
+        TermBase & 		operator<< (const set::fgcolor &);
 
-        TermBase & operator<< (const UnicodeColor &);
+	/// @brief установить цвет фона по умолчанию, для всех последующих действий
+	/// @details область действия до вызова reset::bgcolor, reset::colors или reset::defaults
+        TermBase & 		operator<< (const set::bgcolor &);
 
-        void		renderWindow(void) override;
-	const char*     className(void) const override { return "SWE::TermBase"; }
+	/// @brief установить выравнивание текста по умолчанию, для всех последующих действий
+	/// @details область действия до вызова reset::align или reset::defaults
+        TermBase & 		operator<< (const set::align &);
+
+	/// @brief установить отступы по умолчанию, для всех последующих действий
+	/// @details область действия до вызова reset::padding или reset::defaults
+        TermBase & 		operator<< (const set::padding &);
+
+	/// @brief установить свойства рендера символов по умолчанию, для всех последующих действий
+	/// @details область действия до вызова reset::property или reset::defaults
+        TermBase & 		operator<< (const set::property &);
+
+	/// @brief установить свойство переноса строк по умолчанию, для всех последующих действий
+	/// @details область действия до вызова reset::wrap или reset::defaults
+        TermBase & 		operator<< (const set::wrap &);
+
+	/// @brief перенос текущей строки
+        TermBase & 		operator<< (const set::rn &);
+
+	/// @brief синхронизировать внутренний буфера TermWindow с рендером сцены DisplayScene
+        TermBase & 		operator<< (const set::flush &);
+
+        TermBase & 		operator<< (const reset::defaults &);
+        TermBase & 		operator<< (const reset::colors &);
+        TermBase & 		operator<< (const reset::fgcolor &);
+        TermBase & 		operator<< (const reset::bgcolor &);
+        TermBase & 		operator<< (const reset::padding &);
+        TermBase & 		operator<< (const reset::align &);
+        TermBase & 		operator<< (const reset::property &);
+        TermBase & 		operator<< (const reset::wrap &);
+
+        TermBase & 		operator<< (const draw::hline &);
+        TermBase & 		operator<< (const draw::vline &);
+        TermBase & 		operator<< (const draw::rect &);
+
+        TermBase & 		operator<< (int);
+        TermBase & 		operator<< (const char*);
+        TermBase & 		operator<< (const std::string &);
+        TermBase & 		operator<< (const UnicodeString &);
+        TermBase & 		operator<< (const UCString &);
+        TermBase & 		operator<< (const UnicodeList &);
+        TermBase & 		operator<< (const UCStringList &);
+
+        TermBase & 		operator<< (const UnicodeColor &);
+
+        void			renderWindow(void) override;
+	const char*     	className(void) const override { return "SWE::TermBase"; }
+#ifdef SWE_WITH_JSON
+        JsonObject      	toJson(void) const override;
+#endif
     };
 
+    /// @brief основной класс терминального окна
     class TermWindow : public TermBase
     {
     protected:
-        std::vector<TermCharset>	chars;
+        std::vector<TermCharset> chars;
 
-        TermWindow() {}
-        TermWindow(TermBase & term) : TermBase(term) {} // FIXED: remove
+    protected:
+        TermWindow(TermBase* term) : TermBase(term) {}
 
-        void		termResizeEvent(void) override;
+        int			index(const TermPos &) const;
+        int			index(void) const;
+
+        void                    displayResizeEvent(const Size &, bool sdl) final;
+
+        virtual void            terminalResizeEvent(void) {}
+        virtual void            fontResizeEvent(void) {}
+
+        FBColors                defaultColors(void) const override;
+
+        virtual TermSize        minimalTerminalSize(void) const { return TermSize(80, 25); }
 
     public:
-        TermWindow(const FontRender & frs) : TermBase(frs) {}
-        TermWindow(const FontRender & frs, Window & win) : TermBase(frs, win) {}
-        TermWindow(const Point & gfxpos, const Size & gfxsz, const FontRender &, Window &);
+        TermWindow(const FontRender & frs, Window* win);
+        TermWindow(const Size & gfxsz, const FontRender & frs, Window* win);
+        TermWindow(const TermSize & tsz, TermBase & term);
 
+        const TermCharset*	charset(const TermPos &) const;
         const TermCharset*	charset(void) const;
+        void			setCharset(int ch, const ColorIndex & fg = Color::Transparent, const ColorIndex & bg = Color::Transparent, const CharsetProperty* prop = nullptr) override;
 
-        void		setCharset(int ch, const ColorIndex & fg = Color::Transparent, const ColorIndex & bg = Color::Transparent, const CharsetProperty* prop = nullptr) override;
-        void		renderFlush(void) override;
+        void			setTermSize(const TermSize &) override;
+        void			renderFlush(void) override;
 
-        void		renderSymbol(int symx, int symy);
-	const char*     className(void) const override { return "SWE::TermWindow"; }
+        void			renderSymbol(int symx, int symy);
+	const char*     	className(void) const override { return "SWE::TermWindow"; }
+#ifdef SWE_WITH_JSON
+        JsonObject      	toJson(void) const override;
+#endif
+	void			dumpState(void) const;
     };
 
+    /* TermArea */
     class TermArea : public TermBase
     {
     protected:
-        TermPos		termpos;
+        TermPos			termpos;
+
+        TermArea(TermBase* term) : TermBase(term) {}
 
     public:
-        TermArea(TermWindow & term) : TermBase(term) {}
-        TermArea(int symx, int symy, int cols, int rows, TermWindow & term) : TermBase(term)
-        {
-            setTermArea(symx, symy, cols, rows);
-        }
+        TermArea(const TermPos & tpos, const TermSize & tsz, TermBase & term) : TermBase(tsz, term), termpos(tpos) {}
+        TermArea(const TermRect & trt, TermBase & term) : TermBase(trt, term), termpos(trt) {}
 
-        void		setTermPos(const TermPos & tp)
-        {
-            termpos = tp;
-        }
-        void		setPosition(const Point &) override;
+        void			setPosition(const Point &) override;
 
-        void		setTermArea(const TermRect &);
-        void		setTermArea(int symx, int symy, int cols, int rows);
+        void			setTermPos(const TermPos &);
+        void			setTermArea(const TermRect &);
+        void			setTermArea(int symx, int symy, int cols, int rows);
 
-        inline int	posx(void) const
-        {
-            return termpos.posx();
-        }
-        inline int	posy(void) const
-        {
-            return termpos.posy();
-        }
+        inline int		posx(void) const { return termpos.posx(); }
+        inline int		posy(void) const { return termpos.posy(); }
 
-        void		setCharset(int ch, const ColorIndex & fg = Color::Transparent, const ColorIndex & bg = Color::Transparent, const CharsetProperty* prop = nullptr) override;
-        void		renderFlush(void) override;
-	const char*     className(void) const override { return "SWE::TermArea"; }
+        void			setCharset(int ch, const ColorIndex & fg = Color::Transparent, const ColorIndex & bg = Color::Transparent, const CharsetProperty* prop = nullptr) override;
+
+        void			renderFlush(void) override;
+	const char*     	className(void) const override { return "SWE::TermArea"; }
     };
 
+    /* FullTerminal */
+    class FullTerminal : public TermWindow
+    {
+    public:
+	FullTerminal() : TermWindow(Display::size(), systemFont(), nullptr) {}
+        FullTerminal(const FontRender & frs) : TermWindow(frs, nullptr) {}
+	const char*     	className(void) const override { return "SWE::FullTerminal"; }
+    };
+
+    /* CenteredTerminal */
     class CenteredTerminal : public TermWindow
     {
     public:
-        CenteredTerminal(int cols, int rows, const FontRender &, Window &);
-	const char*     className(void) const override { return "SWE::CenteredTerminal"; }
+        CenteredTerminal(const TermSize &, const FontRender &, Window &);
+	const char*     	className(void) const override { return "SWE::CenteredTerminal"; }
     };
 
 } // SWE

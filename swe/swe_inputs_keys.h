@@ -242,7 +242,7 @@ namespace SWE
 
     struct KeySym : std::pair<KeyMod, int>
     {
-        KeySym(int sym = SDLK_UNKNOWN) : std::pair<KeyMod, int>(KeyMod(), sym) {}
+        KeySym(int sym = SDLK_UNKNOWN, int mod = SDL_GetModState()) : std::pair<KeyMod, int>(KeyMod(mod), sym) {}
         KeySym(const SDL_Keysym & sdl) : std::pair<KeyMod, int>(KeyMod(sdl.mod), sdl.sym) {}
 
         const KeyMod & keymod(void) const

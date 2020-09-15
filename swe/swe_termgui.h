@@ -25,216 +25,154 @@
 
 #ifndef SWE_DISABLE_TERMGUI
 
+#include <array>
 #include <memory>
 #include "swe_termwin.h"
 
 namespace SWE
 {
-
     namespace TermGUI
     {
-
-        enum { ColorBackground, ColorBorderLine, ColorHeaderText, ColorBodyText,
-               ColorButtonBackground, ColorButtonBracket, ColorButtonFirstText, ColorButtonBodyText,
-               ColorFocusedButtonBackground, ColorFocusedButtonBracket, ColorFocusedButtonFirstText, ColorFocusedButtonBodyText,
-               ColorInputFieldBackground, ColorFocusedInputFieldBackground, ColorInputFieldText, ColorInputCursor,
-               ColorListSelectedBackground, ColorListSelectedText,
-               ColorUnknown
-             };
-
+	/* ThemeColors */
         class ThemeColors
         {
-        protected:
-            ColorIndex vals[ColorUnknown + 1];
-            line_t line;
-
         public:
-            ThemeColors(const line_t & = LineAscii);
+	    virtual ~ThemeColors() {}
 
-            const ColorIndex & get(int) const;
+    	    enum type_t { ColorBackground = 0, ColorBorderLine, ColorHeaderText, ColorBodyText,
+    		    ColorButtonBackground, ColorButtonBracket, ColorButtonFirstText, ColorButtonBodyText,
+    		    ColorFocusedButtonBackground, ColorFocusedButtonBracket, ColorFocusedButtonFirstText, ColorFocusedButtonBodyText,
+    		    ColorInputFieldBackground, ColorFocusedInputFieldBackground, ColorInputFieldText, ColorInputCursor,
+		    ColorListSelectedBackground, ColorListSelectedText };
 
-            void setLine(const line_t & lt)
-            {
-                line = lt;
-            }
-            void set(int, const ColorIndex &);
-            void reset(void);
+#define ColorsCounts (TermGUI::ThemeColors::ColorListSelectedText + 1)
 
-            line_t typeLine(void) const
-            {
-                return line;
-            }
+	    static void		setColor(const type_t & type, const ColorIndex & col);
+	    static void		setTheme(const line_t &, std::array<ColorIndex, ColorsCounts>);
+	    static void		resetTheme(void);
 
-            const ColorIndex & background(void) const
-            {
-                return get(ColorBackground);
-            }
-            const ColorIndex & borderLine(void) const
-            {
-                return get(ColorBorderLine);
-            }
-            const ColorIndex & headerText(void) const
-            {
-                return get(ColorHeaderText);
-            }
-            const ColorIndex & bodyText(void) const
-            {
-                return get(ColorBodyText);
-            }
-            const ColorIndex & buttonBackground(void) const
-            {
-                return get(ColorButtonBackground);
-            }
-            const ColorIndex & buttonBracket(void) const
-            {
-                return get(ColorButtonBracket);
-            }
-            const ColorIndex & buttonFirstText(void) const
-            {
-                return get(ColorButtonFirstText);
-            }
-            const ColorIndex & buttonBodyText(void) const
-            {
-                return get(ColorButtonBodyText);
-            }
-            const ColorIndex & focusedButtonBackground(void) const
-            {
-                return get(ColorFocusedButtonBackground);
-            }
-            const ColorIndex & focusedButtonBracket(void) const
-            {
-                return get(ColorFocusedButtonBracket);
-            }
-            const ColorIndex & focusedButtonFirstText(void) const
-            {
-                return get(ColorFocusedButtonFirstText);
-            }
-            const ColorIndex & focusedButtonBodyText(void) const
-            {
-                return get(ColorFocusedButtonBodyText);
-            }
-            const ColorIndex & inputFieldBackground(void) const
-            {
-                return get(ColorInputFieldBackground);
-            }
-            const ColorIndex & focusedInputFieldBackground(void) const
-            {
-                return get(ColorFocusedInputFieldBackground);
-            }
-            const ColorIndex & inputFieldText(void) const
-            {
-                return get(ColorInputFieldText);
-            }
-            const ColorIndex & inputCursor(void) const
-            {
-                return get(ColorInputCursor);
-            }
-            const ColorIndex & listSelectedBackground(void) const
-            {
-                return get(ColorListSelectedBackground);
-            }
-            const ColorIndex & listSelectedText(void) const
-            {
-                return get(ColorListSelectedText);
-            }
-
-            static ThemeColors & defaults(const line_t & = LineAscii);
+protected:
+            virtual line_t	lineType(void) const;
+	    virtual ColorIndex	colorBackground(void) const;
+            virtual ColorIndex	colorText(void) const;
+            virtual ColorIndex	colorLine(void) const;
         };
 
-        enum buttons_t { ButtonUnknown, ButtonOk = 1 << 1, ButtonYes = 1 << 2, ButtonNo = 1 << 3, ButtonCancel = 1 << 4 };
-        std::vector<buttons_t> buttonsAll(int);
-
-        class CurrentTheme
+	/// @brief класс текстовой метки
+        class LabelAction : public TermWindow, public ThemeColors
         {
-            const ThemeColors* themedef;
-
-        public:
-            CurrentTheme(const ThemeColors* = nullptr);
-
-            void	setTheme(const ThemeColors &);
-            const ThemeColors & theme(void) const;
-        };
-
-        class LabelAction : public TermWindow, public CurrentTheme
-        {
-            int         hotkey;
-            std::string content;
+            UnicodeString 	content;
+            int         	hotkey;
 
         protected:
-            bool        keyPressEvent(const KeySym &) override;
-            void        mouseFocusEvent(void) override;
-            void        mouseLeaveEvent(void) override;
-            bool        mouseClickEvent(const ButtonsEvent &) override;
+            LabelAction(TermWindow*);
 
-            bool	setLabelHotKey(const std::string &);
-            void        renderLabel(const ThemeColors &);
-            void	clickAction(void);
+            bool        	keyPressEvent(const KeySym &) override;
+            void        	mouseFocusEvent(void) override;
+            void        	mouseLeaveEvent(void) override;
+            bool        	mouseClickEvent(const ButtonsEvent &) override;
+
+	    /// @private
+            int			parseHotKey(const UnicodeString &) const;
+	    /// @private
+            void		clickAction(void);
+	    /// @private
+            void        	renderLabel(void);
+
+	    ColorIndex		colorBackground(void) const override;
+            ColorIndex		colorText(void) const override;
+
+	    FBColors        	defaultColors(void) const override
+	    {
+		return FBColors(colorText(), colorBackground());
+	    }
+
+	    /// @private
+	    virtual TermSize	labelSize(const UnicodeString &) const;
+
+	    virtual ColorIndex	colorBackground(bool focused) const;
+	    virtual ColorIndex	colorText(bool focused) const;
+	    virtual ColorIndex	colorHotKey(bool focused) const;
 
         public:
-            LabelAction(const std::string &, int action, const TermPos &, TermWindow &, const ThemeColors* = nullptr);
-            LabelAction(TermWindow &, const ThemeColors* = nullptr);
+            LabelAction(const UnicodeString &, int action, TermWindow &);
+            LabelAction(const UnicodeString &, int action, const TermPos &, TermWindow &);
 
-            virtual void setLabel(const std::string &);
-            const std::string & label(void) const;
-            bool	isLabel(const std::string &) const;
+            void		setLabel(const UnicodeString &);
+            const UnicodeString & label(void) const;
+            bool		isLabel(const UnicodeString &) const;
 
-            void	setAction(int);
-            int		action(void) const;
-            bool	isAction(int) const;
+            void		setAction(int);
+            int			action(void) const;
+            bool		isAction(int) const;
 
-            void	setHotKey(int);
-            void	setHotKey(const std::string &);
-            int		hotKey(void) const;
-            bool	isHotKey(int) const;
+            void		setHotKey(int);
+            int			hotKey(void) const;
+            bool		isHotKey(int) const;
 
-            void	setHotKeyDisabled(bool);
-            bool	isHotKeyDisabled(void) const;
+            void		setHotKeyDisabled(bool);
+            bool		isHotKeyDisabled(void) const;
 
-            void	setDisabled(bool);
-            bool	isDisabled(void) const;
+            void		setDisabled(bool);
+            bool		isDisabled(void) const;
 
-            void        setSelected(bool);
-            bool        isSelected(void) const;
+            void        	setSelected(bool);
+            bool        	isSelected(void) const;
 
-            void        renderWindow(void) override;
-	    const char* className(void) const override { return "SWE::TermGUI::LabelAction"; }
+            void        	renderWindow(void) override;
+	    const char* 	className(void) const override { return "SWE::TermGUI::LabelAction"; }
         };
 
+	/// набор системных меток для TextButton
+        enum buttons_t { ButtonOk = 1 << 1, ButtonYes = 1 << 2, ButtonNo = 1 << 3, ButtonCancel = 1 << 4 };
+
+	//// @brief класс текстовой кнопки
         class TextButton : public LabelAction
         {
+	protected:
+            TextButton(TermWindow* term) : LabelAction(term) {}
+
+	    virtual ColorIndex	colorBracket(bool focused) const;
+
+	    /// @private
+            TermSize		labelSize(const UnicodeString &) const override;
+
         public:
-            TextButton(const std::string &, int action, const TermPos &, TermWindow &, const ThemeColors* = nullptr);
-            TextButton(const buttons_t &, TermWindow &, const ThemeColors* = nullptr);
-            TextButton(TermWindow & term, const ThemeColors* theme = nullptr) : LabelAction(term, theme) {}
+            TextButton(const buttons_t &, TermWindow &);
+            TextButton(const UnicodeString &, int action, TermWindow &);
+            TextButton(const UnicodeString &, int action, const TermPos &, TermWindow &);
 
-            void	setLabel(const std::string &) override;
-            void	setLabel(const buttons_t &);
-            void        renderWindow(void) override;
-	    const char* className(void) const override { return "SWE::TermGUI::TextButton"; }
+            void		setButton(const buttons_t &);
+
+            void        	renderWindow(void) override;
+	    const char* 	className(void) const override { return "SWE::TermGUI::TextButton"; }
         };
 
-        struct LabelActionPtr : std::shared_ptr<LabelAction>
+	/* LabelActionPtr */
+        struct LabelActionPtr : std::unique_ptr<LabelAction>
         {
-            LabelActionPtr(LabelAction* ptr) : std::shared_ptr<LabelAction>(ptr) {}
+            LabelActionPtr(LabelAction* ptr)
+            {
+		reset(ptr);
+	    }
 
-            LabelActionPtr(TermWindow & term, const ThemeColors* theme = nullptr)
-                : std::shared_ptr<LabelAction>(std::make_shared<LabelAction>(term, theme)) {}
-
-            LabelActionPtr(const std::string & str, int action, const TermPos & pos, TermWindow & term, const ThemeColors* theme = nullptr)
-                : std::shared_ptr<LabelAction>(std::make_shared<LabelAction>(str, action, pos, term, theme)) {}
+            LabelActionPtr(const std::string & str, int action, const TermPos & pos, TermWindow & term)
+            {
+		reset(new LabelAction(str, action, pos, term));
+	    }
         };
 
-        class LabelActionGroup : protected std::list<LabelActionPtr>
+	/// @brief класс группы для LabelAction
+        class LabelActionGroup : public std::list<LabelActionPtr>
         {
         public:
             LabelActionGroup() {}
 
-            LabelAction*	addLabel(const std::string &, int action, const TermPos &, TermWindow &, const ThemeColors* = nullptr);
-            LabelAction*	addLabel(TermWindow &, const ThemeColors* = nullptr);
+            LabelAction*	addLabel(const std::string &, int action, const TermPos &, TermWindow &);
             LabelAction*	addLabel(LabelAction*);
 
             bool		findLabel(const LabelAction*) const;
-            LabelAction*	findLabel(const std::string &) const;
+            LabelAction*	findLabel(const UnicodeString &) const;
             LabelAction*	findAction(int) const;
             LabelAction*	findHotKey(int) const;
             LabelAction*	findSelected(void) const;
@@ -250,110 +188,123 @@ namespace SWE
             bool		isLastSelected(void) const;
 
             int			index(LabelAction*) const;
-            size_t		count(void) const
-            {
-                return size();
-            }
+            size_t		count(void) const { return size(); }
             size_t		rows(void) const;
             size_t		cols(void) const;
-
-            void		renderWindow(void);
         };
 
+	//// @brief класс группы для TextButton
         class ButtonsGroup : public LabelActionGroup
         {
         public:
-            ButtonsGroup(int buttons, TermWindow &, const ThemeColors* = nullptr);
+            ButtonsGroup(int buttons, TermWindow &);
         };
 
-        class HeaderAreaBox : public TermWindow, public CurrentTheme
+	/// @brief класс пустого текстового окна с заголовком
+        class HeaderAreaBox : public TermWindow, public ThemeColors
         {
-            UCString		header;
+            UnicodeString	header;
 
         protected:
-            bool                keyPressEvent(const KeySym &) override;
-            virtual void	renderWindowLine(const line_t &);
+            HeaderAreaBox(const UnicodeString & us, TermWindow & term);
+            HeaderAreaBox(const UnicodeString & us, const FontRender & frs, Window* win);
 
-            void		initHeaderAreaBox(const TermSize &);
+            bool                keyPressEvent(const KeySym &) override;
+	    line_t		lineType(void) const override;
+
+	    FBColors        	defaultColors(void) const override
+	    {
+		return FBColors(colorText(), colorBackground());
+	    }
+
+	    virtual ColorIndex	colorHeader(void) const;
 
         public:
-            HeaderAreaBox(const UnicodeString &, const TermSize &, TermWindow &, const ThemeColors* = nullptr);
-            HeaderAreaBox(const UCString &, const TermSize &, TermWindow &, const ThemeColors* = nullptr);
-            //
-            HeaderAreaBox(const UnicodeString &, TermWindow &, const ThemeColors* = nullptr);
-            HeaderAreaBox(const UCString &, TermWindow &, const ThemeColors* = nullptr);
-            HeaderAreaBox(const UnicodeString &, const FontRender &, Window &, const ThemeColors* = nullptr);
-            HeaderAreaBox(const UCString &, const FontRender &, Window &, const ThemeColors* = nullptr);
-            virtual ~HeaderAreaBox() {}
+            HeaderAreaBox(const UnicodeString &, const TermSize &, TermWindow &);
 
+            void		renderBox(void);
             void		renderWindow(void) override;
 	    const char*		className(void) const override { return "SWE::TermGUI::HeaderAreaBox"; }
         };
 
+	/// @brief класс пустого текстового окна с заголовком и группой кнопок
         class ButtonsAreaBox : public HeaderAreaBox
         {
-        protected:
-            ButtonsGroup	buttonsGroup;
+            ButtonsGroup	btnsGroup;
+
+    	    void		initAreaBox(void);
 
         protected:
+    	    ButtonsAreaBox(const UnicodeString & us, int btns, TermWindow & term)
+        	: HeaderAreaBox(us, term), btnsGroup(btns, *this)
+	    {
+		initAreaBox();
+    	    }
+
+    	    ButtonsAreaBox(const UnicodeString & us, int btns, const FontRender & frs, Window* win)
+        	: HeaderAreaBox(us, frs, win), btnsGroup(btns, *this)
+    	    {
+		initAreaBox();
+    	    }
+
             void		signalReceive(int, const SignalMember*) override;
-            void		renderWindowLine(const line_t &) override;
             bool                keyPressEvent(const KeySym &) override;
 
             void		setButtonsPosition(void);
             void		setHotKeyDisabled(bool);
             void		setButtonsSubscribe(int);
-            int			maxColumns(void) const;
-            void		initButtonsAreaBox(const TermSize &);
 
         public:
-            ButtonsAreaBox(const UnicodeString &, const TermSize &, int buttons, TermWindow &, const ThemeColors* = nullptr);
-            ButtonsAreaBox(const UCString &, const TermSize &, int buttons, TermWindow &, const ThemeColors* = nullptr);
-            //
-            ButtonsAreaBox(const UnicodeString &, int buttons, TermWindow &, const ThemeColors* = nullptr);
-            ButtonsAreaBox(const UCString &, int buttons, TermWindow &, const ThemeColors* = nullptr);
-            ButtonsAreaBox(const UnicodeString &, int buttons, const FontRender &, Window &, const ThemeColors* = nullptr);
-            ButtonsAreaBox(const UCString &, int buttons, const FontRender &, Window &, const ThemeColors* = nullptr);
+    	    ButtonsAreaBox(const UnicodeString & str, const TermSize & tsz, int btns, TermWindow & term)
+        	: HeaderAreaBox(str, tsz, term), btnsGroup(btns, *this)
+    	    {
+		initAreaBox();
+    	    }
+
+	    ButtonsGroup &	buttonsGroup(void);
+	    const ButtonsGroup &buttonsGroup(void) const;
 
 	    const char*		className(void) const override { return "SWE::TermGUI::ButtonsAreaBox"; }
+
+            void		renderButtons(void);
+            void		renderWindow(void) override;
         };
 
-        class MessageBox : public ButtonsAreaBox
+	/// @brief класс диалога информационного сообщения, с заголовком и группой кнопок
+        class MessageBox : protected UnicodeList, public ButtonsAreaBox
         {
-            UCStringList	content;
-
         protected:
-            void		renderWindowLine(const line_t &) override;
-            void		initMessageBox(const UCString &);
 
         public:
-            MessageBox(const UnicodeString &, const UnicodeString &, int buttons, TermWindow &, const ThemeColors* = nullptr);
-            MessageBox(const UCString &, const UCString &, int buttons, TermWindow &, const ThemeColors* = nullptr);
-
-            MessageBox(const UnicodeString &, const UnicodeString &, int buttons, const FontRender &, Window &, const ThemeColors* = nullptr);
-            MessageBox(const UCString &, const UCString &, int buttons, const FontRender &, Window &, const ThemeColors* = nullptr);
+            MessageBox(const UnicodeString &, const UnicodeString &, int buttons, TermWindow &);
+            MessageBox(const UnicodeString &, const UnicodeString &, int buttons, const FontRender &, Window*);
 
 	    const char*		className(void) const override { return "SWE::TermGUI::MessageBox"; }
+            void		renderWindow(void) override;
         };
 
+	/// @brief класс диалога ввода строки текста, с заголовком и группой кнопок
         class InputBox : public ButtonsAreaBox
         {
             std::string		sResult;
-            u32			tickLast;
+            TickTrigger		tt;
 
         protected:
             bool                keyPressEvent(const KeySym &) override;
             void		tickEvent(u32 ms) override;
-            void		renderWindowLine(const line_t &) override;
 
             void		setInputFocused(bool);
             bool		checkInputFocused(void) const;
             void		setFlagTermCursor(bool);
             bool		checkFlagTermCursor(void) const;
 
+	    virtual ColorIndex	colorFieldText(void) const;
+	    virtual ColorIndex	colorFieldCursor(void) const;
+            virtual ColorIndex	colorFieldBackground(bool focused) const;
+
         public:
-            InputBox(const UnicodeString &, size_t cols, const std::string & def, TermWindow &, const ThemeColors* = nullptr);
-            InputBox(const UnicodeString &, size_t cols, const std::string & def, const FontRender &, Window &, const ThemeColors* = nullptr);
+            InputBox(const UnicodeString &, size_t cols, const std::string & def, TermWindow &);
+            InputBox(const UnicodeString &, size_t cols, const std::string & def, const FontRender &, Window*);
 
             const std::string &	result(void) const
             {
@@ -361,14 +312,19 @@ namespace SWE
             }
 
 	    const char*		className(void) const override { return "SWE::TermGUI::InputBox"; }
+            void		renderWindow(void) override;
         };
 
+	/// @brief класс диалога выбора из списка значений, с заголовком и группой кнопок
         class ListBox : public ButtonsAreaBox
         {
-            UCStringList	content;
+	    UnicodeList		content;
             std::string		sResult;
             int			selected;
             int			skipped;
+
+            virtual ColorIndex	colorBackground(bool selected) const;
+            virtual ColorIndex	colorText(bool selected) const;
 
         protected:
             bool                keyPressEvent(const KeySym &) override;
@@ -376,14 +332,13 @@ namespace SWE
             bool		scrollUpEvent(void) override;
             bool		scrollDownEvent(void) override;
             void		windowVisibleEvent(bool) override;
-            void		renderWindowLine(const line_t &) override;
 
             bool		scrollUpContent(void);
             bool		scrollDownContent(void);
 
         public:
-            ListBox(const UnicodeString &, const UCStringList &, size_t rows, TermWindow &, const ThemeColors* = nullptr);
-            ListBox(const UnicodeString &, const UCStringList &, size_t rows, const FontRender &, Window &, const ThemeColors* = nullptr);
+            ListBox(const UnicodeString &, const UnicodeList &, size_t rows, TermWindow &);
+            ListBox(const UnicodeString &, const UnicodeList &, size_t rows, const FontRender &, Window*);
 
             const std::string &	result(void) const
             {
@@ -391,6 +346,7 @@ namespace SWE
             }
 
 	    const char*		className(void) const override { return "SWE::TermGUI::ListBox"; }
+            void		renderWindow(void) override;
         };
 
     } // namespace TermGUI

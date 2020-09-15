@@ -514,7 +514,8 @@ namespace SWE
     {
         if(empty()) return 0;
 
-        auto it = std::max_element(begin(), end(), [](const UCString & str1, const UCString & str2) { return str1.size() < str2.size(); });
+        auto it = std::max_element(begin(), end(),
+			    [](auto & str1, auto & str2) { return str1.size() < str2.size(); });
         return it != end() ? (*it).size() : front().size();
     }
 
@@ -565,6 +566,12 @@ namespace SWE
         return *this;
     }
 
+    UCStringList & UCStringList::append(const UCString & v)
+    {
+        push_back(v);
+        return *this;
+    }
+ 
     UCStringList & UCStringList::append(const UCStringList & ucsl)
     {
         insert(end(), ucsl.begin(), ucsl.end());

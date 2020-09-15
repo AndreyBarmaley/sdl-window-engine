@@ -34,7 +34,7 @@ int main(int argc, char **argv)
 	if(! SWE::Engine::init())
     	    return -1;
 
-	MainScreen & scr = MainScreen::init(title);
+	MainScreen & scr = MainScreen::init(title, (1 < argc ? argv[1] : nullptr));
 	scr.exec();
     }
     catch(SWE::Engine::exception &)

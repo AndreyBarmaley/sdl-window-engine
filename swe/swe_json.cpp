@@ -243,31 +243,31 @@ namespace SWE
 	switch(v->getType())
 	{
 	    default:
-	    case TypeNull:
+	    case JsonType::Null:
 		val = new JsonValue();
 		break;
 
-	    case TypeInteger:
+	    case JsonType::Integer:
 		val = new JsonInteger(*static_cast<JsonInteger*>(v.get()));
 		break;
 
-	    case TypeBoolean:
+	    case JsonType::Boolean:
 		val = new JsonBoolean(*static_cast<JsonBoolean*>(v.get()));
 		break;
 
-	    case TypeDouble:
+	    case JsonType::Double:
 		val = new JsonDouble(*static_cast<JsonDouble*>(v.get()));
 		break;
 
-	    case TypeString:
+	    case JsonType::String:
 		val = new JsonString(*static_cast<JsonString*>(v.get()));
 		break;
 
-	    case TypeObject:
+	    case JsonType::Object:
 		val = new JsonObject(*static_cast<JsonObject*>(v.get()));
 		break;
 
-	    case TypeArray:
+	    case JsonType::Array:
 		val = new JsonArray(*static_cast<JsonArray*>(v.get()));
 		break;
 	}
@@ -507,8 +507,11 @@ namespace SWE
 
     JsonObject & JsonObject::operator=(const JsonObject & jo)
     {
-        content.clear();
-        content.insert(jo.content.begin(), jo.content.end());
+	if(this != & jo)
+	{
+    	    content.clear();
+    	    content.insert(jo.content.begin(), jo.content.end());
+	}
         return *this;
     }
 
@@ -535,7 +538,7 @@ namespace SWE
 
     JsonType JsonObject::getType(void) const
     {
-        return TypeObject;
+        return JsonType::Object;
     }
 
     int JsonObject::getInteger(void) const
@@ -624,7 +627,7 @@ namespace SWE
     JsonType JsonObject::getType(const std::string & key) const
     {
         const JsonValue* jv = getValue(key);
-        return jv ? jv->getType() : TypeNull;
+        return jv ? jv->getType() : JsonType::Null;
     }
 
     int JsonObject::getInteger(const std::string & key, int def) const
@@ -757,7 +760,7 @@ namespace SWE
 
     JsonType JsonArray::getType(void) const
     {
-        return TypeArray;
+        return JsonType::Array;
     }
 
     int JsonArray::getInteger(size_t index) const

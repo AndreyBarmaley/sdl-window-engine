@@ -38,26 +38,23 @@ namespace SWE
 
     class LuaState
     {
-        lua_State*		ptr;
+        lua_State*	ptr;
 
-        void			dumpTable(int index, int tabs = 0);
-        std::string		dumpValue(int index);
+        void		dumpTable(int index, int tabs = 0);
+        std::string	dumpValue(int index);
 
     public:
         LuaState(lua_State*);
 
         static LuaState	newState(void);
-        static void		closeState(LuaState &);
+        static void	closeState(LuaState &);
 
-        int			version(void);
-        int			doFile(const std::string &);
-        int			doString(const std::string &);
+        int		version(void);
+        int		doFile(const std::string &);
+        int		doString(const std::string &);
 
-        lua_State*		L(void)
-        {
-            return ptr;
-        }
-        LuaState  &		callFunction(int nargs, int nresults);
+        lua_State*	L(void) { return ptr; }
+        LuaState  &	callFunction(int nargs, int nresults);
 
         // lib
         bool		registerLibrary(const std::string &, const luaL_Reg[]);
@@ -76,55 +73,16 @@ namespace SWE
         bool		isFunctionIndex(int) const;
         bool		isThreadIndex(int) const;
 
-        bool		isTopNil(void) const
-        {
-            return isNilIndex(-1);
-        }
-
-        bool		isTopBoolean(void) const
-        {
-            return isBooleanIndex(-1);
-        }
-
-        bool		isTopNumber(void) const
-        {
-            return isNumberIndex(-1);
-        }
-
-        bool		isTopInteger(void) const
-        {
-            return isIntegerIndex(-1);
-        }
-
-        bool		isTopString(void) const
-        {
-            return isStringIndex(-1);
-        }
-
-        bool		isTopTable(void) const
-        {
-            return isTableIndex(-1);
-        }
-
-        bool		isTopUserData(void) const
-        {
-            return isUserDataIndex(-1);
-        }
-
-        bool		isTopLightUserData(void) const
-        {
-            return isLightUserDataIndex(-1);
-        }
-
-        bool		isTopFunction(void) const
-        {
-            return isFunctionIndex(-1);
-        }
-
-        bool		isTopThread(void) const
-        {
-            return isThreadIndex(-1);
-        }
+        bool		isTopNil(void) const;
+        bool		isTopBoolean(void) const;
+        bool		isTopNumber(void) const;
+        bool		isTopInteger(void) const;
+        bool		isTopString(void) const;
+        bool		isTopTable(void) const;
+        bool		isTopUserData(void) const;
+        bool		isTopLightUserData(void) const;
+        bool		isTopFunction(void) const;
+        bool		isTopThread(void) const;
 
         // convert type
         bool		toBooleanIndex(int) const;
@@ -137,45 +95,14 @@ namespace SWE
         lua_State*	toThreadIndex(int) const;
         BinaryBuf	toBinaryIndex(int) const;
 
-        bool		getTopBoolean(void)
-        {
-            return toBooleanIndex(-1);
-        }
-
-        double		getTopNumber(void)
-        {
-            return toNumberIndex(-1);
-        }
-
-        int		getTopInteger(void)
-        {
-            return toIntegerIndex(-1);
-        }
-
-        std::string	getTopString(void)
-        {
-            return toStringIndex(-1);
-        }
-
-        void*		getTopUserData(void)
-        {
-            return toUserDataIndex(-1);
-        }
-
-        const void* 	getTopPointer(void)
-        {
-            return toPointerIndex(-1);
-        }
-
-        lua_CFunction	getTopFunction(void)
-        {
-            return toFunctionIndex(-1);
-        }
-
-        lua_State*	getTopThread(void)
-        {
-            return toThreadIndex(-1);
-        }
+        bool		getTopBoolean(void);
+        double		getTopNumber(void);
+        int		getTopInteger(void);
+        std::string	getTopString(void);
+        void*		getTopUserData(void);
+        const void* 	getTopPointer(void);
+        lua_CFunction	getTopFunction(void);
+        lua_State*	getTopThread(void);
 
         // push value: push().push().push()
         LuaState &	pushNil(void);
@@ -193,20 +120,14 @@ namespace SWE
         // global
         LuaState &	getGlobalName(const std::string &);
         LuaState &	setGlobalName(const std::string &);
-        int			toAbsIndex(int);
+        int		toAbsIndex(int);
 
         // return type
         int		getTypeIndex(int) const;
         const char* 	getTypeName(int type) const;
 
-        int		getTopType(void) const
-        {
-            return getTypeIndex(-1);
-        }
-        const char*	getTopTypeName(void) const
-        {
-            return getTypeName(getTopType());
-        }
+        int		getTopType(void) const;
+        const char*	getTopTypeName(void) const;
 
         // table manip
         int		nextTableIndex(int);

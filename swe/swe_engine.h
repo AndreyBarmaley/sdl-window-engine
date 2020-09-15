@@ -23,7 +23,7 @@
 #ifndef _SWE_ENGINE_
 #define _SWE_ENGINE_
 
-#define SWE_VERSION 20200830
+#define SWE_VERSION 20200905
 
 namespace SWE
 {
@@ -37,6 +37,8 @@ namespace SWE
         void		quit(void);
 
         void		except(const char* func, const char* message);
+
+	/// @private
         class           exception {};
     } // Engine
 

@@ -30,7 +30,7 @@
 
 namespace SWE
 {
-
+    /// @brief класс цветного unicode символа
     class UnicodeColor : std::pair<FBColors, u16> /* bg col 8 bit, fg col 8 bit, sym 16 bit */
     {
     public:
@@ -62,6 +62,7 @@ namespace SWE
     class UCStringList;
     class FontRender;
 
+    /// @brief класс цветной unicode строки
     class UCString : protected std::vector<UnicodeColor>
     {
         FBColors		defcols;
@@ -77,14 +78,14 @@ namespace SWE
         UCString(const UCString & v);
         UCString(UCString && v) noexcept;
 
-        UCString & operator= (const UCString & v);
-        UCString & operator= (UCString && v) noexcept;
+        UCString &	operator= (const UCString & v);
+        UCString &	operator= (UCString && v) noexcept;
 
-        UCString & operator<< (const FBColors &);
-        UCString & operator<< (const ColorIndex &);
-        UCString & operator<< (const UnicodeString &);
-        UCString & operator<< (const UnicodeColor &);
-        UCString & operator<< (const UCString &);
+        UCString &	operator<< (const FBColors &);
+        UCString &	operator<< (const ColorIndex &);
+        UCString &	operator<< (const UnicodeString &);
+        UCString &	operator<< (const UnicodeColor &);
+        UCString &	operator<< (const UCString &);
 
         void		assign(const UnicodeString &, const FBColors &);
         UCString &	append(const UCString &);
@@ -104,6 +105,7 @@ namespace SWE
         size_t		size(void) const;
     };
 
+    /// @brief класс список цветных unicode строк
     class UCStringList : public std::list<UCString>
     {
     public:
@@ -123,14 +125,10 @@ namespace SWE
         UCString	join(void) const;
         UCString	join(const UCString &) const;
 
-        UCStringList  & append(const UCString & v)
-        {
-            push_back(v);
-            return *this;
-        }
-        UCStringList  & append(const UnicodeList &, const FBColors &);
-        UCStringList  & append(const UnicodeList &, const ColorIndex &);
-        UCStringList  & append(const UCStringList &);
+        UCStringList &	append(const UCString &);
+        UCStringList &	append(const UnicodeList &, const FBColors &);
+        UCStringList &	append(const UnicodeList &, const ColorIndex &);
+        UCStringList &	append(const UCStringList &);
 
         UCStringList &	operator<< (const UCString &);
         UCStringList &	operator<< (const UCStringList &);

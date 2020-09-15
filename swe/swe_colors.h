@@ -35,6 +35,7 @@ namespace SWE
     class Color;
     class ColorIndex;
 
+    /// @brief базовый класс цвета
     class ARGB : public packint4
     {
     public:
@@ -59,9 +60,11 @@ namespace SWE
         bool hasAlpha(void) const;
     };
 
+    /// @brief класс цвета
     class Color : public ARGB
     {
     public:
+	/// @brief набор html цветовых кодов
         enum color_t
         {
             Black = 0, Navy, DarkBlue, MediumBlue, Blue, DarkGreen, Green, Teal, DarkCyan, DeepSkyBlue,
@@ -105,6 +108,7 @@ namespace SWE
         static const char* name(color_t);
     };
 
+    /// @brief класс индекса цвета
     class ColorIndex
     {
         u32		val;
@@ -127,6 +131,7 @@ namespace SWE
         Color		toColor(void) const;
     };
 
+    /// @brief класс пары двух цветов (foreground, background)
     struct FBColors : packshort
     {
         FBColors(const ColorIndex & fg = Color::Black, const ColorIndex & bg = Color::Transparent);

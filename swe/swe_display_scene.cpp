@@ -311,6 +311,7 @@ void SWE::DisplayScene::sceneDestroy(void)
     sceneItems.clear();
 }
 
+/// @details рендер всех видимых объектов на сцене, неоходимость отрисовки задается через метод DisplayScene::setDirty, генерирует событие Window::renderPresentEvent на каждый объект Window
 void SWE::DisplayScene::sceneRedraw(void)
 {
     if(isDirty())
@@ -371,6 +372,7 @@ void SWE::DisplayScene::handleWhileVisible(const Window & win)
     }
 }
 
+/// @details состоит из 3 основных частей, обработка системных событий Display::handleEvents, генерация события ObjectEvent::tickEvent, рендера сцены DisplayScene::sceneRedraw
 void SWE::DisplayScene::handleEvents(u32 interval)
 {
     u32 start = Tools::ticks();

@@ -57,6 +57,7 @@ namespace SWE
 	void		setState(Window*, int, bool);
     }
 
+    /// @brief базовый класс графических объектов сцены DisplayScene
     class Window : public SignalMember
     {
         friend class DisplayScene;

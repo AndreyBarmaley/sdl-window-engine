@@ -22,6 +22,7 @@
 
 #ifndef SWE_DISABLE_TERMGUI
 
+#include <numeric>
 #include <algorithm>
 
 #include "swe_display.h"
@@ -31,147 +32,132 @@
 
 namespace SWE
 {
-
     namespace TermGUI
     {
-        std::vector<buttons_t> buttonsAll(int buttons)
+	std::array<ColorIndex, ColorsCounts>
+			        themeColors = {{ Color::RoyalBlue, Color::Yellow, Color::Red, Color::LightCyan, Color::RoyalBlue, Color::Silver, Color::Red, Color::Silver, Color::Yellow, 
+						Color::Silver, Color::Red, Color::Blue, Color::LightYellow, Color::Yellow, Color::Navy, Color::Navy, Color::Yellow, Color::Navy }};
+        line_t			themeLine = LineThin;
+
+
+	void ThemeColors::setColor(const type_t & type, const ColorIndex & col)
+	{
+	    themeColors[type] =  col;
+	}
+
+	void ThemeColors::setTheme(const line_t & line, std::array<ColorIndex, ColorsCounts> colors)
+	{
+	    themeColors.swap(colors);
+	}
+
+	void ThemeColors::resetTheme(void)
+	{
+    	    themeLine = LineThin;
+
+	    themeColors[ColorBackground] = Color::RoyalBlue;
+	    themeColors[ColorBorderLine] = Color::Yellow;
+	    themeColors[ColorHeaderText] = Color::Red;
+            themeColors[ColorBodyText] = Color::LightCyan;
+            themeColors[ColorButtonBackground] = Color::RoyalBlue;
+            themeColors[ColorButtonBracket] = Color::Silver;
+            themeColors[ColorButtonFirstText] = Color::Red;
+            themeColors[ColorButtonBodyText] = Color::Silver;
+            themeColors[ColorFocusedButtonBackground] = Color::Yellow;
+            themeColors[ColorFocusedButtonBracket] = Color::Silver;
+            themeColors[ColorFocusedButtonFirstText] = Color::Red;
+            themeColors[ColorFocusedButtonBodyText] = Color::Blue;
+            themeColors[ColorInputFieldBackground] = Color::LightYellow;
+            themeColors[ColorFocusedInputFieldBackground] = Color::Yellow;
+            themeColors[ColorInputFieldText] = Color::Navy;
+            themeColors[ColorInputCursor] = Color::Navy;
+            themeColors[ColorListSelectedBackground] = Color::Yellow;
+            themeColors[ColorListSelectedText] = Color::Navy;
+	}
+
+        line_t ThemeColors::lineType(void) const
         {
-            std::vector<buttons_t> v;
-            v.reserve(6);
-
-            if(buttons & ButtonOk)
-                v.push_back(ButtonOk);
-
-            if(buttons & ButtonYes)
-                v.push_back(ButtonYes);
-
-            if(buttons & ButtonNo)
-                v.push_back(ButtonNo);
-
-            if(buttons & ButtonCancel)
-                v.push_back(ButtonCancel);
-
-            return v;
+            return themeLine;
         }
 
-        /* ThemeColors */
-        ThemeColors::ThemeColors(const line_t & lt) : line(lt)
+        ColorIndex ThemeColors::colorBackground(void) const
         {
-            reset();
+            return themeColors[ColorBackground];
         }
 
-        ThemeColors & ThemeColors::defaults(const line_t & lt)
+        ColorIndex ThemeColors::colorText(void) const
         {
-            static ThemeColors _defcols(lt);
-            return _defcols;
+            return themeColors[ColorBodyText];
         }
 
-        const ColorIndex & ThemeColors::get(int col) const
-        {
-            return 0 <= col && col < ColorUnknown ? vals[col] : vals[ColorUnknown];
-        }
-
-        void ThemeColors::set(int col, const ColorIndex & val)
-        {
-            if(0 <= col && col < ColorUnknown)
-                vals[col] = val;
-        }
-
-        void ThemeColors::reset(void)
-        {
-            set(ColorBackground, Color::RoyalBlue);
-            set(ColorBorderLine, Color::Yellow);
-            set(ColorHeaderText, Color::Red);
-            set(ColorBodyText, Color::LightCyan);
-            set(ColorButtonBackground, Color::RoyalBlue);
-            set(ColorButtonBracket, Color::Silver);
-            set(ColorButtonFirstText, Color::Red);
-            set(ColorButtonBodyText, Color::Silver);
-            set(ColorFocusedButtonBackground, Color::Yellow);
-            set(ColorFocusedButtonBracket, Color::Silver);
-            set(ColorFocusedButtonFirstText, Color::Red);
-            set(ColorFocusedButtonBodyText, Color::Blue);
-            set(ColorInputFieldBackground, Color::LightYellow);
-            set(ColorFocusedInputFieldBackground, Color::Yellow);
-            set(ColorInputFieldText, Color::Navy);
-            set(ColorInputCursor, Color::Navy);
-            set(ColorListSelectedBackground, Color::Yellow);
-            set(ColorListSelectedText, Color::Navy);
-            set(ColorUnknown, Color::Transparent);
-        }
-
-        /* CurrentTheme */
-        CurrentTheme::CurrentTheme(const ThemeColors* theme) : themedef(theme)
-        {
-            if(! themedef)
-            {
-                const line_t line = LineThin; // FIXME TermWindow::fontRender == & systemFont() ? LineAscii : theme().typeLine();
-                themedef = & ThemeColors::defaults(line);
-            }
-        }
-
-        void CurrentTheme::setTheme(const ThemeColors & theme)
-        {
-            themedef = & theme;
-        }
-
-        const ThemeColors & CurrentTheme::theme(void) const
-        {
-            return themedef ? *themedef : ThemeColors::defaults();
-        }
+        ColorIndex ThemeColors::colorLine(void) const
+	{
+    	    return themeColors[ColorBorderLine];
+	}
 
         /* LabelAction */
-        LabelAction::LabelAction(const std::string & str, int action, const TermPos & pos, TermWindow & term, const ThemeColors* theme)
-            : TermWindow(term), CurrentTheme(theme), hotkey(Key::NONE)
+        LabelAction::LabelAction(const UnicodeString & str, int action, TermWindow & term)
+            : TermWindow(& term), hotkey(Key::NONE)
         {
             resetState(FlagModality);
             setState(FlagKeyHandle);
             setAction(action);
-            setPosition(term.sym2gfx(pos));
-            setLabel(str);
+	    setLabel(str);
             setVisible(true);
         }
 
-        LabelAction::LabelAction(TermWindow & term, const ThemeColors* theme) : TermWindow(term), CurrentTheme(theme), hotkey(Key::NONE)
+        LabelAction::LabelAction(const UnicodeString & str, int action, const TermPos & pos, TermWindow & term)
+            : TermWindow(& term), hotkey(Key::NONE)
+        {
+            resetState(FlagModality);
+            setState(FlagKeyHandle);
+            setAction(action);
+	    setLabel(str);
+            setTermPos(pos);
+            setVisible(true);
+        }
+
+        LabelAction::LabelAction(TermWindow* term) : TermWindow(term), hotkey(Key::NONE)
         {
             resetState(FlagModality);
             setState(FlagKeyHandle);
             setVisible(false);
         }
 
-        bool LabelAction::setLabelHotKey(const std::string & str)
+        int LabelAction::parseHotKey(const UnicodeString & str) const
         {
-            bool blockPresent = false;
             auto it1 = std::find(str.begin(), str.end(), '<');
 
             if(it1 != str.end())
             {
-                auto it2 = std::find(it1 + 1, str.end(), '>');
+		it1 = std::next(it1);
+                auto it2 = std::next(it1);
 
-                if(it2 != str.end())
-                {
-                    blockPresent = true;
-                    setHotKey(std::string(it1 + 1, it2));
-                }
+		if(it2 != str.end() && *it2 == '>')
+		    return Key::toKey(std::string(1, ::toupper(*it1)));
             }
 
-            content = str;
-            return blockPresent;
+            return Key::NONE;
         }
 
-        void LabelAction::setLabel(const std::string & str)
+        TermSize LabelAction::labelSize(const UnicodeString & str) const
         {
-            bool blockPresent = setLabelHotKey(str);
-            setTermSize(TermSize(str.size() - (blockPresent ? 2 : 0), 1));
-            renderWindow();
+            return TermSize(str.size() - (Key::NONE != hotKey() ? 2 : 0), 1);
         }
 
-        bool LabelAction::isLabel(const std::string & str) const
+        void LabelAction::setLabel(const UnicodeString & str)
+        {
+            setHotKey(parseHotKey(str));
+	    setTermSize(labelSize(str));
+            content = str;
+            setDirty(true);
+        }
+
+        bool LabelAction::isLabel(const UnicodeString & str) const
         {
             return content == str;
         }
 
-        const std::string & LabelAction::label(void) const
+        const UnicodeString & LabelAction::label(void) const
         {
             return content;
         }
@@ -191,24 +177,21 @@ namespace SWE
             return action() == act;
         }
 
-        void LabelAction::setHotKey(const std::string & str)
-        {
-            hotkey = Key::toKey(str);
-        }
-
         void LabelAction::setHotKey(int key)
         {
             hotkey = key;
         }
 
+#define FlagHotKeyDisabled 0x01
+
         void LabelAction::setHotKeyDisabled(bool f)
         {
-            setUnused8(f ? 1 : 0);
+	    setState(FlagHotKeyDisabled, f);
         }
 
         bool LabelAction::isHotKeyDisabled(void) const
         {
-            return unused8();
+	    return checkState(FlagHotKeyDisabled);
         }
 
         int LabelAction::hotKey(void) const
@@ -218,7 +201,7 @@ namespace SWE
 
         bool LabelAction::isHotKey(int key) const
         {
-            return hotKey() == key;
+            return isHotKeyDisabled() ? false : hotKey() == key;
         }
 
         void LabelAction::setSelected(bool f)
@@ -236,7 +219,7 @@ namespace SWE
                     signalEmit(Signal::ButtonResetFocus);
                 }
 
-                renderWindow();
+                setDirty(true);
             }
         }
 
@@ -247,12 +230,8 @@ namespace SWE
 
         void LabelAction::setDisabled(bool f)
         {
-            if(f)
-                setState(FlagDisabled);
-            else
-                resetState(FlagDisabled);
-
-            renderWindow();
+            setState(FlagDisabled, f);
+            setDirty(true);
         }
 
         bool LabelAction::isDisabled(void) const
@@ -260,40 +239,73 @@ namespace SWE
             return checkState(FlagDisabled);
         }
 
-        void LabelAction::renderLabel(const ThemeColors & defcols)
+        void LabelAction::renderLabel(void)
         {
-            const ColorIndex & blck = isSelected() ? defcols.focusedButtonFirstText() : defcols.buttonFirstText();
-            const ColorIndex & body = isSelected() ? defcols.focusedButtonBodyText() : defcols.buttonBodyText();
+            auto hcol = colorHotKey(isSelected());
+	    auto hotch = hotKey() ? KeySym(hotKey(), 0).keychar() : 0;
 
-            for(auto it = label().begin(); it != label().end(); ++it)
+            auto body = colorText(isSelected());
+            auto back = colorBackground(isSelected());
+            *this << set::colors(body, back);
+
+            for(auto & ch : label())
             {
-                if(*it == '<')
-                {
-                    *this << set::fgcolor(hotKey() ? blck : body);
+                if(ch == '<' || ch == '>')
                     continue;
-                }
-                else if(*it == '>')
-                {
-                    *this << set::fgcolor(body);
-                    continue;
-                }
 
-                *this << *it;
+		if(hotch == ::tolower(ch) && ! isDisabled())
+		{
+		    // first found hotch
+                    *this << set::fgcolor(hcol) << ch << set::fgcolor(body);
+		    hotch = 0;
+		}
+		else
+		    *this << ch;
             }
+
+            *this << reset::colors();
         }
+
+
+        ColorIndex LabelAction::colorBackground(void) const
+	{
+    	    return themeColors[ColorButtonBackground];
+	}
+
+        ColorIndex LabelAction::colorText(void) const
+	{
+    	    return themeColors[ColorButtonBodyText];
+	}
+
+        ColorIndex LabelAction::colorBackground(bool focused) const
+	{
+    	    return focused ? themeColors[ColorFocusedButtonBackground] : colorBackground();
+	}
+
+        ColorIndex LabelAction::colorText(bool focused) const
+	{
+    	    return focused ? themeColors[ColorFocusedButtonBodyText] : colorText();
+	}
+
+        ColorIndex LabelAction::colorHotKey(bool focused) const
+	{
+    	    return themeColors[focused ? ColorFocusedButtonFirstText : ColorButtonFirstText];
+	}
 
         void LabelAction::renderWindow(void)
         {
-            const ThemeColors & defcols = theme();
-            const ColorIndex & body = isSelected() ? defcols.focusedButtonBodyText() : defcols.buttonBodyText();
-            const ColorIndex & back = isSelected() ? defcols.focusedButtonBackground() : defcols.buttonBackground();
-            *this << reset::defaults() << fill::defaults(body, back);
-            renderLabel(defcols);
-            *this << set::flush();
+	    *this << reset::defaults();
+
+            renderLabel();
+
+	    *this << set::flush();
         }
 
         bool LabelAction::keyPressEvent(const KeySym & key)
         {
+	    if(isDisabled())
+		return false;
+
             if(Key::NONE != hotKey() && hotKey() == key.keycode())
             {
                 if(isSelected())
@@ -337,68 +349,49 @@ namespace SWE
 
             if(action() && parent())
                 pushEventAction(action(), parent(), this);
+	    setDirty(true);
         }
 
         /* LabelActionGroup */
-        LabelAction* LabelActionGroup::addLabel(const std::string & label, int action, const TermPos & pos, TermWindow & term, const ThemeColors* theme)
+        LabelAction* LabelActionGroup::addLabel(const std::string & label, int action, const TermPos & pos, TermWindow & term)
         {
-            push_back(LabelActionPtr(label, action, pos, term, theme));
-            return back().get();
-        }
-
-        LabelAction* LabelActionGroup::addLabel(TermWindow & term, const ThemeColors* theme)
-        {
-            push_back(LabelActionPtr(term, theme));
+            emplace_back(label, action, pos, term);
             return back().get();
         }
 
         LabelAction* LabelActionGroup::addLabel(LabelAction* ptr)
         {
-            push_back(LabelActionPtr(ptr));
+            emplace_back(ptr);
             return back().get();
         }
 
         bool LabelActionGroup::findLabel(const LabelAction* lb) const
         {
-            if(lb)
-            {
-                for(auto it = begin(); it != end(); ++it)
-                    if((*it).get() == lb) return true;
-            }
-
-            return false;
+	    return std::any_of(begin(), end(), [=](auto & ptr){ return ptr.get() == lb; });
         }
 
-        LabelAction* LabelActionGroup::findLabel(const std::string & str) const
+        LabelAction* LabelActionGroup::findLabel(const UnicodeString & str) const
         {
-            for(auto it = begin(); it != end(); ++it)
-                if((*it).get() && (*it).get()->isLabel(str)) return (*it).get();
-
-            return nullptr;
+            auto it = std::find_if(begin(), end(), [&](auto & ptr){ return ptr && ptr->isLabel(str); });
+	    return it != end() ? (*it).get() : nullptr;
         }
 
         LabelAction* LabelActionGroup::findAction(int action) const
         {
-            for(auto it = begin(); it != end(); ++it)
-                if((*it).get() && (*it).get()->isAction(action)) return (*it).get();
-
-            return nullptr;
+            auto it = std::find_if(begin(), end(), [=](auto & ptr){ return ptr && ptr->isAction(action); });
+	    return it != end() ? (*it).get() : nullptr;
         }
 
         LabelAction* LabelActionGroup::findHotKey(int key) const
         {
-            for(auto it = begin(); it != end(); ++it)
-                if((*it).get() && (*it).get()->isHotKey(key)) return (*it).get();
-
-            return nullptr;
+            auto it = std::find_if(begin(), end(), [=](auto & ptr){ return ptr && ptr->isHotKey(key); });
+	    return it != end() ? (*it).get() : nullptr;
         }
 
         LabelAction* LabelActionGroup::findSelected(void) const
         {
-            for(auto it = begin(); it != end(); ++it)
-                if((*it).get() && (*it).get()->isSelected()) return (*it).get();
-
-            return nullptr;
+            auto it = std::find_if(begin(), end(), [](auto & ptr){ return ptr && ptr->isSelected(); });
+	    return it != end() ? (*it).get() : nullptr;
         }
 
         LabelAction* LabelActionGroup::findIndex(size_t dist) const
@@ -407,26 +400,25 @@ namespace SWE
             return it != end() ? (*it).get() : nullptr;
         }
 
-        int LabelActionGroup::index(LabelAction* ptr) const
+        int LabelActionGroup::index(LabelAction* lb) const
         {
-            if(ptr)
-                for(auto it = begin(); it != end(); ++it)
-                    if((*it).get() == ptr) return std::distance(begin(), it);
+            if(lb)
+	    {
+        	auto it = std::find_if(begin(), end(), [=](auto & ptr){ return ptr.get() == lb; });
+                if(it != end()) return std::distance(begin(), it);
+	    }
 
             return -1;
         }
 
         bool LabelActionGroup::setSelected(const LabelAction* lb)
         {
-            if(lb)
+            if(lb &&
+        	std::any_of(begin(), end(), [=](auto & ptr){ return ptr.get() == lb; }))
             {
-                for(auto it = begin(); it != end(); ++it)
-                    if((*it).get() == lb)
-                    {
-                        resetSelected();
-                        (*it).get()->setSelected(true);
-                        return true;
-                    }
+                resetSelected();
+                const_cast<LabelAction*>(lb)->setSelected(true);
+                return true;
             }
 
             return false;
@@ -436,11 +428,8 @@ namespace SWE
         {
             if(1 < size())
             {
-                auto it = begin();
-
-                for(; it != end(); ++it)
-                    if((*it).get() && (*it).get()->isSelected()) break;
-
+        	auto it = std::find_if(begin(), end(),
+				[](auto & ptr){ return ptr.get() && ptr->isSelected(); });
                 if(it != end())
                 {
                     it++;
@@ -449,7 +438,7 @@ namespace SWE
                         it = begin();
 
                     resetSelected();
-                    (*it).get()->setSelected(true);
+                    (*it)->setSelected(true);
                 }
             }
         }
@@ -458,11 +447,8 @@ namespace SWE
         {
             if(1 < size())
             {
-                auto it = begin();
-
-                for(; it != end(); ++it)
-                    if((*it).get() && (*it).get()->isSelected()) break;
-
+        	auto it = std::find_if(begin(), end(),
+				[](auto & ptr){ return ptr.get() && ptr->isSelected(); });
                 if(it != end())
                 {
                     if(it == begin())
@@ -470,28 +456,28 @@ namespace SWE
 
                     it--;
                     resetSelected();
-                    (*it).get()->setSelected(true);
+                    (*it)->setSelected(true);
                 }
             }
         }
 
         void LabelActionGroup::firstSelected(void)
         {
-            if(size())
+            if(! empty())
             {
                 auto & ptr = front();
 
-                if(ptr.get() && ! ptr.get()->isSelected())
+                if(ptr && ! ptr->isSelected())
                 {
                     resetSelected();
-                    ptr.get()->setSelected(true);
+                    ptr->setSelected(true);
                 }
             }
         }
 
         bool LabelActionGroup::isFirstSelected(void) const
         {
-            if(size())
+            if(! empty())
             {
                 auto & ptr = front();
                 return ptr.get() == findSelected();
@@ -502,21 +488,21 @@ namespace SWE
 
         void LabelActionGroup::lastSelected(void)
         {
-            if(size())
+            if(! empty())
             {
                 auto & ptr = back();
 
-                if(ptr.get() && ! ptr.get()->isSelected())
+                if(ptr && ! ptr->isSelected())
                 {
                     resetSelected();
-                    ptr.get()->setSelected(true);
+                    ptr->setSelected(true);
                 }
             }
         }
 
         bool LabelActionGroup::isLastSelected(void) const
         {
-            if(size())
+            if(! empty())
             {
                 auto & ptr = back();
                 return ptr.get() == findSelected();
@@ -527,59 +513,47 @@ namespace SWE
 
         void LabelActionGroup::resetSelected(const LabelAction* exclude)
         {
-            for(auto it = begin(); it != end(); ++it)
-                if((*it).get() && (!exclude || exclude != (*it).get()))(*it).get()->setSelected(false);
-        }
-
-        void LabelActionGroup::renderWindow(void)
-        {
-            for(auto it = begin(); it != end(); ++it)
-                if((*it).get())(*it).get()->renderWindow();
+            for(auto & ptr : *this)
+                if(ptr && (!exclude || exclude != ptr.get()))
+		    ptr->setSelected(false);
         }
 
         size_t LabelActionGroup::rows(void) const
         {
-            size_t res = 0;
-
-            for(auto it = begin(); it != end(); ++it)
-                if((*it).get()) res += (*it).get()->rows();
-
-            return res;
+	    return std::accumulate(begin(), end(), 0, [](int v, auto & ptr){ return ptr ? v + ptr->rows() : v; });
         }
 
         size_t LabelActionGroup::cols(void) const
         {
-            size_t res = 0;
-
-            for(auto it = begin(); it != end(); ++it)
-                if((*it).get()) res += (*it).get()->cols();
-
-            return res;
+	    return std::accumulate(begin(), end(), 0, [](int v, auto & ptr){ return ptr ? v + ptr->cols() : v; });
         }
 
         /* TextButton */
-        TextButton::TextButton(const std::string & str, int action, const TermPos & pos, TermWindow & term, const ThemeColors* theme) : LabelAction(term, theme)
-        {
-            setAction(action);
-            setPosition(term.sym2gfx(pos));
-            setLabel(str);
-            setVisible(true);
-        }
+	TextButton::TextButton(const UnicodeString & us, int action, TermWindow & term) : LabelAction(us, action, term)
+	{
+	    // reserve for [ ]
+            setTermSize(TermSize(cols() + 2, rows()));
+	}
 
-        TextButton::TextButton(const buttons_t & type, TermWindow & term, const ThemeColors* theme) : LabelAction(term, theme)
+	TextButton::TextButton(const UnicodeString & us, int action, const TermPos & tpos, TermWindow & term) : LabelAction(us, action, tpos, term)
+	{
+	    // reserve for [ ]
+            setTermSize(TermSize(cols() + 2, rows()));
+	}
+
+        TextButton::TextButton(const buttons_t & type, TermWindow & term) : LabelAction(& term)
         {
             setAction(type);
-            setLabel(type);
+            setButton(type);
+	    setVisible(true);
         }
 
-        void TextButton::setLabel(const std::string & str)
+        TermSize TextButton::labelSize(const UnicodeString & str) const
         {
-            bool blockPresent = setLabelHotKey(str);
-            setTermSize(TermSize(label().size() + (blockPresent ? 0 : 2), 1));
-            renderWindow();
+            return TermSize(str.size() + (Key::NONE != hotKey() ? 0 : 2), 1);
         }
 
-        void TextButton::setLabel(const buttons_t & type)
+        void TextButton::setButton(const buttons_t & type)
         {
             const char* str = "UnknownButton";
 
@@ -608,98 +582,95 @@ namespace SWE
             setLabel(str);
         }
 
+	ColorIndex TextButton::colorBracket(bool focused) const
+	{
+	    return themeColors[focused ? ColorFocusedButtonBracket : ColorButtonBracket];
+	}
+
         void TextButton::renderWindow(void)
         {
-            if(isVisible())
-            {
-                const ThemeColors & defcols = theme();
-                const ColorIndex & brkt = isSelected() ? defcols.focusedButtonBracket() : defcols.buttonBracket();
-                const ColorIndex & body = isSelected() ? defcols.focusedButtonBodyText() : defcols.buttonBodyText();
-                const ColorIndex & back = isSelected() ? defcols.focusedButtonBackground() : defcols.buttonBackground();
-                *this << reset::defaults() <<
-                      fill::defaults(body, back) << UnicodeColor('[', FBColors(brkt, defcols.buttonBackground()));
-                renderLabel(defcols);
-                *this << UnicodeColor(']', FBColors(brkt, defcols.buttonBackground())) <<
-                      set::flush();
-            }
+            auto brkt = colorBracket(isSelected());
+            auto back2 = colorBackground(false);
+
+	    *this << reset::defaults() <<
+		set::colors(brkt, back2) << "[" << reset::colors();
+
+            renderLabel();
+
+            *this << set::colors(brkt, back2) << "]" << reset::colors() <<
+        	set::flush();
         }
 
 #define ButtonSelected 0x80000000
 
         /* ButtonsGroup */
-        ButtonsGroup::ButtonsGroup(int buttons, TermWindow & term, const ThemeColors* defcols)
+        ButtonsGroup::ButtonsGroup(int buttons, TermWindow & term)
         {
-            auto v = buttonsAll(buttons);
+	    auto buttonsAll = { ButtonOk, ButtonYes, ButtonNo, ButtonCancel };
 
-            for(auto it = v.begin(); it != v.end(); ++it)
-                addLabel(new TextButton(*it, term, defcols));
+            for(auto & type : buttonsAll)
+        	if(buttons & type) addLabel(new TextButton(type, term));
 
             if(buttons & ButtonSelected) lastSelected();
         }
 
         /* HeaderAreaBox */
-        HeaderAreaBox::HeaderAreaBox(const UnicodeString & str, const TermSize & tsz, TermWindow & term, const ThemeColors* defcols)
-            : TermWindow(term), CurrentTheme(defcols), header(str, theme().headerText())
+        HeaderAreaBox::HeaderAreaBox(const UnicodeString & us, TermWindow & term) : TermWindow(& term), header(us) 
+	{
+	    // reserv 2 tee + 2 corner
+            setTermSize(TermSize(header.size() + 4, 2));
+	    setVisible(true);
+	}
+
+        HeaderAreaBox::HeaderAreaBox(const UnicodeString & us, const FontRender & frs, Window* win) : TermWindow(frs, win), header(us)
+	{
+	    // reserv 2 tee + 2 corner
+            setTermSize(TermSize(header.size() + 4, 2));
+	    setVisible(true);
+	}
+
+	HeaderAreaBox::HeaderAreaBox(const UnicodeString & us, const TermSize & tsz, TermWindow & term) : TermWindow(& term), header(us)
+	{
+	    // reserv: 2 line, 2 tee + 2 corner
+            int columns = std::max(tsz.cols() + 2, header.size() + 4);
+	    // reserv: 2 line
+            setTermSize(TermSize(columns, tsz.rows() + 2));
+	    setVisible(true);
+	}
+
+
+	ColorIndex HeaderAreaBox::colorHeader(void) const
+	{
+	    return themeColors[ColorHeaderText];
+	}
+
+        line_t HeaderAreaBox::lineType(void) const
         {
-            initHeaderAreaBox(tsz);
-            renderWindow();
-            setVisible(true);
+            // force fixed type
+            return TermWindow::fontRender == & systemFont() ? LineAscii : ThemeColors::lineType();
         }
 
-        HeaderAreaBox::HeaderAreaBox(const UCString & str, const TermSize & tsz, TermWindow & term, const ThemeColors* defcols)
-            : TermWindow(term), CurrentTheme(defcols), header(str)
+        void HeaderAreaBox::renderBox(void)
         {
-            initHeaderAreaBox(tsz);
-            renderWindow();
-            setVisible(true);
-        }
+            *this << set::colors(colorLine(), colorBackground()) << 
+        	// border section
+        	draw::rect(0, 0, cols(), rows(), lineType()) << reset::colors();
 
-        HeaderAreaBox::HeaderAreaBox(const UnicodeString & str, TermWindow & term, const ThemeColors* defcols)
-            : TermWindow(term), CurrentTheme(defcols), header(str, theme().headerText())
-        {
-        }
-
-        HeaderAreaBox::HeaderAreaBox(const UCString & str, TermWindow & term, const ThemeColors* defcols)
-            : TermWindow(term), CurrentTheme(defcols), header(str)
-        {
-        }
-
-        HeaderAreaBox::HeaderAreaBox(const UnicodeString & str, const FontRender & frs, Window & win, const ThemeColors* defcols)
-            : TermWindow(frs, win), CurrentTheme(defcols), header(str)
-        {
-        }
-
-        HeaderAreaBox::HeaderAreaBox(const UCString & str, const FontRender & frs, Window & win, const ThemeColors* defcols)
-            : TermWindow(frs, win), CurrentTheme(defcols), header(str)
-        {
-        }
-
-        void HeaderAreaBox::initHeaderAreaBox(const TermSize & tsz)
-        {
-            setTermSize(tsz + TermSize(2, 2)); // border reserved
-
-            if(parent()) setPosition((parent()->size() - size()) / 2);
-
-            *this << set::colors(theme().borderLine(), theme().background()) <<
-                  fill::defaults(theme().borderLine(), theme().background());
+	    // header section
+            if(header.size())
+	    {
+                *this << cursor::set((cols() - header.size() - 2) / 2, 0) <<
+                      acs::rtee(lineType()) << set::fgcolor(colorHeader()) << header << reset::fgcolor() << acs::ltee(lineType());
+	    }
         }
 
         void HeaderAreaBox::renderWindow(void)
         {
-            const line_t & line = TermWindow::fontRender == & systemFont() ? LineAscii : theme().typeLine();
-            renderWindowLine(line);
+	    *this << reset::defaults();
+
+	    renderBox();
+
             *this << set::flush();
-        }
-
-        void HeaderAreaBox::renderWindowLine(const line_t & line)
-        {
-            *this << set::colors(theme().borderLine(), theme().background());
-            // border section
-            *this << draw::rect(0, 0, cols(), rows(), line);
-
-            if(header.size())
-                *this << cursor::set((cols() - header.size() - 2) / 2, 0) <<
-                      acs::rtee(line) << header << set::fgcolor(theme().borderLine()) << acs::ltee(line);
         }
 
         bool HeaderAreaBox::keyPressEvent(const KeySym & key)
@@ -714,45 +685,17 @@ namespace SWE
         }
 
         /* ButtonsAreaBox */
-        ButtonsAreaBox::ButtonsAreaBox(const UnicodeString & str, int buttons, TermWindow & term, const ThemeColors* defcols)
-            : HeaderAreaBox(str, term, defcols), buttonsGroup(buttons, *this, defcols)
+	void ButtonsAreaBox::initAreaBox(void)
         {
-        }
+	    // reserv: 2 space + 2 line
+	    auto btnsColumns = btnsGroup.cols() + (btnsGroup.count() - 1) + 4;
+            auto columns = std::max(cols(), btnsColumns);
+	    // reserv 2 line button section
+            setTermSize(TermSize(columns, rows() + 2));
 
-        ButtonsAreaBox::ButtonsAreaBox(const UCString & str, int buttons, TermWindow & term, const ThemeColors* defcols)
-            : HeaderAreaBox(str, term, defcols), buttonsGroup(buttons, *this, defcols)
-        {
-        }
-
-        ButtonsAreaBox::ButtonsAreaBox(const UnicodeString & str, int buttons, const FontRender & frs, Window & win, const ThemeColors* defcols)
-            : HeaderAreaBox(str, frs, win, defcols), buttonsGroup(buttons, *this, defcols)
-        {
-        }
-
-        ButtonsAreaBox::ButtonsAreaBox(const UCString & str, int buttons, const FontRender & frs, Window & win, const ThemeColors* defcols)
-            : HeaderAreaBox(str, frs, win, defcols), buttonsGroup(buttons, *this, defcols)
-        {
-        }
-
-        ButtonsAreaBox::ButtonsAreaBox(const UnicodeString & str, const TermSize & tsz, int buttons, TermWindow & term, const ThemeColors* defcols)
-            : HeaderAreaBox(str, term, defcols), buttonsGroup(buttons, *this, defcols)
-        {
-            initButtonsAreaBox(tsz);
-            renderWindow();
-        }
-
-        ButtonsAreaBox::ButtonsAreaBox(const UCString & str, const TermSize & tsz, int buttons, TermWindow & term, const ThemeColors* defcols)
-            : HeaderAreaBox(str, term, defcols), buttonsGroup(buttons, *this, defcols)
-        {
-            initButtonsAreaBox(tsz);
-            renderWindow();
-        }
-
-        void ButtonsAreaBox::initButtonsAreaBox(const TermSize & tsz)
-        {
-            int cols = std::max(tsz.cols(), maxColumns()) + 2 /* 2 space */;
-            initHeaderAreaBox(TermSize(cols, tsz.rows() + 2)) /* 2 button section */;
             setButtonsPosition();
+
+	    // signals
             setButtonsSubscribe(Signal::ButtonClicked);
             setButtonsSubscribe(Signal::ButtonSetFocus);
             signalSubscribe(*this, Signal::ButtonResetFocus);
@@ -763,13 +706,12 @@ namespace SWE
             switch(sig)
             {
                 case Signal::ButtonResetFocus:
-                    buttonsGroup.resetSelected();
+                    btnsGroup.resetSelected();
                     break;
 
                 case Signal::ButtonClicked:
                 {
                     const TextButton* tb = dynamic_cast<const TextButton*>(sm);
-
                     if(tb) setResultCode(tb->action());
 
                     setVisible(false);
@@ -779,8 +721,7 @@ namespace SWE
                 case Signal::ButtonSetFocus:
                 {
                     const TextButton* tb = dynamic_cast<const TextButton*>(sm);
-
-                    if(tb) buttonsGroup.resetSelected(tb);
+                    if(tb) btnsGroup.resetSelected(tb);
                 }
                 break;
 
@@ -791,50 +732,62 @@ namespace SWE
 
         void ButtonsAreaBox::setHotKeyDisabled(bool f)
         {
-            for(size_t it = 0; it < buttonsGroup.count(); ++it)
-            {
-                LabelAction* btn = buttonsGroup.findIndex(it);
-
-                if(btn) btn->setHotKeyDisabled(f);
-            }
+            for(auto & ptr : btnsGroup)
+                if(ptr) ptr->setHotKeyDisabled(f);
         }
 
         void ButtonsAreaBox::setButtonsPosition(void)
         {
-            size_t width = buttonsGroup.cols() + (buttonsGroup.count() - 1);
+            size_t width = btnsGroup.cols() + (btnsGroup.count() - 1);
             Point pos = sym2gfx(TermPos((cols() - width) / 2, rows() - 2)) - position();
 
-            for(size_t it = 0; it < buttonsGroup.count(); ++it)
+            for(auto & ptr : btnsGroup)
             {
-                LabelAction* btn = buttonsGroup.findIndex(it);
-
-                if(btn)
+                if(ptr)
                 {
-                    btn->setPosition(pos);
-                    btn->setVisible(true);
-                    pos += sym2gfx(TermSize(btn->cols() + 1, 0));
+                    ptr->setPosition(pos);
+                    ptr->setVisible(true);
+                    pos += sym2gfx(TermSize(ptr->cols() + 1, 0));
                 }
             }
         }
 
         void ButtonsAreaBox::setButtonsSubscribe(int sig)
         {
-            for(size_t it = 0; it < buttonsGroup.count(); ++it)
-            {
-                LabelAction* btn = buttonsGroup.findIndex(it);
-
-                if(btn) signalSubscribe(*btn, sig);
-            }
+            for(auto & ptr : btnsGroup)
+                if(ptr) signalSubscribe(*ptr, sig);
         }
 
-        void ButtonsAreaBox::renderWindowLine(const line_t & line)
+	ButtonsGroup & ButtonsAreaBox::buttonsGroup(void)
+	{
+	    return btnsGroup;
+	}
+
+	const ButtonsGroup & ButtonsAreaBox::buttonsGroup(void) const
+	{
+	    return btnsGroup;
+	}
+
+        void ButtonsAreaBox::renderButtons(void)
         {
-            HeaderAreaBox::renderWindowLine(line);
             // bottom section
             *this << cursor::set(0, rows() - 3) <<
-                  acs::ltee(line) << draw::hline(cols() - 2, acs::hline(line)) << acs::rtee(line);
+        	set::colors(colorLine(), colorBackground()) << 
+        	acs::ltee(lineType()) << draw::hline(cols() - 2, acs::hline(lineType())) << acs::rtee(lineType()) << reset::colors();
+
             // buttons section
-            buttonsGroup.renderWindow();
+            for(auto & btn : btnsGroup)
+                if(btn) btn->renderWindow();
+        }
+
+        void ButtonsAreaBox::renderWindow(void)
+        {
+	    *this << reset::defaults();
+
+            renderBox();
+	    renderButtons();
+
+            *this << set::flush();
         }
 
         bool ButtonsAreaBox::keyPressEvent(const KeySym & key)
@@ -842,20 +795,18 @@ namespace SWE
             switch(key.keycode())
             {
                 case Key::LEFT:
-                    if(buttonsGroup.findSelected())
+                    if(btnsGroup.findSelected())
                     {
-                        buttonsGroup.prevSelected();
-                        renderWindow();
+                        btnsGroup.prevSelected();
                         return true;
                     }
 
                     break;
 
                 case Key::RIGHT:
-                    if(buttonsGroup.findSelected())
+                    if(btnsGroup.findSelected())
                     {
-                        buttonsGroup.nextSelected();
-                        renderWindow();
+                        btnsGroup.nextSelected();
                         return true;
                     }
 
@@ -872,115 +823,103 @@ namespace SWE
             return false;
         }
 
-        int ButtonsAreaBox::maxColumns(void) const
-        {
-            return buttonsGroup.cols() + (buttonsGroup.count() - 1);
-        }
-
         /* MessageBox */
-        MessageBox::MessageBox(const UnicodeString & header, const UnicodeString & message, int buttons, TermWindow & term, const ThemeColors* defcols)
-            : ButtonsAreaBox(header, buttons | ButtonSelected, term, defcols)
+        MessageBox::MessageBox(const UnicodeString & header, const UnicodeString & message, int buttons, TermWindow & term)
+            : UnicodeList(message.split('\n')), ButtonsAreaBox(header, TermSize(UnicodeList::maxStringWidth() + 2 /* space */, UnicodeList::size()), buttons | ButtonSelected, term)
         {
-            initMessageBox(UCString(message, theme().bodyText()));
-            renderWindow();
+	    // centered
+            setPosition((term.size() - Window::size()) / 2);
             setVisible(true);
         }
 
-        MessageBox::MessageBox(const UCString & header, const UCString & message, int buttons, TermWindow & term, const ThemeColors* defcols)
-            : ButtonsAreaBox(header, buttons | ButtonSelected, term, defcols)
+        MessageBox::MessageBox(const UnicodeString & header, const UnicodeString & message, int buttons, const FontRender & frs, Window* win)
+            : UnicodeList(message.split('\n')), ButtonsAreaBox(header, buttons | ButtonSelected, frs, win)
         {
-            initMessageBox(message);
-            renderWindow();
+	    // reserv: 2 space + 2 line
+	    auto contentColumns = UnicodeList::maxStringWidth() + 4;
+            auto columns = std::max(cols(), contentColumns);
+            setTermSize(TermSize(columns, rows() + UnicodeList::size()));
+            setButtonsPosition();
+
+	    // centered
+	    if(win)
+        	setPosition((win->size() - Window::size()) / 2);
             setVisible(true);
         }
 
-        MessageBox::MessageBox(const UnicodeString & header, const UnicodeString & message, int buttons, const FontRender & frs, Window & win, const ThemeColors* defcols)
-            : ButtonsAreaBox(header, buttons | ButtonSelected, frs, win, defcols)
+        void MessageBox::renderWindow(void)
         {
-            initMessageBox(UCString(message, theme().bodyText()));
-            renderWindow();
-            setVisible(true);
-        }
+	    auto & term = static_cast<TermWindow &>(*this);
 
-        MessageBox::MessageBox(const UCString & header, const UCString & message, int buttons, const FontRender & frs, Window & win, const ThemeColors* defcols)
-            : ButtonsAreaBox(header, buttons | ButtonSelected, frs, win, defcols)
-        {
-            initMessageBox(message);
-            renderWindow();
-            setVisible(true);
-        }
+	    term << reset::defaults();
 
-        void MessageBox::initMessageBox(const UCString & message)
-        {
-            content = message.split('\n');
-            initButtonsAreaBox(TermSize(content.maxStringWidth(), content.size()));
-        }
+            renderBox();
+	    renderButtons();
 
-        void MessageBox::renderWindowLine(const line_t & line)
-        {
-            ButtonsAreaBox::renderWindowLine(line);
+            for(auto it = UnicodeList::begin(); it != UnicodeList::end(); ++it)
+                term << cursor::set((cols() - (*it).size()) / 2, 1 + std::distance(UnicodeList::begin(), it)) << *it;
 
-            for(auto it = content.begin(); it != content.end(); ++it)
-                *this << cursor::set((cols() - (*it).size()) / 2, 1 + std::distance(content.begin(), it)) << *it;
+	    term << set::flush();
         }
 
         /* InputBox */
-        InputBox::InputBox(const UnicodeString & header, size_t cols, const std::string & defstr, TermWindow & term, const ThemeColors* defcols)
-            : ButtonsAreaBox(header, ButtonYes | ButtonNo, term, defcols), sResult(defstr), tickLast(0)
+        InputBox::InputBox(const UnicodeString & header, size_t inputCols, const std::string & defstr, TermWindow & term)
+            : ButtonsAreaBox(header, TermSize(inputCols, 1), ButtonYes | ButtonNo, term), sResult(defstr)
         {
             setFlagTermCursor(true);
             setInputFocused(true);
             setHotKeyDisabled(true);
-            initButtonsAreaBox(TermSize(std::max(header.size(), cols), 1));
-            renderWindow();
+
+	    // centered
+    	    setPosition((term.size() - Window::size()) / 2);
             setVisible(true);
         }
 
-        InputBox::InputBox(const UnicodeString & header, size_t cols, const std::string & defstr, const FontRender & frs, Window & win, const ThemeColors* defcols)
-            : ButtonsAreaBox(header, ButtonYes | ButtonNo, frs, win, defcols), sResult(defstr), tickLast(0)
+        InputBox::InputBox(const UnicodeString & header, size_t inputCols, const std::string & defstr, const FontRender & frs, Window* win)
+            : ButtonsAreaBox(header, ButtonYes | ButtonNo, frs, win), sResult(defstr)
         {
+	    // reserv: 2 line
+            auto columns = std::max(cols(), inputCols + 2);
+            setTermSize(TermSize(columns, rows() + 1));
+            setButtonsPosition();
+
             setFlagTermCursor(true);
             setInputFocused(true);
             setHotKeyDisabled(true);
-            initButtonsAreaBox(TermSize(std::max(header.size(), cols), 1));
-            renderWindow();
+
+	    // centered
+	    if(win)
+        	setPosition((win->size() - Window::size()) / 2);
+
             setVisible(true);
         }
 
         void InputBox::setInputFocused(bool f)
         {
-            if(f)
-                setUnused8(unused8() | 0x02);
-            else
-                setUnused8(unused8() & (~ 0x02));
+	    setState(FlagSelected, f);
         }
 
         bool InputBox::checkInputFocused(void) const
         {
-            return unused8() & 0x02;
+	    return checkState(FlagSelected);
         }
 
         void InputBox::setFlagTermCursor(bool f)
         {
-            if(f)
-                setUnused8(unused8() | 0x01);
-            else
-                setUnused8(unused8() & (~ 0x01));
+	    setState(FlagInformed, f);
         }
 
         bool InputBox::checkFlagTermCursor(void) const
         {
-            return unused8() & 0x01;
+	    return checkState(FlagInformed);
         }
 
         void InputBox::tickEvent(u32 ms)
         {
-            if(checkInputFocused() &&
-               (tickLast == 0 || (ms - tickLast) > 500))
+            if(checkInputFocused() && tt.check(ms, 500))
             {
-                setFlagTermCursor(! checkFlagTermCursor());
-                renderWindow();
-                tickLast = ms;
+		switchedState(FlagInformed);
+		setDirty(true);
             }
         }
 
@@ -993,11 +932,12 @@ namespace SWE
             {
                 if(key.keycode() == Key::TAB)
                 {
-                    if(buttonsGroup.isFirstSelected())
-                        buttonsGroup.lastSelected();
-                    else if(buttonsGroup.isLastSelected())
+                    if(buttonsGroup().isFirstSelected())
+                        buttonsGroup().lastSelected();
+                    else
+		    if(buttonsGroup().isLastSelected())
                     {
-                        buttonsGroup.resetSelected();
+                        buttonsGroup().resetSelected();
                         setInputFocused(true);
                     }
 
@@ -1022,15 +962,15 @@ namespace SWE
 
                 case Key::TAB:
                     setInputFocused(false);
-                    buttonsGroup.firstSelected();
-                    renderWindow();
+                    buttonsGroup().firstSelected();
+                    setDirty(true);
                     return true;
 
                 case Key::BACKSPACE:
                     if(0 < sResult.size())
                     {
                         sResult.erase(sResult.end() - 1);
-                        renderWindow();
+                	setDirty(true);
                         return true;
                     }
 
@@ -1043,7 +983,7 @@ namespace SWE
                     if(ch)
                     {
                         sResult.append(1, ch);
-                        renderWindow();
+                	setDirty(true);
                         return true;
                     }
 
@@ -1054,46 +994,86 @@ namespace SWE
             return false;
         }
 
-        void InputBox::renderWindowLine(const line_t & line)
+        ColorIndex InputBox::colorFieldText(void) const
+	{
+	    return themeColors[ColorInputFieldText];
+	}
+
+        ColorIndex InputBox::colorFieldCursor(void) const
+	{
+	    return themeColors[ColorInputCursor];
+	}
+
+        ColorIndex InputBox::colorFieldBackground(bool focused) const
+	{
+	    return themeColors[focused ? ColorFocusedInputFieldBackground : ColorInputFieldBackground];
+	}
+
+        void InputBox::renderWindow(void)
         {
-            ButtonsAreaBox::renderWindowLine(line);
-            size_t iw = cols() - 2;
+	    *this << reset::defaults();
+
+            renderBox();
+	    renderButtons();
+
+            const size_t iw = cols() - 2;
+
             // render input
-            *this << cursor::set(1, 1) <<
-                  set::colors(theme().inputFieldText(), (checkInputFocused() ? theme().focusedInputFieldBackground() : theme().inputFieldBackground())) <<
-                  fill::space(cols() - 2) << cursor::set(1, 1);
+            *this << cursor::set(1, 1) << set::colors(colorFieldText(), colorFieldBackground(checkInputFocused())) <<
+                  fill::space(cols() - 2) << cursor::set(1, 1) << reset::colors();
 
             if(sResult.size() < iw)
                 *this << sResult;
             else
                 *this << sResult.substr(sResult.size() - iw + 1, iw - 1);
 
-            if(checkInputFocused())
-                *this << set::fgcolor(theme().inputCursor()) << "_";
+            if(checkFlagTermCursor())
+                *this << set::fgcolor(colorFieldCursor()) << "_" << reset::fgcolor();
 
             *this << set::flush();
         }
 
         /* ListBox */
-        ListBox::ListBox(const UnicodeString & header, const UCStringList & ucsl, size_t rows, TermWindow & term, const ThemeColors* defcols)
-            : ButtonsAreaBox(header, ButtonYes | ButtonNo | ButtonSelected, term, defcols), content(ucsl), selected(-1), skipped(0)
+        ListBox::ListBox(const UnicodeString & header, const UnicodeList & list, size_t listRows, TermWindow & term)
+            : ButtonsAreaBox(header, TermSize(list.maxStringWidth() + 2 /* space */, listRows), ButtonYes | ButtonNo | ButtonSelected, term), content(list), selected(-1), skipped(0)
         {
-            initButtonsAreaBox(TermSize(std::max(header.size(), content.maxStringWidth()), rows));
-            renderWindow();
+	    // centered
+    	    setPosition((term.size() - Window::size()) / 2);
             setVisible(true);
         }
 
-        ListBox::ListBox(const UnicodeString & header, const UCStringList & ucsl, size_t rows, const FontRender & frs, Window & win, const ThemeColors* defcols)
-            : ButtonsAreaBox(header, ButtonYes | ButtonNo | ButtonSelected, frs, win, defcols), content(ucsl), selected(-1), skipped(0)
+        ListBox::ListBox(const UnicodeString & header, const UnicodeList & list, size_t listRows, const FontRender & frs, Window* win)
+            : ButtonsAreaBox(header, ButtonYes | ButtonNo | ButtonSelected, frs, win), content(list), selected(-1), skipped(0)
         {
-            initButtonsAreaBox(TermSize(std::max(header.size(), content.maxStringWidth()), rows));
-            renderWindow();
+	    // reserv: 2 space + 2 line
+	    auto contentColumns = content.maxStringWidth() + 4;
+            setTermSize(TermSize(contentColumns, listRows));
+            setButtonsPosition();
+
+	    // centered
+	    if(win)
+        	setPosition((win->size() - Window::size()) / 2);
+
             setVisible(true);
         }
 
-        void ListBox::renderWindowLine(const line_t & line)
+	ColorIndex ListBox::colorText(bool selected) const
+	{
+	    return selected ? themeColors[ColorListSelectedText] : ThemeColors::colorText();
+    	}
+
+	ColorIndex ListBox::colorBackground(bool selected) const
+	{
+	    return selected ? themeColors[ColorListSelectedBackground] : ThemeColors::colorBackground();
+	}
+
+        void ListBox::renderWindow(void)
         {
-            ButtonsAreaBox::renderWindowLine(line);
+	    *this << reset::defaults();
+
+            renderBox();
+            renderButtons();
+
             int max = rows() - 4;
             skipped = (max <= selected ? (selected - max + 1) : 0);
             auto it = std::next(content.begin(), skipped);
@@ -1101,24 +1081,18 @@ namespace SWE
             for(; it != content.end(); ++it)
             {
                 int dist = std::distance(content.begin(), it) - skipped;
-
                 if(dist >= max) break;
 
                 *this << cursor::set(1, 1 + dist);
 
-                if(dist + skipped == selected)
-                {
-                    *this << cursor::set(1, 1 + dist) <<
-                          set::colors(theme().listSelectedText(), theme().listSelectedBackground()) <<
-                          cursor::set(1, 1 + dist) << (*it).toUnicodeString() << fill::space(cols() - 2 - (*it).size());
-                }
-                else
-                {
-                    *this << cursor::set(1, 1 + dist) <<
-                          set::colors(theme().bodyText(), theme().background()) <<
-                          cursor::set(1, 1 + dist) << *it << fill::space(cols() - 2 - (*it).size());
-                }
+		auto text = colorText(dist + skipped == selected);
+		auto back = colorBackground(dist + skipped == selected);
+
+    	        *this << cursor::set(1, 1 + dist) << set::colors(text, back) <<
+                      cursor::set(1, 1 + dist) << *it << fill::space(cols() - 2 - (*it).size()) << reset::colors();
             }
+
+	    *this << set::flush();
         }
 
         void ListBox::windowVisibleEvent(bool show)
@@ -1156,7 +1130,7 @@ namespace SWE
                 else
                 {
                     selected = index;
-                    renderWindow();
+		    setDirty(true);
                 }
             }
 
@@ -1169,7 +1143,7 @@ namespace SWE
             {
                 selected--;
                 signalEmit(Signal::ButtonResetFocus);
-                renderWindow();
+                setDirty(true);
                 return true;
             }
 
@@ -1182,7 +1156,7 @@ namespace SWE
             {
                 selected++;
                 signalEmit(Signal::ButtonResetFocus);
-                renderWindow();
+                setDirty(true);
                 return true;
             }
 
@@ -1227,7 +1201,7 @@ namespace SWE
             }
 
             return false;
-        }
+	}
 
     } // namespace TermGUI
 } // namespace SWE

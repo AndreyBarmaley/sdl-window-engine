@@ -35,8 +35,11 @@ namespace SWE
     class UnicodeList;
     class FontRender;
 
+    /// @brief класс unicode строки
     class UnicodeString : public std::u16string
     {
+    protected:
+
     public:
         UnicodeString();
         UnicodeString(size_t len, int ch);
@@ -60,6 +63,7 @@ namespace SWE
 
         UnicodeString &	append(int);
         UnicodeString &	append(const UnicodeString &);
+
         UnicodeList	split(int sep) const;
         UnicodeList	splitWidth(const FontRender &, int width) const;
         UnicodeList	wrap(int) const;
@@ -80,6 +84,7 @@ namespace SWE
         UnicodeString	firstUpper(void) const;
     };
 
+    /// @brief класс форматной unicode строки
     class UnicodeFormat : public UnicodeString
     {
         int		cur;
@@ -94,13 +99,16 @@ namespace SWE
         UnicodeFormat &	arg(double, int prec);
     };
 
+    /// @brief класс списка unicode строк
     class UnicodeList : public std::list<UnicodeString>
     {
     public:
         UnicodeList();
         UnicodeList(const StringList &);
         UnicodeList(const std::list<UnicodeString> &);
+	UnicodeList(const std::initializer_list<const char*> &);
         UnicodeList(const UnicodeList &);
+
         UnicodeList(UnicodeList &&) noexcept;
         UnicodeList(std::list<UnicodeString> &&) noexcept;
 

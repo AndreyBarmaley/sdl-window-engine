@@ -55,7 +55,7 @@ namespace SWE
 
     int CharsetProperty::hinting(void) const
     {   
-        return 0x0003 & (val);
+        return 0x03 & (val);
     }   
 
     void CharsetProperty::reset(void)
@@ -66,25 +66,29 @@ namespace SWE
     void CharsetProperty::setRender(int v)
     {
         val &= ~(0x03 << 6);
-    
-        if(v)
-            val |= (v & 0x03) << 6;
+        if(v) val |= (v & 0x03) << 6;
     }
 
     void CharsetProperty::setStyle(int v)
     {
-        val &= ~(0x0F << 2);
-
-        if(v)
-            val |= (v & 0x0F) << 2;
+        val &= ~(0x0f << 2);
+        if(v) val |= (v & 0x0f) << 2;
     }
         
     void CharsetProperty::setHinting(int v)
     {
         val &= ~(0x03);
+        if(v) val |= (v & 0x03);
+    }
 
-        if(v)
-            val |= (v & 0x03);
+    bool CharsetProperty::operator< (const CharsetProperty & cp) const
+    {
+	return val < cp.val;
+    }
+
+    bool CharsetProperty::operator!= (const CharsetProperty & cp) const
+    {
+	return val != cp.val;
     }
 
     /* FontID */
@@ -155,13 +159,13 @@ namespace SWE
 	val3 = v;
     }
 
-    /* UnicodeAll */
+    /// @private
     struct UnicodeAll : UnicodeColor
     {
         UnicodeAll() : UnicodeColor(0, FBColors(Color::Transparent)) {}
     };
 
-    /* CharsetID */
+    /// @private
     struct CharsetID : public std::pair<FontID, UnicodeColor>
     {
         CharsetID() : std::pair<FontID, UnicodeColor>() {}
@@ -219,6 +223,7 @@ namespace SWE
         }
     };
 
+    /// @private
     struct HasherCID
     {
         size_t operator()(const CharsetID & cid) const
@@ -259,13 +264,11 @@ SWE::Texture SWE::FontsCache::renderCharset(int ch, const Color & col, int blend
         CharsetID cid(render->id(), UnicodeColor(ch, col));
         CharsetProperty cp;
 
-        if(0 <= blend) cp.setRender(blend);
+        if(0 < blend) cp.setRender(blend);
+        if(0 < style) cp.setStyle(style);
+        if(0 < hinting) cp.setHinting(hinting);
 
-        if(0 <= style) cp.setStyle(style);
-
-        if(0 <= hinting) cp.setHinting(hinting);
-
-        if(cp()) cid.fs().setProperty(cp());
+        cid.fs().setProperty(cp);
 
         auto it = fontsCache.find(cid);
 
@@ -778,6 +781,7 @@ SWE::Surface SWE::FontRenderPSF::renderCharset(int ch, const Color & cl, int ble
 
 namespace SWE
 {
+    /// @brief встроенный шрифт altc_8x16
     FontAltC8x16::FontAltC8x16() : FontRenderPSF(_fontpsf_altc_8x16.data, sizeof(_fontpsf_altc_8x16.data), Size(_fontpsf_altc_8x16.width, _fontpsf_altc_8x16.height))
     {
     }

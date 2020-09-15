@@ -31,6 +31,7 @@ namespace SWE
 {
     namespace Translation
     {
+	/// @private
         struct chunk
         {
             u32		offset;
@@ -40,6 +41,7 @@ namespace SWE
             chunk(u32 off, u32 len) : offset(off), length(len) {}
         };
 
+	/// @private
         struct mofile
         {
             u32 count, offset_strings1, offset_strings2, hash_size, hash_offset;
@@ -189,7 +191,6 @@ namespace SWE
             if(! context) return str;
 
             const char* pos = str;
-
             while(*pos && *pos++ != context);
 
             return *pos ? pos : str;

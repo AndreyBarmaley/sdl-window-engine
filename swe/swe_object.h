@@ -33,17 +33,20 @@ namespace SWE
 {
     class DisplayScene;
 
+    /// @brief родительский класс объектов сцены DisplayScene
     class ObjectClass
     {
     public:
 	virtual ~ObjectClass() {}
 
+	/// @brief идентификацинная метка класса
 	virtual const char* className(void) const
 	{
 	    return "SWE::ObjectClass";
 	}
 
 #ifdef SWE_WITH_JSON
+	/// @brief упаковка класса в json
 	virtual JsonObject toJson(void) const
 	{
 	    JsonObject res;
@@ -53,17 +56,48 @@ namespace SWE
 #endif
     };
 
+    /// @brief класс объектов сцены DisplayScene, с возможностью отправки/получения сообщений
+/*! 
+    @details
+    Использование:
+        - отправка event
+        @code
+            void pushEventAction(int code, ObjectEvent* dst, void* data);
+        @endcode
+        - получение через виртуальную функцию
+        @code
+            bool userEvent(int code, void* data) override;
+        @endcode
+        особенность данного метода - используется внутренние механизмы SDL_PushEvent/SDL_PollEvent,
+        здесь есть возможность отправки данных через указатель и получение event происходит
+        на следующую итерацию основного цикла обработки событий DisplayScene.
+
+    @see SignalMember
+*/
+
     class ObjectEvent : public ObjectClass
     {
     protected:
 	friend class DisplayScene;
 
-        virtual bool    userEvent(int, void*) { return false; }
+	/// @brief метод получатель, вызывается при получении сообщения, отправленного через pushEventAction
+	/// @param code тип сообщения
+	/// @param data указатель на данные
+	/// @return не используется
+        virtual bool    userEvent(int code, void* data) { return false; }
+
+	/// @brief метод получатель, вызывается один раз за каждую итерацию главного цикла сцены DisplayScene, но перед отрисовкой всей сцены
+	/// @param ms продолжительность работы программы от начала запуска в миллисекундах
+	/// @see DisplayScene::handleEvents
         virtual void    tickEvent(u32 ms) {}
 
     public:
 	virtual ~ObjectEvent() {}
 
+	/// @brief функция отправки сообщения с данными для объектов сцены DisplayScene
+	/// @param code тип сообщения
+	/// @param data указатель на данные
+	/// @param dst получатель сообщения, для отправки сообщения типа broadcast используйте nullptr 
 	void		pushEventAction(int code, ObjectEvent* dst, void* data);
 
 	const char*	className(void) const override

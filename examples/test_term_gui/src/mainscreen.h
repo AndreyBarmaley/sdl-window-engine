@@ -28,35 +28,38 @@
 class DisplayInit
 {
 protected:
-    SWE::Size		termsz;
-    SWE::BinaryBuf	ttf;
-    SWE::FontRenderTTF	frs;
+    SWE::BinaryBuf		ttf;
+    SWE::FontRenderTTF		frs;
+    const char*                 ext;
 
 public:
-    DisplayInit(const std::string &, const SWE::Size &, int);
+    DisplayInit(const std::string &, const SWE::TermSize &, int fsz, const char* extfont);
 
     bool setFontSize(int, const SWE::TermSize &);
 };
 
-class MainScreen : protected DisplayInit, public SWE::TermWindow
+class MainScreen : protected DisplayInit, public SWE::FullTerminal
 {
-    int			fontsz;
-    int			renderContent(const SWE::UnicodeList &, int, const SWE::Point &);
-    std::vector<SWE::Window*> labels;
+    int				fontsz;
+    int				renderContent(const SWE::UnicodeList &, int, const SWE::Point &);
+    SWE::TermGUI::ButtonsGroup	buttons;
 
 protected:
-    bool		keyPressEvent(const SWE::KeySym &) override;
-    bool		scrollUpEvent(void) override;
-    bool		scrollDownEvent(void) override;
-    void		displayResizeEvent(const SWE::Size &, bool) override;
-    bool		userEvent(int act, void* data) override;
+    bool			keyPressEvent(const SWE::KeySym &) override;
+    bool			scrollUpEvent(void) override;
+    bool			scrollDownEvent(void) override;
+    bool			userEvent(int act, void* data) override;
+    bool			mouseClickEvent(const SWE::ButtonsEvent &) override;
+    SWE::CharsetProperty	defaultProperty(void) const override;
+    SWE::FBColors		defaultColors(void) const override;
+    SWE::TermSize      		minimalTerminalSize(void) const override;
 
-    MainScreen(const std::string &, int);
-    ~MainScreen();
+    void			setButtonsPosition(void);
+    MainScreen(const std::string &, int, const char* extfont);
 
 public:
-    static MainScreen & init(const std::string &);
-    void		renderWindow(void);
+    static MainScreen & init(const std::string &, const char* extfont);
+    void			renderWindow(void);
 };
 
 #endif

@@ -102,14 +102,13 @@ namespace SWE
         reserve(utf8.size() + 1);
 
         // convert utf8 to utf16
-        for(std::string::const_iterator
-            it = utf8.begin(); it < utf8.end(); ++it)
+        for(auto it = utf8.begin(); it != utf8.end(); ++it)
         {
             u16 ch = static_cast<u8>(*it);
 
             if(ch >= 0xF0)
             {
-                if(utf8.end() - it > 3)
+                if(std::distance(it, utf8.end()) > 3)
                 {
                     ch  =  static_cast<u16>(*it++ & 0x07) << 18;
                     ch |=  static_cast<u16>(*it++ & 0x3F) << 12;
@@ -120,7 +119,7 @@ namespace SWE
             }
             else if(ch >= 0xE0)
             {
-                if(utf8.end() - it > 2)
+                if(std::distance(it, utf8.end()) > 2)
                 {
                     ch  =  static_cast<u16>(*it++ & 0x0F) << 12;
                     ch |=  static_cast<u16>(*it++ & 0x3F) << 6;
@@ -130,7 +129,7 @@ namespace SWE
             }
             else if(ch >= 0xC0)
             {
-                if(utf8.end() - it > 1)
+                if(std::distance(it, utf8.end()) > 1)
                 {
                     ch  =  static_cast<u16>(*it++ & 0x1F) << 6;
                     ch |=  static_cast<u16>(*it & 0x3F);
@@ -163,13 +162,21 @@ namespace SWE
 
     int UnicodeString::index(int ch) const
     {
-        const_iterator it = std::find(begin(), end(), ch);
+        auto it = std::find(begin(), end(), ch);
         return it != end() ? std::distance(begin(), it) : -1;
     }
 
     UnicodeString & UnicodeString::append(int val)
     {
-        push_back(val);
+	std::u16string::push_back(val);
+        return *this;
+    }
+
+    UnicodeString & UnicodeString::append(const UnicodeString & src)
+    {
+        int sz = size();
+        resize(size() + src.size(), 0);
+        std::copy(src.begin(), src.end(), begin() + sz);
         return *this;
     }
 
@@ -199,18 +206,14 @@ namespace SWE
     UnicodeString UnicodeString::firstLower(void) const
     {
         UnicodeString res = *this;
-
         if(res.size()) res[0] = ::towlower(res[0]);
-
         return res;
     }
 
     UnicodeString UnicodeString::firstUpper(void) const
     {
         UnicodeString res = *this;
-
         if(res.size()) res[0] = ::towupper(res[0]);
-
         return res;
     }
 
@@ -220,7 +223,7 @@ namespace SWE
         str.reserve(2 * size());
 
         // utf16 to utf8
-        for(const_iterator it = begin(); it != end(); ++it)
+        for(auto it = begin(); it != end(); ++it)
         {
             if(*it < 128)
                 str.append(1, static_cast<char>(*it));
@@ -246,10 +249,9 @@ namespace SWE
         {
             StringList list;
 
-            for(const_iterator it = begin(); it != end(); ++it)
+            for(auto it = begin(); it != end(); ++it)
             {
                 std::ostringstream os;
-
                 if(prefix) os << "0x";
 
                 os << std::setw(4) << std::setfill('0') << std::uppercase << std::hex << static_cast<int>(*it);
@@ -260,14 +262,6 @@ namespace SWE
         }
 
         return "";
-    }
-
-    UnicodeString & UnicodeString::append(const UnicodeString & src)
-    {
-        int sz = size();
-        resize(size() + src.size(), 0);
-        std::copy(src.begin(), src.end(), begin() + sz);
-        return *this;
     }
 
     std::list<UnicodeString>
@@ -317,12 +311,10 @@ namespace SWE
                 {
                     for(; it2 != ustr.end(); ++it2)
                     {
-                        UnicodeString substr = ustr.substr(std::distance(ustr.begin(), it1), std::distance(it1, it2));
-
+                        auto substr = ustr.substr(std::distance(ustr.begin(), it1), std::distance(it1, it2));
                         if(substr.size())
                         {
                             sz = frs.unicodeSize(substr);
-
                             if(sz.w > width) break;
                         }
                     }
@@ -332,9 +324,7 @@ namespace SWE
                     else
                     {
                         auto it3 = *it2 != 0x20 ? it2 - 1 : it2;
-
                         while(it3 != it1 && *it3 != 0x20) --it3;
-
                         if(it3 != it1) it2 = it3;
 
                         res << ustr.substr(std::distance(ustr.begin(), it1), std::distance(it1, it2));
@@ -408,8 +398,8 @@ namespace SWE
 
     UnicodeFormat & UnicodeFormat::arg(const UnicodeString & val)
     {
-        iterator it1 = begin();
-        iterator it2 = end();
+        auto it1 = begin();
+        auto it2 = end();
 
         while(true)
         {
@@ -472,11 +462,16 @@ namespace SWE
 
     UnicodeList::UnicodeList(const StringList & v)
     {
-        append(v);
+        assign(v.begin(), v.end());
     }
 
     UnicodeList::UnicodeList(const std::list<UnicodeString> & v) : std::list<UnicodeString>(v)
     {
+    }
+
+    UnicodeList::UnicodeList(const std::initializer_list<const char*> & list)
+    {
+        assign(list.begin(), list.end());
     }
 
     UnicodeList::UnicodeList(const UnicodeList & v) : std::list<UnicodeString>(v)
@@ -515,23 +510,24 @@ namespace SWE
     {
         if(empty()) return 0;
 
-        auto it = std::max_element(begin(), end(), [](const UnicodeString & str1, const UnicodeString & str2) { return str1.size() < str2.size(); });
+        auto it = std::max_element(begin(), end(),
+		    [](auto & str1, auto & str2) { return str1.size() < str2.size(); });
         return it != end() ? (*it).size() : front().size();
     }
 
     size_t UnicodeList::totalStringsWidth(void) const
     {
         return std::accumulate(begin(), end(), 0,
-                    [](size_t v, const UCString & str){ return v + str.size(); });
+                    [](size_t v, const UnicodeString & str){ return v + str.size(); });
     }
 
     UnicodeString UnicodeList::join(void) const
     {
         UnicodeString res;
+	res.reserve(totalStringsWidth());
 
-        for(const_iterator
-            it = begin(); it != end(); ++it)
-            res.append(*it);
+	for(auto & val : *this)
+	    res.append(val);
 
         return res;
     }
@@ -540,13 +536,10 @@ namespace SWE
     {
         UnicodeString res;
 
-        for(const_iterator
-            it = begin(); it != end(); ++it)
+        for(auto it = begin(); it != end(); ++it)
         {
             res.append(*it);
-            const_iterator next = it;
-
-            if(++next != end())
+            if(std::next(it) != end())
                 res.append(sep);
         }
 
@@ -570,10 +563,7 @@ namespace SWE
 
     UnicodeList & UnicodeList::append(const StringList & list)
     {
-        for(StringList::const_iterator
-            it = list.begin(); it != list.end(); ++it)
-            push_back(*it);
-
+        insert(end(), list.begin(), list.end());
         return *this;
     }
 
@@ -592,10 +582,8 @@ namespace SWE
     StringList UnicodeList::toStringList(void) const
     {
         StringList res;
-
-        for(auto it = begin(); it != end(); ++it)
-            res << (*it).toString();
-
+        std::transform(begin(), end(), std::back_inserter(res),
+			[](const UnicodeString & us){ return us.toString(); });
         return res;
     }
 }

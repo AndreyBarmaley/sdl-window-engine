@@ -47,17 +47,12 @@ int main(int argc, char **argv)
     try
 #endif
     {
-        Systems::setLocale(LC_ALL, "");
-	Systems::setLocale(LC_NUMERIC, "C"); // fix xml parsing decimal point
-
 	translationInit();
-
-	const std::string title = Settings::progName().append(", version: ").append(Settings::progVersion());
 
 	if(! Engine::init())
     	    return -1;
 
-	MainScreen & scr = MainScreen::init(title);
+	MainScreen & scr = MainScreen::init(Settings::progName());
 	scr.exec();
     }
 #ifndef ANDROID

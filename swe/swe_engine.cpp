@@ -195,3 +195,204 @@ void SWE::Engine::quit(void)
     SDL_Quit();
 }
 
+
+/*!
+@mainpage Библиотека графической сцены (SDL Window Engine)
+Что это?
+
+    - библиотека графической сцены на базе SDL1.2 или SDL2
+
+А попроще?
+
+    - просто создаем объекты Window, и при этом, не вдаваясь во все внутренние подробности библиотеки SDL, наша сцена DisplayScene автоматически
+      обрабатывает все нужные события и доносит их до получателей
+
+Что такое Window?
+
+    - Window это базовый графической примитив, который можно поместить на сцену DisplayScene.
+      он не содержит каких либо текстур спрайтов, это простейшая невидимая область Rect на сцене DisplayScene
+
+    @code
+        class Window : public SignalMember
+        {
+            Rect            gfxpos;
+            Window*         parent;
+            BitFlags        state;
+            int             result;
+        };
+    @endcode
+
+
+Как начать?
+    - инициализируем графическую сцену
+
+    @code
+        SWE::Engine::init();
+        SWE::Display::init(std::string title, SWE::Size geometry);
+    @endcode
+
+    - создаем базовый объект Window на всю доступную область, это первый элемент сцены, все последующие элементы будут потомками от него
+
+    @code
+        class MainWindow : public SWE::Window
+        {
+        protected:
+            bool mouseMotionEvent(const SWE::Point & pos, u32 buttons) override
+            {
+                VERBOSE("mouse coord: " << pos.toString());
+                return true;
+            }
+
+            bool keyPressEvent(const SWE::KeySym & key)
+            {
+                if(key.keycode() == Key::ESCAPE)
+                {
+                    setVisible(false);
+                    return true;
+                }
+                return false;
+            }
+
+        public:
+            MainWindow() : SWE::Window(SWE::Display::size(), nullptr)
+            {
+                setVisible(true);
+            }
+
+            void renderWindow(void) override
+            {
+                renderClear(SWE::Color::Gray);
+            }
+        };
+    @endcode
+
+    - переопределяем нужные виртуальные функции
+
+    @code
+        // SWE::ObjectEvent
+        bool userEvent(int event, void* data) override;
+        void tickEvent(u32 ms) override;
+
+        // SWE::SignalMember
+        void signalReceive(int signal, const SWE::SignalMember* sender) override;
+
+        // SWE::Window
+        void windowCreateEvent(void);
+        bool keyPressEvent(const SWE::KeySym & ks);
+        bool keyReleaseEvent(const SWE::KeySym & ks);
+        bool textInputEvent(const std::string & str);
+        bool mousePressEvent(const SWE::ButtonEvent & be);
+        bool mouseReleaseEvent(const SWE::ButtonEvent & be);
+        bool mouseClickEvent(const SWE::ButtonsEvent & be);
+        void mouseFocusEvent(void);
+        void mouseLeaveEvent(void);
+        void mouseTrackingEvent(const SWE::Point & pos, u32 buttons);
+        bool mouseMotionEvent(const SWE::Point & pos, u32 buttons);
+        bool scrollUpEvent(void);
+        bool scrollDownEvent(void);
+    @endcode
+
+    - минимальные требования для получения events это иметь размерность и определить видимость
+
+    @code
+    void Window::setSize(const SWE::Size &);
+    void Window::setVisible(true);
+    @endcode
+
+    - Для того чтобы его увидеть на сцене не забываем про основной код отрисовки объекта
+
+    @code
+        void renderWindow(void) override
+        {
+            // renderClear
+            // renderColor
+            // renderSurface
+            // renderTexture
+            // renderText
+            // renderRect
+            // renderLine
+            // renderPoint
+        }
+    @endcode
+
+    - создаем множество других объектов, с родителем MainWindow
+
+    @code
+        class RedWindow : public SWE::Window
+        {
+        protected:
+            void mouseFocusEvent(void) override
+            {
+                VERBOSE("focused!");
+            }
+
+        public:
+            RedWindow(const SWE::Point & pos, const SWE::Size & wsz, SWE::Window & parent) : SWE::Window(wsz, parent)
+            {
+                setPosition(pos);
+                setModality(false);
+                setVisible(true);
+            }
+
+            void renderWindow(void) override
+            {
+                renderClear(SWE::Color::Red);
+            }
+        };
+
+        class HaosWindow : public SWE::Window
+        {
+            SWE::Texture sprite;
+
+        protected:
+            void tickEvent(u32 ms) override
+            {
+                auto dsz = SWE::Display::size();
+                setPosition(SWE::Tools::rand(0, dsz.w - width()), SWE::Tools::rand(0, dsz.h - height()));
+            }
+
+        public:
+            HaosWindow(const std::string & file, SWE::Window & parent) : SWE::Window(& parent)
+            {
+                sprite = SWE::Display::createTexture(file);
+
+                setSize(sprite.size());
+                setModality(false);
+                setVisible(true);
+            }
+
+            void renderWindow(void) override
+            {
+                renderTexture(sprite, SWE::Point(0, 0));
+            }
+        };
+    @endcode
+
+    - стартует сцена очень просто
+
+    @code
+        // первое графическое окно
+        MainWindow1 win1;
+
+        // выполняется до момента вызова win1.setVisible(false)
+        int result = win1.exec();
+
+        // в зависимости от результата запускаем другие
+        if(2 == result)
+        {
+            // выполняется до момента вызова Window::setVisible(false) внутри класса
+            MainWindow2().exec();
+        }
+        else
+        {
+            MainWindow3().exec();
+        }
+    @endcode
+
+    - для большего ознакомления см examples
+
+    1. examples\\test_fps - тест fps рендера 5000 спрайтов
+    2. examples\\test_gui - пример построения простейших элементов GUI
+    3. examples\\test_term_gui - пример графического терминала, возможности
+    4. examples\\test_term_cmd - пример графического терминала, файловый браузер
+*/

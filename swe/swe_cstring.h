@@ -30,12 +30,14 @@
 
 namespace SWE
 {
-
+    /// @brief класс списка строк
     struct StringList : std::list<std::string>
     {
         StringList();
         StringList(const std::list<std::string> &);
+	StringList(const std::initializer_list<const char*> &);
         StringList(const StringList &);
+
         StringList(StringList &&) noexcept;
         StringList(std::list<std::string> &&) noexcept;
 
@@ -70,7 +72,7 @@ namespace SWE
         std::string     trimmed(const std::string &);
         std::string	chomp(const std::string &);
         std::string     time(void);
-        std::string     time(time_t);
+        std::string     time(const time_t &);
         std::string	strftime(const std::string &);
         std::string	strftime(const std::string &, const time_t &);
 
@@ -93,6 +95,7 @@ namespace SWE
 	const char*	sign(int);
     }
 
+    /// @brief класс форматной строки
     class StringFormat : public std::string
     {
         int		cur;

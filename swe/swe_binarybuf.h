@@ -30,6 +30,7 @@
 
 namespace SWE
 {
+    /// @brief класс бинарного массива
     class BinaryBuf : public std::vector<u8>
     {
     protected:

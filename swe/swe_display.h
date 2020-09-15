@@ -32,8 +32,10 @@ namespace SWE
     class UCString;
     class UnicodeString;
 
+    /// @namespace Display
     namespace Display
     {
+	/// @brief функция инициализации Display
         bool		init(const std::string &, bool landscape);
         bool		init(const std::string &, const Size & win, bool fullscreen, bool accel = true);
         bool		init(const std::string &, const Size & win, const Size & render, bool fullscreen, bool accel, bool resized);
@@ -51,6 +53,8 @@ namespace SWE
         void		hardwareCursorShow(void);
         std::list<Size>	hardwareVideoModes(bool landscape);
 
+	/// @brief функция обработки SDL_Event событий
+	/// @result не используется
         bool		handleEvents(void);
 
 	void            renderPresent(void);
