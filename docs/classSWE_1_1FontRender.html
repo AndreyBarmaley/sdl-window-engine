@@ -1,0 +1,169 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=9"/>
+<meta name="generator" content="Doxygen 1.8.14"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>SDL Window Engine: Класс SWE::FontRender</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr style="height: 56px;">
+  <td id="projectalign" style="padding-left: 0.5em;">
+   <div id="projectname">SDL Window Engine
+   &#160;<span id="projectnumber">20200905</span>
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- Создано системой Doxygen 1.8.14 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:cf05388f2679ee054f2beb29a391d25f4e673ac3&amp;dn=gpl-2.0.txt GPL-v2 */
+var searchBox = new SearchBox("searchBox", "search",false,'Поиск');
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:cf05388f2679ee054f2beb29a391d25f4e673ac3&amp;dn=gpl-2.0.txt GPL-v2 */
+$(function() {
+  initMenu('',true,false,'search.php','Поиск');
+  $(document).ready(function() { init_search(); });
+});
+/* @license-end */</script>
+<div id="main-nav"></div>
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+</iframe>
+</div>
+
+<div id="nav-path" class="navpath">
+  <ul>
+<li class="navelem"><b>SWE</b></li><li class="navelem"><a class="el" href="classSWE_1_1FontRender.html">FontRender</a></li>  </ul>
+</div>
+</div><!-- top -->
+<div class="header">
+  <div class="summary">
+<a href="#pub-methods">Открытые члены</a> &#124;
+<a href="#pub-static-methods">Открытые статические члены</a> &#124;
+<a href="#pro-attribs">Защищенные данные</a> &#124;
+<a href="classSWE_1_1FontRender-members.html">Полный список членов класса</a>  </div>
+  <div class="headertitle">
+<div class="title">Класс SWE::FontRender<span class="mlabels"><span class="mlabel">abstract</span></span></div>  </div>
+</div><!--header-->
+<div class="contents">
+
+<p>базовый класс шрифта  
+ <a href="classSWE_1_1FontRender.html#details">Подробнее...</a></p>
+
+<p><code>#include &lt;<a class="el" href="swe__fontset_8h_source.html">swe_fontset.h</a>&gt;</code></p>
+<div class="dynheader">
+Граф наследования:SWE::FontRender:</div>
+<div class="dyncontent">
+ <div class="center">
+  <img src="classSWE_1_1FontRender.png" usemap="#SWE::FontRender_map" alt=""/>
+  <map id="SWE::FontRender_map" name="SWE::FontRender_map">
+<area href="classSWE_1_1FontRenderPSF.html" title="базовый класс рендера PSF шрифта " alt="SWE::FontRenderPSF" shape="rect" coords="0,56,135,80"/>
+<area href="classSWE_1_1FontRenderTTF.html" title="базовый класс рендера TTF шрифта " alt="SWE::FontRenderTTF" shape="rect" coords="145,56,280,80"/>
+<area href="classSWE_1_1FontAltC8x16.html" alt="SWE::FontAltC8x16" shape="rect" coords="0,112,135,136"/>
+</map>
+ </div></div>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
+Открытые члены</h2></td></tr>
+<tr class="memitem:a82d299fe3e965838d0ccb5828296429b"><td class="memItemLeft" align="right" valign="top"><a id="a82d299fe3e965838d0ccb5828296429b"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>FontRender</b> (const <a class="el" href="structSWE_1_1Size.html">Size</a> &amp;fsz)</td></tr>
+<tr class="separator:a82d299fe3e965838d0ccb5828296429b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac5609d74c2b32873cf864d734de0cfce"><td class="memItemLeft" align="right" valign="top"><a id="ac5609d74c2b32873cf864d734de0cfce"></a>
+virtual const <a class="el" href="structSWE_1_1FontID.html">FontID</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>id</b> (void) const =0</td></tr>
+<tr class="separator:ac5609d74c2b32873cf864d734de0cfce"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:add9188bf32afd76b325c85520c0f2c45"><td class="memItemLeft" align="right" valign="top"><a id="add9188bf32afd76b325c85520c0f2c45"></a>
+virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>isValid</b> (void) const =0</td></tr>
+<tr class="separator:add9188bf32afd76b325c85520c0f2c45"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1c7fac633bacec1c6e81b10697502e16"><td class="memItemLeft" align="right" valign="top"><a id="a1c7fac633bacec1c6e81b10697502e16"></a>
+virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>isTTF</b> (void) const =0</td></tr>
+<tr class="separator:a1c7fac633bacec1c6e81b10697502e16"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3d2eb59f79c34e597518af1fcc339103"><td class="memItemLeft" align="right" valign="top"><a id="a3d2eb59f79c34e597518af1fcc339103"></a>
+virtual <a class="el" href="structSWE_1_1Size.html">Size</a>&#160;</td><td class="memItemRight" valign="bottom"><b>stringSize</b> (const std::string &amp;, bool horizontal=true) const =0</td></tr>
+<tr class="separator:a3d2eb59f79c34e597518af1fcc339103"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a817a8fda7836010e83dc1200c00d403c"><td class="memItemLeft" align="right" valign="top"><a id="a817a8fda7836010e83dc1200c00d403c"></a>
+virtual <a class="el" href="structSWE_1_1Size.html">Size</a>&#160;</td><td class="memItemRight" valign="bottom"><b>unicodeSize</b> (const <a class="el" href="classSWE_1_1UnicodeString.html">UnicodeString</a> &amp;, bool horizontal=true) const =0</td></tr>
+<tr class="separator:a817a8fda7836010e83dc1200c00d403c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad94f60588c2ac2f3b19cadf29ed0e530"><td class="memItemLeft" align="right" valign="top"><a id="ad94f60588c2ac2f3b19cadf29ed0e530"></a>
+virtual int&#160;</td><td class="memItemRight" valign="bottom"><b>symbolAdvance</b> (int=0x20) const =0</td></tr>
+<tr class="separator:ad94f60588c2ac2f3b19cadf29ed0e530"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6749fa22c19f66ff7deee4400a8a358b"><td class="memItemLeft" align="right" valign="top"><a id="a6749fa22c19f66ff7deee4400a8a358b"></a>
+virtual int&#160;</td><td class="memItemRight" valign="bottom"><b>lineSkipHeight</b> (void) const =0</td></tr>
+<tr class="separator:a6749fa22c19f66ff7deee4400a8a358b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeaa078b08e63905064de7f13f8ee17c4"><td class="memItemLeft" align="right" valign="top"><a id="aeaa078b08e63905064de7f13f8ee17c4"></a>
+virtual <a class="el" href="classSWE_1_1Surface.html">Surface</a>&#160;</td><td class="memItemRight" valign="bottom"><b>renderCharset</b> (int, const <a class="el" href="classSWE_1_1Color.html">Color</a> &amp;, const CharRender &amp;=RenderDefault, int style=StyleDefault, const CharHinting &amp;=HintingDefault) const =0</td></tr>
+<tr class="separator:aeaa078b08e63905064de7f13f8ee17c4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a839a50e64590fbc67041a82353195f1b"><td class="memItemLeft" align="right" valign="top"><a id="a839a50e64590fbc67041a82353195f1b"></a>
+<a class="el" href="classSWE_1_1UCStringList.html">UCStringList</a>&#160;</td><td class="memItemRight" valign="bottom"><b>splitUCStringWidth</b> (const <a class="el" href="classSWE_1_1UCString.html">UCString</a> &amp;, int) const</td></tr>
+<tr class="separator:a839a50e64590fbc67041a82353195f1b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae79c8a150ccca0cd196bb24b02450c8c"><td class="memItemLeft" align="right" valign="top"><a id="ae79c8a150ccca0cd196bb24b02450c8c"></a>
+<a class="el" href="classSWE_1_1UnicodeList.html">UnicodeList</a>&#160;</td><td class="memItemRight" valign="bottom"><b>splitUnicodeWidth</b> (const <a class="el" href="classSWE_1_1UnicodeString.html">UnicodeString</a> &amp;, int) const</td></tr>
+<tr class="separator:ae79c8a150ccca0cd196bb24b02450c8c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a418b4e63678a7c939faf2188e511c7a5"><td class="memItemLeft" align="right" valign="top"><a id="a418b4e63678a7c939faf2188e511c7a5"></a>
+<a class="el" href="structSWE_1_1StringList.html">StringList</a>&#160;</td><td class="memItemRight" valign="bottom"><b>splitStringWidth</b> (const std::string &amp;, int) const</td></tr>
+<tr class="separator:a418b4e63678a7c939faf2188e511c7a5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af640bacd213295fc254a8f7d8f07a3d0"><td class="memItemLeft" align="right" valign="top"><a id="af640bacd213295fc254a8f7d8f07a3d0"></a>
+const <a class="el" href="structSWE_1_1Size.html">Size</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>size</b> (void) const</td></tr>
+<tr class="separator:af640bacd213295fc254a8f7d8f07a3d0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abf4486cf7bf0554c9c9c9f953e439e59"><td class="memItemLeft" align="right" valign="top"><a id="abf4486cf7bf0554c9c9c9f953e439e59"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>renderString</b> (const std::string &amp;, const <a class="el" href="classSWE_1_1Color.html">Color</a> &amp;, const <a class="el" href="structSWE_1_1Point.html">Point</a> &amp;, <a class="el" href="classSWE_1_1Surface.html">Surface</a> &amp;) const</td></tr>
+<tr class="separator:abf4486cf7bf0554c9c9c9f953e439e59"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
+Открытые статические члены</h2></td></tr>
+<tr class="memitem:aca4f62e7212e42a9fe1fc8ea257d3f26"><td class="memItemLeft" align="right" valign="top"><a id="aca4f62e7212e42a9fe1fc8ea257d3f26"></a>
+static void&#160;</td><td class="memItemRight" valign="bottom"><b>clearCache</b> (void)</td></tr>
+<tr class="separator:aca4f62e7212e42a9fe1fc8ea257d3f26"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a014d0f7e357dbff492ab29940c7ded1b"><td class="memItemLeft" align="right" valign="top"><a id="a014d0f7e357dbff492ab29940c7ded1b"></a>
+static void&#160;</td><td class="memItemRight" valign="bottom"><b>dumpCache</b> (void)</td></tr>
+<tr class="separator:a014d0f7e357dbff492ab29940c7ded1b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-attribs"></a>
+Защищенные данные</h2></td></tr>
+<tr class="memitem:ac8bd764171c4ec3ead55f562fbf1a3d2"><td class="memItemLeft" align="right" valign="top"><a id="ac8bd764171c4ec3ead55f562fbf1a3d2"></a>
+<a class="el" href="structSWE_1_1Size.html">Size</a>&#160;</td><td class="memItemRight" valign="bottom"><b>fontSize</b></td></tr>
+<tr class="separator:ac8bd764171c4ec3ead55f562fbf1a3d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<a name="details" id="details"></a><h2 class="groupheader">Подробное описание</h2>
+<div class="textblock"><p>базовый класс шрифта </p>
+</div><hr/>Объявления и описания членов классов находятся в файлах:<ul>
+<li><a class="el" href="swe__fontset_8h_source.html">swe_fontset.h</a></li>
+<li>swe_fontset.cpp</li>
+</ul>
+</div><!-- contents -->
+<!-- start footer part -->
+<hr class="footer"/><address class="footer"><small>
+Создано системой &#160;<a href="http://www.doxygen.org/index.html">
+<img class="footer" src="doxygen.png" alt="doxygen"/>
+</a> 1.8.14
+</small></address>
+</body>
+</html>

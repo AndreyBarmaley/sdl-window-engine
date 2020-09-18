@@ -28,7 +28,7 @@
 
 namespace SWE
 {
-    int acs::vline(line_t type)
+    int acs::vline(const LineType & type)
     {
         switch(type)
         {
@@ -48,7 +48,7 @@ namespace SWE
         return 179;
     }
 
-    int acs::hline(line_t type)
+    int acs::hline(const LineType & type)
     {
         switch(type)
         {
@@ -68,7 +68,7 @@ namespace SWE
         return 196;
     }
 
-    int acs::ulcorner(line_t type)
+    int acs::ulcorner(const LineType & type)
     {
         switch(type)
         {
@@ -88,7 +88,7 @@ namespace SWE
         return 218;
     }
 
-    int acs::urcorner(line_t type)
+    int acs::urcorner(const LineType & type)
     {
         switch(type)
         {
@@ -108,7 +108,7 @@ namespace SWE
         return 191;
     }
 
-    int acs::llcorner(line_t type)
+    int acs::llcorner(const LineType & type)
     {
         switch(type)
         {
@@ -128,7 +128,7 @@ namespace SWE
         return 192;
     }
 
-    int acs::lrcorner(line_t type)
+    int acs::lrcorner(const LineType & type)
     {
         switch(type)
         {
@@ -148,7 +148,7 @@ namespace SWE
         return 217;
     }
 
-    int acs::ltee(line_t type)
+    int acs::ltee(const LineType & type)
     {
         switch(type)
         {
@@ -168,7 +168,7 @@ namespace SWE
         return 195;
     }
 
-    int acs::rtee(line_t type)
+    int acs::rtee(const LineType & type)
     {
         switch(type)
         {
@@ -188,7 +188,7 @@ namespace SWE
         return 180;
     }
 
-    int acs::ttee(line_t type)
+    int acs::ttee(const LineType & type)
     {
         switch(type)
         {
@@ -208,7 +208,7 @@ namespace SWE
         return 194;
     }
 
-    int acs::btee(line_t type)
+    int acs::btee(const LineType & type)
     {
         switch(type)
         {
@@ -228,7 +228,7 @@ namespace SWE
         return 193;
     }
 
-    int acs::plus(line_t type)
+    int acs::plus(const LineType & type)
     {
         switch(type)
         {
@@ -249,12 +249,12 @@ namespace SWE
     }
 
     /* CharState */
-    bool CharState::checkState(const state_t & st) const
+    bool CharState::checkState(const Type & st) const
     {
 	return state & st;
     }
 
-    void CharState::setState(const state_t & st, bool f)
+    void CharState::setState(const Type & st, bool f)
     {
         if(f)
             state |= st;
@@ -321,10 +321,10 @@ namespace SWE
         *this << reset::defaults();
     }
 
-    CharRender TermBase::defaultProperty(void) const
+    CharProperty TermBase::defaultProperty(void) const
     {
         auto term = dynamic_cast<const TermBase*>(parent());
-        return term ? term->defaultProperty() : CharRender(RenderSolid, StyleNormal, HintingNormal);
+        return term ? term->defaultProperty() : CharProperty(RenderSolid, StyleNormal, HintingNormal);
     }
 
     FBColors TermBase::defaultColors(void) const
@@ -455,7 +455,7 @@ namespace SWE
     void TermBase::setFlip(int val, bool f)
     {
 	if(CharState::FlipBoth & val)
-	    curstate.setState(static_cast<CharState::state_t>(CharState::FlipBoth & val), f);
+	    curstate.setState(static_cast<CharState::Type>(CharState::FlipBoth & val), f);
     }
 
     int TermBase::flip(void) const
@@ -473,22 +473,22 @@ namespace SWE
 	return curstate.alpha();
     }
 
-    void TermBase::setAlign(const align_t & v)
+    void TermBase::setAlign(const AlignType & v)
     {
         curalign = v;
     }
 
-    const align_t & TermBase::align(void) const
+    const AlignType & TermBase::align(void) const
     {
         return curalign;
     }
 
-    void TermBase::setProperty(const CharRender & prop)
+    void TermBase::setProperty(const CharProperty & prop)
     {
         curprop = prop;
     }
 
-    const CharRender & TermBase::property(void) const
+    const CharProperty & TermBase::property(void) const
     {
         return curprop;
     }
@@ -862,7 +862,7 @@ namespace SWE
         setFGColor(Color::Transparent);
         setBGColor(Color::Transparent);
         setAlign(AlignLeft);
-        setProperty(CharRender());
+        setProperty(CharProperty());
 	setBlink(false);
 	setInvert(false);
         setFlip(CharState::FlipBoth, false);
@@ -903,7 +903,7 @@ namespace SWE
 
     TermBase & TermBase::operator<< (const reset::property & st)
     {
-        setProperty(CharRender());
+        setProperty(CharProperty());
         return *this;
     }
 
@@ -1033,7 +1033,7 @@ namespace SWE
         res.addObject("padding", joPadding);
 
         JsonObject joProp;
-        CharRender prop = property();
+        CharProperty prop = property();
         joProp.addInteger("render", prop.render());
         joProp.addInteger("style", prop.style());
         joProp.addInteger("hinting", prop.hinting());
@@ -1059,7 +1059,7 @@ namespace SWE
 
     TermWindow::TermWindow(const Size & gfxsz, const FontRender & frs, Window* win) : TermBase(gfxsz, frs, win)
     {
-        chars.resize(rows() * cols(), TermCharset(UnicodeColor(0x20, defaultColors()), CharRender()));
+        chars.resize(rows() * cols(), TermCharset(UnicodeColor(0x20, defaultColors()), CharProperty()));
         *this << reset::defaults();
 	setBlinkShow(true);
         setVisible(true);
@@ -1067,7 +1067,7 @@ namespace SWE
 
     TermWindow::TermWindow(const TermSize & tsz, TermBase & term) : TermBase(tsz, term)
     {
-        chars.resize(rows() * cols(), TermCharset(UnicodeColor(0x20, defaultColors()), CharRender()));
+        chars.resize(rows() * cols(), TermCharset(UnicodeColor(0x20, defaultColors()), CharProperty()));
         *this << reset::defaults();
 	setBlinkShow(true);
         setVisible(true);
@@ -1229,7 +1229,7 @@ namespace SWE
         return charset(cursor());
     }
 
-    void TermWindow::setCharset(int ch, const ColorIndex & fg, const ColorIndex & bg, const CharRender* prop)
+    void TermWindow::setCharset(int ch, const ColorIndex & fg, const ColorIndex & bg, const CharProperty* prop)
     {
         const Rect & termArea = Rect(padding.left(), padding.top(),
                                      cols() - (padding.left() + padding.right()), rows() - (padding.top() + padding.bottom()));
@@ -1283,7 +1283,7 @@ namespace SWE
             }
 
             TermCharset & tc = chars[pos];
-            const CharRender & cp = tc.property();
+            const CharProperty & cp = tc.property();
             Color bgcolor = tc.colors().bgcolor();
             Color fgcolor = tc.colors().fgcolor();
 

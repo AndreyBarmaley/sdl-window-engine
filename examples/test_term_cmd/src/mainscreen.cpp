@@ -127,7 +127,7 @@ bool SortFileInfoPred(const FileInfo & fn1, const FileInfo & fn2)
 FontRenderInit::FontRenderInit(const std::string & title, const TermSize & termsz, int fsz)
 {
     ttf = BinaryBuf(_default_ttf_h.data, sizeof(_default_ttf_h.data)).zlibUncompress(_default_ttf_h.size);
-    frt.load(ttf, fsz, false);
+    frt.load(ttf, fsz, RenderSolid);
 
     const Size defsz = termsz.toSize() * frt.size();
 
@@ -305,7 +305,7 @@ void TermPanel::renderWindow(void)
     *this << set::flush();
 }
 
-void TermPanel::setCharset(int ch, const ColorIndex & fg, const ColorIndex & bg, const CharRender* prop)
+void TermPanel::setCharset(int ch, const ColorIndex & fg, const ColorIndex & bg, const CharProperty* prop)
 {
     if(auto term = dynamic_cast<TermWindow*>(parent()))
     {
@@ -542,7 +542,7 @@ MainScreen::MainScreen(const std::string & title, int fsz)
 
 bool MainScreen::setFontSize(int fsz, const TermSize & termsz)
 {
-    frt.load(ttf, fsz, false);
+    frt.load(ttf, fsz, RenderSolid);
     if(frt.isValid())
     {
         fontResizeHandle();
@@ -638,14 +638,14 @@ SWE::TermSize MainScreen::minimalTerminalSize(void) const
     return SWE::TermSize(80, 25);
 }
 
-SWE::CharRender MainScreen::defaultProperty(void) const
+SWE::CharProperty MainScreen::defaultProperty(void) const
 {
-    return SWE::CharRender(SWE::RenderBlended, SWE::StyleNormal, SWE::HintingNormal);
+    return SWE::CharProperty(RenderBlended, StyleNormal, HintingNormal);
 }
 
 SWE::FBColors MainScreen::defaultColors(void) const
 {
-    return SWE::FBColors(SWE::Color::Silver, SWE::Color::Black);
+    return SWE::FBColors(Color::Silver, Color::Black);
 }
 
 void MainScreen::terminalResizeEvent(void)

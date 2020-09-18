@@ -35,11 +35,6 @@
 
 namespace SWE
 {
-    void WindowProtect::setState(Window* win, int st, bool f)
-    {
-	if(win) win->setState(st, f);
-    }
-
     /* Window */
     Window::Window(Window* win) : prnt(win), result(0)
     {
@@ -236,6 +231,26 @@ namespace SWE
     void Window::setModality(bool f)
     {
 	setState(FlagModality, f);
+    }
+
+    bool Window::isKeyHandle(void) const
+    {
+        return checkState(FlagKeyHandle);
+    }
+
+    void Window::setKeyHandle(bool f)
+    {
+	setState(FlagKeyHandle, f);
+    }
+
+    bool Window::isMouseTrack(void) const
+    {
+        return checkState(FlagMouseTracking);
+    }
+
+    void Window::setMouseTrack(bool f)
+    {
+	setState(FlagMouseTracking, f);
     }
 
     bool Window::keyHandle(const KeySym & key, bool press)
@@ -576,9 +591,11 @@ namespace SWE
 	}
     }
 
-    Rect Window::renderText(const FontRender & fs, const UnicodeString & ustr, const Color & col, const Point & dpt, int halign, int valign, bool horizontal)
+    Rect Window::renderText(const FontRender & fs, const UnicodeString & ustr, const Color & col, const Point & dpt,
+		    const AlignType & hAlign, const AlignType & vAlign, bool isHorizontal, 
+		    const CharRender & render, int style, const CharHinting & hinting)
     {
-        return Display::renderTextFixed(fs, ustr, col, targetTexture(), dpt, gfxpos, halign, valign, horizontal);
+        return Display::renderTextFixed(fs, ustr, col, targetTexture(), dpt, gfxpos, hAlign, vAlign, isHorizontal, render, style, hinting);
     }
 
 #ifdef SWE_WITH_JSON

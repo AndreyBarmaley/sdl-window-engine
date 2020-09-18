@@ -37,7 +37,7 @@ namespace SWE
         std::array<ColorIndex, ColorsCounts>
                                 themeColors = {{ Color::RoyalBlue, Color::Yellow, Color::Red, Color::LightCyan, Color::RoyalBlue, Color::Silver, Color::Red, Color::Silver, Color::Yellow, 
                                                 Color::Silver, Color::Red, Color::Blue, Color::LightYellow, Color::Yellow, Color::Navy, Color::Navy, Color::Yellow, Color::Navy }};
-        line_t                        themeLine = LineThin;
+        LineType                        themeLine = LineThin;
 
 
         void ThemeColors::setColor(const type_t & type, const ColorIndex & col)
@@ -45,7 +45,7 @@ namespace SWE
             themeColors[type] =  col;
         }
 
-        void ThemeColors::setTheme(const line_t & line, std::array<ColorIndex, ColorsCounts> colors)
+        void ThemeColors::setTheme(const LineType & line, std::array<ColorIndex, ColorsCounts> colors)
         {
             themeColors.swap(colors);
         }
@@ -74,7 +74,7 @@ namespace SWE
             themeColors[ColorListSelectedText] = Color::Navy;
         }
 
-        line_t ThemeColors::lineType(void) const
+        LineType ThemeColors::lineType(void) const
         {
             return themeLine;
         }
@@ -644,7 +644,7 @@ namespace SWE
             return themeColors[ColorHeaderText];
         }
 
-        line_t HeaderAreaBox::lineType(void) const
+        LineType HeaderAreaBox::lineType(void) const
         {
             // force fixed type
             return TermWindow::fontRender == & systemFont() ? LineAscii : ThemeColors::lineType();

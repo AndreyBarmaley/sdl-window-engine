@@ -41,7 +41,7 @@ DisplayInit::DisplayInit(const std::string & title, const TermSize & tsz, int fs
     {
         VERBOSE("use internal font: " << "terminus");
 	ttf = BinaryBuf(_default_ttf_h.data, sizeof(_default_ttf_h.data)).zlibUncompress(_default_ttf_h.size);
-	frt.load(ttf, fsz, false);
+	frt.load(ttf, fsz, RenderSolid);
     }
 
     auto defsz = tsz.toSize() * frt.size();
@@ -68,7 +68,7 @@ bool MainScreen::setFontSize(int fsz, const TermSize & termsz)
     if(ext && Systems::isFile(ext))
         frt.open(ext, fsz, RenderBlended);
     else
-	frt.load(ttf, fsz, false);
+	frt.load(ttf, fsz, RenderSolid);
 
     if(frt.isValid())
     {
@@ -99,14 +99,14 @@ SWE::TermSize MainScreen::minimalTerminalSize(void) const
     return SWE::TermSize(80, 25);
 }
 
-SWE::CharRender MainScreen::defaultProperty(void) const
+SWE::CharProperty MainScreen::defaultProperty(void) const
 {
-    return SWE::CharRender(SWE::RenderBlended, SWE::StyleNormal, SWE::HintingNormal);
+    return SWE::CharProperty(RenderBlended, StyleNormal, HintingNormal);
 }
 
 SWE::FBColors MainScreen::defaultColors(void) const
 {
-    return SWE::FBColors(SWE::Color::Silver, SWE::Color::Black);
+    return SWE::FBColors(Color::Silver, Color::Black);
 }
 
 MainScreen & MainScreen::init(const std::string & title, const char* extfont)
@@ -137,7 +137,7 @@ void MainScreen::renderWindow(void)
 	set::colors(Color::Yellow, Color::Navy) << UnicodeString("Привет") << reset::colors() << " " <<
 	set::colors(Color::Moccasin, Color::Maroon) << UnicodeString("Бармалей") << reset::colors() << set::rn();
 
-    SWE::CharRender defProperty = defaultProperty();
+    SWE::CharProperty defProperty = defaultProperty();
 
     *this << "test property render: ";
     *this << set::property(RenderBlended, StyleNormal, HintingNormal) << "RenderBlended" << reset::property() << " ";

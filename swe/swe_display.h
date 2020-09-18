@@ -23,7 +23,7 @@
 #ifndef _SWE_DISPLAY_
 #define _SWE_DISPLAY_
 
-#include "swe_surface.h"
+#include "swe_fontset.h"
 
 namespace SWE
 {
@@ -72,8 +72,14 @@ namespace SWE
         void		renderPoint(const Color &, Texture &, const Point &);
         void		renderPolygon(const Color &, Texture &, const Points &, bool closure = true);
 
-        Rect		renderText(const FontRender &, const UnicodeString &, const Color &, Texture &, const Point &, int halign, int valign, bool horizontal = true);
-        Rect		renderTextFixed(const FontRender &, const UnicodeString &, const Color &, Texture &, const Point &, const Rect &, int halign, int valign, bool horizontal = true);
+        Rect		renderText(const FontRender &, const UnicodeString &, const Color &, Texture &, const Point &,
+				    const AlignType & hAlign, const AlignType & vAlign, bool isHorizontal = true,
+				    const CharRender & render = RenderDefault, int style = StyleDefault, const CharHinting & hinting = HintingDefault);
+
+        Rect		renderTextFixed(const FontRender &, const UnicodeString &, const Color &, Texture &, const Point & pos, const Rect & fixed,
+				    const AlignType & hAlign, const AlignType & vAlign, bool isHorizontal = true,
+				    const CharRender & render = RenderDefault, int style = StyleDefault, const CharHinting & hinting = HintingDefault);
+
         bool		renderScreenshot(const std::string &);
 
         Texture &	texture(void);

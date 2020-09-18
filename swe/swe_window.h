@@ -52,11 +52,6 @@ namespace SWE
     // MouseButtonHandle, SystemTickHandle
     class Window;
 
-    namespace WindowProtect
-    {
-	void		setState(Window*, int, bool);
-    }
-
     /// @brief базовый класс графических объектов сцены DisplayScene
     class Window : public SignalMember
     {
@@ -114,8 +109,6 @@ namespace SWE
         virtual void	displayFocusEvent(bool gain) {}
 
     protected:
-	friend void WindowProtect::setState(Window*, int, bool);
-
         bool		checkState(size_t) const;
         void		setState(size_t);
         void		setState(size_t, bool f);
@@ -150,6 +143,8 @@ namespace SWE
         bool		isHidden(void) const;
         bool		isFocused(void) const;
         bool		isModality(void) const;
+        bool		isKeyHandle(void) const;
+        bool		isMouseTrack(void) const;
         virtual bool	isAreaPoint(const Point &) const;
         WindowId	id(void) const;
         const Point &	position(void) const;
@@ -167,6 +162,8 @@ namespace SWE
         void		setVisible(bool);
 	void		setHidden(bool);
         void		setModality(bool);
+        void		setKeyHandle(bool);
+        void		setMouseTrack(bool);
         void		setResultCode(int);
         virtual void	setSize(const Size &);
         virtual void	setPosition(const Point &);
@@ -183,7 +180,9 @@ namespace SWE
         void            renderTexture(const Texture &, const Rect &, const Point &, int flip = FlipNone);
         void            renderTexture(const TexturePos &);
 
-        Rect		renderText(const FontRender &, const UnicodeString &, const Color &, const Point &, int halign = AlignLeft, int valign = AlignTop, bool horizontal = true);
+        Rect		renderText(const FontRender &, const UnicodeString &, const Color &, const Point &,
+				    const AlignType & hAlign = AlignLeft, const AlignType & vAlign = AlignTop, bool isHorizontal = true,
+				    const CharRender & render = RenderDefault, int style = StyleDefault, const CharHinting & hinting = HintingDefault);
 
         virtual void    renderClear(const Color &);
         void            renderColor(const Color &, const Rect &);

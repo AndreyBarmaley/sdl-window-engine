@@ -1,0 +1,278 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=9"/>
+<meta name="generator" content="Doxygen 1.8.14"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>SDL Window Engine: Класс SWE::ObjectEvent</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr style="height: 56px;">
+  <td id="projectalign" style="padding-left: 0.5em;">
+   <div id="projectname">SDL Window Engine
+   &#160;<span id="projectnumber">20200905</span>
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- Создано системой Doxygen 1.8.14 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:cf05388f2679ee054f2beb29a391d25f4e673ac3&amp;dn=gpl-2.0.txt GPL-v2 */
+var searchBox = new SearchBox("searchBox", "search",false,'Поиск');
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:cf05388f2679ee054f2beb29a391d25f4e673ac3&amp;dn=gpl-2.0.txt GPL-v2 */
+$(function() {
+  initMenu('',true,false,'search.php','Поиск');
+  $(document).ready(function() { init_search(); });
+});
+/* @license-end */</script>
+<div id="main-nav"></div>
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+</iframe>
+</div>
+
+<div id="nav-path" class="navpath">
+  <ul>
+<li class="navelem"><b>SWE</b></li><li class="navelem"><a class="el" href="classSWE_1_1ObjectEvent.html">ObjectEvent</a></li>  </ul>
+</div>
+</div><!-- top -->
+<div class="header">
+  <div class="summary">
+<a href="#pub-methods">Открытые члены</a> &#124;
+<a href="#pro-methods">Защищенные члены</a> &#124;
+<a href="#friends">Друзья</a> &#124;
+<a href="classSWE_1_1ObjectEvent-members.html">Полный список членов класса</a>  </div>
+  <div class="headertitle">
+<div class="title">Класс SWE::ObjectEvent</div>  </div>
+</div><!--header-->
+<div class="contents">
+
+<p>класс объектов сцены <a class="el" href="classSWE_1_1DisplayScene.html">DisplayScene</a>, с возможностью отправки/получения сообщений  
+ <a href="classSWE_1_1ObjectEvent.html#details">Подробнее...</a></p>
+
+<p><code>#include &lt;<a class="el" href="swe__object_8h_source.html">swe_object.h</a>&gt;</code></p>
+<div class="dynheader">
+Граф наследования:SWE::ObjectEvent:</div>
+<div class="dyncontent">
+ <div class="center">
+  <img src="classSWE_1_1ObjectEvent.png" usemap="#SWE::ObjectEvent_map" alt=""/>
+  <map id="SWE::ObjectEvent_map" name="SWE::ObjectEvent_map">
+<area href="classSWE_1_1ObjectClass.html" title="родительский класс объектов сцены DisplayScene. " alt="SWE::ObjectClass" shape="rect" coords="84,0,242,24"/>
+<area href="classSWE_1_1SignalMember.html" title="класс объектов сцены DisplayScene, с возможностью отправки/получения сигналов " alt="SWE::SignalMember" shape="rect" coords="84,112,242,136"/>
+<area href="classSWE_1_1BaseObject.html" title="базовый класс не графических объектов сцены DisplayScene. " alt="SWE::BaseObject" shape="rect" coords="0,168,158,192"/>
+<area href="classSWE_1_1Window.html" title="базовый класс графических объектов сцены DisplayScene. " alt="SWE::Window" shape="rect" coords="168,168,326,192"/>
+<area href="classSWE_1_1CenteredWindow.html" alt="SWE::CenteredWindow" shape="rect" coords="336,224,494,248"/>
+<area href="classSWE_1_1DisplayToolTip.html" alt="SWE::DisplayToolTip" shape="rect" coords="336,280,494,304"/>
+<area href="classSWE_1_1DisplayWindow.html" alt="SWE::DisplayWindow" shape="rect" coords="336,336,494,360"/>
+<area href="classSWE_1_1ListWidget.html" alt="SWE::ListWidget" shape="rect" coords="336,392,494,416"/>
+<area href="classSWE_1_1ScrollBar.html" alt="SWE::ScrollBar" shape="rect" coords="336,448,494,472"/>
+<area href="classSWE_1_1TargetWindow.html" alt="SWE::TargetWindow" shape="rect" coords="336,504,494,528"/>
+<area href="classSWE_1_1TermBase.html" title="базовый класс терминального окна " alt="SWE::TermBase" shape="rect" coords="336,560,494,584"/>
+<area href="classSWE_1_1WindowToolTipArea.html" alt="SWE::WindowToolTipArea" shape="rect" coords="336,616,494,640"/>
+</map>
+ </div></div>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
+Открытые члены</h2></td></tr>
+<tr class="memitem:a57e21e2f38d78073476fc288cc154925"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSWE_1_1ObjectEvent.html#a57e21e2f38d78073476fc288cc154925">pushEventAction</a> (int code, <a class="el" href="classSWE_1_1ObjectEvent.html">ObjectEvent</a> *dst, void *data)</td></tr>
+<tr class="memdesc:a57e21e2f38d78073476fc288cc154925"><td class="mdescLeft">&#160;</td><td class="mdescRight">функция отправки сообщения с данными для объектов сцены <a class="el" href="classSWE_1_1DisplayScene.html">DisplayScene</a>.  <a href="#a57e21e2f38d78073476fc288cc154925">Подробнее...</a><br /></td></tr>
+<tr class="separator:a57e21e2f38d78073476fc288cc154925"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1732e5a19f47968c2109e998d604bd02"><td class="memItemLeft" align="right" valign="top"><a id="a1732e5a19f47968c2109e998d604bd02"></a>
+const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSWE_1_1ObjectEvent.html#a1732e5a19f47968c2109e998d604bd02">className</a> (void) const override</td></tr>
+<tr class="memdesc:a1732e5a19f47968c2109e998d604bd02"><td class="mdescLeft">&#160;</td><td class="mdescRight">идентификацинная метка класса <br /></td></tr>
+<tr class="separator:a1732e5a19f47968c2109e998d604bd02"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-methods"></a>
+Защищенные члены</h2></td></tr>
+<tr class="memitem:a5a338e5be03477b3e8156bdd9c3ada0a"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSWE_1_1ObjectEvent.html#a5a338e5be03477b3e8156bdd9c3ada0a">userEvent</a> (int code, void *data)</td></tr>
+<tr class="memdesc:a5a338e5be03477b3e8156bdd9c3ada0a"><td class="mdescLeft">&#160;</td><td class="mdescRight">метод получатель, вызывается при получении сообщения, отправленного через pushEventAction.  <a href="#a5a338e5be03477b3e8156bdd9c3ada0a">Подробнее...</a><br /></td></tr>
+<tr class="separator:a5a338e5be03477b3e8156bdd9c3ada0a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9f08869ea261b90aa6cd3dbc54df2cae"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSWE_1_1ObjectEvent.html#a9f08869ea261b90aa6cd3dbc54df2cae">tickEvent</a> (u32 ms)</td></tr>
+<tr class="memdesc:a9f08869ea261b90aa6cd3dbc54df2cae"><td class="mdescLeft">&#160;</td><td class="mdescRight">метод получатель, вызывается один раз за каждую итерацию главного цикла сцены <a class="el" href="classSWE_1_1DisplayScene.html">DisplayScene</a>, но перед отрисовкой всей сцены  <a href="#a9f08869ea261b90aa6cd3dbc54df2cae">Подробнее...</a><br /></td></tr>
+<tr class="separator:a9f08869ea261b90aa6cd3dbc54df2cae"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="friends"></a>
+Друзья</h2></td></tr>
+<tr class="memitem:af11a28dd065179d4664ca3c411ed09eb"><td class="memItemLeft" align="right" valign="top"><a id="af11a28dd065179d4664ca3c411ed09eb"></a>
+class&#160;</td><td class="memItemRight" valign="bottom"><b>DisplayScene</b></td></tr>
+<tr class="separator:af11a28dd065179d4664ca3c411ed09eb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<a name="details" id="details"></a><h2 class="groupheader">Подробное описание</h2>
+<div class="textblock"><p>класс объектов сцены <a class="el" href="classSWE_1_1DisplayScene.html">DisplayScene</a>, с возможностью отправки/получения сообщений </p>
+<p>Использование:</p><ul>
+<li>отправка event <div class="fragment"><div class="line"><span class="keywordtype">void</span> <a class="code" href="classSWE_1_1ObjectEvent.html#a57e21e2f38d78073476fc288cc154925">pushEventAction</a>(<span class="keywordtype">int</span> code, ObjectEvent* dst, <span class="keywordtype">void</span>* data);</div></div><!-- fragment --></li>
+<li>получение через виртуальную функцию <div class="fragment"><div class="line"><span class="keywordtype">bool</span> <a class="code" href="classSWE_1_1ObjectEvent.html#a5a338e5be03477b3e8156bdd9c3ada0a">userEvent</a>(<span class="keywordtype">int</span> code, <span class="keywordtype">void</span>* data) <span class="keyword">override</span>;</div></div><!-- fragment --> особенность данного метода - используется внутренние механизмы SDL_PushEvent/SDL_PollEvent, здесь есть возможность отправки данных через указатель и получение event происходит на следующую итерацию основного цикла обработки событий <a class="el" href="classSWE_1_1DisplayScene.html">DisplayScene</a>.</li>
+</ul>
+<dl class="section see"><dt>См. также</dt><dd><a class="el" href="classSWE_1_1SignalMember.html" title="класс объектов сцены DisplayScene, с возможностью отправки/получения сигналов ">SignalMember</a> </dd></dl>
+</div><h2 class="groupheader">Методы</h2>
+<a id="a57e21e2f38d78073476fc288cc154925"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a57e21e2f38d78073476fc288cc154925">&#9670;&nbsp;</a></span>pushEventAction()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void SWE::ObjectEvent::pushEventAction </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>code</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classSWE_1_1ObjectEvent.html">ObjectEvent</a> *&#160;</td>
+          <td class="paramname"><em>dst</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>data</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>функция отправки сообщения с данными для объектов сцены <a class="el" href="classSWE_1_1DisplayScene.html">DisplayScene</a>. </p>
+<dl class="params"><dt>Аргументы</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">code</td><td>тип сообщения </td></tr>
+    <tr><td class="paramname">data</td><td>указатель на данные </td></tr>
+    <tr><td class="paramname">dst</td><td>получатель сообщения, для отправки сообщения типа broadcast используйте nullptr </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a9f08869ea261b90aa6cd3dbc54df2cae"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9f08869ea261b90aa6cd3dbc54df2cae">&#9670;&nbsp;</a></span>tickEvent()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void SWE::ObjectEvent::tickEvent </td>
+          <td>(</td>
+          <td class="paramtype">u32&#160;</td>
+          <td class="paramname"><em>ms</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">protected</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>метод получатель, вызывается один раз за каждую итерацию главного цикла сцены <a class="el" href="classSWE_1_1DisplayScene.html">DisplayScene</a>, но перед отрисовкой всей сцены </p>
+<dl class="params"><dt>Аргументы</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">ms</td><td>продолжительность работы программы от начала запуска в миллисекундах </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section see"><dt>См. также</dt><dd><a class="el" href="classSWE_1_1DisplayScene.html#a7e9b1afbe14373a2a364ad020294f51c" title="функция главного цикла сцены DisplayScene. ">DisplayScene::handleEvents</a> </dd></dl>
+
+<p>Переопределяется в <a class="el" href="classSWE_1_1TermWindow.html#ae3b65e9577a43b04afd6b5fca7116bf0">SWE::TermWindow</a> и <a class="el" href="classSWE_1_1DisplayToolTip.html#a3404b041ebbc77466e0069ec6aeba23e">SWE::DisplayToolTip</a>.</p>
+
+</div>
+</div>
+<a id="a5a338e5be03477b3e8156bdd9c3ada0a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5a338e5be03477b3e8156bdd9c3ada0a">&#9670;&nbsp;</a></span>userEvent()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual bool SWE::ObjectEvent::userEvent </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>code</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>data</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">protected</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>метод получатель, вызывается при получении сообщения, отправленного через pushEventAction. </p>
+<dl class="params"><dt>Аргументы</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">code</td><td>тип сообщения </td></tr>
+    <tr><td class="paramname">data</td><td>указатель на данные </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Возвращает</dt><dd>не используется </dd></dl>
+
+<p>Переопределяется в <a class="el" href="classSWE_1_1ListWidget.html#a9a0ca46fdf99c6b6f70a5936a2f4664a">SWE::ListWidget</a>.</p>
+
+</div>
+</div>
+<hr/>Объявления и описания членов классов находятся в файлах:<ul>
+<li><a class="el" href="swe__object_8h_source.html">swe_object.h</a></li>
+<li>swe_object.cpp</li>
+</ul>
+</div><!-- contents -->
+<!-- start footer part -->
+<hr class="footer"/><address class="footer"><small>
+Создано системой &#160;<a href="http://www.doxygen.org/index.html">
+<img class="footer" src="doxygen.png" alt="doxygen"/>
+</a> 1.8.14
+</small></address>
+</body>
+</html>

@@ -98,7 +98,7 @@ public:
 
     void		setFocus(bool f) { focus = f; }
     bool		isFocused(void) const { return focus; }
-    void                setCharset(int ch, const ColorIndex & fg = Color::Transparent, const ColorIndex & bg = Color::Transparent, const CharRender* prop = nullptr) override;
+    void                setCharset(int ch, const ColorIndex & fg = Color::Transparent, const ColorIndex & bg = Color::Transparent, const CharProperty* prop = nullptr) override;
     void		renderFlush(void);
 };
 
@@ -115,7 +115,7 @@ protected:
     bool		userEvent(int act, void* data) override;
     void		renderPresentEvent(u32 ms) override;
 
-    SWE::CharRender     defaultProperty(void) const override;
+    SWE::CharProperty   defaultProperty(void) const override;
     SWE::FBColors       defaultColors(void) const override;
     SWE::TermSize       minimalTerminalSize(void) const override;
     void                terminalResizeEvent(void) override;

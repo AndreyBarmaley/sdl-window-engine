@@ -29,70 +29,84 @@
 
 namespace SWE
 {
-    /* CharRender */
-    CharRender::CharRender(int blend, int style, int hinting) : val(0)
+    /* CharProperty */
+    CharProperty::CharProperty(const CharRender & blend, int style, const CharHinting & hinting) : val(0)
     {
 	/* blended 2 bit, style 4 bit, hinting 2 bit */
-        setRender(blend);
-        setStyle(style);
-        setHinting(hinting);
+        setRender(RenderDefault == blend ? RenderSolid : blend);
+        setStyle(StyleDefault == style ? StyleNormal : style);
+        setHinting(HintingDefault == hinting ? HintingNormal : hinting);
     }
 
-    int CharRender::operator()(void) const
+    int CharProperty::operator()(void) const
     {   
         return val;
     }   
 
-    int CharRender::render(void) const
+    CharRender CharProperty::render(void) const
     {   
-        return 0x03 & (val >> 6);
-    }   
+        switch(0x03 & (val >> 6))
+	{
+	    case 1:	return RenderBlended;
+	    case 2:	return RenderShaded;
+	    default: break;
+	}
+	return RenderSolid;
+    }
 
-    int CharRender::style(void) const
+    int CharProperty::style(void) const
     {   
         return 0x0F & (val >> 2);
-    }   
+    }
 
-    int CharRender::hinting(void) const
+    CharHinting CharProperty::hinting(void) const
     {   
-        return 0x03 & (val);
-    }   
+        switch(0x03 & (val))
+	{
+	    case TTF_HINTING_NORMAL:	return HintingNormal;
+	    case TTF_HINTING_LIGHT:	return HintingLight;
+	    case TTF_HINTING_MONO:	return HintingMono;
+	    case TTF_HINTING_NONE:	return HintingNone;
+	    default: break;
+	}
+	return HintingNormal;
+    }
 
-    void CharRender::reset(void)
+    void CharProperty::reset(void)
     {
         val = 0;
     }
 
-    void CharRender::setRender(int v)
+    void CharProperty::setRender(const CharRender & v)
     {
         val &= ~(0x03 << 6);
         if(v) val |= (v & 0x03) << 6;
     }
 
-    void CharRender::setStyle(int v)
+    void CharProperty::setStyle(int v)
     {
         val &= ~(0x0f << 2);
         if(v) val |= (v & 0x0f) << 2;
     }
         
-    void CharRender::setHinting(int v)
+    void CharProperty::setHinting(const CharHinting & v)
     {
         val &= ~(0x03);
         if(v) val |= (v & 0x03);
     }
 
-    bool CharRender::operator< (const CharRender & cp) const
+    bool CharProperty::operator< (const CharProperty & cp) const
     {
 	return val < cp.val;
     }
 
-    bool CharRender::operator!= (const CharRender & cp) const
+    bool CharProperty::operator!= (const CharProperty & cp) const
     {
 	return val != cp.val;
     }
 
     /* FontID */
-    FontID::FontID(int id, int sz, const CharRender & cp)
+    FontID::FontID(int id, int sz, const CharProperty & cp)
     {
         setId(id);
         setSize(sz);
@@ -134,14 +148,14 @@ namespace SWE
         return val2;
     }
         
-    const CharRender & FontID::property(void) const
+    const CharProperty & FontID::property(void) const
     {
         return val3;
     }
         
     void FontID::reset(void)
     {
-	val1 = 0; val2 = 0; val3 = 0;
+	val1 = 0; val2 = 0; val3.reset();
     }
     
     void FontID::setId(int v)
@@ -154,7 +168,7 @@ namespace SWE
 	val2 = v;
     }
         
-    void FontID::setProperty(const CharRender & v)
+    void FontID::setProperty(const CharProperty & v)
     {
 	val3 = v;
     }
@@ -255,18 +269,18 @@ void SWE::FontsCache::erase(void)
         fontsCache.erase(CharsetID(render->id(), UnicodeAll()));
 }
 
-SWE::Texture SWE::FontsCache::renderCharset(int ch, const Color & col, int blend, int style, int hinting)
+SWE::Texture SWE::FontsCache::renderCharset(int ch, const Color & col, const CharRender & blend, int style, const CharHinting & hinting)
 {
     Texture res;
 
     if(render)
     {
         CharsetID cid(render->id(), UnicodeColor(ch, col));
-        CharRender cp;
+        CharProperty cp;
 
-        if(0 < blend) cp.setRender(blend);
-        if(0 < style) cp.setStyle(style);
-        if(0 < hinting) cp.setHinting(hinting);
+        if(RenderDefault != blend) cp.setRender(blend);
+        if(StyleDefault != style) cp.setStyle(style);
+        if(HintingDefault != hinting) cp.setHinting(hinting);
 
         cid.fs().setProperty(cp);
 
@@ -364,21 +378,21 @@ void SWE::FontRender::renderString(const std::string & str, const Color & col, c
 
     for(auto it = str.begin(); it != str.end(); ++it)
     {
-        Surface ch = renderCharset(*it, col, -1, -1, -1);
+        Surface ch = renderCharset(*it, col, RenderDefault, StyleDefault, HintingDefault);
         ch.blit(ch.rect(), Rect(Point(pos.x + offset, pos.y), ch.size()), sf);
         offset += ch.width();
     }
 }
 
 #ifndef SWE_DISABLE_TTF
-SWE::FontRenderTTF::FontRenderTTF(const std::string & fn, int size, int blend, int style, int hinting)
+SWE::FontRenderTTF::FontRenderTTF(const std::string & fn, size_t fsz, const CharRender & blend, int style, const CharHinting & hinting)
 {
-    open(fn, size, blend, style, hinting);
+    open(fn, fsz, blend, style, hinting);
 }
 
-SWE::FontRenderTTF::FontRenderTTF(const BinaryBuf & buf, int size, int blend, int style, int hinting)
+SWE::FontRenderTTF::FontRenderTTF(const BinaryBuf & buf, size_t fsz, const CharRender & blend, int style, const CharHinting & hinting)
 {
-    load(buf, size, blend, style, hinting);
+    load(buf, fsz, blend, style, hinting);
 }
 
 SWE::FontRenderTTF::~FontRenderTTF()
@@ -390,23 +404,20 @@ SWE::FontRenderTTF::~FontRenderTTF()
 void SWE::FontRenderTTF::reset(void)
 {
     ptr.reset();
-    FontRender::fsz = Size(0, 0);
+    FontRender::fontSize = Size(0, 0);
 }
 
-bool SWE::FontRenderTTF::load(const BinaryBuf & raw, int size, int blend, int style, int hinting)
+bool SWE::FontRenderTTF::load(const BinaryBuf & raw, size_t fsz, const CharRender & blend, int style, const CharHinting & hinting)
 {
     fid.reset();
-    SDL_RWops* rw = SDL_RWFromConstMem(raw.data(), raw.size());
 
-    if(rw)
+    if(SDL_RWops* rw = SDL_RWFromConstMem(raw.data(), raw.size()))
     {
-        TTF_Font* ttf = TTF_OpenFontRW(rw, 1, size);
-
-        if(ttf)
+        if(TTF_Font* ttf = TTF_OpenFontRW(rw, 1, fsz))
         {
             ptr = std::shared_ptr<TTF_Font>(ttf, TTF_CloseFont);
-            fid = FontID(raw.crc16b(), size, CharRender(blend, style, hinting));
-            FontRender::fsz = Size(symbolAdvance(0x20), lineSkipHeight());
+            fid = FontID(raw.crc16b(), fsz, CharProperty(blend, style, hinting));
+            FontRender::fontSize = Size(symbolAdvance(0x20), lineSkipHeight());
 	    auto prop = fid.property();
 	    DEBUG("binary" << SWE::StringFormat(", id: %1, size: %2, render: %3, style: %4, hinting: %5").
 			    arg(String::hex(fid.id(), 4)).arg(fid.size()).arg(prop.render()).arg(prop.style()).arg(prop.hinting()));
@@ -418,16 +429,15 @@ bool SWE::FontRenderTTF::load(const BinaryBuf & raw, int size, int blend, int st
     return false;
 }
 
-bool SWE::FontRenderTTF::open(const std::string & fn, int size, int blend, int style, int hinting)
+bool SWE::FontRenderTTF::open(const std::string & fn, size_t fsz, const CharRender & blend, int style, const CharHinting & hinting)
 {
     fid.reset();
-    TTF_Font* ttf = TTF_OpenFont(fn.c_str(), size);
 
-    if(ttf)
+    if(TTF_Font* ttf = TTF_OpenFont(fn.c_str(), fsz))
     {
         ptr = std::shared_ptr<TTF_Font>(ttf, TTF_CloseFont);
-        fid = FontID(Tools::crc16b(fn.c_str()), size, CharRender(blend, style, hinting));
-        FontRender::fsz = Size(symbolAdvance(0x20), lineSkipHeight());
+        fid = FontID(Tools::crc16b(fn.c_str()), fsz, CharProperty(blend, style, hinting));
+        FontRender::fontSize = Size(symbolAdvance(0x20), lineSkipHeight());
 	auto prop = fid.property();
 	    DEBUG("binary" << SWE::StringFormat(", id: %1, size: %2, render: %3, style: %4, hinting: %5").
 			    arg(String::hex(fid.id(), 4)).arg(fid.size()).arg(prop.render()).arg(prop.style()).arg(prop.hinting()));
@@ -590,30 +600,31 @@ SWE::Size SWE::FontRenderTTF::unicodeSize(const UnicodeString & ustr, bool horiz
     return Size(w, h);
 }
 
-SWE::Surface SWE::FontRenderTTF::renderString(const std::string & str, const Color & col, int blend, int style, int hinting) const
+SWE::Surface SWE::FontRenderTTF::renderString(const std::string & str, const Color & col, const CharRender & blend, int style, const CharHinting & hinting) const
 {
     TTF_Font* ttf = toSDLFont();
 
     if(ttf && str.size())
     {
         SDL_Surface* sf = nullptr;
-        CharRender cp = fid.property();
+        CharProperty cp = fid.property();
 
-        if(0 > blend)
-            blend = cp.render();
-
-        if(0 > style)
-            style = cp.style();
-
-        if(0 > hinting)
-            hinting = cp.hinting();
-
-        TTF_SetFontStyle(ttf, style);
+        TTF_SetFontStyle(ttf, StyleDefault == style ? cp.style() : style);
 #ifndef SWE_SDL12
-        TTF_SetFontHinting(ttf, hinting);
+        TTF_SetFontHinting(ttf, HintingDefault == hinting ? cp.hinting() : hinting);
 #endif
-        sf = blend ? TTF_RenderUTF8_Blended(ttf, str.c_str(), col.toSDLColor()) :
-             TTF_RenderUTF8_Solid(ttf, str.c_str(), col.toSDLColor());
+
+        int render = RenderDefault == blend ? cp.render() : blend;
+	switch(render)
+	{
+	    default:
+                sf = TTF_RenderUTF8_Solid(ttf, str.c_str(), col.toSDLColor());
+		break;
+	    case RenderBlended:
+	    case RenderShaded:
+    		sf = TTF_RenderUTF8_Blended(ttf, str.c_str(), col.toSDLColor());
+		break;
+	}
 
         if(sf != nullptr)
             return Surface(sf);
@@ -624,7 +635,7 @@ SWE::Surface SWE::FontRenderTTF::renderString(const std::string & str, const Col
     return Surface();
 }
 
-SWE::Surface SWE::FontRenderTTF::renderUnicode(const UnicodeString & ustr, const Color & col, int blend, int style, int hinting) const
+SWE::Surface SWE::FontRenderTTF::renderUnicode(const UnicodeString & ustr, const Color & col, const CharRender & blend, int style, const CharHinting & hinting) const
 {
     TTF_Font* ttf = toSDLFont();
 
@@ -632,23 +643,24 @@ SWE::Surface SWE::FontRenderTTF::renderUnicode(const UnicodeString & ustr, const
     {
         SDL_Surface* sf = nullptr;
         const char16_t* ptr = & ustr[0];
-        CharRender cp = fid.property();
+        CharProperty cp = fid.property();
 
-        if(0 > blend)
-            blend = cp.render();
-
-        if(0 > style)
-            style = cp.style();
-
-        if(0 > hinting)
-            hinting = cp.hinting();
-
-        TTF_SetFontStyle(ttf, style);
+        TTF_SetFontStyle(ttf, StyleDefault == style ? cp.style() : style);
 #ifndef SWE_SDL12
-        TTF_SetFontHinting(ttf, hinting);
+        TTF_SetFontHinting(ttf, HintingDefault == hinting ? cp.hinting() : hinting);
 #endif
-        sf = blend ? TTF_RenderUNICODE_Blended(ttf, reinterpret_cast<const Uint16*>(ptr), col.toSDLColor()) :
-             TTF_RenderUNICODE_Solid(ttf, reinterpret_cast<const Uint16*>(ptr), col.toSDLColor());
+
+        int render = RenderDefault == blend ? cp.render() : blend;
+	switch(render)
+	{
+	    default:
+                sf = TTF_RenderUNICODE_Solid(ttf, reinterpret_cast<const Uint16*>(ptr), col.toSDLColor());
+		break;
+	    case RenderBlended:
+	    case RenderShaded:
+    		sf = TTF_RenderUNICODE_Blended(ttf, reinterpret_cast<const Uint16*>(ptr), col.toSDLColor());
+		break;
+	}
 
         if(sf != nullptr)
             return Surface(sf);
@@ -659,7 +671,7 @@ SWE::Surface SWE::FontRenderTTF::renderUnicode(const UnicodeString & ustr, const
     return Surface();
 }
 
-SWE::Surface SWE::FontRenderTTF::renderCharset(int ch, const Color & col, int blend, int style, int hinting) const
+SWE::Surface SWE::FontRenderTTF::renderCharset(int ch, const Color & col, const CharRender & blend, int style, const CharHinting & hinting) const
 {
     TTF_Font* ttf = toSDLFont();
 
@@ -668,26 +680,25 @@ SWE::Surface SWE::FontRenderTTF::renderCharset(int ch, const Color & col, int bl
         u16 buf[2] = { L'\0', L'\0' };
         buf[0] = ch;
         SDL_Surface* sf = nullptr;
-        CharRender cp = fid.property();
+        CharProperty cp = fid.property();
 
-        if(0 > blend)
-            blend = cp.render();
 
-        if(0 > style)
-            style = cp.style();
-
-        if(0 > hinting)
-            hinting = cp.hinting();
-
-        TTF_SetFontStyle(ttf, style);
+        TTF_SetFontStyle(ttf, StyleDefault == style ? cp.style() : style);
 #ifndef SWE_SDL12
-        TTF_SetFontHinting(ttf, hinting);
+        TTF_SetFontHinting(ttf, HintingDefault == hinting ? cp.hinting() : hinting);
 #endif
 
-        if(blend)
-            sf = TTF_RenderUNICODE_Blended(ttf, buf, col.toSDLColor());
-        else
-            sf = TTF_RenderUNICODE_Solid(ttf, buf, col.toSDLColor());
+        int render = RenderDefault == blend ? cp.render() : blend;
+	switch(render)
+	{
+	    default:
+        	sf = TTF_RenderUNICODE_Solid(ttf, buf, col.toSDLColor());
+		break;
+	    case RenderBlended:
+	    case RenderShaded:
+        	sf = TTF_RenderUNICODE_Blended(ttf, buf, col.toSDLColor());
+		break;
+	}
 
         if(sf != nullptr)
             return Surface(sf);
@@ -695,7 +706,7 @@ SWE::Surface SWE::FontRenderTTF::renderCharset(int ch, const Color & col, int bl
             ERROR(SDL_GetError());
     }
 
-    return Surface(fsz);
+    return Surface(FontRender::fontSize);
 }
 #endif
 
@@ -742,8 +753,9 @@ SWE::Size SWE::FontRenderPSF::unicodeSize(const UnicodeString & ustr, bool horiz
     return fixedSize(ustr.size(), horizontal);
 }
 
-SWE::Surface SWE::FontRenderPSF::renderCharset(int ch, const Color & cl, int blend, int style, int hinting) const
+SWE::Surface SWE::FontRenderPSF::renderCharset(int ch, const Color & cl, const CharRender & blend, int style, const CharHinting & hinting) const
 {
+    auto & fsz = FontRender::size();
     Surface res(fsz);
 
     if(0x20 < ch)

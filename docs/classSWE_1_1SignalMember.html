@@ -1,0 +1,429 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=9"/>
+<meta name="generator" content="Doxygen 1.8.14"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>SDL Window Engine: Класс SWE::SignalMember</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr style="height: 56px;">
+  <td id="projectalign" style="padding-left: 0.5em;">
+   <div id="projectname">SDL Window Engine
+   &#160;<span id="projectnumber">20200905</span>
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- Создано системой Doxygen 1.8.14 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:cf05388f2679ee054f2beb29a391d25f4e673ac3&amp;dn=gpl-2.0.txt GPL-v2 */
+var searchBox = new SearchBox("searchBox", "search",false,'Поиск');
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:cf05388f2679ee054f2beb29a391d25f4e673ac3&amp;dn=gpl-2.0.txt GPL-v2 */
+$(function() {
+  initMenu('',true,false,'search.php','Поиск');
+  $(document).ready(function() { init_search(); });
+});
+/* @license-end */</script>
+<div id="main-nav"></div>
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+</iframe>
+</div>
+
+<div id="nav-path" class="navpath">
+  <ul>
+<li class="navelem"><b>SWE</b></li><li class="navelem"><a class="el" href="classSWE_1_1SignalMember.html">SignalMember</a></li>  </ul>
+</div>
+</div><!-- top -->
+<div class="header">
+  <div class="summary">
+<a href="#pub-methods">Открытые члены</a> &#124;
+<a href="#pub-static-methods">Открытые статические члены</a> &#124;
+<a href="#pro-methods">Защищенные члены</a> &#124;
+<a href="classSWE_1_1SignalMember-members.html">Полный список членов класса</a>  </div>
+  <div class="headertitle">
+<div class="title">Класс SWE::SignalMember</div>  </div>
+</div><!--header-->
+<div class="contents">
+
+<p>класс объектов сцены <a class="el" href="classSWE_1_1DisplayScene.html">DisplayScene</a>, с возможностью отправки/получения сигналов  
+ <a href="classSWE_1_1SignalMember.html#details">Подробнее...</a></p>
+
+<p><code>#include &lt;<a class="el" href="swe__events_8h_source.html">swe_events.h</a>&gt;</code></p>
+<div class="dynheader">
+Граф наследования:SWE::SignalMember:</div>
+<div class="dyncontent">
+ <div class="center">
+  <img src="classSWE_1_1SignalMember.png" usemap="#SWE::SignalMember_map" alt=""/>
+  <map id="SWE::SignalMember_map" name="SWE::SignalMember_map">
+<area href="classSWE_1_1ObjectEvent.html" title="класс объектов сцены DisplayScene, с возможностью отправки/получения сообщений " alt="SWE::ObjectEvent" shape="rect" coords="84,56,242,80"/>
+<area href="classSWE_1_1ObjectClass.html" title="родительский класс объектов сцены DisplayScene. " alt="SWE::ObjectClass" shape="rect" coords="84,0,242,24"/>
+<area href="classSWE_1_1BaseObject.html" title="базовый класс не графических объектов сцены DisplayScene. " alt="SWE::BaseObject" shape="rect" coords="0,168,158,192"/>
+<area href="classSWE_1_1Window.html" title="базовый класс графических объектов сцены DisplayScene. " alt="SWE::Window" shape="rect" coords="168,168,326,192"/>
+<area href="classSWE_1_1CenteredWindow.html" alt="SWE::CenteredWindow" shape="rect" coords="336,224,494,248"/>
+<area href="classSWE_1_1DisplayToolTip.html" alt="SWE::DisplayToolTip" shape="rect" coords="336,280,494,304"/>
+<area href="classSWE_1_1DisplayWindow.html" alt="SWE::DisplayWindow" shape="rect" coords="336,336,494,360"/>
+<area href="classSWE_1_1ListWidget.html" alt="SWE::ListWidget" shape="rect" coords="336,392,494,416"/>
+<area href="classSWE_1_1ScrollBar.html" alt="SWE::ScrollBar" shape="rect" coords="336,448,494,472"/>
+<area href="classSWE_1_1TargetWindow.html" alt="SWE::TargetWindow" shape="rect" coords="336,504,494,528"/>
+<area href="classSWE_1_1TermBase.html" title="базовый класс терминального окна " alt="SWE::TermBase" shape="rect" coords="336,560,494,584"/>
+<area href="classSWE_1_1WindowToolTipArea.html" alt="SWE::WindowToolTipArea" shape="rect" coords="336,616,494,640"/>
+</map>
+ </div></div>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
+Открытые члены</h2></td></tr>
+<tr class="memitem:ad9882f49cbea1be110b136436e96c15a"><td class="memItemLeft" align="right" valign="top"><a id="ad9882f49cbea1be110b136436e96c15a"></a>
+const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSWE_1_1SignalMember.html#ad9882f49cbea1be110b136436e96c15a">className</a> (void) const override</td></tr>
+<tr class="memdesc:ad9882f49cbea1be110b136436e96c15a"><td class="mdescLeft">&#160;</td><td class="mdescRight">идентификацинная метка класса <br /></td></tr>
+<tr class="separator:ad9882f49cbea1be110b136436e96c15a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="inherit_header pub_methods_classSWE_1_1ObjectEvent"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_classSWE_1_1ObjectEvent')"><img src="closed.png" alt="-"/>&#160;Открытые члены унаследованные от <a class="el" href="classSWE_1_1ObjectEvent.html">SWE::ObjectEvent</a></td></tr>
+<tr class="memitem:a57e21e2f38d78073476fc288cc154925 inherit pub_methods_classSWE_1_1ObjectEvent"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSWE_1_1ObjectEvent.html#a57e21e2f38d78073476fc288cc154925">pushEventAction</a> (int code, <a class="el" href="classSWE_1_1ObjectEvent.html">ObjectEvent</a> *dst, void *data)</td></tr>
+<tr class="memdesc:a57e21e2f38d78073476fc288cc154925 inherit pub_methods_classSWE_1_1ObjectEvent"><td class="mdescLeft">&#160;</td><td class="mdescRight">функция отправки сообщения с данными для объектов сцены <a class="el" href="classSWE_1_1DisplayScene.html">DisplayScene</a>.  <a href="classSWE_1_1ObjectEvent.html#a57e21e2f38d78073476fc288cc154925">Подробнее...</a><br /></td></tr>
+<tr class="separator:a57e21e2f38d78073476fc288cc154925 inherit pub_methods_classSWE_1_1ObjectEvent"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1732e5a19f47968c2109e998d604bd02 inherit pub_methods_classSWE_1_1ObjectEvent"><td class="memItemLeft" align="right" valign="top"><a id="a1732e5a19f47968c2109e998d604bd02"></a>
+const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSWE_1_1ObjectEvent.html#a1732e5a19f47968c2109e998d604bd02">className</a> (void) const override</td></tr>
+<tr class="memdesc:a1732e5a19f47968c2109e998d604bd02 inherit pub_methods_classSWE_1_1ObjectEvent"><td class="mdescLeft">&#160;</td><td class="mdescRight">идентификацинная метка класса <br /></td></tr>
+<tr class="separator:a1732e5a19f47968c2109e998d604bd02 inherit pub_methods_classSWE_1_1ObjectEvent"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
+Открытые статические члены</h2></td></tr>
+<tr class="memitem:a91f2abd58c85503146c2a910eaedd975"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSWE_1_1SignalMember.html#a91f2abd58c85503146c2a910eaedd975">signalSubscribe</a> (const <a class="el" href="classSWE_1_1SignalMember.html">SignalMember</a> &amp;sender, int sig, <a class="el" href="classSWE_1_1SignalMember.html">SignalMember</a> &amp;receiver)</td></tr>
+<tr class="memdesc:a91f2abd58c85503146c2a910eaedd975"><td class="mdescLeft">&#160;</td><td class="mdescRight">функция подписки на сигнал  <a href="#a91f2abd58c85503146c2a910eaedd975">Подробнее...</a><br /></td></tr>
+<tr class="separator:a91f2abd58c85503146c2a910eaedd975"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3fcf1796f2912737e740ff2a05d91fd4"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSWE_1_1SignalMember.html#a3fcf1796f2912737e740ff2a05d91fd4">signalUnsubscribe</a> (const <a class="el" href="classSWE_1_1SignalMember.html">SignalMember</a> &amp;receiver)</td></tr>
+<tr class="memdesc:a3fcf1796f2912737e740ff2a05d91fd4"><td class="mdescLeft">&#160;</td><td class="mdescRight">функция отписки от сигнала  <a href="#a3fcf1796f2912737e740ff2a05d91fd4">Подробнее...</a><br /></td></tr>
+<tr class="separator:a3fcf1796f2912737e740ff2a05d91fd4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a935058b93ed2aad43fac32edd486a642"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSWE_1_1SignalMember.html#a935058b93ed2aad43fac32edd486a642">signalEmit</a> (const <a class="el" href="classSWE_1_1SignalMember.html">SignalMember</a> &amp;sender, int sig)</td></tr>
+<tr class="memdesc:a935058b93ed2aad43fac32edd486a642"><td class="mdescLeft">&#160;</td><td class="mdescRight">функция отправки сигнала с подстановкой отправителя  <a href="#a935058b93ed2aad43fac32edd486a642">Подробнее...</a><br /></td></tr>
+<tr class="separator:a935058b93ed2aad43fac32edd486a642"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9fd253fcdeeb039088b6743725ee9ec2"><td class="memItemLeft" align="right" valign="top">static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSWE_1_1SignalMember.html#a9fd253fcdeeb039088b6743725ee9ec2">signalSubscribed</a> (const <a class="el" href="classSWE_1_1SignalMember.html">SignalMember</a> &amp;sender, int sig=0)</td></tr>
+<tr class="memdesc:a9fd253fcdeeb039088b6743725ee9ec2"><td class="mdescLeft">&#160;</td><td class="mdescRight">функция проверки на подписку сигнала  <a href="#a9fd253fcdeeb039088b6743725ee9ec2">Подробнее...</a><br /></td></tr>
+<tr class="separator:a9fd253fcdeeb039088b6743725ee9ec2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-methods"></a>
+Защищенные члены</h2></td></tr>
+<tr class="memitem:a43a8f3a67087cc7c18feba01354cf880"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSWE_1_1SignalMember.html#a43a8f3a67087cc7c18feba01354cf880">signalSubscribe</a> (const <a class="el" href="classSWE_1_1SignalMember.html">SignalMember</a> &amp;sender, int sig)</td></tr>
+<tr class="memdesc:a43a8f3a67087cc7c18feba01354cf880"><td class="mdescLeft">&#160;</td><td class="mdescRight">функция подписки на сигнал  <a href="#a43a8f3a67087cc7c18feba01354cf880">Подробнее...</a><br /></td></tr>
+<tr class="separator:a43a8f3a67087cc7c18feba01354cf880"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9da13a28d467dc5182b39d77163786bc"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSWE_1_1SignalMember.html#a9da13a28d467dc5182b39d77163786bc">signalEmit</a> (int sig)</td></tr>
+<tr class="memdesc:a9da13a28d467dc5182b39d77163786bc"><td class="mdescLeft">&#160;</td><td class="mdescRight">фунция отправки сигнала  <a href="#a9da13a28d467dc5182b39d77163786bc">Подробнее...</a><br /></td></tr>
+<tr class="separator:a9da13a28d467dc5182b39d77163786bc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a93c0ba3746535ee163dd9fb0884715e0"><td class="memItemLeft" align="right" valign="top"><a id="a93c0ba3746535ee163dd9fb0884715e0"></a>
+virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSWE_1_1SignalMember.html#a93c0ba3746535ee163dd9fb0884715e0">signalReceive</a> (int sig, const <a class="el" href="classSWE_1_1SignalMember.html">SignalMember</a> *sender)</td></tr>
+<tr class="memdesc:a93c0ba3746535ee163dd9fb0884715e0"><td class="mdescLeft">&#160;</td><td class="mdescRight">метод получатель, вызывается при signalEmit со стороны отправителя <br /></td></tr>
+<tr class="separator:a93c0ba3746535ee163dd9fb0884715e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="inherit_header pro_methods_classSWE_1_1ObjectEvent"><td colspan="2" onclick="javascript:toggleInherit('pro_methods_classSWE_1_1ObjectEvent')"><img src="closed.png" alt="-"/>&#160;Защищенные члены унаследованные от <a class="el" href="classSWE_1_1ObjectEvent.html">SWE::ObjectEvent</a></td></tr>
+<tr class="memitem:a5a338e5be03477b3e8156bdd9c3ada0a inherit pro_methods_classSWE_1_1ObjectEvent"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSWE_1_1ObjectEvent.html#a5a338e5be03477b3e8156bdd9c3ada0a">userEvent</a> (int code, void *data)</td></tr>
+<tr class="memdesc:a5a338e5be03477b3e8156bdd9c3ada0a inherit pro_methods_classSWE_1_1ObjectEvent"><td class="mdescLeft">&#160;</td><td class="mdescRight">метод получатель, вызывается при получении сообщения, отправленного через pushEventAction.  <a href="classSWE_1_1ObjectEvent.html#a5a338e5be03477b3e8156bdd9c3ada0a">Подробнее...</a><br /></td></tr>
+<tr class="separator:a5a338e5be03477b3e8156bdd9c3ada0a inherit pro_methods_classSWE_1_1ObjectEvent"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9f08869ea261b90aa6cd3dbc54df2cae inherit pro_methods_classSWE_1_1ObjectEvent"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSWE_1_1ObjectEvent.html#a9f08869ea261b90aa6cd3dbc54df2cae">tickEvent</a> (u32 ms)</td></tr>
+<tr class="memdesc:a9f08869ea261b90aa6cd3dbc54df2cae inherit pro_methods_classSWE_1_1ObjectEvent"><td class="mdescLeft">&#160;</td><td class="mdescRight">метод получатель, вызывается один раз за каждую итерацию главного цикла сцены <a class="el" href="classSWE_1_1DisplayScene.html">DisplayScene</a>, но перед отрисовкой всей сцены  <a href="classSWE_1_1ObjectEvent.html#a9f08869ea261b90aa6cd3dbc54df2cae">Подробнее...</a><br /></td></tr>
+<tr class="separator:a9f08869ea261b90aa6cd3dbc54df2cae inherit pro_methods_classSWE_1_1ObjectEvent"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<a name="details" id="details"></a><h2 class="groupheader">Подробное описание</h2>
+<div class="textblock"><p>класс объектов сцены <a class="el" href="classSWE_1_1DisplayScene.html">DisplayScene</a>, с возможностью отправки/получения сигналов </p>
+<p>Алгоритм использования:</p><ul>
+<li>подписка на событие <div class="fragment"><div class="line"><span class="keywordtype">void</span> <a class="code" href="classSWE_1_1SignalMember.html#a91f2abd58c85503146c2a910eaedd975">signalSubscribe</a>(<span class="keyword">const</span> SignalMember &amp; sender, <span class="keywordtype">int</span> signal, SignalMember &amp; receiver);</div></div><!-- fragment --></li>
+<li>отправка signal со стороны отправителя <div class="fragment"><div class="line"><span class="keywordtype">void</span> <a class="code" href="classSWE_1_1SignalMember.html#a935058b93ed2aad43fac32edd486a642">signalEmit</a>(<span class="keywordtype">int</span> signal);</div></div><!-- fragment --></li>
+<li>получение через виртуальную функцию <div class="fragment"><div class="line"><span class="keywordtype">void</span> <a class="code" href="classSWE_1_1SignalMember.html#a93c0ba3746535ee163dd9fb0884715e0">signalReceive</a>(<span class="keywordtype">int</span> signal, <span class="keyword">const</span> SignalMember* sender) <span class="keyword">override</span>;</div></div><!-- fragment --> особенность данного метода - получение signal происходит в конце этой же итерации основного цикла обработки событий <a class="el" href="classSWE_1_1DisplayScene.html">DisplayScene</a>, а также нет возможности отправки данных.</li>
+</ul>
+<dl class="section see"><dt>См. также</dt><dd><a class="el" href="classSWE_1_1ObjectEvent.html" title="класс объектов сцены DisplayScene, с возможностью отправки/получения сообщений ">ObjectEvent</a> </dd></dl>
+</div><h2 class="groupheader">Методы</h2>
+<a id="a935058b93ed2aad43fac32edd486a642"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a935058b93ed2aad43fac32edd486a642">&#9670;&nbsp;</a></span>signalEmit() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void SWE::SignalMember::signalEmit </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classSWE_1_1SignalMember.html">SignalMember</a> &amp;&#160;</td>
+          <td class="paramname"><em>sender</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>sig</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>функция отправки сигнала с подстановкой отправителя </p>
+<dl class="params"><dt>Аргументы</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">sender</td><td>отправитель сигнала </td></tr>
+    <tr><td class="paramname">sig</td><td>тип сигнала </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a9da13a28d467dc5182b39d77163786bc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9da13a28d467dc5182b39d77163786bc">&#9670;&nbsp;</a></span>signalEmit() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void SWE::SignalMember::signalEmit </td>
+          <td>(</td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>sig</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>фунция отправки сигнала </p>
+<dl class="params"><dt>Аргументы</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">sig</td><td>тип сигнала </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a91f2abd58c85503146c2a910eaedd975"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a91f2abd58c85503146c2a910eaedd975">&#9670;&nbsp;</a></span>signalSubscribe() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void SWE::SignalMember::signalSubscribe </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classSWE_1_1SignalMember.html">SignalMember</a> &amp;&#160;</td>
+          <td class="paramname"><em>sender</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>sig</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classSWE_1_1SignalMember.html">SignalMember</a> &amp;&#160;</td>
+          <td class="paramname"><em>receiver</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>функция подписки на сигнал </p>
+<dl class="params"><dt>Аргументы</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">sender</td><td>отправитель сигнала </td></tr>
+    <tr><td class="paramname">sig</td><td>тип сигнала </td></tr>
+    <tr><td class="paramname">receiver</td><td>получатель сигнала </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a43a8f3a67087cc7c18feba01354cf880"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a43a8f3a67087cc7c18feba01354cf880">&#9670;&nbsp;</a></span>signalSubscribe() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void SWE::SignalMember::signalSubscribe </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classSWE_1_1SignalMember.html">SignalMember</a> &amp;&#160;</td>
+          <td class="paramname"><em>sender</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>sig</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>функция подписки на сигнал </p>
+<dl class="params"><dt>Аргументы</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">sender</td><td>отправитель сигнала </td></tr>
+    <tr><td class="paramname">sig</td><td>тип сигнала </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a9fd253fcdeeb039088b6743725ee9ec2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9fd253fcdeeb039088b6743725ee9ec2">&#9670;&nbsp;</a></span>signalSubscribed()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool SWE::SignalMember::signalSubscribed </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classSWE_1_1SignalMember.html">SignalMember</a> &amp;&#160;</td>
+          <td class="paramname"><em>sender</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>sig</em> = <code>0</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>функция проверки на подписку сигнала </p>
+<dl class="params"><dt>Аргументы</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">sig</td><td>тип сигнала, если равно нулю - проверяется на любой подписанный сигнал </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a3fcf1796f2912737e740ff2a05d91fd4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3fcf1796f2912737e740ff2a05d91fd4">&#9670;&nbsp;</a></span>signalUnsubscribe()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void SWE::SignalMember::signalUnsubscribe </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classSWE_1_1SignalMember.html">SignalMember</a> &amp;&#160;</td>
+          <td class="paramname"><em>receiver</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>функция отписки от сигнала </p>
+<dl class="params"><dt>Аргументы</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">receiver</td><td>получатель сигнала </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<hr/>Объявления и описания членов классов находятся в файлах:<ul>
+<li><a class="el" href="swe__events_8h_source.html">swe_events.h</a></li>
+<li>swe_events.cpp</li>
+</ul>
+</div><!-- contents -->
+<!-- start footer part -->
+<hr class="footer"/><address class="footer"><small>
+Создано системой &#160;<a href="http://www.doxygen.org/index.html">
+<img class="footer" src="doxygen.png" alt="doxygen"/>
+</a> 1.8.14
+</small></address>
+</body>
+</html>

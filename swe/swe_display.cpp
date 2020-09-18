@@ -98,10 +98,10 @@ namespace SWE
         void            addWindow(Window &);
         void            delWindow(Window &);
 
-        Rect		renderTextFixedHorizontal(const FontRender &, const UnicodeString &, const Color &, Texture &, const Point &, const Rect &, int, int);
-        Rect		renderTextFixedVertical(const FontRender &, const UnicodeString &, const Color &, Texture &, const Point &, const Rect &, int, int);
-        Rect		renderTextHorizontal(const FontRender &, const UnicodeString &, const Color &, Texture &, const Point &, int, int);
-        Rect		renderTextVertical(const FontRender &, const UnicodeString &, const Color &, Texture &, const Point &, int, int);
+        Rect		renderTextFixedHorizontal(const FontRender &, const UnicodeString &, const Color &, Texture &, const Point &, const Rect &, const AlignType &, const AlignType &, const CharRender &, int style, const CharHinting &);
+        Rect		renderTextFixedVertical(const FontRender &, const UnicodeString &, const Color &, Texture &, const Point &, const Rect &, const AlignType &, const AlignType &, const CharRender &, int style, const CharHinting &);
+        Rect		renderTextHorizontal(const FontRender &, const UnicodeString &, const Color &, Texture &, const Point &, const AlignType &, const AlignType &, const CharRender &, int style, const CharHinting &);
+        Rect		renderTextVertical(const FontRender &, const UnicodeString &, const Color &, Texture &, const Point &, const AlignType &, const AlignType &, const CharRender &, int style, const CharHinting &);
     }
 }
 
@@ -1270,19 +1270,25 @@ u32 SWE::Display::mouseButtonState(void)
     return SDL_GetMouseState(nullptr, nullptr);
 }
 
-SWE::Rect SWE::Display::renderTextHorizontal(const FontRender & frs, const UnicodeString & ustr, const Color & col, Texture & dtx, const Point & dpt, int halign, int valign)
+SWE::Rect SWE::Display::renderTextHorizontal(const FontRender & frs, const UnicodeString & ustr, const Color & col, Texture & dtx, const Point & dpt,
+				    const AlignType & hAlign, const AlignType & vAlign,
+				    const CharRender & render, int style, const CharHinting & hinting)
 {
     Rect fixed = Rect(Point(0, 0), Display::size());
-    return renderTextFixedHorizontal(frs, ustr, col, dtx, dpt, fixed, halign, valign);
+    return renderTextFixedHorizontal(frs, ustr, col, dtx, dpt, fixed, hAlign, vAlign, render, style, hinting);
 }
 
-SWE::Rect SWE::Display::renderTextVertical(const FontRender & frs, const UnicodeString & ustr, const Color & col, Texture & dtx, const Point & dpt, int halign, int valign)
+SWE::Rect SWE::Display::renderTextVertical(const FontRender & frs, const UnicodeString & ustr, const Color & col, Texture & dtx, const Point & dpt,
+				    const AlignType & hAlign, const AlignType & vAlign,
+				    const CharRender & render, int style, const CharHinting & hinting)
 {
     Rect fixed = Rect(Point(0, 0), Display::size());
-    return renderTextFixedVertical(frs, ustr, col, dtx, dpt, fixed, halign, valign);
+    return renderTextFixedVertical(frs, ustr, col, dtx, dpt, fixed, hAlign, vAlign, render, style, hinting);
 }
 
-SWE::Rect SWE::Display::renderTextFixedHorizontal(const FontRender & frs, const UnicodeString & ustr, const Color & col, Texture & dtx, const Point & dpt, const Rect & fixed, int halign, int valign)
+SWE::Rect SWE::Display::renderTextFixedHorizontal(const FontRender & frs, const UnicodeString & ustr, const Color & col, Texture & dtx, const Point & dpt, const Rect & fixed,
+				    const AlignType & hAlign, const AlignType & vAlign,
+				    const CharRender & render, int style, const CharHinting & hinting)
 {
     Rect res;
 
@@ -1291,15 +1297,15 @@ SWE::Rect SWE::Display::renderTextFixedHorizontal(const FontRender & frs, const 
         Point dst = dpt;
         const Size usz = frs.unicodeSize(ustr, true);
 
-        if(halign == AlignCenter)
+        if(hAlign == AlignCenter)
             dst.x -= usz.w / 2;
-        else if(halign == AlignRight)
+        else if(hAlign == AlignRight)
             dst.x -= usz.w;
 
-        if(valign == AlignCenter)
+        if(vAlign == AlignCenter)
 	    // usz.h is lineSkipHeight(), and it is large that char height, little down
             dst.y = dst.y - usz.h / 2 + 2;
-        else if(valign == AlignBottom)
+        else if(vAlign == AlignBottom)
             dst.y -= usz.h;
 
         res.x = dst.x;
@@ -1308,7 +1314,7 @@ SWE::Rect SWE::Display::renderTextFixedHorizontal(const FontRender & frs, const 
 
         for(auto it = ustr.begin(); it != ustr.end(); ++it) if(*it)
         {
-            Texture tx = FontsCache(&frs).renderCharset(*it, col);
+            Texture tx = FontsCache(&frs).renderCharset(*it, col, render, style, hinting);
             if(! tx.isValid()) continue;
 
             if(Rect::intersection(Rect(fixed.toPoint() + dst, tx.size()), fixed, & rtFixed))
@@ -1326,7 +1332,9 @@ SWE::Rect SWE::Display::renderTextFixedHorizontal(const FontRender & frs, const 
     return res;
 }
 
-SWE::Rect SWE::Display::renderTextFixedVertical(const FontRender & frs, const UnicodeString & ustr, const Color & col, Texture & dtx, const Point & dpt, const Rect & fixed, int halign, int valign)
+SWE::Rect SWE::Display::renderTextFixedVertical(const FontRender & frs, const UnicodeString & ustr, const Color & col, Texture & dtx, const Point & dpt, const Rect & fixed,
+				    const AlignType & hAlign, const AlignType & vAlign,
+				    const CharRender & render, int style, const CharHinting & hinting)
 {
     Rect res;
 
@@ -1335,30 +1343,30 @@ SWE::Rect SWE::Display::renderTextFixedVertical(const FontRender & frs, const Un
         Point dst = dpt;
         const Size usz = frs.unicodeSize(ustr, false);
 
-        if(valign == AlignCenter)
+        if(vAlign == AlignCenter)
             dst.y -= usz.h / 2;
-        else if(valign == AlignBottom)
+        else if(vAlign == AlignBottom)
             dst.y -= usz.h;
 
         res.x = dst.x;
         res.y = dst.y;
 
-        if(halign == AlignCenter)
+        if(hAlign == AlignCenter)
             res.x -= usz.w / 2;
-        else if(halign == AlignRight)
+        else if(hAlign == AlignRight)
             res.x -= usz.w;
 
         Rect rtFixed;
 
         for(auto it = ustr.begin(); it != ustr.end(); ++it) if(*it)
         {
-            Texture tx = FontsCache(&frs).renderCharset(*it, col);
+            Texture tx = FontsCache(&frs).renderCharset(*it, col, render, style, hinting);
             if(! tx.isValid()) continue;
 
 	    // halign one char
-            if(halign == AlignCenter)
+            if(hAlign == AlignCenter)
                 dst.x = dpt.x - tx.width() / 2;
-            else if(halign == AlignRight)
+            else if(hAlign == AlignRight)
                 dst.x = dpt.x - tx.width();
 
             if(Rect::intersection(Rect(fixed.toPoint() + dst, tx.size()), fixed, & rtFixed))
@@ -1376,16 +1384,20 @@ SWE::Rect SWE::Display::renderTextFixedVertical(const FontRender & frs, const Un
     return res;
 }
 
-SWE::Rect SWE::Display::renderText(const FontRender & frs, const UnicodeString & ustr, const Color & col, Texture & dst, const Point & dpt, int halign, int valign, bool horizontal)
+SWE::Rect SWE::Display::renderText(const FontRender & frs, const UnicodeString & ustr, const Color & col, Texture & dst, const Point & dpt,
+				    const AlignType & hAlign, const AlignType & vAlign, bool isHorizontal,
+				    const CharRender & render, int style, const CharHinting & hinting)
 {
-    return horizontal ? renderTextHorizontal(frs, ustr, col, dst, dpt, halign, valign) :
-           renderTextVertical(frs, ustr, col, dst, dpt, halign, valign);
+    return isHorizontal ? renderTextHorizontal(frs, ustr, col, dst, dpt, hAlign, vAlign, render, style, hinting) :
+           renderTextVertical(frs, ustr, col, dst, dpt, hAlign, vAlign, render, style, hinting);
 }
 
-SWE::Rect SWE::Display::renderTextFixed(const FontRender & frs, const UnicodeString & ustr, const Color & col, Texture & dst, const Point & dpt, const Rect & fixed, int halign, int valign, bool horizontal)
+SWE::Rect SWE::Display::renderTextFixed(const FontRender & frs, const UnicodeString & ustr, const Color & col, Texture & dst, const Point & dpt, const Rect & fixed,
+				    const AlignType & hAlign, const AlignType & vAlign, bool isHorizontal,
+				    const CharRender & render, int style, const CharHinting & hinting)
 {
-    return horizontal ? renderTextFixedHorizontal(frs, ustr, col, dst, dpt, fixed, halign, valign) :
-           renderTextFixedVertical(frs, ustr, col, dst, dpt, fixed, halign, valign);
+    return isHorizontal ? renderTextFixedHorizontal(frs, ustr, col, dst, dpt, fixed, hAlign, vAlign, render, style, hinting) :
+           renderTextFixedVertical(frs, ustr, col, dst, dpt, fixed, hAlign, vAlign, render, style, hinting);
 }
 
 SWE::Texture SWE::Display::renderText(const FontRender & frs, const UCString & ustr)

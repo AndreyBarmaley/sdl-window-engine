@@ -28,35 +28,35 @@
 namespace SWE
 {
     /// @brief перечисление типа символьных линий
-    enum line_t { LineNone, LineAscii, LineThin, LineBold, LineDouble };
+    enum LineType { LineNone, LineAscii, LineThin, LineBold, LineDouble };
     /// @brief перечисление направления движения курсора в терминале
-    enum move_t { MoveCenter, MoveUp, MoveDown, MoveLeft, MoveRight, MoveUpperLeft, MoveUpperRight, MoveLowerLeft, MoveLowerRight, MoveFirst, MoveLast };
+    enum MoveDirection { MoveCenter, MoveUp, MoveDown, MoveLeft, MoveRight, MoveUpperLeft, MoveUpperRight, MoveLowerLeft, MoveLowerRight, MoveFirst, MoveLast };
 
     /* line chars */
     namespace acs
     {
 	/// @brief код символа "вертикальная линия"
-        int         vline(line_t);
+        int         vline(const LineType &);
 	/// @brief код символа "горизонтальная линия"
-        int         hline(line_t);
+        int         hline(const LineType &);
 	/// @brief код символа "верхний левый угол"
-        int         ulcorner(line_t);
+        int         ulcorner(const LineType &);
 	/// @brief код символа "верхний правый угол"
-        int         urcorner(line_t);
+        int         urcorner(const LineType &);
 	/// @brief код символа "нижний левый угол"
-        int         llcorner(line_t);
+        int         llcorner(const LineType &);
 	/// @brief код символа "нижний правый угол"
-        int         lrcorner(line_t);
+        int         lrcorner(const LineType &);
 	/// @brief код символа "левый T"
-        int         ltee(line_t);
+        int         ltee(const LineType &);
 	/// @brief код символа "правый T"
-        int         rtee(line_t);
+        int         rtee(const LineType &);
 	/// @brief код символа "верхний T"
-        int         ttee(line_t);
+        int         ttee(const LineType &);
 	/// @brief код символа "нижний T"
-        int         btee(line_t);
+        int         btee(const LineType &);
 	/// @brief код символа "+"
-        int         plus(line_t);
+        int         plus(const LineType &);
     }
 
     /// @brief класс двухмерной размерности в терминале
@@ -124,11 +124,11 @@ namespace SWE
     {
 	u8			state;
 
-	enum state_t { FlipHorz = 0x01, FlipVert = 0x02, FlipBoth = FlipVert | FlipHorz, Inverted = 0x04, Blinked = 0x08, /* AlphaRez = 0xF0 */ };
+	enum Type { FlipHorz = 0x01, FlipVert = 0x02, FlipBoth = FlipVert | FlipHorz, Inverted = 0x04, Blinked = 0x08, /* AlphaRez = 0xF0 */ };
 	CharState(u8 val = 0) : state(val) {}
 
-	void			setState(const state_t &, bool f);
-	bool			checkState(const state_t &) const;
+	void			setState(const Type &, bool f);
+	bool			checkState(const Type &) const;
 
 	void			setAlpha(int);
 	int			alpha(void) const;
@@ -149,9 +149,9 @@ namespace SWE
 	/// @brief класс манипулятор, движение курсора по направлению в терминале
         struct move : public packint2
         {
-            move(move_t dir, int count = 1) : packint2(dir, count) {}
+            move(const MoveDirection & dir, int count = 1) : packint2(dir, count) {}
 
-            int			dir(void) const { return val1(); }
+            MoveDirection	dir(void) const { return static_cast<MoveDirection>(val1()); }
             int			count(void) const { return val2(); }
         };
 
@@ -216,11 +216,11 @@ namespace SWE
 	/// @see TermBase::operator<< (const set::align &)
         struct align
         {
-            align_t val;
+            AlignType val;
 
-            align(align_t v) : val(v) {}
+            align(const AlignType & v) : val(v) {}
 
-            const align_t &	operator()(void) const { return val; }
+            const AlignType &	operator()(void) const { return val; }
         };
 
 	/// @brief класс манипулятор, установка состояния set::wrap
@@ -255,10 +255,10 @@ namespace SWE
 	/// @see TermBase::operator<< (const set::property &)
         struct property
         {
-	    CharRender	prop;
+	    CharProperty	prop;
 
-	    property(int blend, int style = StyleNormal, int hinting = HintingNormal) : prop(blend, style, hinting) {}
-            property(const CharRender & val) : prop(val) {}
+	    property(const CharRender & blend, int style = StyleNormal, const CharHinting & hinting = HintingNormal) : prop(blend, style, hinting) {}
+            property(const CharProperty & val) : prop(val) {}
         };
 
 	/// @brief класс манипулятор, установка состояния set::blink
@@ -341,7 +341,7 @@ namespace SWE
 
     namespace fill
     {
-	/// @brief класс манипулятор, заполнение области значением
+        /// @protected
         struct area : public std::pair<int, packint2>
         {
             area(int val, const TermSize & sz) : std::pair<int, packint2>(val, packint2(sz.cols(), sz.rows())) {}
@@ -352,30 +352,36 @@ namespace SWE
         };
 
 	/// @brief класс манипулятор, заполнение области символом
+        /// @details область заполняется от текущей позиции курсора
         struct charset : public area
         {
             charset(int ch, const TermSize & sz = TermSize(1, 1)) : area(ch, sz) {}
         };
 
 	/// @brief класс манипулятор, заполнение строки символом space
+        /// @details область заполняется от текущей позиции курсора
         struct space : public charset
         {
-            space(int sz = 1) : charset(0x20, Size(sz, 1)) {}
+            space(int len = 1) : charset(0x20, Size(len, 1)) {}
         };
 
-	/* fill::fgcolor */
+        /// @brief класс манипулятор, заполнение области цветом символа по умолчанию
+        /// @details область заполняется от текущей позиции курсора
         struct fgcolor : public area
         {
             fgcolor(const ColorIndex & col, const TermSize & sz = TermSize(1, 1)) : area(col(), sz) {}
         };
 
-	/* fill::bgcolor */
+        /// @brief класс манипулятор, заполнение области цветом фона по умолчанию
+        /// @details область заполняется от текущей позиции курсора
         struct bgcolor : public area
         {
             bgcolor(const ColorIndex & col, const TermSize & sz = TermSize(1, 1)) : area(col(), sz) {}
         };
 
-	/* fill::colors */
+        /// @brief класс манипулятор, заполнение области цветом символа и фона по умолчанию
+        /// @details область заполняется от текущей позиции курсора
+	/// @see FBColors
         struct colors : public area
         {
             colors(const FBColors & fbc, const TermSize & sz = TermSize(1, 1)) : area(packshort(fbc.bg(), fbc.fg()).value(), sz) {}
@@ -385,32 +391,37 @@ namespace SWE
             ColorIndex		bgindex(void) const { return ColorIndex(packshort(value()).val1()); }
         };
 
-	/* fill::property */
-        struct property : public std::pair<CharRender, packint2>
+        /// @brief класс манипулятор, заполнение области свойствами символа по умолчанию
+        /// @details область заполняется от текущей позиции курсора
+        /// @see CharProperty
+        struct property : public std::pair<CharProperty, packint2>
         {
-            property(const CharRender & cp, const TermSize & sz = TermSize(1, 1)) :
-                std::pair<CharRender, packint2>(cp, packint2(sz.cols(), sz.rows())) {}
+            property(const CharProperty & cp, const TermSize & sz = TermSize(1, 1)) :
+                std::pair<CharProperty, packint2>(cp, packint2(sz.cols(), sz.rows())) {}
 
-            const CharRender & toProperty(void) const { return first; }
+            const CharProperty & toProperty(void) const { return first; }
             size_t		width(void) const { return second.val1(); }
             size_t		height(void) const { return second.val2(); }
         };
 
-	/* fill::defaults */
+        /// @brief класс манипулятор, заполнение области символом, цветом и свойствами по умолчанию
+        /// @details область заполняется от текущей позиции курсора
+        /// @see CharProperty, FBColors
         struct defaults : public UnicodeColor
         {
-            CharRender	property;
+            CharProperty	property;
 
-            defaults(const FBColors & fbc, int ch = 0x20, const CharRender & prop = CharRender()) : UnicodeColor(ch, fbc), property(prop) {}
-            defaults(const ColorIndex & fg, const ColorIndex & bg, int ch = 0x20, const CharRender & prop = CharRender()) : UnicodeColor(ch, FBColors(fg, bg)), property(prop) {}
+            defaults(const FBColors & fbc, int ch = 0x20, const CharProperty & prop = CharProperty()) : UnicodeColor(ch, fbc), property(prop) {}
+            defaults(const ColorIndex & fg, const ColorIndex & bg, int ch = 0x20, const CharProperty & prop = CharProperty()) : UnicodeColor(ch, FBColors(fg, bg)), property(prop) {}
 
-            const CharRender  & prop(void) const { return property; }
+            const CharProperty  & prop(void) const { return property; }
         };
     }
 
     namespace draw
     {
-	/* draw hline */
+	/// @brief класс манипулятор, рисования горизонтальной линии
+        /// @see acs::hline
         struct hline : public packint2
         {
             hline(int count, int charset = acs::hline(LineThin)) : packint2(count, charset) {}
@@ -419,7 +430,8 @@ namespace SWE
             int			charset(void) const { return val2(); }
         };
 
-	/* draw vline */
+	/// @brief класс манипулятор, рисования вертикальной линии
+        /// @see acs::vline
         struct vline : public packint2
         {
             vline(int count, int charset = acs::vline(LineThin)) : packint2(count, charset) {}
@@ -428,13 +440,13 @@ namespace SWE
             int			charset(void) const { return val2(); }
         };
 
-	/* draw rect */
+	/// @brief класс манипулятор, рисования прямоугольника
         struct rect : public TermRect
         {
-            line_t line;
+            LineType		line;
 
-            rect(const TermRect & rt, line_t type) : TermRect(rt), line(type) {}
-            rect(int px, int py, int pw, int ph, line_t type) : TermRect(px, py, pw, ph), line(type) {}
+            rect(const TermRect & rt, const LineType & type = LineThin) : TermRect(rt), line(type) {}
+            rect(int px, int py, int pw, int ph, const LineType & type) : TermRect(px, py, pw, ph), line(type) {}
         };
     }
 
@@ -444,17 +456,17 @@ namespace SWE
 	// 16 bit + 16 bit
 	UnicodeColor		ucol;
 	// 8 bit
-	CharRender		prop;
+	CharProperty		prop;
 	// 8 bit
 	CharState		chst;
 
     public:
         TermCharset() : chst(0) {}
-        TermCharset(const UnicodeColor & uc, const CharRender & cp = CharRender(), int cs = 0)
+        TermCharset(const UnicodeColor & uc, const CharProperty & cp = CharProperty(), int cs = 0)
             : ucol(uc), prop(cp), chst(cs) {}
 
         void			setUnicodeColor(const UnicodeColor & val) { ucol = val; }
-        void			setProperty(const CharRender & val) { prop = val; }
+        void			setProperty(const CharProperty & val) { prop = val; }
 	void			setFGIndex(const ColorIndex & col) { ucol.fgindex(col); }
 	void			setBGIndex(const ColorIndex & col) { ucol.bgindex(col); }
 	void			setColors(const FBColors & cols) { ucol.colors(cols); }
@@ -463,14 +475,14 @@ namespace SWE
         const UnicodeColor &	unicodeColor(void) const { return ucol; }
         const FBColors &	colors(void) const { return ucol.colors(); }
         int			unicode(void) const { return ucol.unicode(); }
-        const CharRender &	property(void) const { return prop; }
+        const CharProperty &	property(void) const { return prop; }
 
 	// set state
 	void			setBlink(bool f) { chst.setState(CharState::Blinked, f); }
 	void			setInvert(bool f) { chst.setState(CharState::Inverted, f); }
 	void			setFlip(int val) { chst.setState(CharState::FlipBoth, false);
 						    if(val & CharState::FlipBoth) 
-							chst.setState(static_cast<CharState::state_t>(val & CharState::FlipBoth), true); }
+							chst.setState(static_cast<CharState::Type>(val & CharState::FlipBoth), true); }
 	void			setAlpha(int val) { chst.setAlpha(val); }
 
 	bool			blinked(void) const { return chst.checkState(CharState::Blinked); }
@@ -495,9 +507,9 @@ namespace SWE
         set::padding		padding;
         TermPos			curpos;
         TermRect		termrt;
-	align_t			curalign;
+	AlignType			curalign;
         FBColors		curcols;
-	CharRender		curprop;
+	CharProperty		curprop;
 	CharState		curstate;
 	
         /*
@@ -531,11 +543,11 @@ namespace SWE
         ColorIndex		bgColor(void) const;
         const FBColors &	colors(void) const;
 
-        void			setAlign(const align_t &);
-        const align_t &		align(void) const;
+        void			setAlign(const AlignType &);
+        const AlignType &	align(void) const;
 
-	void			setProperty(const CharRender &);
-	const CharRender &	property(void) const;
+	void			setProperty(const CharProperty &);
+	const CharProperty &	property(void) const;
 
 	void			setBlink(bool);
 	bool			blink(void) const;
@@ -554,7 +566,7 @@ namespace SWE
     protected:
         TermBase(TermBase*);
 
-	virtual CharRender defaultProperty(void) const;
+	virtual CharProperty    defaultProperty(void) const;
 	virtual FBColors	defaultColors(void) const;
 
     public:
@@ -567,11 +579,13 @@ namespace SWE
         virtual void		setTermSize(const TermSize &);
 	void			setTermPos(const TermPos &);
 
+        // @protected
         void			setCursorPos(const TermPos &);
+        // @protected
         void			resetCursorPos(void);
         const TermPos &		cursor(void) const;
 
-        virtual void		setCharset(int ch, const ColorIndex & fg = Color::Transparent, const ColorIndex & bg = Color::Transparent, const CharRender* prop = nullptr) = 0;
+        virtual void		setCharset(int ch, const ColorIndex & fg = Color::Transparent, const ColorIndex & bg = Color::Transparent, const CharProperty* prop = nullptr) = 0;
         virtual void		renderFlush(void) = 0;
 
 	/// @result количество столбцов в терминале
@@ -665,20 +679,37 @@ namespace SWE
         TermBase & 		operator<< (const set::flush &);
 
         TermBase & 		operator<< (const reset::defaults &);
+        /// @brief сброс действия работы манипулятора set::colors
         TermBase & 		operator<< (const reset::colors &);
+        /// @brief сброс действия работы манипулятора set::fgcolor
         TermBase & 		operator<< (const reset::fgcolor &);
+        /// @brief сброс действия работы манипулятора set::bgcolor
         TermBase & 		operator<< (const reset::bgcolor &);
+        /// @brief сброс действия работы манипулятора set::padding
         TermBase & 		operator<< (const reset::padding &);
+        /// @brief сброс действия работы манипулятора set::align
         TermBase & 		operator<< (const reset::align &);
+        /// @brief сброс действия работы манипулятора set::property
         TermBase & 		operator<< (const reset::property &);
+        /// @brief сброс действия работы манипулятора set::wrap
         TermBase & 		operator<< (const reset::wrap &);
+        /// @brief сброс действия работы манипулятора set::blink
         TermBase & 		operator<< (const reset::blink &);
+        /// @brief сброс действия работы манипулятора set::invert
         TermBase & 		operator<< (const reset::invert &);
+        /// @brief сброс действия работы манипулятора set::flip
         TermBase & 		operator<< (const reset::flip &);
+        /// @brief сброс действия работы манипулятора set::alpha
         TermBase & 		operator<< (const reset::alpha &);
 
+        /// @brief рисование горизонтальной линии из заданного символа
+        /// @see draw::hline
         TermBase & 		operator<< (const draw::hline &);
+        /// @brief рисование вертикальной линии из заданного символа
+        /// @see draw::vline
         TermBase & 		operator<< (const draw::vline &);
+        /// @brief рисование прямоугольника
+        /// @see draw::rect
         TermBase & 		operator<< (const draw::rect &);
 
         TermBase & 		operator<< (int);
@@ -733,7 +764,7 @@ namespace SWE
 
         const TermCharset*	charset(const TermPos &) const;
         const TermCharset*	charset(void) const;
-        void			setCharset(int ch, const ColorIndex & fg = Color::Transparent, const ColorIndex & bg = Color::Transparent, const CharRender* prop = nullptr) override;
+        void			setCharset(int ch, const ColorIndex & fg = Color::Transparent, const ColorIndex & bg = Color::Transparent, const CharProperty* prop = nullptr) override;
 
         void			setTermSize(const TermSize &) override;
         void			renderFlush(void) override;

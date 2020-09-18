@@ -48,11 +48,11 @@ namespace SWE
 #define ColorsCounts (TermGUI::ThemeColors::ColorListSelectedText + 1)
 
 	    static void		setColor(const type_t & type, const ColorIndex & col);
-	    static void		setTheme(const line_t &, std::array<ColorIndex, ColorsCounts>);
+	    static void		setTheme(const LineType &, std::array<ColorIndex, ColorsCounts>);
 	    static void		resetTheme(void);
 
 protected:
-            virtual line_t	lineType(void) const;
+            virtual LineType	lineType(void) const;
 	    virtual ColorIndex	colorBackground(void) const;
             virtual ColorIndex	colorText(void) const;
             virtual ColorIndex	colorLine(void) const;
@@ -210,7 +210,7 @@ protected:
             HeaderAreaBox(const UnicodeString & us, const FontRender & frs, Window* win);
 
             bool                keyPressEvent(const KeySym &) override;
-	    line_t		lineType(void) const override;
+	    LineType		lineType(void) const override;
 
 	    FBColors        	defaultColors(void) const override
 	    {

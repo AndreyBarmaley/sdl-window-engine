@@ -48,7 +48,7 @@ protected:
     bool			scrollDownEvent(void) override;
     bool			userEvent(int act, void* data) override;
     bool			mouseClickEvent(const SWE::ButtonsEvent &) override;
-    SWE::CharRender	        defaultProperty(void) const override;
+    SWE::CharProperty	        defaultProperty(void) const override;
     SWE::FBColors		defaultColors(void) const override;
     SWE::TermSize      		minimalTerminalSize(void) const override;
 

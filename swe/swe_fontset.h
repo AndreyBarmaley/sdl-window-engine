@@ -31,7 +31,8 @@
 namespace SWE
 {
 
-    enum align_t { AlignLeft, AlignRight, AlignTop, AlignBottom, AlignCenter };
+    /// @brief перечисление типа выравнивания
+    enum AlignType { AlignLeft, AlignRight, AlignTop, AlignBottom, AlignCenter };
 
     struct CharsetID;
 
@@ -55,39 +56,44 @@ namespace SWE
 #define TTF_HINTING_NONE   3
 #endif
 
-    enum PropertyRender { RenderSolid = 0, RenderBlended = 1, RenderShaded = 2 };
-    enum PropertyStyle { StyleNormal = TTF_STYLE_NORMAL, StyleBold = TTF_STYLE_BOLD, StyleItalic = TTF_STYLE_ITALIC, StyleUnderLine = TTF_STYLE_UNDERLINE, StyleStrikeThrough = TTF_STYLE_STRIKETHROUGH };
-    enum PropertyHinting { HintingNormal = TTF_HINTING_NORMAL, HintingLight = TTF_HINTING_LIGHT, HintingMono = TTF_HINTING_MONO, HintingNone = TTF_HINTING_NONE };
+    /// @brief перечисление типа рендера
+    enum CharRender { RenderDefault = -1, RenderSolid = 0, RenderBlended = 1, RenderShaded = 2 };
+    /// @brief перечисление типа стиля шрифта
+    enum CharStyle { StyleDefault = -1, StyleNormal = TTF_STYLE_NORMAL, StyleBold = TTF_STYLE_BOLD, StyleItalic = TTF_STYLE_ITALIC, StyleUnderLine = TTF_STYLE_UNDERLINE, StyleStrikeThrough = TTF_STYLE_STRIKETHROUGH };
+    /// @brief перечисление типа сглаживания контура
+    enum CharHinting { HintingDefault = -1, HintingNormal = TTF_HINTING_NORMAL, HintingLight = TTF_HINTING_LIGHT, HintingMono = TTF_HINTING_MONO, HintingNone = TTF_HINTING_NONE };
 
-    struct CharRender
+    /// @brief свойства отрисовка символа
+    struct CharProperty
     {
         /* blended 2 bit, style 4 bit, hinting 2 bit */
         u8			val;
 
-        CharRender(int blend = RenderSolid, int style = StyleNormal, int hinting = HintingNormal);
+        CharProperty(const CharRender & = RenderSolid, int style = StyleNormal, const CharHinting & = HintingNormal);
 
         int			operator()(void) const;
-        int			render(void) const;
+        CharRender		render(void) const;
         int			style(void) const;
-        int			hinting(void) const;
+        CharHinting		hinting(void) const;
         void			reset(void);
-        void			setRender(int v);
-        void			setStyle(int v);
-        void			setHinting(int v);
+        void			setRender(const CharRender &);
+        void			setStyle(int);
+        void			setHinting(const CharHinting &);
 
-	bool			operator<(const CharRender & cp) const;
-	bool			operator!=(const CharRender &) const;
+	bool			operator<(const CharProperty & cp) const;
+	bool			operator!=(const CharProperty &) const;
     };
 
+    /// @brief класс идентификации шрифта
     struct FontID
     {
 	u16			val1;
 	u8			val2;
-	CharRender		val3;
+	CharProperty		val3;
 
         /* font id 16 bit, font size 8 bit, charset property 8 bit */
         FontID() : val1(0), val2(0) {}
-        FontID(int id, int sz, const CharRender & cp = CharRender());
+        FontID(int id, int sz, const CharProperty & cp = CharProperty());
 
         int			operator()(void) const;
         int			value(void) const;
@@ -98,22 +104,23 @@ namespace SWE
         int 			id(void) const;
         int 			size(void) const;
 
-        const CharRender & property(void) const;
+        const CharProperty & property(void) const;
 
         void 			reset(void);
         void 			setId(int v);
         void 			setSize(int v);
-        void 			setProperty(const CharRender &);
+        void 			setProperty(const CharProperty &);
     };
 
+    /// @brief базовый класс шрифта
     class FontRender
     {
     protected:
-        Size		fsz;
+        Size			fontSize;
 
     public:
         FontRender() {}
-        FontRender(const Size & sz) : fsz(sz) {}
+        FontRender(const Size & fsz) : fontSize(fsz) {}
         virtual ~FontRender() {}
 
         virtual const FontID &	id(void) const = 0;
@@ -126,7 +133,7 @@ namespace SWE
         virtual int		symbolAdvance(int = 0x20) const = 0;
         virtual int		lineSkipHeight(void) const = 0;
 
-        virtual Surface		renderCharset(int, const Color &, int blend = -1, int style = -1, int hinting = -1) const = 0;
+        virtual Surface		renderCharset(int, const Color &, const CharRender & = RenderDefault, int style = StyleDefault, const CharHinting & = HintingDefault) const = 0;
 
         //
         UCStringList		splitUCStringWidth(const UCString &, int) const;
@@ -135,7 +142,7 @@ namespace SWE
 
         const Size &		size(void) const
         {
-            return fsz;
+            return fontSize;
         }
 
         static void		clearCache(void);
@@ -144,6 +151,7 @@ namespace SWE
         void 			renderString(const std::string &, const Color &, const Point &, Surface &) const;
     };
 
+    /// @brief класс кеширования спрайтов символов
     class FontsCache
     {
         const FontRender*	render;
@@ -157,13 +165,14 @@ namespace SWE
 
         Texture			renderCharset(int ch, const Color & col)
         {
-            return renderCharset(ch, col, -1, -1, -1);
+            return renderCharset(ch, col, RenderDefault, StyleDefault, HintingDefault);
         }
 
-        Texture			renderCharset(int ch, const Color &, int blend, int style, int hinting);
+        Texture			renderCharset(int ch, const Color &, const CharRender &, int style, const CharHinting &);
     };
 
 #ifndef SWE_DISABLE_TTF
+    /// @brief базовый класс рендера TTF шрифта
     class FontRenderTTF : public FontRender
     {
         std::shared_ptr<TTF_Font> ptr;
@@ -174,14 +183,14 @@ namespace SWE
 
     public:
         FontRenderTTF() {}
-        FontRenderTTF(const std::string &, int size, int blend = RenderSolid, int style = StyleNormal, int hinting = HintingNormal);
-        FontRenderTTF(const BinaryBuf &, int size, int blend = RenderSolid, int style = StyleNormal, int hinting = HintingNormal);
+        FontRenderTTF(const std::string &, size_t fsz, const CharRender & = RenderSolid, int style = StyleNormal, const CharHinting & = HintingNormal);
+        FontRenderTTF(const BinaryBuf &, size_t fsz, const CharRender & = RenderSolid, int style = StyleNormal, const CharHinting & = HintingNormal);
         ~FontRenderTTF();
 
         void        		reset(void);
 
-        bool        		open(const std::string &, int, int blend = RenderSolid, int style = StyleNormal, int hinting = HintingNormal);
-        bool        		load(const BinaryBuf &, int, int blend = RenderSolid, int style = StyleNormal, int hinting = HintingNormal);
+        bool        		open(const std::string &, size_t fsz, const CharRender & = RenderSolid, int style = StyleNormal, const CharHinting & = HintingNormal);
+        bool        		load(const BinaryBuf &, size_t fsz, const CharRender & = RenderSolid, int style = StyleNormal, const CharHinting & = HintingNormal);
 
         const FontID &		id(void) const override;
         bool			isValid(void) const override;
@@ -195,13 +204,14 @@ namespace SWE
         int			symbolAdvance(int sym) const override;
         int			lineSkipHeight(void) const override;
 
-        Surface			renderCharset(int, const Color &, int blend = -1, int style = -1, int hinting = -1) const override;
+        Surface			renderCharset(int, const Color &, const CharRender & = RenderDefault, int style = StyleDefault, const CharHinting & = HintingDefault) const override;
         // render ttf string
-        Surface			renderString(const std::string &, const Color &, int blend = -1, int style = -1, int hinting = -1) const;
-        Surface			renderUnicode(const UnicodeString &, const Color &, int blend = -1, int style = -1, int hinting = -1) const;
+        Surface			renderString(const std::string &, const Color &, const CharRender & = RenderDefault, int style = StyleDefault, const CharHinting & = HintingDefault) const;
+        Surface			renderUnicode(const UnicodeString &, const Color &, const CharRender & = RenderDefault, int style = StyleDefault, const CharHinting & = HintingDefault) const;
     };
 #endif
 
+    /// @brief базовый класс рендера PSF шрифта
     class FontRenderPSF : public FontRender
     {
         BinaryBuf		buf;
@@ -234,7 +244,7 @@ namespace SWE
         int			symbolAdvance(int sym) const override;
         int			lineSkipHeight(void) const override;
 
-        Surface			renderCharset(int, const Color &, int blend = -1, int style = -1, int hinting = -1) const override;
+        Surface			renderCharset(int, const Color &, const CharRender & = RenderDefault, int style = StyleDefault, const CharHinting & = HintingDefault) const override;
     };
 
     class FontAltC8x16 : public FontRenderPSF
@@ -245,6 +255,7 @@ namespace SWE
 
 #define FontRenderSystem	FontAltC8x16
 
+    /// @brief встроенный рендер PSF шрифта, FontAltC8x16
     const FontRenderSystem & 	systemFont(void);
 
 } // SWE

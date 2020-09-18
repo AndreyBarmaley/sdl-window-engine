@@ -1,0 +1,112 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=9"/>
+<meta name="generator" content="Doxygen 1.8.14"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>SDL Window Engine: Библиотека графической сцены (SDL Window Engine)</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr style="height: 56px;">
+  <td id="projectalign" style="padding-left: 0.5em;">
+   <div id="projectname">SDL Window Engine
+   &#160;<span id="projectnumber">20200905</span>
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- Создано системой Doxygen 1.8.14 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:cf05388f2679ee054f2beb29a391d25f4e673ac3&amp;dn=gpl-2.0.txt GPL-v2 */
+var searchBox = new SearchBox("searchBox", "search",false,'Поиск');
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:cf05388f2679ee054f2beb29a391d25f4e673ac3&amp;dn=gpl-2.0.txt GPL-v2 */
+$(function() {
+  initMenu('',true,false,'search.php','Поиск');
+  $(document).ready(function() { init_search(); });
+});
+/* @license-end */</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+</iframe>
+</div>
+
+<div class="header">
+  <div class="headertitle">
+<div class="title">Библиотека графической сцены (SDL Window Engine) </div>  </div>
+</div><!--header-->
+<div class="contents">
+<div class="textblock"><p>Что это? </p><pre class="fragment">- библиотека графической сцены на базе SDL1.2 или SDL2
+</pre><p>А попроще? </p><pre class="fragment">- просто создаем объекты Window, и при этом, не вдаваясь во все внутренние подробности библиотеки SDL, наша сцена DisplayScene автоматически
+  обрабатывает все нужные события и доносит их до получателей
+</pre><p>Что такое Window? </p><pre class="fragment">- Window это базовый графической примитив, который можно поместить на сцену DisplayScene.
+  он не содержит каких либо текстур спрайтов, это простейшая невидимая область Rect на сцене DisplayScene
+</pre><div class="fragment"><div class="line"><span class="keyword">class </span>Window : <span class="keyword">public</span> SignalMember</div><div class="line">{</div><div class="line">    Rect            gfxpos;</div><div class="line">    Window*         parent;</div><div class="line">    BitFlags        state;</div><div class="line">    <span class="keywordtype">int</span>             result;</div><div class="line">};</div></div><!-- fragment --><p>Как начать?</p><ul>
+<li>инициализируем графическую сцену</li>
+</ul>
+<div class="fragment"><div class="line">SWE::Engine::init();</div><div class="line">SWE::Display::init(std::string title, <a class="code" href="structSWE_1_1Size.html">SWE::Size</a> geometry);</div></div><!-- fragment --><ul>
+<li>создаем базовый объект Window на всю доступную область, это первый элемент сцены, все последующие элементы будут потомками от него</li>
+</ul>
+<div class="fragment"><div class="line"><span class="keyword">class </span>MainWindow : <span class="keyword">public</span> <a class="code" href="classSWE_1_1Window.html">SWE::Window</a></div><div class="line">{</div><div class="line"><span class="keyword">protected</span>:</div><div class="line">    <span class="keywordtype">bool</span> mouseMotionEvent(<span class="keyword">const</span> <a class="code" href="structSWE_1_1Point.html">SWE::Point</a> &amp; pos, u32 buttons)<span class="keyword"> override</span></div><div class="line"><span class="keyword">    </span>{</div><div class="line">        VERBOSE(<span class="stringliteral">&quot;mouse coord: &quot;</span> &lt;&lt; pos.toString());</div><div class="line">        <span class="keywordflow">return</span> <span class="keyword">true</span>;</div><div class="line">    }</div><div class="line"></div><div class="line">    <span class="keywordtype">bool</span> keyPressEvent(<span class="keyword">const</span> <a class="code" href="structSWE_1_1KeySym.html">SWE::KeySym</a> &amp; key)</div><div class="line">    {</div><div class="line">        <span class="keywordflow">if</span>(key.keycode() == Key::ESCAPE)</div><div class="line">        {</div><div class="line">            setVisible(<span class="keyword">false</span>);</div><div class="line">            <span class="keywordflow">return</span> <span class="keyword">true</span>;</div><div class="line">        }</div><div class="line">        <span class="keywordflow">return</span> <span class="keyword">false</span>;</div><div class="line">    }</div><div class="line"></div><div class="line"><span class="keyword">public</span>:</div><div class="line">    MainWindow() : <a class="code" href="namespaceSWE.html">SWE</a>::Window(<a class="code" href="namespaceSWE.html">SWE</a>::<a class="code" href="namespaceDisplay.html">Display</a>::size(), nullptr)</div><div class="line">    {</div><div class="line">        setVisible(<span class="keyword">true</span>);</div><div class="line">    }</div><div class="line"></div><div class="line">    <span class="keywordtype">void</span> renderWindow(<span class="keywordtype">void</span>)<span class="keyword"> override</span></div><div class="line"><span class="keyword">    </span>{</div><div class="line">        renderClear(SWE::Color::Gray);</div><div class="line">    }</div><div class="line">};</div></div><!-- fragment --><ul>
+<li>переопределяем нужные виртуальные функции</li>
+</ul>
+<div class="fragment"><div class="line"><span class="comment">// SWE::ObjectEvent</span></div><div class="line"><span class="keywordtype">bool</span> userEvent(<span class="keywordtype">int</span> event, <span class="keywordtype">void</span>* data) <span class="keyword">override</span>;</div><div class="line"><span class="keywordtype">void</span> tickEvent(u32 ms) <span class="keyword">override</span>;</div><div class="line"></div><div class="line"><span class="comment">// SWE::SignalMember</span></div><div class="line"><span class="keywordtype">void</span> signalReceive(<span class="keywordtype">int</span> signal, <span class="keyword">const</span> <a class="code" href="classSWE_1_1SignalMember.html">SWE::SignalMember</a>* sender) <span class="keyword">override</span>;</div><div class="line"></div><div class="line"><span class="comment">// SWE::Window</span></div><div class="line"><span class="keywordtype">void</span> windowCreateEvent(<span class="keywordtype">void</span>);</div><div class="line"><span class="keywordtype">bool</span> keyPressEvent(<span class="keyword">const</span> <a class="code" href="structSWE_1_1KeySym.html">SWE::KeySym</a> &amp; ks);</div><div class="line"><span class="keywordtype">bool</span> keyReleaseEvent(<span class="keyword">const</span> <a class="code" href="structSWE_1_1KeySym.html">SWE::KeySym</a> &amp; ks);</div><div class="line"><span class="keywordtype">bool</span> textInputEvent(<span class="keyword">const</span> std::string &amp; str);</div><div class="line"><span class="keywordtype">bool</span> mousePressEvent(<span class="keyword">const</span> <a class="code" href="classSWE_1_1ButtonEvent.html">SWE::ButtonEvent</a> &amp; be);</div><div class="line"><span class="keywordtype">bool</span> mouseReleaseEvent(<span class="keyword">const</span> <a class="code" href="classSWE_1_1ButtonEvent.html">SWE::ButtonEvent</a> &amp; be);</div><div class="line"><span class="keywordtype">bool</span> mouseClickEvent(<span class="keyword">const</span> <a class="code" href="classSWE_1_1ButtonsEvent.html">SWE::ButtonsEvent</a> &amp; be);</div><div class="line"><span class="keywordtype">void</span> mouseFocusEvent(<span class="keywordtype">void</span>);</div><div class="line"><span class="keywordtype">void</span> mouseLeaveEvent(<span class="keywordtype">void</span>);</div><div class="line"><span class="keywordtype">void</span> mouseTrackingEvent(<span class="keyword">const</span> <a class="code" href="structSWE_1_1Point.html">SWE::Point</a> &amp; pos, u32 buttons);</div><div class="line"><span class="keywordtype">bool</span> mouseMotionEvent(<span class="keyword">const</span> <a class="code" href="structSWE_1_1Point.html">SWE::Point</a> &amp; pos, u32 buttons);</div><div class="line"><span class="keywordtype">bool</span> scrollUpEvent(<span class="keywordtype">void</span>);</div><div class="line"><span class="keywordtype">bool</span> scrollDownEvent(<span class="keywordtype">void</span>);</div></div><!-- fragment --><ul>
+<li>минимальные требования для получения events это иметь размерность и определить видимость</li>
+</ul>
+<div class="fragment"><div class="line"><span class="keywordtype">void</span> Window::setSize(<span class="keyword">const</span> <a class="code" href="structSWE_1_1Size.html">SWE::Size</a> &amp;);</div><div class="line"><span class="keywordtype">void</span> Window::setVisible(<span class="keyword">true</span>);</div></div><!-- fragment --><ul>
+<li>Для того чтобы его увидеть на сцене не забываем про основной код отрисовки объекта</li>
+</ul>
+<div class="fragment"><div class="line"><span class="keywordtype">void</span> renderWindow(<span class="keywordtype">void</span>)<span class="keyword"> override</span></div><div class="line"><span class="keyword"></span>{</div><div class="line">    <span class="comment">// renderClear</span></div><div class="line">    <span class="comment">// renderColor</span></div><div class="line">    <span class="comment">// renderSurface</span></div><div class="line">    <span class="comment">// renderTexture</span></div><div class="line">    <span class="comment">// renderText</span></div><div class="line">    <span class="comment">// renderRect</span></div><div class="line">    <span class="comment">// renderLine</span></div><div class="line">    <span class="comment">// renderPoint</span></div><div class="line">}</div></div><!-- fragment --><ul>
+<li>создаем множество других объектов, с родителем MainWindow</li>
+</ul>
+<div class="fragment"><div class="line"><span class="keyword">class </span>RedWindow : <span class="keyword">public</span> <a class="code" href="classSWE_1_1Window.html">SWE::Window</a></div><div class="line">{</div><div class="line"><span class="keyword">protected</span>:</div><div class="line">    <span class="keywordtype">void</span> mouseFocusEvent(<span class="keywordtype">void</span>)<span class="keyword"> override</span></div><div class="line"><span class="keyword">    </span>{</div><div class="line">        VERBOSE(<span class="stringliteral">&quot;focused!&quot;</span>);</div><div class="line">    }</div><div class="line"></div><div class="line"><span class="keyword">public</span>:</div><div class="line">    RedWindow(<span class="keyword">const</span> <a class="code" href="structSWE_1_1Point.html">SWE::Point</a> &amp; pos, <span class="keyword">const</span> <a class="code" href="structSWE_1_1Size.html">SWE::Size</a> &amp; wsz, <a class="code" href="classSWE_1_1Window.html">SWE::Window</a> &amp; parent) : <a class="code" href="namespaceSWE.html">SWE</a>::Window(wsz, parent)</div><div class="line">    {</div><div class="line">        setPosition(pos);</div><div class="line">        setModality(<span class="keyword">false</span>);</div><div class="line">        setVisible(<span class="keyword">true</span>);</div><div class="line">    }</div><div class="line"></div><div class="line">    <span class="keywordtype">void</span> renderWindow(<span class="keywordtype">void</span>)<span class="keyword"> override</span></div><div class="line"><span class="keyword">    </span>{</div><div class="line">        renderClear(SWE::Color::Red);</div><div class="line">    }</div><div class="line">};</div><div class="line"></div><div class="line"><span class="keyword">class </span>HaosWindow : <span class="keyword">public</span> <a class="code" href="classSWE_1_1Window.html">SWE::Window</a></div><div class="line">{</div><div class="line">    <a class="code" href="classSWE_1_1Texture.html">SWE::Texture</a> sprite;</div><div class="line"></div><div class="line"><span class="keyword">protected</span>:</div><div class="line">    <span class="keywordtype">void</span> <a class="code" href="classSWE_1_1ObjectEvent.html#a9f08869ea261b90aa6cd3dbc54df2cae">tickEvent</a>(u32 ms)<span class="keyword"> override</span></div><div class="line"><span class="keyword">    </span>{</div><div class="line">        <span class="keyword">auto</span> dsz = SWE::Display::size();</div><div class="line">        setPosition(SWE::Tools::rand(0, dsz.w - width()), SWE::Tools::rand(0, dsz.h - height()));</div><div class="line">    }</div><div class="line"></div><div class="line"><span class="keyword">public</span>:</div><div class="line">    HaosWindow(<span class="keyword">const</span> std::string &amp; file, <a class="code" href="classSWE_1_1Window.html">SWE::Window</a> &amp; parent) : <a class="code" href="namespaceSWE.html">SWE</a>::Window(&amp; parent)</div><div class="line">    {</div><div class="line">        sprite = SWE::Display::createTexture(file);</div><div class="line"></div><div class="line">        setSize(sprite.size());</div><div class="line">        setModality(<span class="keyword">false</span>);</div><div class="line">        setVisible(<span class="keyword">true</span>);</div><div class="line">    }</div><div class="line"></div><div class="line">    <span class="keywordtype">void</span> renderWindow(<span class="keywordtype">void</span>)<span class="keyword"> override</span></div><div class="line"><span class="keyword">    </span>{</div><div class="line">        renderTexture(sprite, <a class="code" href="structSWE_1_1Point.html">SWE::Point</a>(0, 0));</div><div class="line">    }</div><div class="line">};</div></div><!-- fragment --><ul>
+<li>стартует сцена очень просто</li>
+</ul>
+<div class="fragment"><div class="line"><span class="comment">// первое графическое окно</span></div><div class="line">MainWindow1 win1;</div><div class="line"></div><div class="line"><span class="comment">// выполняется до момента вызова win1.setVisible(false)</span></div><div class="line"><span class="keywordtype">int</span> result = win1.exec();</div><div class="line"></div><div class="line"><span class="comment">// в зависимости от результата запускаем другие</span></div><div class="line"><span class="keywordflow">if</span>(2 == result)</div><div class="line">{</div><div class="line">    <span class="comment">// выполняется до момента вызова Window::setVisible(false) внутри класса</span></div><div class="line">    MainWindow2().exec();</div><div class="line">}</div><div class="line"><span class="keywordflow">else</span></div><div class="line">{</div><div class="line">    MainWindow3().exec();</div><div class="line">}</div></div><!-- fragment --><ul>
+<li>для большего ознакомления см examples</li>
+</ul>
+<ol type="1">
+<li>examples\test_fps - тест fps рендера 5000 спрайтов</li>
+<li>examples\test_gui - пример построения простейших элементов GUI</li>
+<li>examples\test_term_gui - пример графического терминала, возможности</li>
+<li>examples\test_term_cmd - пример графического терминала, файловый браузер </li>
+</ol>
+</div></div><!-- contents -->
+<!-- start footer part -->
+<hr class="footer"/><address class="footer"><small>
+Создано системой &#160;<a href="http://www.doxygen.org/index.html">
+<img class="footer" src="doxygen.png" alt="doxygen"/>
+</a> 1.8.14
+</small></address>
+</body>
+</html>
