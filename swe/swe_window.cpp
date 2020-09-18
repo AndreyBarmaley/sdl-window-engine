@@ -208,6 +208,11 @@ namespace SWE
         return area() & pt;
     }
 
+    void Window::disableTickEvent(bool f)
+    {
+        setState(FlagSystemTickSkip, f);
+    }
+
     bool Window::isFocused(void) const
     {
         return isVisible() && (isModality() || checkState(FlagFocused));

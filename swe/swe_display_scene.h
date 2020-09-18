@@ -85,39 +85,39 @@ namespace SWE
     class DisplayScene
     {
     public:
-        static Window*             rootWindow(void);
-	static Window*             focusedWindow(void);
+        static Window*          rootWindow(void);
+	static Window*          focusedWindow(void);
 	/// @private
-	static Window*             windowsFocusHandle(void);
+	static Window*          windowsFocusHandle(void);
 	/// @private
-        static bool                keyHandle(const KeySym &, bool);
+        static bool             keyHandle(const KeySym &, bool);
 	/// @private
-        static bool                textInputHandle(const std::string &);
+        static bool             textInputHandle(const std::string &);
 	/// @private
-        static bool                mouseButtonHandle(const ButtonEvent &, bool);
+        static bool             mouseButtonHandle(const ButtonEvent &, bool);
 	/// @private
-        static bool                mouseClickHandle(const ButtonsEvent &);
+        static bool             mouseClickHandle(const ButtonsEvent &);
 	/// @private
-        static bool                mouseMotionHandle(const Point &, u32 buttons);
+        static bool             mouseMotionHandle(const Point &, u32 buttons);
 #ifdef SWE_SDL12
 	/// @private
-        static bool                userHandle(const UserEvent &);
+        static bool             userHandle(const UserEvent &);
 #else
 	/// @private
-        static bool                userHandle(const SDL_UserEvent &);
+        static bool             userHandle(const SDL_UserEvent &);
 #endif
 	/// @private
-        static bool                scrollHandle(bool);
+        static bool             scrollHandle(bool);
 	/// @private
-        static void                tickHandle(u32);
+        static void             tickHandle(u32);
 	/// @private
-        static void                renderPresentHandle(u32);
+        static void             renderPresentHandle(u32);
 	/// @private
-        static void                textureInvalidHandle(void);
+        static void             textureInvalidHandle(void);
 	/// @private
-        static void                displayResizeHandle(const Size &, bool);
+        static void             displayResizeHandle(const Size &);
 	/// @private
-        static void                displayFocusHandle(bool);
+        static void             displayFocusHandle(bool);
 
 	static const std::list<Window*> & items(void);
         static std::list<Window*>  findChilds(const Window &);

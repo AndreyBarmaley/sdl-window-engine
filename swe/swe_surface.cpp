@@ -27,12 +27,12 @@
 #include "swe_surface.h"
 
 #ifdef SWE_SDL12
- #include "SDL_rotozoom.h"
+ #include "./rotozoom1/SDL_rotozoom.h"
  #ifndef SWE_DISABLE_IMAGE
  #include "./savepng/IMG_savepng.h"
  #endif
 #else
- #include "./rotozoom/SDL2_rotozoom.h"
+ #include "./rotozoom2/SDL2_rotozoom.h"
 #endif
 
 #ifdef SWE_WITH_JSON

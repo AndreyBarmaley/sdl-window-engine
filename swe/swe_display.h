@@ -43,7 +43,9 @@ namespace SWE
 
         const Size &	device(void);
         const Size &	size(void);
-        bool		fullscreen(void);
+
+        bool		isFullscreenWindow(void);
+        bool            isMaximizedWindow(void);
 
         bool		scaleUsed(void);
         Point		scaleValue(const Point &);
@@ -56,6 +58,7 @@ namespace SWE
 	/// @brief функция обработки SDL_Event событий
 	/// @result не используется
         bool		handleEvents(void);
+
 
 	void            renderPresent(void);
         void 		renderSurface(const Surface &, const Rect &, Texture &, const Rect &, int flip = FlipNone);

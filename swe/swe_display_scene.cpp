@@ -297,16 +297,8 @@ void SWE::DisplayScene::sceneDestroy(void)
     if(cursorTexture.isValid())
         cursorTexture.reset();
 
-    for(auto it = sceneItems.begin(); it != sceneItems.end(); ++it)
-    {
-        (*it)->setVisible(false);
-
-        if((*it)->checkState(FlagAllocated))
-        {
-            delete *it;
-            *it = nullptr;
-        }
-    }
+    for(auto & win : sceneItems)
+        win->setVisible(false);
 
     sceneItems.clear();
 }
@@ -791,12 +783,12 @@ void SWE::DisplayScene::textureInvalidHandle(void)
         win->textureInvalidEvent();
 }
 
-void SWE::DisplayScene::displayResizeHandle(const Size & sz, bool sdlmode)
+void SWE::DisplayScene::displayResizeHandle(const Size & sz)
 {
     for(auto & win : sceneItems)
     {
     	if(win->isVisible() && !win->isHidden())
-    	    win->displayResizeEvent(sz, sdlmode);
+    	    win->displayResizeEvent(sz);
     }
 }
 

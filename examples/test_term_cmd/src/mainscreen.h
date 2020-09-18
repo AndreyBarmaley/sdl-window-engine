@@ -63,11 +63,9 @@ protected:
 
 public:
     FontRenderInit(const std::string &, const TermSize &, int);
-
-    bool setFontSize(int, const TermSize &);
 };
 
-class TermPanel : public TermArea
+class TermPanel : public TermBase
 {
     std::string		currentDirectory;
     TermRect		leftArea;
@@ -100,25 +98,15 @@ public:
 
     void		setFocus(bool f) { focus = f; }
     bool		isFocused(void) const { return focus; }
+    void                setCharset(int ch, const ColorIndex & fg = Color::Transparent, const ColorIndex & bg = Color::Transparent, const CharRender* prop = nullptr) override;
+    void		renderFlush(void);
 };
-
-class MenuBar : public TermArea
-{
-    TermGUI::LabelActionGroup	labels;
-
-public:
-    MenuBar(TermWindow &);
-
-    void		renderWindow(void) override;
-};
-
 
 class MainScreen : protected FontRenderInit, public FullTerminal
 {
     int			fontsz;
     int			renderContent(const UnicodeList &, int, const Point &);
-    TermPanel		left, right;
-    //MenuBar		menu;
+    TermPanel		leftPanel, rightPanel;
 
 protected:
     bool		keyPressEvent(const KeySym &) override;
@@ -127,11 +115,13 @@ protected:
     bool		userEvent(int act, void* data) override;
     void		renderPresentEvent(u32 ms) override;
 
-    SWE::CharsetProperty        defaultProperty(void) const override;
-    SWE::FBColors               defaultColors(void) const override;
-    SWE::TermSize               minimalTerminalSize(void) const override;
-    void                        terminalResizeEvent(void) override;
+    SWE::CharRender     defaultProperty(void) const override;
+    SWE::FBColors       defaultColors(void) const override;
+    SWE::TermSize       minimalTerminalSize(void) const override;
+    void                terminalResizeEvent(void) override;
 
+
+    bool                setFontSize(int, const TermSize &);
     void		panelsPositions(void);
 
     MainScreen(const std::string &, int);

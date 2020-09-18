@@ -287,16 +287,12 @@ protected:
         class InputBox : public ButtonsAreaBox
         {
             std::string		sResult;
-            TickTrigger		tt;
 
         protected:
             bool                keyPressEvent(const KeySym &) override;
-            void		tickEvent(u32 ms) override;
 
             void		setInputFocused(bool);
             bool		checkInputFocused(void) const;
-            void		setFlagTermCursor(bool);
-            bool		checkFlagTermCursor(void) const;
 
 	    virtual ColorIndex	colorFieldText(void) const;
 	    virtual ColorIndex	colorFieldCursor(void) const;

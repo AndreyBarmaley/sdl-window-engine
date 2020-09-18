@@ -29,8 +29,8 @@
 
 namespace SWE
 {
-    /* CharsetProperty */
-    CharsetProperty::CharsetProperty(int blend, int style, int hinting) : val(0)
+    /* CharRender */
+    CharRender::CharRender(int blend, int style, int hinting) : val(0)
     {
 	/* blended 2 bit, style 4 bit, hinting 2 bit */
         setRender(blend);
@@ -38,61 +38,61 @@ namespace SWE
         setHinting(hinting);
     }
 
-    int CharsetProperty::operator()(void) const
+    int CharRender::operator()(void) const
     {   
         return val;
     }   
 
-    int CharsetProperty::render(void) const
+    int CharRender::render(void) const
     {   
         return 0x03 & (val >> 6);
     }   
 
-    int CharsetProperty::style(void) const
+    int CharRender::style(void) const
     {   
         return 0x0F & (val >> 2);
     }   
 
-    int CharsetProperty::hinting(void) const
+    int CharRender::hinting(void) const
     {   
         return 0x03 & (val);
     }   
 
-    void CharsetProperty::reset(void)
+    void CharRender::reset(void)
     {
         val = 0;
     }
 
-    void CharsetProperty::setRender(int v)
+    void CharRender::setRender(int v)
     {
         val &= ~(0x03 << 6);
         if(v) val |= (v & 0x03) << 6;
     }
 
-    void CharsetProperty::setStyle(int v)
+    void CharRender::setStyle(int v)
     {
         val &= ~(0x0f << 2);
         if(v) val |= (v & 0x0f) << 2;
     }
         
-    void CharsetProperty::setHinting(int v)
+    void CharRender::setHinting(int v)
     {
         val &= ~(0x03);
         if(v) val |= (v & 0x03);
     }
 
-    bool CharsetProperty::operator< (const CharsetProperty & cp) const
+    bool CharRender::operator< (const CharRender & cp) const
     {
 	return val < cp.val;
     }
 
-    bool CharsetProperty::operator!= (const CharsetProperty & cp) const
+    bool CharRender::operator!= (const CharRender & cp) const
     {
 	return val != cp.val;
     }
 
     /* FontID */
-    FontID::FontID(int id, int sz, const CharsetProperty & cp)
+    FontID::FontID(int id, int sz, const CharRender & cp)
     {
         setId(id);
         setSize(sz);
@@ -134,7 +134,7 @@ namespace SWE
         return val2;
     }
         
-    const CharsetProperty & FontID::property(void) const
+    const CharRender & FontID::property(void) const
     {
         return val3;
     }
@@ -154,7 +154,7 @@ namespace SWE
 	val2 = v;
     }
         
-    void FontID::setProperty(const CharsetProperty & v)
+    void FontID::setProperty(const CharRender & v)
     {
 	val3 = v;
     }
@@ -262,7 +262,7 @@ SWE::Texture SWE::FontsCache::renderCharset(int ch, const Color & col, int blend
     if(render)
     {
         CharsetID cid(render->id(), UnicodeColor(ch, col));
-        CharsetProperty cp;
+        CharRender cp;
 
         if(0 < blend) cp.setRender(blend);
         if(0 < style) cp.setStyle(style);
@@ -405,7 +405,7 @@ bool SWE::FontRenderTTF::load(const BinaryBuf & raw, int size, int blend, int st
         if(ttf)
         {
             ptr = std::shared_ptr<TTF_Font>(ttf, TTF_CloseFont);
-            fid = FontID(raw.crc16b(), size, CharsetProperty(blend, style, hinting));
+            fid = FontID(raw.crc16b(), size, CharRender(blend, style, hinting));
             FontRender::fsz = Size(symbolAdvance(0x20), lineSkipHeight());
 	    auto prop = fid.property();
 	    DEBUG("binary" << SWE::StringFormat(", id: %1, size: %2, render: %3, style: %4, hinting: %5").
@@ -426,7 +426,7 @@ bool SWE::FontRenderTTF::open(const std::string & fn, int size, int blend, int s
     if(ttf)
     {
         ptr = std::shared_ptr<TTF_Font>(ttf, TTF_CloseFont);
-        fid = FontID(Tools::crc16b(fn.c_str()), size, CharsetProperty(blend, style, hinting));
+        fid = FontID(Tools::crc16b(fn.c_str()), size, CharRender(blend, style, hinting));
         FontRender::fsz = Size(symbolAdvance(0x20), lineSkipHeight());
 	auto prop = fid.property();
 	    DEBUG("binary" << SWE::StringFormat(", id: %1, size: %2, render: %3, style: %4, hinting: %5").
@@ -597,7 +597,7 @@ SWE::Surface SWE::FontRenderTTF::renderString(const std::string & str, const Col
     if(ttf && str.size())
     {
         SDL_Surface* sf = nullptr;
-        CharsetProperty cp = fid.property();
+        CharRender cp = fid.property();
 
         if(0 > blend)
             blend = cp.render();
@@ -632,7 +632,7 @@ SWE::Surface SWE::FontRenderTTF::renderUnicode(const UnicodeString & ustr, const
     {
         SDL_Surface* sf = nullptr;
         const char16_t* ptr = & ustr[0];
-        CharsetProperty cp = fid.property();
+        CharRender cp = fid.property();
 
         if(0 > blend)
             blend = cp.render();
@@ -668,7 +668,7 @@ SWE::Surface SWE::FontRenderTTF::renderCharset(int ch, const Color & col, int bl
         u16 buf[2] = { L'\0', L'\0' };
         buf[0] = ch;
         SDL_Surface* sf = nullptr;
-        CharsetProperty cp = fid.property();
+        CharRender cp = fid.property();
 
         if(0 > blend)
             blend = cp.render();

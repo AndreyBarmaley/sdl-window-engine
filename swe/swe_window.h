@@ -38,9 +38,9 @@ namespace SWE
     struct KeySym;
 
     enum { // Window 0xxxxx0000
-	    FlagVisible = 0x80000000, FlagModality = 0x40000000, FlagFocused = 0x20000000, FlagAllocated = 0x10000000,
+	    FlagVisible = 0x80000000, FlagModality = 0x40000000, FlagFocused = 0x20000000,
 
-	    FlagKeyHandle = 0x08000000, FlagMouseTracking = 0x04000000, FlagSystemTickSkip = 0x02000000,
+	    FlagKeyHandle = 0x04000000, FlagMouseTracking = 0x02000000, FlagSystemTickSkip = 0x01000000,
 	    FlagLayoutHidden = 0x00080000, FlagLayoutBackground = 0x00020000, FlagLayoutForeground = 0x00010000,
 
 	    // GUI 0x0000xxxx
@@ -110,7 +110,7 @@ namespace SWE
         virtual bool	scrollUpEvent(void) { return false; }
         virtual bool	scrollDownEvent(void) { return false; }
         virtual void	renderPresentEvent(u32 ms) {}
-        virtual void	displayResizeEvent(const Size &, bool) {}
+        virtual void	displayResizeEvent(const Size &) {}
         virtual void	displayFocusEvent(bool gain) {}
 
     protected:
@@ -172,6 +172,9 @@ namespace SWE
         virtual void	setPosition(const Point &);
 
         int		exec(void);
+
+        /// @brief функция запрета обработки tickEvent
+        void            disableTickEvent(bool);
 
 
         void            renderSurface(const Surface &, const Point &, int flip = FlipNone);

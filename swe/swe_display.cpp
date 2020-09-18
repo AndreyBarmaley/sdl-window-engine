@@ -31,8 +31,8 @@
 #include <list>
 
 #ifdef SWE_SDL12
- #include "SDL_rotozoom.h"
- #include "SDL_gfxPrimitives.h"
+ #include "./rotozoom1/SDL_rotozoom.h"
+ #include "./rotozoom1/SDL_gfxPrimitives.h"
 #endif
 
 #include "swe_engine.h"
@@ -71,7 +71,7 @@ namespace SWE
         SDL_Event	current;
 
         bool		createWindow(const std::string &, const Size &, int);
-        bool		resizeWindow(const Size &, bool);
+        bool		resizeWindow(const Size &);
 
         void            closeWindow(void);
 
@@ -87,7 +87,6 @@ namespace SWE
         void            handleMouseMotion(const SDL_MouseMotionEvent &);
         void            handleKeyboard(const SDL_KeyboardEvent &);
         void            handleUserEvent(const SDL_UserEvent &);
-        void            handleFocusEvent(bool);
 #ifdef SWE_SDL12
         void            handleMouseWheel(int, int);
 #else
@@ -235,7 +234,7 @@ bool SWE::Display::createWindow(const std::string & title, const Size & newsz, i
     return true;
 }
 
-bool SWE::Display::resizeWindow(const Size & newsz, bool sdl)
+bool SWE::Display::resizeWindow(const Size & newsz)
 {
     if(_window && winsz != newsz)
     {
@@ -250,7 +249,7 @@ bool SWE::Display::resizeWindow(const Size & newsz, bool sdl)
 
         if(renderInit(newsz, accel))
         {
-            DisplayScene::displayResizeHandle(newsz, sdl);
+            DisplayScene::displayResizeHandle(newsz);
             DisplayScene::textureInvalidHandle();
             DisplayScene::setDirty(true);
             return true;
@@ -789,23 +788,6 @@ const SWE::Size & SWE::Display::size(void)
     return rendersz;
 }
 
-bool SWE::Display::fullscreen(void)
-{
-#ifdef SWE_SDL12
-    SDL_Surface* sf = SDL_GetVideoSurface();
-    return sf ? sf->flags & SDL_FULLSCREEN : false;
-#else
-
-    if(_window)
-    {
-        u32 flags = SDL_GetWindowFlags(_window);
-        return flags & SDL_WINDOW_FULLSCREEN;
-    }
-
-    return false;
-#endif
-}
-
 u32 SWE::Display::timeStart(void)
 {
     return tickStart;
@@ -915,31 +897,40 @@ bool SWE::Display::handleEvents(void)
 #ifdef SWE_SDL12
 
             case SDL_VIDEORESIZE:
-                resizeWindow(Size(current.resize.w, current.resize.h), true);
+                resizeWindow(Size(current.resize.w, current.resize.h));
                 break;
 
             case SDL_ACTIVEEVENT:
-                if(current.active.state & SDL_APPACTIVE) handleFocusEvent(current.active.gain);
+                if(current.active.state & SDL_APPACTIVE)
+                {
+		    DisplayScene::displayFocusHandle(current.active.gain);
+                }
+                break;
 
+            case SDL_VIDEOEXPOSE:
+                // update the screen
+                SDL_Flip(_window);
                 break;
 #else
 
             case SDL_WINDOWEVENT:
                 if(SDL_WINDOWEVENT_EXPOSED == current.window.event)
                     renderPresent();
-                else if(SDL_WINDOWEVENT_RESIZED == current.window.event)
+                else
+		if(SDL_WINDOWEVENT_RESIZED == current.window.event)
                     DEBUG("resize: " << current.window.data1 << ", " << current.window.data2);
 
 		if(SDL_WINDOWEVENT_SIZE_CHANGED == current.window.event)
                 {
                     DEBUG("size changed: " << current.window.data1 << ", " << current.window.data2);
-                    resizeWindow(Size(current.window.data1, current.window.data2), true);
+                    resizeWindow(Size(current.window.data1, current.window.data2));
                 }
-                else if(SDL_WINDOWEVENT_FOCUS_GAINED == current.window.event)
-                    handleFocusEvent(true);
-                else if(SDL_WINDOWEVENT_FOCUS_LOST == current.window.event)
-                    handleFocusEvent(false);
-
+                else
+		if(SDL_WINDOWEVENT_FOCUS_GAINED == current.window.event)
+		    DisplayScene::displayFocusHandle(true);
+                else
+		if(SDL_WINDOWEVENT_FOCUS_LOST == current.window.event)
+		    DisplayScene::displayFocusHandle(false);
                 break;
 
             case SDL_TEXTINPUT:
@@ -1160,11 +1151,6 @@ void SWE::Display::handleMouseMotion(const SDL_MouseMotionEvent & ev)
         else if(std::abs(dy) > std::abs(dx))
             DisplayScene::pushEvent(nullptr, 0 < dy ? Signal::FingerMoveDown : Signal::FingerMoveUp, nullptr);
     }
-}
-
-void SWE::Display::handleFocusEvent(bool gain)
-{
-    DisplayScene::displayFocusHandle(gain);
 }
 
 #ifdef SWE_SDL12
@@ -1452,7 +1438,7 @@ SWE::Texture SWE::Display::renderText(const FontRender & frs, const UnicodeStrin
 
 bool SWE::Display::resize(const Size & winsz)
 {
-    return resizeWindow(winsz, false);
+    return resizeWindow(winsz);
 }
 
 std::list<SWE::Size> SWE::Display::hardwareVideoModes(bool landscape)
@@ -1522,4 +1508,73 @@ void SWE::Display::setWindowIcon(const Surface & sf)
 #else
     SDL_SetWindowIcon(_window, sf.toSDLSurface());
 #endif
+}
+
+bool SWE::Display::isFullscreenWindow(void)
+{
+#ifdef SWE_SDL12
+    SDL_Surface* sf = SDL_GetVideoSurface();
+    return sf ? sf->flags & SDL_FULLSCREEN : false;
+#else
+
+    if(_window)
+        return SDL_WINDOW_FULLSCREEN & SDL_GetWindowFlags(_window);
+
+    return false;
+#endif
+}
+
+#if SWE_SDL12
+#include <X11/Xlib.h>
+#include <X11/Xatom.h>
+#include "SDL_syswm.h"
+#endif
+
+bool SWE::Display::isMaximizedWindow(void)
+{
+    if(isFullscreenWindow())
+        return true;
+
+#if SWE_SDL12
+#if defined(__LINUX__)
+    SDL_SysWMinfo wm;
+    SDL_VERSION(& wm.version);
+    SDL_GetWMInfo(& wm);
+
+    Atom wmState = XInternAtom(wm.info.x11.display, "_NET_WM_STATE", False);
+    Atom retType;
+    int retFormat;
+    unsigned long nItems, bytesAfter;
+    unsigned char *properties = NULL;
+
+    auto status = XGetWindowProperty(wm.info.x11.display, wm.info.x11.wmwindow, wmState, 0, ~0L, False, XA_ATOM, &retType, &retFormat, &nItems, &bytesAfter, &properties);
+    if(status == Success)
+    {
+	Atom maxVert = XInternAtom(wm.info.x11.display, "_NET_WM_STATE_MAXIMIZED_VERT", False);
+	Atom maxHorz = XInternAtom(wm.info.x11.display, "_NET_WM_STATE_MAXIMIZED_HORZ", False);
+
+        Atom *atoms = (Atom *) properties;
+        int maximized = 0;
+
+	for(unsigned int it = 0; it < nItems; ++it)
+	{
+    	    if(atoms[it] == maxVert)
+                maximized |= 1;
+	    else
+    	    if(atoms[it] == maxHorz)
+                maximized |= 2;
+	}
+
+	XFree(properties);
+        return maximized == 3;
+    }
+#endif
+
+    FIXME("SDL1.2 not supported maximized flag");
+#else
+    if(_window)
+        return SDL_WINDOW_MAXIMIZED & SDL_GetWindowFlags(_window);
+#endif
+
+    return false;
 }

@@ -31,7 +31,7 @@
 namespace SWE
 {
 
-    enum align_t { AlignNone, AlignLeft, AlignRight, AlignTop, AlignBottom, AlignCenter };
+    enum align_t { AlignLeft, AlignRight, AlignTop, AlignBottom, AlignCenter };
 
     struct CharsetID;
 
@@ -59,12 +59,12 @@ namespace SWE
     enum PropertyStyle { StyleNormal = TTF_STYLE_NORMAL, StyleBold = TTF_STYLE_BOLD, StyleItalic = TTF_STYLE_ITALIC, StyleUnderLine = TTF_STYLE_UNDERLINE, StyleStrikeThrough = TTF_STYLE_STRIKETHROUGH };
     enum PropertyHinting { HintingNormal = TTF_HINTING_NORMAL, HintingLight = TTF_HINTING_LIGHT, HintingMono = TTF_HINTING_MONO, HintingNone = TTF_HINTING_NONE };
 
-    struct CharsetProperty
+    struct CharRender
     {
         /* blended 2 bit, style 4 bit, hinting 2 bit */
         u8			val;
 
-        CharsetProperty(int blend = RenderSolid, int style = StyleNormal, int hinting = HintingNormal);
+        CharRender(int blend = RenderSolid, int style = StyleNormal, int hinting = HintingNormal);
 
         int			operator()(void) const;
         int			render(void) const;
@@ -75,19 +75,19 @@ namespace SWE
         void			setStyle(int v);
         void			setHinting(int v);
 
-	bool			operator<(const CharsetProperty & cp) const;
-	bool			operator!=(const CharsetProperty &) const;
+	bool			operator<(const CharRender & cp) const;
+	bool			operator!=(const CharRender &) const;
     };
 
     struct FontID
     {
 	u16			val1;
 	u8			val2;
-	CharsetProperty		val3;
+	CharRender		val3;
 
         /* font id 16 bit, font size 8 bit, charset property 8 bit */
         FontID() : val1(0), val2(0) {}
-        FontID(int id, int sz, const CharsetProperty & cp = CharsetProperty());
+        FontID(int id, int sz, const CharRender & cp = CharRender());
 
         int			operator()(void) const;
         int			value(void) const;
@@ -98,12 +98,12 @@ namespace SWE
         int 			id(void) const;
         int 			size(void) const;
 
-        const CharsetProperty & property(void) const;
+        const CharRender & property(void) const;
 
         void 			reset(void);
         void 			setId(int v);
         void 			setSize(int v);
-        void 			setProperty(const CharsetProperty &);
+        void 			setProperty(const CharRender &);
     };
 
     class FontRender

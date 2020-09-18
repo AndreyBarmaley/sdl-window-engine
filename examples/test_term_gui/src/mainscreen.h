@@ -29,13 +29,11 @@ class DisplayInit
 {
 protected:
     SWE::BinaryBuf		ttf;
-    SWE::FontRenderTTF		frs;
+    SWE::FontRenderTTF		frt;
     const char*                 ext;
 
 public:
     DisplayInit(const std::string &, const SWE::TermSize &, int fsz, const char* extfont);
-
-    bool setFontSize(int, const SWE::TermSize &);
 };
 
 class MainScreen : protected DisplayInit, public SWE::FullTerminal
@@ -50,11 +48,12 @@ protected:
     bool			scrollDownEvent(void) override;
     bool			userEvent(int act, void* data) override;
     bool			mouseClickEvent(const SWE::ButtonsEvent &) override;
-    SWE::CharsetProperty	defaultProperty(void) const override;
+    SWE::CharRender	        defaultProperty(void) const override;
     SWE::FBColors		defaultColors(void) const override;
     SWE::TermSize      		minimalTerminalSize(void) const override;
 
     void			setButtonsPosition(void);
+    bool                        setFontSize(int, const SWE::TermSize &);
     MainScreen(const std::string &, int, const char* extfont);
 
 public:

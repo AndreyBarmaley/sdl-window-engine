@@ -1,0 +1,128 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=9"/>
+<meta name="generator" content="Doxygen 1.8.14"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>SDL Window Engine: Структура SWE::CharState</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr style="height: 56px;">
+  <td id="projectalign" style="padding-left: 0.5em;">
+   <div id="projectname">SDL Window Engine
+   &#160;<span id="projectnumber">20200905</span>
+   </div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- Создано системой Doxygen 1.8.14 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:cf05388f2679ee054f2beb29a391d25f4e673ac3&amp;dn=gpl-2.0.txt GPL-v2 */
+var searchBox = new SearchBox("searchBox", "search",false,'Поиск');
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:cf05388f2679ee054f2beb29a391d25f4e673ac3&amp;dn=gpl-2.0.txt GPL-v2 */
+$(function() {
+  initMenu('',true,false,'search.php','Поиск');
+  $(document).ready(function() { init_search(); });
+});
+/* @license-end */</script>
+<div id="main-nav"></div>
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+</iframe>
+</div>
+
+<div id="nav-path" class="navpath">
+  <ul>
+<li class="navelem"><b>SWE</b></li><li class="navelem"><a class="el" href="structSWE_1_1CharState.html">CharState</a></li>  </ul>
+</div>
+</div><!-- top -->
+<div class="header">
+  <div class="summary">
+<a href="#pub-types">Открытые типы</a> &#124;
+<a href="#pub-methods">Открытые члены</a> &#124;
+<a href="#pub-attribs">Открытые атрибуты</a> &#124;
+<a href="structSWE_1_1CharState-members.html">Полный список членов класса</a>  </div>
+  <div class="headertitle">
+<div class="title">Структура SWE::CharState</div>  </div>
+</div><!--header-->
+<div class="contents">
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
+Открытые типы</h2></td></tr>
+<tr class="memitem:a65fd4e049e7f0595e4e7753b8d0f5830"><td class="memItemLeft" align="right" valign="top"><a id="a65fd4e049e7f0595e4e7753b8d0f5830"></a>enum &#160;</td><td class="memItemRight" valign="bottom"><b>state_t</b> { <br />
+&#160;&#160;<b>FlipHorz</b> = 0x01, 
+<b>FlipVert</b> = 0x02, 
+<b>FlipBoth</b> = FlipVert | FlipHorz, 
+<b>Inverted</b> = 0x04, 
+<br />
+&#160;&#160;<b>Blinked</b> = 0x08
+<br />
+ }</td></tr>
+<tr class="separator:a65fd4e049e7f0595e4e7753b8d0f5830"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
+Открытые члены</h2></td></tr>
+<tr class="memitem:ad1c119f2acde71ecd532a10ac4018580"><td class="memItemLeft" align="right" valign="top"><a id="ad1c119f2acde71ecd532a10ac4018580"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>CharState</b> (u8 val=0)</td></tr>
+<tr class="separator:ad1c119f2acde71ecd532a10ac4018580"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7c0fd82684de0fcaff8f102135c40aab"><td class="memItemLeft" align="right" valign="top"><a id="a7c0fd82684de0fcaff8f102135c40aab"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>setState</b> (const state_t &amp;, bool f)</td></tr>
+<tr class="separator:a7c0fd82684de0fcaff8f102135c40aab"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a46b1b8376cb31e39350b07a520cb850d"><td class="memItemLeft" align="right" valign="top"><a id="a46b1b8376cb31e39350b07a520cb850d"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>checkState</b> (const state_t &amp;) const</td></tr>
+<tr class="separator:a46b1b8376cb31e39350b07a520cb850d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad6cd33232e24e05f408fd988b5cae3c7"><td class="memItemLeft" align="right" valign="top"><a id="ad6cd33232e24e05f408fd988b5cae3c7"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>setAlpha</b> (int)</td></tr>
+<tr class="separator:ad6cd33232e24e05f408fd988b5cae3c7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1a019705a931ce88c4911d5e0f58abb9"><td class="memItemLeft" align="right" valign="top"><a id="a1a019705a931ce88c4911d5e0f58abb9"></a>
+int&#160;</td><td class="memItemRight" valign="bottom"><b>alpha</b> (void) const</td></tr>
+<tr class="separator:a1a019705a931ce88c4911d5e0f58abb9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
+Открытые атрибуты</h2></td></tr>
+<tr class="memitem:ac5bd6daa3f4ccf4c9e06f4098d1e6bb4"><td class="memItemLeft" align="right" valign="top"><a id="ac5bd6daa3f4ccf4c9e06f4098d1e6bb4"></a>
+u8&#160;</td><td class="memItemRight" valign="bottom"><b>state</b></td></tr>
+<tr class="separator:ac5bd6daa3f4ccf4c9e06f4098d1e6bb4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<hr/>Объявления и описания членов структур находятся в файлах:<ul>
+<li><a class="el" href="swe__termwin_8h_source.html">swe_termwin.h</a></li>
+<li>swe_termwin.cpp</li>
+</ul>
+</div><!-- contents -->
+<!-- start footer part -->
+<hr class="footer"/><address class="footer"><small>
+Создано системой &#160;<a href="http://www.doxygen.org/index.html">
+<img class="footer" src="doxygen.png" alt="doxygen"/>
+</a> 1.8.14
+</small></address>
+</body>
+</html>

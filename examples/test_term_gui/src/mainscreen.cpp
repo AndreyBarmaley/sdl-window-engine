@@ -35,34 +35,23 @@ DisplayInit::DisplayInit(const std::string & title, const TermSize & tsz, int fs
     if(ext && Systems::isFile(ext))
     {
         VERBOSE("use external font: " << ext);
-        frs.open(ext, fsz, RenderBlended);
+        frt.open(ext, fsz, RenderBlended);
     }
     else
     {
         VERBOSE("use internal font: " << "terminus");
 	ttf = BinaryBuf(_default_ttf_h.data, sizeof(_default_ttf_h.data)).zlibUncompress(_default_ttf_h.size);
-	frs.load(ttf, fsz, false);
+	frt.load(ttf, fsz, false);
     }
 
-    auto defsz = tsz.toSize() * frs.size();
+    auto defsz = tsz.toSize() * frt.size();
 
     if(! Display::init(title, defsz, defsz, false, true, true))
 	    Engine::except(__FUNCTION__, "display init error");
 }
 
-bool DisplayInit::setFontSize(int fsz, const TermSize & termsz)
-{
-    if(ext && Systems::isFile(ext))
-        frs.open(ext, fsz, RenderBlended);
-    else
-	frs.load(ttf, fsz, false);
-
-    auto winsz = termsz.toSize() * frs.size();
-    return Display::resize(winsz);
-}
-
 MainScreen::MainScreen(const std::string & title, int fsz, const char* extfont)
-    : DisplayInit(title, minimalTerminalSize(), fsz, extfont), SWE::FullTerminal(DisplayInit::frs), fontsz(fsz), buttons(0, *this)
+    : DisplayInit(title, minimalTerminalSize(), fsz, extfont), SWE::FullTerminal(frt), fontsz(fsz), buttons(0, *this)
 {
     *this << fill::defaults(defaultColors(), 0x20, defaultProperty()) << cursor::set(0, 0);
 
@@ -72,6 +61,21 @@ MainScreen::MainScreen(const std::string & title, int fsz, const char* extfont)
 
     setButtonsPosition();
     setVisible(true);
+}
+
+bool MainScreen::setFontSize(int fsz, const TermSize & termsz)
+{
+    if(ext && Systems::isFile(ext))
+        frt.open(ext, fsz, RenderBlended);
+    else
+	frt.load(ttf, fsz, false);
+
+    if(frt.isValid())
+    {
+        fontResizeHandle();
+        return true;
+    }
+    return false;
 }
 
 void MainScreen::setButtonsPosition(void)
@@ -95,9 +99,9 @@ SWE::TermSize MainScreen::minimalTerminalSize(void) const
     return SWE::TermSize(80, 25);
 }
 
-SWE::CharsetProperty MainScreen::defaultProperty(void) const
+SWE::CharRender MainScreen::defaultProperty(void) const
 {
-    return SWE::CharsetProperty(SWE::RenderBlended, SWE::StyleNormal, SWE::HintingNormal);
+    return SWE::CharRender(SWE::RenderBlended, SWE::StyleNormal, SWE::HintingNormal);
 }
 
 SWE::FBColors MainScreen::defaultColors(void) const
@@ -114,7 +118,7 @@ MainScreen & MainScreen::init(const std::string & title, const char* extfont)
 void MainScreen::renderWindow(void)
 {
     *this << reset::defaults() <<
-	"SWE::TermWindow Examples: ";
+	"SWE::TermWindow, ";
 
     if(ext)
         *this << "use external font: " << ext;
@@ -123,17 +127,17 @@ void MainScreen::renderWindow(void)
 
     *this << set::rn();
 
-    *this << "simple std::string" << set::rn();
-    *this << set::colors(Color::DarkRed, Color::RoyalBlue) << "simple" << reset::colors() << " " <<
+    *this << "simple std::string" << ", " <<
+	set::colors(Color::DarkRed, Color::RoyalBlue) << "simple" << reset::colors() << " " <<
 	set::colors(Color::Red, Color::Blue) << "color" << reset::colors() << " " <<
 	set::colors(Color::IndianRed, Color::DarkBlue) << "string" << reset::colors() << set::rn();
 
-    *this << UnicodeString("simple unicode: Привет Бармалей") << set::rn();
-    *this << UnicodeString("color unicode: ") << 
+    *this << UnicodeString("simple unicode: Привет Бармалей") << ", " <<
+	UnicodeString("color unicode: ") << 
 	set::colors(Color::Yellow, Color::Navy) << UnicodeString("Привет") << reset::colors() << " " <<
 	set::colors(Color::Moccasin, Color::Maroon) << UnicodeString("Бармалей") << reset::colors() << set::rn();
 
-    SWE::CharsetProperty defProperty = defaultProperty();
+    SWE::CharRender defProperty = defaultProperty();
 
     *this << "test property render: ";
     *this << set::property(RenderBlended, StyleNormal, HintingNormal) << "RenderBlended" << reset::property() << " ";
@@ -148,6 +152,20 @@ void MainScreen::renderWindow(void)
     *this << set::property(defProperty.render(), defProperty.style(), HintingLight) << "HintingLight" << reset::property() << " ";
     *this << set::property(defProperty.render(), defProperty.style(), HintingMono) << "HintingMono" << reset::property() << " ";
     *this << set::property(defProperty.render(), defProperty.style(), HintingNone) << "HintingNone" << reset::property() << set::rn();
+    *this << "test state blinking: ";
+    *this << set::blink() << "Blink" << reset::blink() << set::rn();
+    *this << "test state invert: ";
+    *this << set::invert() << "Invert" << reset::invert() << set::rn();
+    *this << "test state flip horizontal: ";
+    *this << set::fliphorz() << "FlipHorizontal" << reset::flip() << set::rn();
+    *this << "test state flip vertical: ";
+    *this << set::flipvert() << "FlipVertical" << reset::flip() << set::rn();
+    *this << "test state alpha: ";
+    *this << set::colors(Color::Red, Color::Black) <<
+        set::alpha(200) << "alpha(200)" << ", " <<
+        set::alpha(150) << "alpha(150)" << ", " <<
+        set::alpha(100) << "alpha(100)" << ", " <<
+        set::alpha(50) << "alpha(50)" << reset::alpha() << reset::colors() << set::rn();
 
     UCString ucs(FBColors(Color::Silver, Color::Black));
     ucs << UnicodeColor(L'Б', Color::IndianRed) <<
@@ -170,14 +188,13 @@ void MainScreen::renderWindow(void)
     *this << "UCString::parseUnicode: " << set::fgcolor(Color::ForestGreen) << "\"test [color:red]red[color:default] [color:yellow:red]yellow_red\"" << reset::fgcolor() << set::rn();
     *this << "result: " << UCString::parseUnicode("test [color:red]red[color:default] [color:yellow:red]yellow_red", FBColors(Color::Silver)) << set::rn();
 
-    *this  << set::rn();;
-    *this << "examples:" << set::rn();
-    *this << "Mouse scroll up/scroll down: changed font size" << set::rn();
-    *this << "F1: TermGUI::MessageBox" << set::rn();
-    *this << "F2: TermGUI::InputBox" << set::rn();
-    *this << "F3: TermGUI::ListBox" << set::rn();
-    *this << "ESC: exit program" << set::rn();
-    *this << cursor::right();
+    *this  << set::rn();
+
+    *this << "examples GUI:" << set::rn();
+    *this << "F1: TermGUI::MessageBox" << ", " << "F2: TermGUI::InputBox" << ", " << "F3: TermGUI::ListBox" << ", " << "ESC: exit program" << set::rn();
+
+    *this  << "     " << set::blink() << set::colors(Color::Yellow, Color::MidnightBlue) <<
+	"(Window allow resize, Mouse scroll up/scroll down: changed font size)" << reset::colors() << reset::blink() << set::rn();
 
     // flush
     *this << set::flush();
@@ -279,12 +296,12 @@ bool MainScreen::mouseClickEvent(const SWE::ButtonsEvent & be)
     const TermCharset* ch = charset(gfx2sym(be.press().position()));
     if(ch)
     {
-        auto & uc = ch->charset();
         auto & prop = ch->property();
 
-	VERBOSE("charset info: " << SWE::StringFormat("unicode: %1, fgcolor: %2, bgcolor: %3, blend: %4, style: %5, hinting: %6").
-			arg(SWE::String::hex(uc.unicode(), 4)).arg(uc.fgcolor().toString()).arg(uc.bgcolor().toString()).
-			arg(prop.render()).arg(SWE::String::hex(prop.style(), 2)).arg(prop.hinting()));
+	VERBOSE("charset info: " << SWE::StringFormat("unicode: %1, fgcolor: %2, bgcolor: %3, blend: %4, style: %5, hinting: %6, blink: %7, invert: %8, flip: %9, alpha: %10").
+			arg(SWE::String::hex(ch->unicode(), 4)).arg(ch->colors().fgcolor().toString()).arg(ch->colors().bgcolor().toString()).
+			arg(prop.render()).arg(SWE::String::hex(prop.style(), 2)).arg(prop.hinting()).
+                        arg(ch->blinked()).arg(ch->inverted()).arg(ch->flip()).arg(ch->alpha()));
     }
 
     return true;

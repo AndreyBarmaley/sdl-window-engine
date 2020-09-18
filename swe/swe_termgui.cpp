@@ -34,29 +34,29 @@ namespace SWE
 {
     namespace TermGUI
     {
-	std::array<ColorIndex, ColorsCounts>
-			        themeColors = {{ Color::RoyalBlue, Color::Yellow, Color::Red, Color::LightCyan, Color::RoyalBlue, Color::Silver, Color::Red, Color::Silver, Color::Yellow, 
-						Color::Silver, Color::Red, Color::Blue, Color::LightYellow, Color::Yellow, Color::Navy, Color::Navy, Color::Yellow, Color::Navy }};
-        line_t			themeLine = LineThin;
+        std::array<ColorIndex, ColorsCounts>
+                                themeColors = {{ Color::RoyalBlue, Color::Yellow, Color::Red, Color::LightCyan, Color::RoyalBlue, Color::Silver, Color::Red, Color::Silver, Color::Yellow, 
+                                                Color::Silver, Color::Red, Color::Blue, Color::LightYellow, Color::Yellow, Color::Navy, Color::Navy, Color::Yellow, Color::Navy }};
+        line_t                        themeLine = LineThin;
 
 
-	void ThemeColors::setColor(const type_t & type, const ColorIndex & col)
-	{
-	    themeColors[type] =  col;
-	}
+        void ThemeColors::setColor(const type_t & type, const ColorIndex & col)
+        {
+            themeColors[type] =  col;
+        }
 
-	void ThemeColors::setTheme(const line_t & line, std::array<ColorIndex, ColorsCounts> colors)
-	{
-	    themeColors.swap(colors);
-	}
+        void ThemeColors::setTheme(const line_t & line, std::array<ColorIndex, ColorsCounts> colors)
+        {
+            themeColors.swap(colors);
+        }
 
-	void ThemeColors::resetTheme(void)
-	{
-    	    themeLine = LineThin;
+        void ThemeColors::resetTheme(void)
+        {
+            themeLine = LineThin;
 
-	    themeColors[ColorBackground] = Color::RoyalBlue;
-	    themeColors[ColorBorderLine] = Color::Yellow;
-	    themeColors[ColorHeaderText] = Color::Red;
+            themeColors[ColorBackground] = Color::RoyalBlue;
+            themeColors[ColorBorderLine] = Color::Yellow;
+            themeColors[ColorHeaderText] = Color::Red;
             themeColors[ColorBodyText] = Color::LightCyan;
             themeColors[ColorButtonBackground] = Color::RoyalBlue;
             themeColors[ColorButtonBracket] = Color::Silver;
@@ -72,7 +72,7 @@ namespace SWE
             themeColors[ColorInputCursor] = Color::Navy;
             themeColors[ColorListSelectedBackground] = Color::Yellow;
             themeColors[ColorListSelectedText] = Color::Navy;
-	}
+        }
 
         line_t ThemeColors::lineType(void) const
         {
@@ -90,9 +90,9 @@ namespace SWE
         }
 
         ColorIndex ThemeColors::colorLine(void) const
-	{
-    	    return themeColors[ColorBorderLine];
-	}
+        {
+            return themeColors[ColorBorderLine];
+        }
 
         /* LabelAction */
         LabelAction::LabelAction(const UnicodeString & str, int action, TermWindow & term)
@@ -101,7 +101,7 @@ namespace SWE
             resetState(FlagModality);
             setState(FlagKeyHandle);
             setAction(action);
-	    setLabel(str);
+            setLabel(str);
             setVisible(true);
         }
 
@@ -111,7 +111,7 @@ namespace SWE
             resetState(FlagModality);
             setState(FlagKeyHandle);
             setAction(action);
-	    setLabel(str);
+            setLabel(str);
             setTermPos(pos);
             setVisible(true);
         }
@@ -129,11 +129,11 @@ namespace SWE
 
             if(it1 != str.end())
             {
-		it1 = std::next(it1);
+                it1 = std::next(it1);
                 auto it2 = std::next(it1);
 
-		if(it2 != str.end() && *it2 == '>')
-		    return Key::toKey(std::string(1, ::toupper(*it1)));
+                if(it2 != str.end() && *it2 == '>')
+                    return Key::toKey(std::string(1, ::toupper(*it1)));
             }
 
             return Key::NONE;
@@ -147,7 +147,7 @@ namespace SWE
         void LabelAction::setLabel(const UnicodeString & str)
         {
             setHotKey(parseHotKey(str));
-	    setTermSize(labelSize(str));
+            setTermSize(labelSize(str));
             content = str;
             setDirty(true);
         }
@@ -186,12 +186,12 @@ namespace SWE
 
         void LabelAction::setHotKeyDisabled(bool f)
         {
-	    setState(FlagHotKeyDisabled, f);
+            setState(FlagHotKeyDisabled, f);
         }
 
         bool LabelAction::isHotKeyDisabled(void) const
         {
-	    return checkState(FlagHotKeyDisabled);
+            return checkState(FlagHotKeyDisabled);
         }
 
         int LabelAction::hotKey(void) const
@@ -242,7 +242,7 @@ namespace SWE
         void LabelAction::renderLabel(void)
         {
             auto hcol = colorHotKey(isSelected());
-	    auto hotch = hotKey() ? KeySym(hotKey(), 0).keychar() : 0;
+            auto hotch = hotKey() ? KeySym(hotKey(), 0).keychar() : 0;
 
             auto body = colorText(isSelected());
             auto back = colorBackground(isSelected());
@@ -253,14 +253,14 @@ namespace SWE
                 if(ch == '<' || ch == '>')
                     continue;
 
-		if(hotch == ::tolower(ch) && ! isDisabled())
-		{
-		    // first found hotch
+                if(hotch == ::tolower(ch) && ! isDisabled())
+                {
+                    // first found hotch
                     *this << set::fgcolor(hcol) << ch << set::fgcolor(body);
-		    hotch = 0;
-		}
-		else
-		    *this << ch;
+                    hotch = 0;
+                }
+                else
+                    *this << ch;
             }
 
             *this << reset::colors();
@@ -268,43 +268,43 @@ namespace SWE
 
 
         ColorIndex LabelAction::colorBackground(void) const
-	{
-    	    return themeColors[ColorButtonBackground];
-	}
+        {
+            return themeColors[ColorButtonBackground];
+        }
 
         ColorIndex LabelAction::colorText(void) const
-	{
-    	    return themeColors[ColorButtonBodyText];
-	}
+        {
+            return themeColors[ColorButtonBodyText];
+        }
 
         ColorIndex LabelAction::colorBackground(bool focused) const
-	{
-    	    return focused ? themeColors[ColorFocusedButtonBackground] : colorBackground();
-	}
+        {
+            return focused ? themeColors[ColorFocusedButtonBackground] : colorBackground();
+        }
 
         ColorIndex LabelAction::colorText(bool focused) const
-	{
-    	    return focused ? themeColors[ColorFocusedButtonBodyText] : colorText();
-	}
+        {
+            return focused ? themeColors[ColorFocusedButtonBodyText] : colorText();
+        }
 
         ColorIndex LabelAction::colorHotKey(bool focused) const
-	{
-    	    return themeColors[focused ? ColorFocusedButtonFirstText : ColorButtonFirstText];
-	}
+        {
+            return themeColors[focused ? ColorFocusedButtonFirstText : ColorButtonFirstText];
+        }
 
         void LabelAction::renderWindow(void)
         {
-	    *this << reset::defaults();
+            *this << reset::defaults();
 
             renderLabel();
 
-	    *this << set::flush();
+            *this << set::flush();
         }
 
         bool LabelAction::keyPressEvent(const KeySym & key)
         {
-	    if(isDisabled())
-		return false;
+            if(isDisabled())
+                return false;
 
             if(Key::NONE != hotKey() && hotKey() == key.keycode())
             {
@@ -349,7 +349,7 @@ namespace SWE
 
             if(action() && parent())
                 pushEventAction(action(), parent(), this);
-	    setDirty(true);
+            setDirty(true);
         }
 
         /* LabelActionGroup */
@@ -367,31 +367,31 @@ namespace SWE
 
         bool LabelActionGroup::findLabel(const LabelAction* lb) const
         {
-	    return std::any_of(begin(), end(), [=](auto & ptr){ return ptr.get() == lb; });
+            return std::any_of(begin(), end(), [=](auto & ptr){ return ptr.get() == lb; });
         }
 
         LabelAction* LabelActionGroup::findLabel(const UnicodeString & str) const
         {
             auto it = std::find_if(begin(), end(), [&](auto & ptr){ return ptr && ptr->isLabel(str); });
-	    return it != end() ? (*it).get() : nullptr;
+            return it != end() ? (*it).get() : nullptr;
         }
 
         LabelAction* LabelActionGroup::findAction(int action) const
         {
             auto it = std::find_if(begin(), end(), [=](auto & ptr){ return ptr && ptr->isAction(action); });
-	    return it != end() ? (*it).get() : nullptr;
+            return it != end() ? (*it).get() : nullptr;
         }
 
         LabelAction* LabelActionGroup::findHotKey(int key) const
         {
             auto it = std::find_if(begin(), end(), [=](auto & ptr){ return ptr && ptr->isHotKey(key); });
-	    return it != end() ? (*it).get() : nullptr;
+            return it != end() ? (*it).get() : nullptr;
         }
 
         LabelAction* LabelActionGroup::findSelected(void) const
         {
             auto it = std::find_if(begin(), end(), [](auto & ptr){ return ptr && ptr->isSelected(); });
-	    return it != end() ? (*it).get() : nullptr;
+            return it != end() ? (*it).get() : nullptr;
         }
 
         LabelAction* LabelActionGroup::findIndex(size_t dist) const
@@ -403,10 +403,10 @@ namespace SWE
         int LabelActionGroup::index(LabelAction* lb) const
         {
             if(lb)
-	    {
-        	auto it = std::find_if(begin(), end(), [=](auto & ptr){ return ptr.get() == lb; });
+            {
+                auto it = std::find_if(begin(), end(), [=](auto & ptr){ return ptr.get() == lb; });
                 if(it != end()) return std::distance(begin(), it);
-	    }
+            }
 
             return -1;
         }
@@ -414,7 +414,7 @@ namespace SWE
         bool LabelActionGroup::setSelected(const LabelAction* lb)
         {
             if(lb &&
-        	std::any_of(begin(), end(), [=](auto & ptr){ return ptr.get() == lb; }))
+                std::any_of(begin(), end(), [=](auto & ptr){ return ptr.get() == lb; }))
             {
                 resetSelected();
                 const_cast<LabelAction*>(lb)->setSelected(true);
@@ -428,8 +428,8 @@ namespace SWE
         {
             if(1 < size())
             {
-        	auto it = std::find_if(begin(), end(),
-				[](auto & ptr){ return ptr.get() && ptr->isSelected(); });
+                auto it = std::find_if(begin(), end(),
+                                [](auto & ptr){ return ptr.get() && ptr->isSelected(); });
                 if(it != end())
                 {
                     it++;
@@ -447,8 +447,8 @@ namespace SWE
         {
             if(1 < size())
             {
-        	auto it = std::find_if(begin(), end(),
-				[](auto & ptr){ return ptr.get() && ptr->isSelected(); });
+                auto it = std::find_if(begin(), end(),
+                                [](auto & ptr){ return ptr.get() && ptr->isSelected(); });
                 if(it != end())
                 {
                     if(it == begin())
@@ -515,37 +515,37 @@ namespace SWE
         {
             for(auto & ptr : *this)
                 if(ptr && (!exclude || exclude != ptr.get()))
-		    ptr->setSelected(false);
+                    ptr->setSelected(false);
         }
 
         size_t LabelActionGroup::rows(void) const
         {
-	    return std::accumulate(begin(), end(), 0, [](int v, auto & ptr){ return ptr ? v + ptr->rows() : v; });
+            return std::accumulate(begin(), end(), 0, [](int v, auto & ptr){ return ptr ? v + ptr->rows() : v; });
         }
 
         size_t LabelActionGroup::cols(void) const
         {
-	    return std::accumulate(begin(), end(), 0, [](int v, auto & ptr){ return ptr ? v + ptr->cols() : v; });
+            return std::accumulate(begin(), end(), 0, [](int v, auto & ptr){ return ptr ? v + ptr->cols() : v; });
         }
 
         /* TextButton */
-	TextButton::TextButton(const UnicodeString & us, int action, TermWindow & term) : LabelAction(us, action, term)
-	{
-	    // reserve for [ ]
+        TextButton::TextButton(const UnicodeString & us, int action, TermWindow & term) : LabelAction(us, action, term)
+        {
+            // reserve for [ ]
             setTermSize(TermSize(cols() + 2, rows()));
-	}
+        }
 
-	TextButton::TextButton(const UnicodeString & us, int action, const TermPos & tpos, TermWindow & term) : LabelAction(us, action, tpos, term)
-	{
-	    // reserve for [ ]
+        TextButton::TextButton(const UnicodeString & us, int action, const TermPos & tpos, TermWindow & term) : LabelAction(us, action, tpos, term)
+        {
+            // reserve for [ ]
             setTermSize(TermSize(cols() + 2, rows()));
-	}
+        }
 
         TextButton::TextButton(const buttons_t & type, TermWindow & term) : LabelAction(& term)
         {
             setAction(type);
             setButton(type);
-	    setVisible(true);
+            setVisible(true);
         }
 
         TermSize TextButton::labelSize(const UnicodeString & str) const
@@ -582,23 +582,23 @@ namespace SWE
             setLabel(str);
         }
 
-	ColorIndex TextButton::colorBracket(bool focused) const
-	{
-	    return themeColors[focused ? ColorFocusedButtonBracket : ColorButtonBracket];
-	}
+        ColorIndex TextButton::colorBracket(bool focused) const
+        {
+            return themeColors[focused ? ColorFocusedButtonBracket : ColorButtonBracket];
+        }
 
         void TextButton::renderWindow(void)
         {
             auto brkt = colorBracket(isSelected());
             auto back2 = colorBackground(false);
 
-	    *this << reset::defaults() <<
-		set::colors(brkt, back2) << "[" << reset::colors();
+            *this << reset::defaults() <<
+                set::colors(brkt, back2) << "[" << reset::colors();
 
             renderLabel();
 
             *this << set::colors(brkt, back2) << "]" << reset::colors() <<
-        	set::flush();
+                set::flush();
         }
 
 #define ButtonSelected 0x80000000
@@ -606,43 +606,43 @@ namespace SWE
         /* ButtonsGroup */
         ButtonsGroup::ButtonsGroup(int buttons, TermWindow & term)
         {
-	    auto buttonsAll = { ButtonOk, ButtonYes, ButtonNo, ButtonCancel };
+            auto buttonsAll = { ButtonOk, ButtonYes, ButtonNo, ButtonCancel };
 
             for(auto & type : buttonsAll)
-        	if(buttons & type) addLabel(new TextButton(type, term));
+                if(buttons & type) addLabel(new TextButton(type, term));
 
             if(buttons & ButtonSelected) lastSelected();
         }
 
         /* HeaderAreaBox */
         HeaderAreaBox::HeaderAreaBox(const UnicodeString & us, TermWindow & term) : TermWindow(& term), header(us) 
-	{
-	    // reserv 2 tee + 2 corner
+        {
+            // reserv 2 tee + 2 corner
             setTermSize(TermSize(header.size() + 4, 2));
-	    setVisible(true);
-	}
+            setVisible(true);
+        }
 
         HeaderAreaBox::HeaderAreaBox(const UnicodeString & us, const FontRender & frs, Window* win) : TermWindow(frs, win), header(us)
-	{
-	    // reserv 2 tee + 2 corner
+        {
+            // reserv 2 tee + 2 corner
             setTermSize(TermSize(header.size() + 4, 2));
-	    setVisible(true);
-	}
+            setVisible(true);
+        }
 
-	HeaderAreaBox::HeaderAreaBox(const UnicodeString & us, const TermSize & tsz, TermWindow & term) : TermWindow(& term), header(us)
-	{
-	    // reserv: 2 line, 2 tee + 2 corner
+        HeaderAreaBox::HeaderAreaBox(const UnicodeString & us, const TermSize & tsz, TermWindow & term) : TermWindow(& term), header(us)
+        {
+            // reserv: 2 line, 2 tee + 2 corner
             int columns = std::max(tsz.cols() + 2, header.size() + 4);
-	    // reserv: 2 line
+            // reserv: 2 line
             setTermSize(TermSize(columns, tsz.rows() + 2));
-	    setVisible(true);
-	}
+            setVisible(true);
+        }
 
 
-	ColorIndex HeaderAreaBox::colorHeader(void) const
-	{
-	    return themeColors[ColorHeaderText];
-	}
+        ColorIndex HeaderAreaBox::colorHeader(void) const
+        {
+            return themeColors[ColorHeaderText];
+        }
 
         line_t HeaderAreaBox::lineType(void) const
         {
@@ -653,22 +653,22 @@ namespace SWE
         void HeaderAreaBox::renderBox(void)
         {
             *this << set::colors(colorLine(), colorBackground()) << 
-        	// border section
-        	draw::rect(0, 0, cols(), rows(), lineType()) << reset::colors();
+                // border section
+                draw::rect(0, 0, cols(), rows(), lineType()) << reset::colors();
 
-	    // header section
+            // header section
             if(header.size())
-	    {
+            {
                 *this << cursor::set((cols() - header.size() - 2) / 2, 0) <<
                       acs::rtee(lineType()) << set::fgcolor(colorHeader()) << header << reset::fgcolor() << acs::ltee(lineType());
-	    }
+            }
         }
 
         void HeaderAreaBox::renderWindow(void)
         {
-	    *this << reset::defaults();
+            *this << reset::defaults();
 
-	    renderBox();
+            renderBox();
 
             *this << set::flush();
         }
@@ -685,17 +685,17 @@ namespace SWE
         }
 
         /* ButtonsAreaBox */
-	void ButtonsAreaBox::initAreaBox(void)
+        void ButtonsAreaBox::initAreaBox(void)
         {
-	    // reserv: 2 space + 2 line
-	    auto btnsColumns = btnsGroup.cols() + (btnsGroup.count() - 1) + 4;
+            // reserv: 2 space + 2 line
+            auto btnsColumns = btnsGroup.cols() + (btnsGroup.count() - 1) + 4;
             auto columns = std::max(cols(), btnsColumns);
-	    // reserv 2 line button section
+            // reserv 2 line button section
             setTermSize(TermSize(columns, rows() + 2));
 
             setButtonsPosition();
 
-	    // signals
+            // signals
             setButtonsSubscribe(Signal::ButtonClicked);
             setButtonsSubscribe(Signal::ButtonSetFocus);
             signalSubscribe(*this, Signal::ButtonResetFocus);
@@ -758,22 +758,22 @@ namespace SWE
                 if(ptr) signalSubscribe(*ptr, sig);
         }
 
-	ButtonsGroup & ButtonsAreaBox::buttonsGroup(void)
-	{
-	    return btnsGroup;
-	}
+        ButtonsGroup & ButtonsAreaBox::buttonsGroup(void)
+        {
+            return btnsGroup;
+        }
 
-	const ButtonsGroup & ButtonsAreaBox::buttonsGroup(void) const
-	{
-	    return btnsGroup;
-	}
+        const ButtonsGroup & ButtonsAreaBox::buttonsGroup(void) const
+        {
+            return btnsGroup;
+        }
 
         void ButtonsAreaBox::renderButtons(void)
         {
             // bottom section
             *this << cursor::set(0, rows() - 3) <<
-        	set::colors(colorLine(), colorBackground()) << 
-        	acs::ltee(lineType()) << draw::hline(cols() - 2, acs::hline(lineType())) << acs::rtee(lineType()) << reset::colors();
+                set::colors(colorLine(), colorBackground()) << 
+                acs::ltee(lineType()) << draw::hline(cols() - 2, acs::hline(lineType())) << acs::rtee(lineType()) << reset::colors();
 
             // buttons section
             for(auto & btn : btnsGroup)
@@ -782,10 +782,10 @@ namespace SWE
 
         void ButtonsAreaBox::renderWindow(void)
         {
-	    *this << reset::defaults();
+            *this << reset::defaults();
 
             renderBox();
-	    renderButtons();
+            renderButtons();
 
             *this << set::flush();
         }
@@ -827,7 +827,7 @@ namespace SWE
         MessageBox::MessageBox(const UnicodeString & header, const UnicodeString & message, int buttons, TermWindow & term)
             : UnicodeList(message.split('\n')), ButtonsAreaBox(header, TermSize(UnicodeList::maxStringWidth() + 2 /* space */, UnicodeList::size()), buttons | ButtonSelected, term)
         {
-	    // centered
+            // centered
             setPosition((term.size() - Window::size()) / 2);
             setVisible(true);
         }
@@ -835,92 +835,71 @@ namespace SWE
         MessageBox::MessageBox(const UnicodeString & header, const UnicodeString & message, int buttons, const FontRender & frs, Window* win)
             : UnicodeList(message.split('\n')), ButtonsAreaBox(header, buttons | ButtonSelected, frs, win)
         {
-	    // reserv: 2 space + 2 line
-	    auto contentColumns = UnicodeList::maxStringWidth() + 4;
+            // reserv: 2 space + 2 line
+            auto contentColumns = UnicodeList::maxStringWidth() + 4;
             auto columns = std::max(cols(), contentColumns);
             setTermSize(TermSize(columns, rows() + UnicodeList::size()));
             setButtonsPosition();
 
-	    // centered
-	    if(win)
-        	setPosition((win->size() - Window::size()) / 2);
+            // centered
+            if(win)
+                setPosition((win->size() - Window::size()) / 2);
             setVisible(true);
         }
 
         void MessageBox::renderWindow(void)
         {
-	    auto & term = static_cast<TermWindow &>(*this);
+            auto & term = static_cast<TermWindow &>(*this);
 
-	    term << reset::defaults();
+            term << reset::defaults();
 
             renderBox();
-	    renderButtons();
+            renderButtons();
 
             for(auto it = UnicodeList::begin(); it != UnicodeList::end(); ++it)
                 term << cursor::set((cols() - (*it).size()) / 2, 1 + std::distance(UnicodeList::begin(), it)) << *it;
 
-	    term << set::flush();
+            term << set::flush();
         }
 
         /* InputBox */
         InputBox::InputBox(const UnicodeString & header, size_t inputCols, const std::string & defstr, TermWindow & term)
             : ButtonsAreaBox(header, TermSize(inputCols, 1), ButtonYes | ButtonNo, term), sResult(defstr)
         {
-            setFlagTermCursor(true);
             setInputFocused(true);
             setHotKeyDisabled(true);
 
-	    // centered
-    	    setPosition((term.size() - Window::size()) / 2);
+            // centered
+            setPosition((term.size() - Window::size()) / 2);
             setVisible(true);
         }
 
         InputBox::InputBox(const UnicodeString & header, size_t inputCols, const std::string & defstr, const FontRender & frs, Window* win)
             : ButtonsAreaBox(header, ButtonYes | ButtonNo, frs, win), sResult(defstr)
         {
-	    // reserv: 2 line
+            // reserv: 2 line
             auto columns = std::max(cols(), inputCols + 2);
             setTermSize(TermSize(columns, rows() + 1));
             setButtonsPosition();
 
-            setFlagTermCursor(true);
             setInputFocused(true);
             setHotKeyDisabled(true);
 
-	    // centered
-	    if(win)
-        	setPosition((win->size() - Window::size()) / 2);
+            // centered
+            if(win)
+                setPosition((win->size() - Window::size()) / 2);
 
             setVisible(true);
         }
 
         void InputBox::setInputFocused(bool f)
         {
-	    setState(FlagSelected, f);
+            setState(FlagSelected, f);
         }
 
         bool InputBox::checkInputFocused(void) const
         {
-	    return checkState(FlagSelected);
-        }
-
-        void InputBox::setFlagTermCursor(bool f)
-        {
-	    setState(FlagInformed, f);
-        }
-
-        bool InputBox::checkFlagTermCursor(void) const
-        {
-	    return checkState(FlagInformed);
-        }
-
-        void InputBox::tickEvent(u32 ms)
-        {
-            if(checkInputFocused() && tt.check(ms, 500))
-            {
-		switchedState(FlagInformed);
-		setDirty(true);
-            }
+            return checkState(FlagSelected);
         }
 
         bool InputBox::keyPressEvent(const KeySym & key)
@@ -935,7 +914,7 @@ namespace SWE
                     if(buttonsGroup().isFirstSelected())
                         buttonsGroup().lastSelected();
                     else
-		    if(buttonsGroup().isLastSelected())
+                    if(buttonsGroup().isLastSelected())
                     {
                         buttonsGroup().resetSelected();
                         setInputFocused(true);
@@ -970,7 +949,7 @@ namespace SWE
                     if(0 < sResult.size())
                     {
                         sResult.erase(sResult.end() - 1);
-                	setDirty(true);
+                        setDirty(true);
                         return true;
                     }
 
@@ -983,7 +962,7 @@ namespace SWE
                     if(ch)
                     {
                         sResult.append(1, ch);
-                	setDirty(true);
+                        setDirty(true);
                         return true;
                     }
 
@@ -995,26 +974,26 @@ namespace SWE
         }
 
         ColorIndex InputBox::colorFieldText(void) const
-	{
-	    return themeColors[ColorInputFieldText];
-	}
+        {
+            return themeColors[ColorInputFieldText];
+        }
 
         ColorIndex InputBox::colorFieldCursor(void) const
-	{
-	    return themeColors[ColorInputCursor];
-	}
+        {
+            return themeColors[ColorInputCursor];
+        }
 
         ColorIndex InputBox::colorFieldBackground(bool focused) const
-	{
-	    return themeColors[focused ? ColorFocusedInputFieldBackground : ColorInputFieldBackground];
-	}
+        {
+            return themeColors[focused ? ColorFocusedInputFieldBackground : ColorInputFieldBackground];
+        }
 
         void InputBox::renderWindow(void)
         {
-	    *this << reset::defaults();
+            *this << reset::defaults();
 
             renderBox();
-	    renderButtons();
+            renderButtons();
 
             const size_t iw = cols() - 2;
 
@@ -1027,9 +1006,7 @@ namespace SWE
             else
                 *this << sResult.substr(sResult.size() - iw + 1, iw - 1);
 
-            if(checkFlagTermCursor())
-                *this << set::fgcolor(colorFieldCursor()) << "_" << reset::fgcolor();
-
+            *this << set::fgcolor(colorFieldCursor()) << set::blink() <<  "_" << reset::blink() << reset::fgcolor();
             *this << set::flush();
         }
 
@@ -1037,39 +1014,39 @@ namespace SWE
         ListBox::ListBox(const UnicodeString & header, const UnicodeList & list, size_t listRows, TermWindow & term)
             : ButtonsAreaBox(header, TermSize(list.maxStringWidth() + 2 /* space */, listRows), ButtonYes | ButtonNo | ButtonSelected, term), content(list), selected(-1), skipped(0)
         {
-	    // centered
-    	    setPosition((term.size() - Window::size()) / 2);
+            // centered
+            setPosition((term.size() - Window::size()) / 2);
             setVisible(true);
         }
 
         ListBox::ListBox(const UnicodeString & header, const UnicodeList & list, size_t listRows, const FontRender & frs, Window* win)
             : ButtonsAreaBox(header, ButtonYes | ButtonNo | ButtonSelected, frs, win), content(list), selected(-1), skipped(0)
         {
-	    // reserv: 2 space + 2 line
-	    auto contentColumns = content.maxStringWidth() + 4;
+            // reserv: 2 space + 2 line
+            auto contentColumns = content.maxStringWidth() + 4;
             setTermSize(TermSize(contentColumns, listRows));
             setButtonsPosition();
 
-	    // centered
-	    if(win)
-        	setPosition((win->size() - Window::size()) / 2);
+            // centered
+            if(win)
+                setPosition((win->size() - Window::size()) / 2);
 
             setVisible(true);
         }
 
-	ColorIndex ListBox::colorText(bool selected) const
-	{
-	    return selected ? themeColors[ColorListSelectedText] : ThemeColors::colorText();
-    	}
+        ColorIndex ListBox::colorText(bool selected) const
+        {
+            return selected ? themeColors[ColorListSelectedText] : ThemeColors::colorText();
+        }
 
-	ColorIndex ListBox::colorBackground(bool selected) const
-	{
-	    return selected ? themeColors[ColorListSelectedBackground] : ThemeColors::colorBackground();
-	}
+        ColorIndex ListBox::colorBackground(bool selected) const
+        {
+            return selected ? themeColors[ColorListSelectedBackground] : ThemeColors::colorBackground();
+        }
 
         void ListBox::renderWindow(void)
         {
-	    *this << reset::defaults();
+            *this << reset::defaults();
 
             renderBox();
             renderButtons();
@@ -1085,14 +1062,14 @@ namespace SWE
 
                 *this << cursor::set(1, 1 + dist);
 
-		auto text = colorText(dist + skipped == selected);
-		auto back = colorBackground(dist + skipped == selected);
+                auto text = colorText(dist + skipped == selected);
+                auto back = colorBackground(dist + skipped == selected);
 
-    	        *this << cursor::set(1, 1 + dist) << set::colors(text, back) <<
+                *this << cursor::set(1, 1 + dist) << set::colors(text, back) <<
                       cursor::set(1, 1 + dist) << *it << fill::space(cols() - 2 - (*it).size()) << reset::colors();
             }
 
-	    *this << set::flush();
+            *this << set::flush();
         }
 
         void ListBox::windowVisibleEvent(bool show)
@@ -1130,7 +1107,7 @@ namespace SWE
                 else
                 {
                     selected = index;
-		    setDirty(true);
+                    setDirty(true);
                 }
             }
 
@@ -1201,7 +1178,7 @@ namespace SWE
             }
 
             return false;
-	}
+        }
 
     } // namespace TermGUI
 } // namespace SWE

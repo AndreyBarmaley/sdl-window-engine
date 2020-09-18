@@ -127,7 +127,7 @@ bool SortFileInfoPred(const FileInfo & fn1, const FileInfo & fn2)
 FontRenderInit::FontRenderInit(const std::string & title, const TermSize & termsz, int fsz)
 {
     ttf = BinaryBuf(_default_ttf_h.data, sizeof(_default_ttf_h.data)).zlibUncompress(_default_ttf_h.size);
-    frt = FontRenderTTF(ttf, fsz, false);
+    frt.load(ttf, fsz, false);
 
     const Size defsz = termsz.toSize() * frt.size();
 
@@ -137,13 +137,6 @@ FontRenderInit::FontRenderInit(const std::string & title, const TermSize & terms
 
     if(! Display::init(title, defsz, defsz, fullscreen, accel, resized))
 	    Engine::except(__FUNCTION__, "display init error");
-}
-
-bool FontRenderInit::setFontSize(int fsz, const TermSize & termsz)
-{
-    frt = FontRenderTTF(ttf, fsz, false);
-    const Size winsz = termsz.toSize() * frt.size();
-    return Display::resize(winsz);
 }
 
 UnicodeString ShrinkFileName(const std::string & name, int smax)
@@ -169,7 +162,7 @@ UnicodeString ShrinkFileName(const std::string & name, int smax)
 }
 
 /* TermPanel */
-TermPanel::TermPanel(TermWindow & term) : TermArea(& term), cursorPos(0), skipList(0), focus(false)
+TermPanel::TermPanel(TermWindow & term) : TermBase(& term), cursorPos(0), skipList(0), focus(false)
 {
     resetState(FlagModality);
     setState(FlagKeyHandle);
@@ -310,6 +303,44 @@ void TermPanel::renderWindow(void)
 	}
     }
     *this << set::flush();
+}
+
+void TermPanel::setCharset(int ch, const ColorIndex & fg, const ColorIndex & bg, const CharRender* prop)
+{
+    if(auto term = dynamic_cast<TermWindow*>(parent()))
+    {
+        const TermPos savePos = term->cursor();
+        const TermPos & cur = cursor();
+        term->setCursorPos(termPos() + cur);
+        ColorIndex fgcol = ! fgColor().isTransparent() ? fgColor() : fg;
+        ColorIndex bgcol = ! bgColor().isTransparent() ? bgColor() : bg;
+
+        if(padding())
+        {
+    	    const Rect & termArea = Rect(padding.left(), padding.left(),
+                                         cols() - (padding.left() + padding.right()), rows() - (padding.left() + padding.bottom()));
+
+            if(termArea & cursor().toPoint())
+                term->setCharset(ch, fgcol, bgcol, prop);
+        }
+        else
+            term->setCharset(ch, fgcol, bgcol, prop);
+
+        term->setCursorPos(savePos);
+        *this << cursor::right(1);
+    }
+}
+
+void TermPanel::renderFlush(void)
+{
+    if(auto term = dynamic_cast<TermWindow*>(parent()))
+    {
+	const TermPos & tp = termPos();
+
+        for(int py = 0; py < rows(); ++py)
+            for(int px = 0; px < cols(); ++px)
+                term->renderSymbol(tp.posx() + px, tp.posy() + py);
+    }
 }
 
 bool TermPanel::keyPressReturn(void)
@@ -492,22 +523,9 @@ void TermPanel::windowResizeEvent(const Size & sz)
     rightArea = TermRect(leftArea.cols() + 3, 1, cols() - leftArea.cols() - 5, rows() - 4);
 }
 
-/* MenuBar */
-MenuBar::MenuBar(TermWindow & term) : TermArea(& term)
-{
-    setState(FlagModality);
-    setVisible(false);
-}
-
-void MenuBar::renderWindow(void)
-{
-    *this << reset::defaults() <<
-	fill::defaults(Color::White, Color::LightSeaGreen);
-}
-
 /* MainScreen */
 MainScreen::MainScreen(const std::string & title, int fsz)
-    : FontRenderInit(title, minimalTerminalSize(), fsz), fontsz(fsz), left(*this), right(*this)//, menu(*this)
+    : FontRenderInit(title, minimalTerminalSize(), fsz), fontsz(fsz), leftPanel(*this), rightPanel(*this)
 {
     setFontRender(FontRenderInit::frt);
 
@@ -515,19 +533,33 @@ MainScreen::MainScreen(const std::string & title, int fsz)
         fill::defaults(Color::Silver, Color::Black);
 
     panelsPositions();
-    left.setFocus(true);
-    right.setFocus(false);
+    leftPanel.setFocus(true);
+    rightPanel.setFocus(false);
 
     VERBOSE("you can change the window size and font size, also use mouse scroll.");
     setVisible(true);
+}
+
+bool MainScreen::setFontSize(int fsz, const TermSize & termsz)
+{
+    frt.load(ttf, fsz, false);
+    if(frt.isValid())
+    {
+        fontResizeHandle();
+        return true;
+    }
+    return false;
 }
 
 void MainScreen::panelsPositions(void)
 {
     int panw = cols() / 2;
 
-    left.setTermArea(0, 0, panw, rows());
-    right.setTermArea(panw, 0, panw, rows());
+    leftPanel.setTermPos(TermPos(0, 0));
+    rightPanel.setTermPos(TermPos(panw, 0));
+
+    leftPanel.setTermSize(TermSize(panw, rows()));
+    rightPanel.setTermSize(TermSize(panw, rows()));
 }
 
 MainScreen & MainScreen::init(const std::string & title)
@@ -538,8 +570,8 @@ MainScreen & MainScreen::init(const std::string & title)
 
 void MainScreen::renderWindow(void)
 {
-    left.renderWindow();
-    right.renderWindow();
+    leftPanel.renderWindow();
+    rightPanel.renderWindow();
     // flush
     *this << set::flush();
 }
@@ -557,8 +589,8 @@ bool MainScreen::keyPressEvent(const KeySym & key)
     else
     if(key.keycode() == Key::TAB)
     {
-	left.setFocus(! left.isFocused());
-    	right.setFocus(! right.isFocused());
+	leftPanel.setFocus(! leftPanel.isFocused());
+    	rightPanel.setFocus(! rightPanel.isFocused());
 
 	renderWindow();
     }
@@ -606,9 +638,9 @@ SWE::TermSize MainScreen::minimalTerminalSize(void) const
     return SWE::TermSize(80, 25);
 }
 
-SWE::CharsetProperty MainScreen::defaultProperty(void) const
+SWE::CharRender MainScreen::defaultProperty(void) const
 {
-    return SWE::CharsetProperty(SWE::RenderBlended, SWE::StyleNormal, SWE::HintingNormal);
+    return SWE::CharRender(SWE::RenderBlended, SWE::StyleNormal, SWE::HintingNormal);
 }
 
 SWE::FBColors MainScreen::defaultColors(void) const
