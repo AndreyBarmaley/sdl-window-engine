@@ -118,7 +118,7 @@ namespace SWE
     ScrollBar::ScrollBar(bool vertical, ListWidget & parent) : Window(& parent)
     {
         if(vertical) setState(FlagVertical);
-        resetState(FlagModality);
+        setModality(false);
 
         signalSubscribe(parent, Signal::ListWidgetChanged);
         signalSubscribe(parent, Signal::ListWidgetScrolled);
@@ -131,7 +131,7 @@ namespace SWE
         setPosition(pos);
 
         if(vertical) setState(FlagVertical);
-        resetState(FlagModality);
+        setModality(false);
 
         signalSubscribe(parent, Signal::ListWidgetChanged);
         signalSubscribe(parent, Signal::ListWidgetScrolled);

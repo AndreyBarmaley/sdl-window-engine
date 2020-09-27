@@ -137,7 +137,7 @@ namespace SWE
 	static void		moveTopLayer(const Window &);
 
 	/// @brief функция рендера сцены DisplayScene
-        static void		sceneRedraw(void);
+        static void		sceneRedraw(bool force = false);
 	/// @private
         static void		sceneDestroy(void);
         static void		handleWhileVisible(const Window &);

@@ -177,6 +177,7 @@ namespace SWE
     {
         std::shared_ptr<TTF_Font> ptr;
         FontID			fid;
+        Color                   shaded;
 
         Size			char1Size(int ch) const;
         Size			char2Size(int ch) const;
@@ -187,6 +188,7 @@ namespace SWE
         FontRenderTTF(const BinaryBuf &, size_t fsz, const CharRender & = RenderSolid, int style = StyleNormal, const CharHinting & = HintingNormal);
         ~FontRenderTTF();
 
+        void                    setShadedBackground(const Color &);
         void        		reset(void);
 
         bool        		open(const std::string &, size_t fsz, const CharRender & = RenderSolid, int style = StyleNormal, const CharHinting & = HintingNormal);

@@ -31,19 +31,19 @@ namespace SWE
     /* WindowButton */
     WindowButton::WindowButton(Window* win) : WindowToolTipArea(win), hotkey(Key::NONE)
     {
-        setState(FlagKeyHandle);
+        setKeyHandle(true);
         signalSubscribe(*this, Signal::ButtonTimerComplete);
     }
 
     WindowButton::WindowButton(const Size & sz, Window* win) : WindowToolTipArea(sz, win), hotkey(Key::NONE)
     {
-        setState(FlagKeyHandle);
+        setKeyHandle(true);
         signalSubscribe(*this, Signal::ButtonTimerComplete);
     }
 
     WindowButton::WindowButton(const Point & pos, const Size & sz, Window* win) : WindowToolTipArea(pos, sz, win), hotkey(Key::NONE)
     {
-        setState(FlagKeyHandle);
+        setKeyHandle(true);
         signalSubscribe(*this, Signal::ButtonTimerComplete);
     }
 

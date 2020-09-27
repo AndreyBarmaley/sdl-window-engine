@@ -448,6 +448,11 @@ bool SWE::FontRenderTTF::open(const std::string & fn, size_t fsz, const CharRend
     return false;
 }
 
+void SWE::FontRenderTTF::setShadedBackground(const Color & col)
+{
+    shaded = col;
+}
+
 const SWE::FontID & SWE::FontRenderTTF::id(void) const
 {
     return fid;
@@ -615,16 +620,18 @@ SWE::Surface SWE::FontRenderTTF::renderString(const std::string & str, const Col
 #endif
 
         int render = RenderDefault == blend ? cp.render() : blend;
-	switch(render)
-	{
-	    default:
+        switch(render)
+        {
+            default:
                 sf = TTF_RenderUTF8_Solid(ttf, str.c_str(), col.toSDLColor());
-		break;
-	    case RenderBlended:
-	    case RenderShaded:
-    		sf = TTF_RenderUTF8_Blended(ttf, str.c_str(), col.toSDLColor());
-		break;
-	}
+                break;
+            case RenderBlended:
+                sf = TTF_RenderUTF8_Blended(ttf, str.c_str(), col.toSDLColor());
+                break;
+            case RenderShaded:
+                sf = TTF_RenderUTF8_Shaded(ttf, str.c_str(), col.toSDLColor(), shaded.toSDLColor());
+            break;
+        }
 
         if(sf != nullptr)
             return Surface(sf);
@@ -651,16 +658,18 @@ SWE::Surface SWE::FontRenderTTF::renderUnicode(const UnicodeString & ustr, const
 #endif
 
         int render = RenderDefault == blend ? cp.render() : blend;
-	switch(render)
-	{
-	    default:
+        switch(render)
+        {
+            default:
                 sf = TTF_RenderUNICODE_Solid(ttf, reinterpret_cast<const Uint16*>(ptr), col.toSDLColor());
-		break;
-	    case RenderBlended:
-	    case RenderShaded:
-    		sf = TTF_RenderUNICODE_Blended(ttf, reinterpret_cast<const Uint16*>(ptr), col.toSDLColor());
-		break;
-	}
+                break;
+            case RenderBlended:
+                sf = TTF_RenderUNICODE_Blended(ttf, reinterpret_cast<const Uint16*>(ptr), col.toSDLColor());
+                break;
+            case RenderShaded:
+                sf = TTF_RenderUNICODE_Shaded(ttf, reinterpret_cast<const Uint16*>(ptr), col.toSDLColor(), shaded.toSDLColor());
+                break;
+        }
 
         if(sf != nullptr)
             return Surface(sf);
@@ -689,16 +698,18 @@ SWE::Surface SWE::FontRenderTTF::renderCharset(int ch, const Color & col, const 
 #endif
 
         int render = RenderDefault == blend ? cp.render() : blend;
-	switch(render)
-	{
-	    default:
-        	sf = TTF_RenderUNICODE_Solid(ttf, buf, col.toSDLColor());
-		break;
-	    case RenderBlended:
-	    case RenderShaded:
-        	sf = TTF_RenderUNICODE_Blended(ttf, buf, col.toSDLColor());
-		break;
-	}
+        switch(render)
+        {
+            default:
+            sf = TTF_RenderUNICODE_Solid(ttf, buf, col.toSDLColor());
+            break;
+            case RenderBlended:
+                sf = TTF_RenderUNICODE_Blended(ttf, buf, col.toSDLColor());
+                break;
+            case RenderShaded:
+                sf = TTF_RenderUNICODE_Shaded(ttf, buf, col.toSDLColor(), shaded.toSDLColor());
+                break;
+        }
 
         if(sf != nullptr)
             return Surface(sf);

@@ -148,7 +148,7 @@ namespace SWE
     std::list<BaseObject*>
 			sceneObjects;
     std::list<Window*>	sceneItems;
-    bool		sceneDirty = false;
+    bool		sceneDirty = true;
     DisplayToolTip*	sceneToolTip = nullptr;
 
     Texture		cursorTexture;
@@ -304,9 +304,9 @@ void SWE::DisplayScene::sceneDestroy(void)
 }
 
 /// @details рендер всех видимых объектов на сцене, неоходимость отрисовки задается через метод DisplayScene::setDirty, генерирует событие Window::renderPresentEvent на каждый объект Window
-void SWE::DisplayScene::sceneRedraw(void)
+void SWE::DisplayScene::sceneRedraw(bool force)
 {
-    if(isDirty())
+    if(isDirty() || force)
     {
 	u32 renderStart = Tools::ticks();
 
@@ -355,6 +355,8 @@ void SWE::DisplayScene::sceneRedraw(void)
 
 void SWE::DisplayScene::handleWhileVisible(const Window & win)
 {
+    sceneRedraw(true);
+
     while(win.isVisible())
     {
 	Display::handleEvents();
@@ -367,6 +369,8 @@ void SWE::DisplayScene::handleWhileVisible(const Window & win)
 /// @details состоит из 3 основных частей, обработка системных событий Display::handleEvents, генерация события ObjectEvent::tickEvent, рендера сцены DisplayScene::sceneRedraw
 void SWE::DisplayScene::handleEvents(u32 interval)
 {
+    sceneRedraw(true);
+
     u32 start = Tools::ticks();
 
     while(true)
@@ -426,17 +430,35 @@ bool SWE::DisplayScene::keyHandle(const KeySym & key, bool press)
 #endif
 #endif
 
-    // top modality processed
-    auto it = std::find_if(sceneItems.rbegin(), sceneItems.rend(),
-	    [](const Window* win) { return win->isVisible() && win->isModality(); });
+    // focused window
+    Window* topWin = windowsFocusHandle();
 
-    if(it != sceneItems.rend() && (*it)->keyHandle(key, press))
+    if(topWin && topWin->keyHandle(key, press))
 	return true;
 
-    for(auto & win : sceneItems)
+    // reverse order
+    for(auto it = sceneItems.rbegin(); it != sceneItems.rend(); ++it)
     {
-        if(win->checkState(FlagKeyHandle) && win != *it)
-	    win->keyHandle(key, press);
+        if(topWin && *it == topWin)
+        {
+            // stop layer
+            if(topWin->isModality())
+                return true;
+
+            continue;
+        }
+
+        if((*it)->isVisible())
+        {
+
+            // first modality stop event
+            if((*it)->isModality())
+	        return (*it)->keyHandle(key, press);
+
+            // other win only FlagKeyHandle
+            if((*it)->checkState(FlagKeyHandle) && (*it)->keyHandle(key, press))
+                return true;
+        }
     }
 
     return false;
@@ -444,17 +466,34 @@ bool SWE::DisplayScene::keyHandle(const KeySym & key, bool press)
 
 bool SWE::DisplayScene::textInputHandle(const std::string & str)
 {
-    // top modality processed
-    auto it = std::find_if(sceneItems.rbegin(), sceneItems.rend(),
-	    [](const Window* win) { return win->isVisible() && win->isModality(); });
+    // focused window
+    Window* topWin = windowsFocusHandle();
 
-    if(it != sceneItems.rend() && (*it)->textInputEvent(str))
-	    return true;
+    if(topWin && topWin->textInputEvent(str))
+	return true;
 
-    for(auto & win : sceneItems)
+    // reverse order
+    for(auto it = sceneItems.rbegin(); it != sceneItems.rend(); ++it)
     {
-        if(win->checkState(FlagKeyHandle) && win != *it)
-	    win->textInputEvent(str);
+        if(topWin && *it == topWin)
+        {
+            // stop layer
+            if(topWin->isModality())
+                return true;
+
+            continue;
+        }
+
+        if((*it)->isVisible())
+        {
+            // first modality stop event
+            if((*it)->isModality())
+	        return (*it)->textInputEvent(str);
+
+            // other win only FlagKeyHandle
+            if((*it)->checkState(FlagKeyHandle) && (*it)->textInputEvent(str))
+                return true;
+        }
     }
 
     return false;
@@ -675,6 +714,10 @@ bool SWE::DisplayScene::userHandle(const SDL_UserEvent & ev)
         // fixed events: not signal (first and break)
         switch(ev.code)
         {
+            case Signal::SceneDirty:
+                    setDirty(true);
+                    return true;
+
             case Signal::GestureFingerUp:
             case Signal::GestureFingerDown:
             case Signal::GestureFingerLeft:
@@ -805,12 +848,13 @@ void SWE::DisplayScene::displayFocusHandle(bool gain)
 
 SWE::JsonObject SWE::DisplayScene::toJson(void)
 {
-    JsonObject res;
-    res.addInteger("version", Engine::version());
-
     JsonObject scene;
-    scene.addBoolean("dirty", sceneDirty);
 
+    scene.addInteger("version", Engine::version());
+    scene.addArray("windowSize", JsonPack::size(Display::size()));
+    scene.addArray("renderSize", JsonPack::size(Display::device()));
+    scene.addBoolean("fullscreeen", Display::isFullscreenWindow());
+    scene.addBoolean("maximized", Display::isMaximizedWindow());
 
     JsonArray windows;
     for(auto & win : sceneItems)
@@ -825,9 +869,7 @@ SWE::JsonObject SWE::DisplayScene::toJson(void)
     if(sceneToolTip)
 	scene.addObject("sceneToolTip", sceneToolTip->toJson());
 
-    res.addObject("scene", scene);
-
-    return res;
+    return scene;
 }
 #endif
 

@@ -396,7 +396,6 @@ namespace SWE
 
     int Window::exec(void)
     {
-        redraw();
 	DisplayScene::handleWhileVisible(*this);
         return resultCode();
     }

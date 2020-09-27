@@ -48,7 +48,6 @@ namespace SWE
         int             	cursorPosition(void) const;
         int             	cursorPositionAt(const Point &) const;
         void            	clear(void);
-	void			setKeyHandle(bool);
         void            	setCursorPosition(int);
         void            	setText(const std::string &);
 

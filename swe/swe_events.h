@@ -189,6 +189,7 @@ namespace SWE
     enum Signal
     {
         EventNone = 0x01000000,
+        SceneDirty,
         WindowCreated, WindowCheckFocus, WindowScrolledPrev, WindowScrolledNext, WindowPageUp, WindowPageDown,
 	ListWidgetScrolled, ListWidgetChanged, ListWidgetRemoveItem, ListWidgetTakeItem,
         ScrollBarMoved,

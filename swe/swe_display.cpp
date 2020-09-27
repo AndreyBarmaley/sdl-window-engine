@@ -467,6 +467,7 @@ void SWE::Display::renderClear(const Color & cl, Texture & dtx)
 #ifdef SWE_SDL12
     renderColor(cl, dtx, dtx.rect());
 #else
+    SDL_AtomicLock(& renderLock);
     if(renderReset(dtx.toSDLTexture()))
     {
     	if(0 == SDL_SetRenderDrawColor(_renderer, cl.r(), cl.g(), cl.b(), cl.a()))
@@ -479,6 +480,7 @@ void SWE::Display::renderClear(const Color & cl, Texture & dtx)
     }
     else
     	FIXME(String::pointer(dtx.toSDLTexture()));
+    SDL_AtomicUnlock(& renderLock);
 #endif
 }
 
@@ -487,6 +489,7 @@ void SWE::Display::renderColor(const Color & cl, Texture & dtx, const Rect & drt
 #ifdef SWE_SDL12
     boxRGBA(dtx.toSDLSurface(), drt.x, drt.y, drt.x + drt.w - 1, drt.y + drt.h - 1, cl.r(), cl.g(), cl.b(), cl.a());
 #else
+    SDL_AtomicLock(& renderLock);
     if(renderReset(dtx.toSDLTexture()))
     {
     	if(0 == SDL_SetRenderDrawColor(_renderer, cl.r(), cl.g(), cl.b(), cl.a()))
@@ -501,6 +504,7 @@ void SWE::Display::renderColor(const Color & cl, Texture & dtx, const Rect & drt
     }
     else
     	FIXME(String::pointer(dtx.toSDLTexture()));
+    SDL_AtomicUnlock(& renderLock);
 #endif
 }
 
@@ -524,6 +528,7 @@ void SWE::Display::renderRect(const Color & cl, Texture & dtx, const Rect & drt)
     rectangleRGBA(dtx.toSDLSurface(), drt.x, drt.y, drt.x + drt.w - 1, drt.y + drt.h - 1, cl.r(), cl.g(), cl.b(), cl.a());
 #else
 
+    SDL_AtomicLock(& renderLock);
     if(renderReset(dtx.toSDLTexture()))
     {
         if(0 == SDL_SetRenderDrawColor(_renderer, cl.r(), cl.g(), cl.b(), cl.a()))
@@ -542,6 +547,7 @@ void SWE::Display::renderRect(const Color & cl, Texture & dtx, const Rect & drt)
     }
     else
         FIXME(String::pointer(dtx.toSDLTexture()));
+    SDL_AtomicUnlock(& renderLock);
 
 #endif
 }
@@ -568,6 +574,7 @@ void SWE::Display::renderLine(const Color & cl, Texture & dtx, const Point & pt1
 
 #else
 
+    SDL_AtomicLock(& renderLock);
     if(renderReset(dtx.toSDLTexture()))
     {
         if(0 == SDL_SetRenderDrawColor(_renderer, cl.r(), cl.g(), cl.b(), cl.a()))
@@ -580,6 +587,7 @@ void SWE::Display::renderLine(const Color & cl, Texture & dtx, const Point & pt1
     }
     else
         FIXME(String::pointer(dtx.toSDLTexture()));
+    SDL_AtomicUnlock(& renderLock);
 
 #endif
 }
@@ -590,6 +598,7 @@ void SWE::Display::renderPoint(const Color & cl, Texture & dtx, const Point & pt
     pixelRGBA(dtx.toSDLSurface(), pt.x, pt.y, cl.r(), cl.g(), cl.b(), cl.a());
 #else
 
+    SDL_AtomicLock(& renderLock);
     if(renderReset(dtx.toSDLTexture()))
     {
         if(0 == SDL_SetRenderDrawColor(_renderer, cl.r(), cl.g(), cl.b(), cl.a()))
@@ -602,6 +611,7 @@ void SWE::Display::renderPoint(const Color & cl, Texture & dtx, const Point & pt
     }
     else
         FIXME(String::pointer(dtx.toSDLTexture()));
+    SDL_AtomicUnlock(& renderLock);
 
 #endif
 }
@@ -798,7 +808,10 @@ SWE::Texture SWE::Display::createTexture(const Surface & sf)
 #ifdef SWE_SDL12
     return Texture(sf);
 #else
-    return Texture(SDL_CreateTextureFromSurface(_renderer, sf.toSDLSurface()));
+    SDL_AtomicLock(& renderLock);
+    auto ptr = SDL_CreateTextureFromSurface(_renderer, sf.toSDLSurface());
+    SDL_AtomicUnlock(& renderLock);
+    return Texture(ptr);
 #endif
 }
 
@@ -838,7 +851,10 @@ SWE::Texture SWE::Display::createTexture(const Size & sz, bool alpha)
 #ifdef SWE_SDL12
     return Texture(Surface(sz, alpha));
 #else
-    Texture res(SDL_CreateTexture(_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, sz.w, sz.h));
+    SDL_AtomicLock(& renderLock);
+    auto ptr = SDL_CreateTexture(_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, sz.w, sz.h);
+    SDL_AtomicUnlock(& renderLock);
+    Texture res(ptr);
     renderClear(Color::Transparent, res);
     res.setBlendMode(BlendMode::Blend);
     return res;
@@ -872,6 +888,7 @@ SWE::Surface SWE::Display::createSurface(const Texture & tx)
     SDL_Surface* sf = nullptr;
     Texture tx2 = createTexture(tx, FlipNone);
 
+    SDL_AtomicLock(& renderLock);
     if(renderReset(tx2.toSDLTexture()))
     {
         SDL_Rect srt = tx2.rect().toSDLRect();
@@ -882,6 +899,7 @@ SWE::Surface SWE::Display::createSurface(const Texture & tx)
     }
     else
         FIXME(String::pointer(tx2.toSDLTexture()));
+    SDL_AtomicUnlock(& renderLock);
 
     renderReset(nullptr);
     return Surface(sf);
@@ -1557,7 +1575,7 @@ bool SWE::Display::isMaximizedWindow(void)
     Atom retType;
     int retFormat;
     unsigned long nItems, bytesAfter;
-    unsigned char *properties = NULL;
+    unsigned char *properties = nullptr;
 
     auto status = XGetWindowProperty(wm.info.x11.display, wm.info.x11.wmwindow, wmState, 0, ~0L, False, XA_ATOM, &retType, &retFormat, &nItems, &bytesAfter, &properties);
     if(status == Success)

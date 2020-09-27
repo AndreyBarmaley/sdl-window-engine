@@ -432,11 +432,11 @@ int _putPixelAlpha(SDL_Surface *dst, Sint16 x, Sint16 y, Uint32 color, Uint8 alp
 					if (Amask!=0) {
 						dA = (dc & Amask) >> Ashift;
 
-#ifdef ALPHA_PIXEL_ADDITIVE_BLEND
-						A = (dA | GFX_ALPHA_ADJUST_ARRAY[alpha & 255]) << Ashift; // make destination less transparent...
-#else
+//#ifdef ALPHA_PIXEL_ADDITIVE_BLEND
+//						A = (dA | GFX_ALPHA_ADJUST_ARRAY[alpha & 255]) << Ashift; // make destination less transparent...
+//#else
 						A = ((dA + ((((color & Amask) >> Ashift) - dA) * alpha >> 8)) << Ashift) & Amask;
-#endif
+//#endif
 						*pixel |= A;
 					}
 				}
@@ -770,11 +770,11 @@ int _filledRectAlpha(SDL_Surface * dst, Sint16 x1, Sint16 y1, Sint16 x2, Sint16 
 						*pixel = R | G | B;
 						if (Amask!=0) {
 							dA = (dc & Amask) >> Ashift;
-#ifdef ALPHA_PIXEL_ADDITIVE_BLEND
-							A = (dA | GFX_ALPHA_ADJUST_ARRAY[sA & 255]) << Ashift; // make destination less transparent...
-#else
+//#ifdef ALPHA_PIXEL_ADDITIVE_BLEND
+//							A = (dA | GFX_ALPHA_ADJUST_ARRAY[sA & 255]) << Ashift; // make destination less transparent...
+//#else
 							A = ((dA + ((sA - dA) * alpha >> 8)) << Ashift) & Amask;
-#endif
+//#endif
 							*pixel |= A;
 						}
 					}
@@ -2591,7 +2591,7 @@ int _aalineColor(SDL_Surface * dst, Sint16 x1, Sint16 y1, Sint16 x2, Sint16 y2, 
 	Sint32 xx0, yy0, xx1, yy1;
 	int result;
 	Uint32 intshift, erracc, erradj;
-	Uint32 erracctmp, wgt, wgtcompmask;
+	Uint32 erracctmp, wgt;
 	int dx, dy, tmp, xdir, y0p1, x0pxdir;
 
 	/*
@@ -2700,7 +2700,7 @@ int _aalineColor(SDL_Surface * dst, Sint16 x1, Sint16 y1, Sint16 x2, Sint16 y2, 
 	/*
 	* Mask used to flip all bits in an intensity weighting 
 	*/
-	wgtcompmask = AAlevels - 1;
+	// wgtcompmask = AAlevels - 1;
 
 	/* Lock surface */
 	if (SDL_MUSTLOCK(dst)) {
@@ -3177,18 +3177,19 @@ int arcColor(SDL_Surface * dst, Sint16 x, Sint16 y, Sint16 rad, Sint16 start, Si
 		return(0);
 	}  
 
-	// Octant labelling
-	//      
-	//  \ 5 | 6 /
-	//   \  |  /
-	//  4 \ | / 7
-	//     \|/
-	//------+------ +x
-	//     /|\
-	//  3 / | \ 0
-	//   /  |  \
-	//  / 2 | 1 \
-	//      +y
+	/* Octant labelling
+	*
+	*   \ 5 | 6 /
+	*    \  |  /
+	*   4 \ | / 7
+	*      \|/
+	* ------+------ +x
+	*      /|\
+	*   3 / | \ 0
+	*    /  |  \
+	*   / 2 | 1 \
+	*       +y
+        */
 
 	// Initially reset bitmask to 0x00000000
 	// the set whether or not to keep drawing a given octant.
@@ -5817,7 +5818,7 @@ void gfxPrimitivesSetFont(const void *fontdata, Uint32 cw, Uint32 ch)
 	int i;
 
 	if ((fontdata) && (cw) && (ch)) {
-		currentFontdata = fontdata;
+		currentFontdata = (const unsigned char*) fontdata;
 		charWidth = cw;
 		charHeight = ch;
 	} else {
@@ -6588,7 +6589,7 @@ void _murphyIteration(SDL_gfxMurphyIterator *m, Uint8 miter,
 			py[1] = m2y;
 			py[2] = ml1by;
 			py[3] = ml2by;			
-			polygonColor(m->dst, px, py, 4, m->color);						
+			polygonColor(m->dst, (Sint16*) px, (Sint16*) py, 4, m->color);						
 		}
 	}
 
@@ -6624,7 +6625,7 @@ void _murphyWideline(SDL_gfxMurphyIterator *m, Sint16 x1, Sint16 y1, Sint16 x2, 
 	float offset = (float)width / 2.f;
 
 	Sint16 temp;
-	Sint16 ptx, pty, ptxx, ptxy, ml1x, ml1y, ml2x, ml2y, ml1bx, ml1by, ml2bx, ml2by;
+	Sint16 ptx, pty, ml1x, ml1y, ml2x, ml2y, ml1bx, ml1by, ml2bx, ml2by;
 
 	int d0, d1;		/* difference terms d0=perpendicular to line, d1=along line */
 
@@ -6709,8 +6710,8 @@ void _murphyWideline(SDL_gfxMurphyIterator *m, Sint16 x1, Sint16 y1, Sint16 x2, 
 		m->last2x = -32768;
 		m->last2y = -32768;
 	}
-	ptxx = ptx;
-	ptxy = pty;
+	//ptxx = ptx;
+	//ptxy = pty;
 
 	for (q = 0; dd <= tk; q++) {	/* outer loop, stepping perpendicular to line */
 

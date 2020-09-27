@@ -41,12 +41,12 @@ namespace SWE
 	    FlagVisible = 0x80000000, FlagModality = 0x40000000, FlagFocused = 0x20000000,
 
 	    FlagKeyHandle = 0x04000000, FlagMouseTracking = 0x02000000, FlagSystemTickSkip = 0x01000000,
-	    FlagLayoutHidden = 0x00080000, FlagLayoutBackground = 0x00020000, FlagLayoutForeground = 0x00010000,
+	    FlagLayoutHidden = 0x00800000, FlagLayoutBackground = 0x00200000, FlagLayoutForeground = 0x00100000,
 
 	    // GUI 0x0000xxxx
-	    FlagPressed = 0x00008000, FlagInformed = 0x00004000, FlagSelected = 0x00002000, FlagDisabled = 0x00001000,
-	    FlagWrap = 0x00000800, FlagVertical = 0x00000400, 
-	    FlagFreeMask = 0x000000FF
+	    FlagPressed = 0x00080000, FlagInformed = 0x00040000, FlagSelected = 0x00020000, FlagDisabled = 0x00010000,
+	    FlagWrap = 0x00008000, FlagVertical = 0x00004000,
+	    FlagFreeMask = 0x00000FFF
          };
 
     // MouseButtonHandle, SystemTickHandle

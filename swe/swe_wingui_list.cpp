@@ -32,12 +32,12 @@ namespace SWE
     /* ListWidgetItem */
     ListWidgetItem::ListWidgetItem(ListWidget & parent) : WindowToolTipArea(& parent)
     {
-        resetState(FlagModality);
+        setModality(false);
     }
 
     ListWidgetItem::ListWidgetItem(const SWE::Size & wsz, ListWidget & parent) : WindowToolTipArea(wsz, & parent)
     {
-        resetState(FlagModality);
+        setModality(false);
     }
 
     bool ListWidgetItem::isSelected(void) const
@@ -115,19 +115,19 @@ namespace SWE
     ListWidget::ListWidget(bool vertical, Window* parent) : Window(parent), skipItems(0), curItem(nullptr)
     {
         if(vertical) setState(FlagVertical);
-        resetState(FlagModality);
+        setModality(false);
     }
 
     ListWidget::ListWidget(const Size & sz, bool vertical, Window* parent) : Window(sz, parent), skipItems(0), curItem(nullptr)
     {
         if(vertical) setState(FlagVertical);
-        resetState(FlagModality);
+        setModality(false);
     }
 
     ListWidget::ListWidget(const Point & pos, const Size & sz, bool vertical, Window* parent) : Window(pos, sz, parent), skipItems(0), curItem(nullptr)
     {
         if(vertical) setState(FlagVertical);
-        resetState(FlagModality);
+        setModality(false);
     }
 
     ListWidget::~ListWidget()

@@ -29,25 +29,29 @@ namespace SWE
     LineEdit::LineEdit(Window* win)
 	    : WindowToolTipArea(win), curpos(0)
     {
-	resetState(FlagModality);
+        setKeyHandle(true);
+	setModality(false);
     }
 
     LineEdit::LineEdit(const Size & sz, Window* win)
 	    : WindowToolTipArea(sz, win), curpos(0)
     {
-        resetState(FlagModality);
+        setKeyHandle(true);
+	setModality(false);
     }
 
     LineEdit::LineEdit(const Point & pos, const Size & sz, Window* win)
 	    : WindowToolTipArea(pos, sz, win), curpos(0)
     {
-        resetState(FlagModality);
+        setKeyHandle(true);
+	setModality(false);
     }
 
     LineEdit::LineEdit(const Point & pos, const Size & sz, const std::string & str, Window* win)
 	    : WindowToolTipArea(pos, sz, win), content(str), curpos(str.size())
     {
-        resetState(FlagModality);
+        setKeyHandle(true);
+	setModality(false);
     }
 
     bool LineEdit::mouseClickEvent(const ButtonsEvent & be)
@@ -136,7 +140,7 @@ namespace SWE
 	    return true;
 	}
 #ifndef SWE_SDL12
-	// 
+	//
 	else
 	if(key.keycode() == Key::INSERT && key.keymod().isShift() &&
     	    SDL_HasClipboardText())
@@ -226,16 +230,11 @@ namespace SWE
 	}
     }
 
-    void LineEdit::setKeyHandle(bool f)
-    {
-	setState(FlagKeyHandle);
-    }
-
     void LineEdit::setText(const std::string & str)
     {
 	if(str.size())
 	{
-	    content = str;
+	    content.assign(str);
 	    int oldpos = curpos;
 	    curpos = str.size();
 	    textChanged(content);
@@ -290,7 +289,7 @@ namespace SWE
 		    pos = renderText(frs, content, textColor, Point(0, offy));
 	    }
 	    if(0 <= curpos)
-		renderColor(cursorColor(), Rect(pos.x + pos.w, cursorOffset, cursorW, cursorHeight));
+		renderColor(cursorColor, Rect(pos.x + pos.w, cursorOffset, cursorW, cursorHeight));
 	}
 	else
 	{
@@ -302,7 +301,7 @@ namespace SWE
 	    if(strsz.w + cursorW > width())
 	    {
 		// cursor
-		renderColor(cursorColor(), Rect(width() - cursorW, cursorOffset, cursorW, cursorHeight));
+		renderColor(cursorColor, Rect(width() - cursorW, cursorOffset, cursorW, cursorHeight));
 		pos = renderText(frs, sym, textColor, Point(width() - cursorW, offy));
 		// prefix
 		pos = renderText(frs, content.substr(0, curpos), textColor, Point(pos.x, offy), SWE::AlignRight);
@@ -313,7 +312,7 @@ namespace SWE
 		// prefix
 		pos = renderText(frs, content.substr(0, curpos), textColor, Point(0, offy));
 		// cursor
-		renderColor(cursorColor(), Rect(pos.x + pos.w, cursorOffset, cursorW, cursorHeight));
+		renderColor(cursorColor, Rect(pos.x + pos.w, cursorOffset, cursorW, cursorHeight));
 		pos = renderText(frs, sym, textColor, Point(pos.x + pos.w, offy));
 		// suffix
 		pos = renderText(frs, content.substr(curpos + 1), textColor(), Point(pos.x + pos.w, offy));

@@ -387,6 +387,7 @@ public:
 	Display::renderCursor(Display::createTexture(file2));
 
 	frs.open("DejaVuSansMono.ttf", 14, RenderBlended);
+        frs.setShadedBackground(col);
 
 	button1.setAction(555);
 	button1.setToolTip("F1: clicked, F3: disabled");
@@ -422,8 +423,11 @@ public:
     void renderWindow(void)
     {
 	DisplayWindow::renderWindow();
-	renderText(systemFont(), "Test Hyjlpn Swextty!", Color::Yellow, Point(450, 410));
-	renderSurface(frs.renderString("Test Hyjlpn Swextty!", Color::Yellow, RenderBlended, StyleNormal), Point(450, 440));
+	renderText(systemFont(), "reder psf system: Test Hyjlpn Swextty!", Color::Yellow, Point(400, 380));
+	renderSurface(frs.renderString("render ttf blended: Test Hyjlpn Swextty!", Color::Yellow, RenderBlended, StyleNormal), Point(400, 400));
+	renderSurface(frs.renderString("render ttf solid: Test Hyjlpn Swextty!", Color::Yellow, RenderSolid, StyleNormal), Point(400, 420));
+	renderSurface(frs.renderString("render ttf shaded: Test Hyjlpn Swextty!", Color::Yellow, RenderShaded, StyleNormal), Point(400, 440));
+	renderSurface(frs.renderString("ttf style: Test Hyjlpn Swextty!", Color::Yellow, RenderBlended, StyleBold|StyleItalic|StyleUnderLine), Point(400, 460));
     }
 
     bool keyPressEvent(const KeySym & key)
@@ -442,12 +446,6 @@ public:
 	}
 
 	return false;
-    }
-
-    bool textInputEvent(const std::string & str)
-    {
-	VERBOSE(str);
-	return true;
     }
 
     void signalReceive(int sig, const SignalMember* sm)
