@@ -35,8 +35,6 @@ function CatLogInit(win, frs, params)
 		table.insert(term.items, string.sub(t[i], first))
 	    end
 	end
-    else
-	term.items = SWE.SystemRunCommand("getent", "passwd")
     end
 
     term.skipcols = 0

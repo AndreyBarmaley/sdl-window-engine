@@ -3,6 +3,7 @@
 SWE.LuaRegisterDirectory("gui")
 require 'gui_tools'
 require 'gui_dialog'
+require 'gui_editor'
 require 'gui_android'
 require 'gui_filebrowser'
 
@@ -37,7 +38,7 @@ local function SaveCommanderConfig(win)
     	    SWE.SystemMakeDirectory(sharedir)
     	    local config = SWE.SystemConcatePath(sharedir, "commander.json")
     	    -- json format
-    	    local buf = SWE.BinaryBuf("{" .. "\"fsz\":" .. frs.size .. ",\"cwd\":" .. "\"" .. win.cmd.cwd .. "\"}")
+    	    local buf = SWE.BinaryBuf("{" .. "\"fsz\":" .. win.frs.size .. ",\"cwd\":" .. "\"" .. win.cmd.cwd .. "\"}")
     	    buf:SaveToFile(config)
     	    SWE.Debug("save config:", config)
     	end
@@ -99,6 +100,16 @@ local function CommanderInit(win, frs, cwd)
     -- add new buttons
     term.bzo = TermLabelActionCreate("F-", frs, 1, term.rows - 1, term, SWE.Color.White)
     term.bzi = TermLabelActionCreate("F+", frs, term.cols - 5, term.rows - 1, term, SWE.Color.White)
+    term.bed = TermLabelActionCreate("ED", frs, 6, term.rows - 1, term, SWE.Color.White)
+
+    term.bed.MouseClickEvent = function(px,py,pb,rx,ry,rb)
+	local stat = SWE.SystemFileStat(term.result)
+	if not stat.isdir then
+    	    local editor = EditorInit(term, term.frs, term.result)
+    	    SWE.MainLoop(editor)
+	end
+	return true
+    end
 
     term.bzo.MouseClickEvent = function(px,py,pb,rx,ry,rb)
         local fsz = frs.size - 2
