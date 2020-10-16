@@ -40,6 +40,8 @@ add_executable(LuaSWE main/SWE_main.cpp
 
 if(SWE_WITH_LUA52)
     target_link_libraries(LuaSWE liblua52)
+else()
+    target_link_libraries(LuaSWE lua)
 endif()
 
 target_link_libraries(LuaSWE libswe)
