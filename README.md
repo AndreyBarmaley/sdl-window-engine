@@ -8,3 +8,6 @@ https://andreybarmaley.github.io/sdl-window-engine/
 
 Lua API bindings:
 https://andreybarmaley.github.io/SWE_lua/
+
+Lua tutorials:
+https://github.com/AndreyBarmaley/SWE_lua/wiki
