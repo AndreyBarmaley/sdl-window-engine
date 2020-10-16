@@ -6,7 +6,7 @@ Supported SDL1.2 or SDL2.
 API documentation:
 https://andreybarmaley.github.io/sdl-window-engine/
 
-Lua API bindings:
+Lua API bindings documentation:
 https://andreybarmaley.github.io/SWE_lua/
 
 Lua tutorials:
