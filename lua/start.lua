@@ -31,14 +31,14 @@ local function ReadCommanderConfig()
     return cwd,fsz
 end
 
-local function SaveCommanderConfig(win)
+local function SaveCommanderConfig(win, frs)
     if win.cmd then
         local sharedir = SWE.SystemShareDirectories()
         if sharedir ~= nil then
     	    SWE.SystemMakeDirectory(sharedir)
     	    local config = SWE.SystemConcatePath(sharedir, "commander.json")
     	    -- json format
-    	    local buf = SWE.BinaryBuf("{" .. "\"fsz\":" .. win.frs.size .. ",\"cwd\":" .. "\"" .. win.cmd.cwd .. "\"}")
+    	    local buf = SWE.BinaryBuf("{" .. "\"fsz\":" .. frs.size .. ",\"cwd\":" .. "\"" .. win.cmd.cwd .. "\"}")
     	    buf:SaveToFile(config)
     	    SWE.Debug("save config:", config)
     	end
@@ -104,7 +104,7 @@ local function CommanderInit(win, frs, cwd)
 
     term.bed.MouseClickEvent = function(px,py,pb,rx,ry,rb)
 	local stat = SWE.SystemFileStat(term.result)
-	if not stat.isdir then
+	if stat and not stat.isdir then
     	    local editor = EditorInit(term, term.frs, term.result)
     	    SWE.MainLoop(editor)
 	end
@@ -145,6 +145,7 @@ local function CommanderInit(win, frs, cwd)
     return term
 end
 
+local frs = {}
 local win = {}
 
 while true do
@@ -185,7 +186,7 @@ while true do
     end
 
     win.WindowCloseEvent = function()
-	SaveCommanderConfig(win)
+	SaveCommanderConfig(win, frs)
     end
 
     win.TextureInvalidEvent = function()
@@ -212,7 +213,7 @@ while true do
     elseif type(win.cmd.result) == "number" then
 	-- font changed
 	if win.cmd.result == 0x123456 then
-	    SaveCommanderConfig(win)
+	    SaveCommanderConfig(win, frs)
 	end
     elseif type(win.cmd.result) == "string" then
 	local start = win.cmd.result

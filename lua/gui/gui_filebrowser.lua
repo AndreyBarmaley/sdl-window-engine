@@ -571,9 +571,5 @@ function FileBrowserInit(win, frs, path, params)
         return term:LocalUserEvent(event, obj)
     end
 
-    term.WindowCloseEvent = function()
-	-- SWE.Dump(term)
-    end
-
     return term
 end

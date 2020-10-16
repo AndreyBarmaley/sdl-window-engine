@@ -552,8 +552,8 @@ function EditorInit(win, frs2, filename)
 	settings = SWE.JsonParse(SWE.BinaryBuf.ReadFromFile("editor.json"):ToString())
     end
 
-    local termcols = ToInt(win.width / frs.fixedWidth)
-    local termrows = ToInt(win.height / frs.lineHeight)
+    local termcols = win.cols --or ToInt(win.width / frs.fixedWidth)
+    local termrows = win.rows --or ToInt(win.height / frs.lineHeight)
     local area = SWE.Terminal(frs, termcols, termrows)
 
     area:SetKeyHandle(true)
