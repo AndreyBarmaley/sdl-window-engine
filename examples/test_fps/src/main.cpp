@@ -68,6 +68,7 @@ public:
     void renderForeground(void)
     {
 	renderText(systemFont(), fps, Color::Black, Point(width() - 10, height() - 10), AlignRight, AlignBottom);
+	VERBOSE(fps);
     }
 
     bool keyPressEvent(const KeySym & key)
