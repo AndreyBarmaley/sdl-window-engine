@@ -86,6 +86,7 @@ local function CommanderInit(win, frs, cwd)
     local cols = ToInt(win.width / frs.fixedWidth)
     local rows = ToInt(win.height / frs.lineHeight)
 
+    -- create TerminalWindow
     local term = FileBrowserInit(win, frs, cwd,
 		{ cols = cols, rows = rows, include = "%.lua$", exclude = { "start%.lua", "template%.lua" } })
 
@@ -101,6 +102,7 @@ local function CommanderInit(win, frs, cwd)
     term.bzo = TermLabelActionCreate("F-", frs, 1, term.rows - 1, term, SWE.Color.White)
     term.bzi = TermLabelActionCreate("F+", frs, term.cols - 5, term.rows - 1, term, SWE.Color.White)
     term.bed = TermLabelActionCreate("ED", frs, 6, term.rows - 1, term, SWE.Color.White)
+    term.bed.disable = true
 
     term.bed.MouseClickEvent = function(px,py,pb,rx,ry,rb)
 	local stat = SWE.SystemFileStat(term.result)
@@ -126,6 +128,9 @@ local function CommanderInit(win, frs, cwd)
     end
 
     term.LocalUserEvent = function(self, event, obj)
+        if event == SWE.Action.ItemSelected then
+            term.bed.disable = obj.isdir
+        end
 	if event == SWE.Signal.GestureFingerLeft then
 	    if term.log then
 		return false

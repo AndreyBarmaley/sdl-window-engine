@@ -1,0 +1,82 @@
+{
+    "global":  true,
+    "version": 20200415,
+    "colors": {
+	"text": "silver",
+	"back": "midnightblue",
+	"syntaxerror": "firebrick",
+	"highlight": "mediumblue",
+	"cursormarker": "lawngreen",
+	"scrollmarker": "lawngreen",
+	"spacemarker": "cornflowerblue"
+    },
+    "tabs": 4,
+    "highlighting": [
+			{
+			    "description": "LUA reserved keywords",
+			    "color":  "white",
+			    "pattern": "(%l+)",
+			    "style": [ "underline" ],
+			    "tokens": [ "and", "break", "do", "else", "elseif", "end", "for", "function",
+					"goto", "if", "in", "local", "nil", "not", "or", "repeat", "return", "then", "until", "while" ]
+			},
+			{
+			    "description": "LUA functions",
+			    "color": "yellow",
+			    "pattern": "(%l+)",
+			    "tokens": [ "assert", "collectgarbage", "dofile", "error", "getmetatable", "ipairs", "load", "loadfile", "next", "pairs",
+					 "pcall", "print", "rawequal", "rawget", "rawlen", "rawset", "select", "setmetatable", "tonumber", "tostring",
+					 "type", "xpcall", "require", "true", "false" ]
+			},
+			{
+			    "description": "LUA tokens",
+			    "color":  "white",
+			    "pattern": "(%p)",
+			    "style": [],
+			    "tokens": [ "+", "-", "*", "/", "%", "^", "#", "&", "~", "|", "<", ">", "=", "(", ")", "{", "}", "[", "]", ";", ":", ",", "." ]
+			},
+			{
+			    "description": "LUA tables",
+			    "checkobject": true,
+			    "color": "yellow",
+			    "pattern": "(%l+)%.%l+",
+			    "tokens": [ "coroutine", "package", "string", "utf8", "table", "math", "io", "os", "debug" ]
+			},
+			{
+			    "description": "LUA meta methods",
+			    "color": "pink",
+			    "tokens": [ "add", "sub", "mul", "div", "mod", "pow", "unm", "idiv", "band", "bor", "bxor", "bnot", "shl", "shr",
+					"concat", "len", "eq", "lt", "le", "index", "newindex", "call" ]
+			},
+			{
+			    "description": "SWE names",
+			    "checkobject": true,
+			    "focushighlight": true,
+			    "color":  "lightsteelblue",
+			    "pattern": "(SWE%.[%w%.]+)",
+			    "style": [ "italic" ],
+			    "tokens": []
+			},
+			{
+			    "description": "LUA single quotes string",
+			    "color":  "violet",
+			    "pattern": "('[%g%s]-')",
+			    "style": [ "normal" ],
+			    "tokens": []
+			},
+			{
+			    "description": "LUA double quotes string",
+			    "color":  "limegreen",
+			    "pattern": "(\"[%g%s]-\")",
+			    "style": [ "normal" ],
+			    "tokens": []
+			},
+			{
+			    "description": "LUA comments",
+			    "color":  "rosybrown",
+			    "pattern": "(%-%-.+)",
+			    "style": [ "italic" ],
+			    "tokens": []
+			}
+		    ]
+}

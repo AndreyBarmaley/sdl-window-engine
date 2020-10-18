@@ -684,11 +684,11 @@ function EditorInit(win, frs2, filename)
 	end
 
 	if SWE.Key.ESCAPE == key then
-    	    win:SetVisible(false)
+    	    area:SetVisible(false)
 	    return true
 	-- android back key
 	elseif key == 0x4000010e then
-    	    win:SetVisible(false)
+    	    area:SetVisible(false)
 	    return true
 	elseif SWE.Key.RETURN == key then	return AreaKeyReturn(area)
 	elseif SWE.Key.BACKSPACE == key then	return AreaKeyBackspace(area)
@@ -786,8 +786,9 @@ function EditorInit(win, frs2, filename)
 	area:DrawChar(SWE.Char.LTee(SWE.Line.Thin))
 	-- render footer
 	-- 
+        local marker = string.byte("I", 1)
 	-- render cursor marker
-	area:CursorPosition(0, area.cursory):FillFGColor(area.colors.cursormarker):CursorMoveLeft():DrawChar(SWE.Char.VLine(SWE.Line.Bold))
+	area:CursorPosition(0, area.cursory):FillFGColor(area.colors.cursormarker):CursorMoveLeft():DrawChar(marker)
 	-- render cursor
 	local t = area:CursorPosition(area.cursorx, area.cursory):CharsetInfo()
 	if t ~= nil then
@@ -801,7 +802,7 @@ function EditorInit(win, frs2, filename)
 	    if bary > (area.rows - 2) - barh then
 		bary = (area.rows - 2) - barh
     	    end
-	    area:CursorPosition(area.cols - 1, bary + 1):DrawVLine(barh,SWE.Char.VLine(SWE.Line.Double),area.colors.scrollmarker)
+	    area:CursorPosition(area.cols - 1, bary + 1):DrawVLine(barh,marker,area.colors.scrollmarker)
 	end
 	-- sync changes
 	area:SetFlush()
