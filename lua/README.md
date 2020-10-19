@@ -12,5 +12,3 @@ SDL Window Engine: Lua bindings
 * [[Tutorial7: Video Capture]](https://github.com/AndreyBarmaley/SWE_lua/wiki/Tutorial7:-Video-Capture) - Video capture example
 * [[Tutorial8: Digital Clock]](https://github.com/AndreyBarmaley/SWE_lua/wiki/Tutorial8:-Digital-Clock) - Digital clock example
 
-Source moved to [[SWE]](https://github.com/AndreyBarmaley/sdl-window-engine)
-
