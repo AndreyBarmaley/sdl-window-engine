@@ -179,7 +179,7 @@ bool SWE::Display::init(const std::string & title, const Size & winsz, const Siz
 
     if(fullscreen)
         flags |= SDL_FULLSCREEN;
-
+    else
     if(resized)
         flags |= SDL_RESIZABLE;
 
@@ -187,7 +187,7 @@ bool SWE::Display::init(const std::string & title, const Size & winsz, const Siz
 
     if(fullscreen)
         flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
-
+    else
     if(resized)
         flags |= SDL_WINDOW_RESIZABLE;
 
@@ -195,8 +195,9 @@ bool SWE::Display::init(const std::string & title, const Size & winsz, const Siz
 #ifdef ANDROID
     flags |= SDL_WINDOW_FULLSCREEN;
     flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
-    flags |= SDL_WINDOW_RESIZABLE;
+    flags &= ~SDL_WINDOW_RESIZABLE;
 #endif
+
     return createWindow(title, winsz, flags) ? renderInit(rensz, accel) : false;
 }
 
@@ -1538,6 +1539,19 @@ void SWE::Display::setWindowIcon(const Surface & sf)
 #else
     SDL_SetWindowIcon(_window, sf.toSDLSurface());
 #endif
+}
+
+bool SWE::Display::setFullscreenMode(bool f)
+{
+#if SWE_SDL12
+    if(1 == SDL_WM_ToggleFullScreen(SDL_GetVideoSurface()))
+        return true;
+#else
+    if(0 == SDL_SetWindowFullscreen(_window, SDL_WINDOW_FULLSCREEN))
+        return true;
+#endif
+    ERROR(SDL_GetError());
+    return false;
 }
 
 bool SWE::Display::isFullscreenWindow(void)

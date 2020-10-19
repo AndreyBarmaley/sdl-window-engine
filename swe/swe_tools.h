@@ -29,6 +29,7 @@
 #include <iterator>
 #include <algorithm>
 #include <bitset>
+#include <numeric>
 
 #include "swe_types.h"
 #include "swe_binarybuf.h"
@@ -75,35 +76,18 @@ namespace SWE
         Points		renderCircle(const Point &, int, bool fill = false);
         Points		renderLine(const Point &, const Point &, int step = 1);
 
-        template<typename T>
-        const T*	rand(const std::initializer_list<T> & list)
+        template<typename InputIterator>
+        InputIterator   random_n(InputIterator first, InputIterator last)
         {
-	    if(list.size() == 0) return nullptr;
-            typename std::initializer_list<T>::const_iterator it = list.begin();
-	    if(list.size() == 1) return &(*it);
-            std::advance(it, rand(0, list.size() - 1));
-            return it == list.end() ? nullptr : &(*it);
+            auto dist = std::distance(first, last);
+            InputIterator res = first;
+
+            if(1 < dist)
+                std::advance(res, rand(0, dist - 1));
+
+            return res;
         }
 
-        template<typename T>
-        const T*	rand(const std::vector<T> & vec)
-        {
-	    if(vec.empty()) return nullptr;
-	    if(vec.size() == 1) return &vec.front();
-            typename std::vector<T>::const_iterator it = vec.begin();
-            std::advance(it, rand(0, vec.size() - 1));
-            return it == vec.end() ? nullptr : &(*it);
-        }
-
-        template<typename T>
-        const T*	rand(const std::list<T> & list)
-        {
-	    if(list.empty()) return nullptr;
-	    if(list.size() == 1) return &list.front();
-            typename std::list<T>::const_iterator it = list.begin();
-            std::advance(it, rand(0, list.size() - 1));
-            return it == list.end() ? nullptr : &(*it);
-        }
 
 	/* RandQueue */
         template<typename T>
@@ -112,35 +96,29 @@ namespace SWE
 	protected:
             size_t getMaxWeight(void) const
             {
-                size_t max = 0;
-
-                for(auto it = this->begin(); it != this->end(); ++it)
-                    max += (*it).second;
-
-                return max;
+                return std::accumulate(this->begin(), this->end(), 0,
+                                    [](size_t v, auto & pair){ return v += pair.second; });
             }
 
         public:
             RandQueue(size_t size = 0)
             {
-                if(size)
-                    this->reserve(size);
+                if(size) this->reserve(size);
             }
 
             void push(const T & value, size_t weight)
             {
-                if(weight)
-                    this->push_back(std::make_pair(value, weight));
+                if(weight) this->emplace_back(value, weight);
             }
 
 	    bool isValid(void) const
 	    {
-		return this->size();
+		return 0 < this->size();
 	    }
 
             T	 get(void)
             {
-                if(this->size())
+                if(isValid())
                 {
                     std::vector<size_t> percents;
                     percents.reserve(this->size());
@@ -148,26 +126,22 @@ namespace SWE
                     size_t max = getMaxWeight();
 
                     // set weights
-                    for(auto it = this->begin(); it != this->end(); ++it)
-                        percents.push_back(100 * (*it).second / max);
+                    for(auto & pair : *this)
+                        percents.push_back(100 * pair.second / max);
 
                     // calc max
-                    max = 0;
-
-                    for(auto itf = percents.begin(); itf != percents.end(); ++itf)
-                        max += *itf;
+                    max = std::accumulate(percents.begin(), percents.end(), 0,
+                                    [](size_t v, auto & val){ return v += val; });
 
                     size_t rnd = rand(0, max);
                     size_t amount = 0;
 
                     // get rnd
-                    for(auto itf = percents.begin(); itf != percents.end(); ++itf)
-                    {
-                        amount += *itf;
+                    auto it = std::find_if(percents.begin(), percents.end(),
+                                            [&](auto & val){ amount += val; return rnd <= amount; });
 
-                        if(rnd <= amount)
-                            return this->at(std::distance(percents.begin(), itf)).first;
-                    }
+                    if(it != percents.end())
+                        return this->operator[](std::distance(percents.begin(), it)).first;
                 }
 
                 ERROR("weight not found");
@@ -178,8 +152,8 @@ namespace SWE
 	/* RandomChance */
         class RandomChance
         {
-            unsigned int chance;
-            unsigned int index;
+            size_t chance;
+            size_t index;
             std::bitset<100> seeds;
 
             void fill(void)
@@ -196,7 +170,7 @@ namespace SWE
             }
 
         public:
-            RandomChance(unsigned int v/* 1 .. 99 chance */) : chance(v), index(0)
+            RandomChance(size_t v/* 1 .. 99 chance */) : chance(v), index(0)
             {
                 if(chance < 1 || chance > 99) chance = 50;
 

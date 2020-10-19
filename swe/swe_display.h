@@ -44,6 +44,7 @@ namespace SWE
         const Size &	device(void);
         const Size &	size(void);
 
+        bool		setFullscreenMode(bool);
         bool		isFullscreenWindow(void);
         bool            isMaximizedWindow(void);
 

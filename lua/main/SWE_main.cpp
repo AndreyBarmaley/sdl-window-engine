@@ -151,6 +151,14 @@ int main(int argc, char** argv)
 	}
     	ll.stackPop();
 
+#ifdef WITH_VIDEOCAM_FFMPEG
+	DEBUG("build with ffmpeg capture");
+#endif
+
+#ifdef WITH_VIDEOCAM_FIREWIRE
+	DEBUG("build with firewire capture");
+#endif
+
 	// change print -> SWE.Print
 #ifdef ANDROID
 	if(ll.pushTable("SWE").isTopTable())

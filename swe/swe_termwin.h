@@ -507,7 +507,7 @@ namespace SWE
         set::padding		padding;
         TermPos			curpos;
         TermRect		termrt;
-	AlignType			curalign;
+	AlignType		curalign;
         FBColors		curcols;
 	CharProperty		curprop;
 	CharState		curstate;
@@ -535,6 +535,7 @@ namespace SWE
             virtual void        displayFocusEvent(bool gain) {}
         */
         bool			lineWrap(void) const;
+        LineType                systemLine(const LineType &) const;
 
         void			setFGColor(const ColorIndex &);
         void			setBGColor(const ColorIndex &);

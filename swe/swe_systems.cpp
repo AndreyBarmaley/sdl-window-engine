@@ -129,7 +129,7 @@ namespace SWE
         if(osfile.is_open())
             os = & osfile;
         else
-            os = & std::cerr;
+            os = & std::clog;
     }
 
     LogWrapper::~LogWrapper()
@@ -144,7 +144,7 @@ namespace SWE
 
     LogWrapper::LogWrapper()
     {
-        os = & std::cerr;
+        os = & std::clog;
     }
 
     LogWrapper::~LogWrapper() {}

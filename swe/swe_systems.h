@@ -26,6 +26,7 @@
 #include <ostream>
 #include <string>
 #include <vector>
+#include <utility>
 
 #if defined(__MINGW32CE__)
 #include <locale.h>
@@ -50,11 +51,38 @@ namespace SWE
 
         static	void init(const std::string &, const char* = nullptr);
 
-        template<class T>
-        LogWrapper & operator<< (const T & t)
+/*
+        template<typename Value>
+        LogWrapper & cout(Value&& val)
         {
-            if(os) *os << t;
+            if(os) *os << std::forward<Value>(val);
+            return *this;
+        }
 
+        template<typename Value, typename... Values>
+        LogWrapper & cout(Value&& val, Values&&... vals)
+        {
+            if(os) *os << std::forward<Value>(val);
+            return cout(std::forward<Values>(vals)...);
+        }
+
+        template<typename... Values>
+        LogWrapper & cout(Values&&... vals)
+        {
+            return cout(std::forward<Values>(vals)...);
+        }
+*/
+
+        LogWrapper & endl(void)
+        {
+            if(os) *os << std::endl;
+            return *this;
+        }
+
+        template<typename Value>
+        LogWrapper & operator<< (const Value & val)
+        {
+            if(os) *os << val;
             return *this;
         }
     };
@@ -120,16 +148,20 @@ namespace SWE
 } // SWE
 
 #define COUT(x) SWE::LogWrapper() << x << "\n";
-#define PRETTY(x, y) COUT(SWE::String::time() << ": [" << x << "]\t" << SWE::shortPrettyName(__PRETTY_FUNCTION__) << ": " << y)
 
-#define VERBOSE(x) { PRETTY("VERBOSE", x) }
-#define ERROR(x)   { PRETTY("ERROR", x) }
-#define FIXME(x)   { PRETTY("FIXME", x) }
-
-#ifdef SWE_DEBUG_MESSAGES
-#define DEBUG(x)   { if(SWE::Engine::debugMode()) PRETTY("DEBUG",x); }
+#if defined(SWE_DEBUG_MESSAGES) || defined(SWE_DEBUG)
+ #define PRETTY(x, y) COUT(SWE::String::time() << ": " << x << "\t\x1B[35m" << SWE::shortPrettyName(__PRETTY_FUNCTION__) << ": \x1B[36m" << y << "\033[0m")
+ #define VERBOSE(x) { PRETTY("\x1B[31m[VERBOSE]", x); }
+ #define ERROR(x)   { PRETTY("\x1B[93m[ERROR]", x); }
+ #define FIXME(x)   { PRETTY("\x1B[32m[FIXME]", x); }
+ #define DEBUG(x)   { if(SWE::Engine::debugMode()) PRETTY("\x1B[34m[DEBUG]", x); }
 #else
-#define DEBUG(x)   ;
+ #define PRETTY(x, y) COUT(SWE::String::time() << ": " << x << "\t" << SWE::shortPrettyName(__PRETTY_FUNCTION__) << ": " << y)
+ #define VERBOSE(x) { PRETTY("[VERBOSE]", x); }
+ #define ERROR(x)   { PRETTY("[ERROR]", x); }
+ #define FIXME(x)   { PRETTY("[FIXME]", x); }
+ #define DEBUG(x)   {}
 #endif
+
 
 #endif

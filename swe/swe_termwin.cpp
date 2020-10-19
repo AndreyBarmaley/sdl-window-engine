@@ -557,6 +557,11 @@ namespace SWE
         return TermRect(gfx2sym(gfxpt), gfx2sym(gfxsz));
     }
 
+    LineType TermBase::systemLine(const LineType & line) const
+    {
+        return fontRender == & systemFont() ? LineType::LineAscii : line;
+    }
+
     void TermBase::renderWindow(void)
     {
         *this << set::flush();
@@ -651,10 +656,10 @@ namespace SWE
 
     TermBase & TermBase::operator<< (const draw::rect & st)
     {
-        return *this << cursor::set(st.posx(), st.posy()) << acs::ulcorner(st.line) << draw::hline(st.cols() - 2, acs::hline(st.line)) << acs::urcorner(st.line) <<
-               cursor::set(st.posx(), st.posy() + 1) << draw::vline(st.rows() - 2, acs::vline(st.line)) <<
-               cursor::set(st.posx() + st.cols() - 1, st.posy() + 1) << draw::vline(st.rows() - 2, acs::vline(st.line)) <<
-               cursor::set(st.posx(), st.posy() + st.rows() - 1) << acs::llcorner(st.line) << draw::hline(st.cols() - 2, acs::hline(st.line)) << acs::lrcorner(st.line);
+        return *this << cursor::set(st.posx(), st.posy()) << acs::ulcorner(systemLine(st.line)) << draw::hline(st.cols() - 2, acs::hline(systemLine(st.line))) << acs::urcorner(systemLine(st.line)) <<
+               cursor::set(st.posx(), st.posy() + 1) << draw::vline(st.rows() - 2, acs::vline(systemLine(st.line))) <<
+               cursor::set(st.posx() + st.cols() - 1, st.posy() + 1) << draw::vline(st.rows() - 2, acs::vline(systemLine(st.line))) <<
+               cursor::set(st.posx(), st.posy() + st.rows() - 1) << acs::llcorner(systemLine(st.line)) << draw::hline(st.cols() - 2, acs::hline(systemLine(st.line))) << acs::lrcorner(systemLine(st.line));
     }
 
     TermBase & TermBase::operator<< (int ch)

@@ -716,7 +716,7 @@ namespace SWE
         return res;
     }
 
-#ifdef WITH_ICONV
+#ifdef SWE_WITH_ICONV
 #include <iconv.h>
     std::string Tools::stringEncode(const std::string & str, const char* charset)
     {

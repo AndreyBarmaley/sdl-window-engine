@@ -31,13 +31,14 @@
 #include "swe_json_ext.h"
 #endif
 
-#include <lua.hpp>
+#include "lua.hpp"
 
 namespace SWE
 {
 
     class LuaState
     {
+    protected:
         lua_State*	ptr;
 
         void		dumpTable(int index, int tabs = 0);
@@ -45,6 +46,7 @@ namespace SWE
 
     public:
         LuaState(lua_State*);
+        virtual ~LuaState(){}
 
         static LuaState	newState(void);
         static void	closeState(LuaState &);
@@ -168,6 +170,17 @@ namespace SWE
         LuaState &	stackPop(size_t num = 1);
 
         LuaState &	garbageCollect(int mode = LUA_GCCOLLECT);
+    };
+
+    class LuaStateDebug : public LuaState
+    {
+        const char*     funcname;
+        int             top;
+        int             rescount;
+
+    public:
+        LuaStateDebug(lua_State*, const char* funcname, int num = 0);
+        ~LuaStateDebug();
     };
 
 } // SWE

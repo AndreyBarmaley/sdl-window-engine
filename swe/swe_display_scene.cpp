@@ -316,7 +316,7 @@ void SWE::DisplayScene::sceneRedraw(bool force)
 		win->redraw();
 	}
 
-#ifdef SWE_DEBUG_SCENE
+#if defined(SWE_DEBUG_SCENE) || defined(SWE_DEBUG)
 	// mark top focused
 	if(markTopWidget)
 	{
@@ -409,7 +409,7 @@ void SWE::DisplayScene::pushEvent(const ObjectEvent* dst, int code, void* data)
 
 bool SWE::DisplayScene::keyHandle(const KeySym & key, bool press)
 {
-#ifdef SWE_DEBUG_SCENE
+#if defined(SWE_DEBUG_SCENE) || defined(SWE_DEBUG)
     if(press && key.keymod().isLeftShift() && key.isKeyCode(Key::F8))
     {
         markTopWidget = !markTopWidget;

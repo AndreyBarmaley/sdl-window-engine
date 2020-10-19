@@ -676,9 +676,7 @@ namespace SWE
             if((*it).second)
             {
                 os << "\"" << (*it).first << "\": " << (*it).second->toString();
-                auto itend = it;
-
-                if(++itend != content.end()) os << ", ";
+                if(std::next(it) != content.end()) os << ", ";
             }
         }
 
@@ -723,6 +721,38 @@ namespace SWE
     void JsonObject::addObject(const std::string & key, const JsonObject & val)
     {
 	addValue<JsonObject>(key, val);
+    }
+
+    void JsonObject::join(const JsonObject & jo)
+    {
+        for(auto & pair : jo.content)
+        {
+            if(pair.second->isArray())
+            {
+                auto it = content.find(pair.first);
+                if(it != content.end() && (*it).second->isArray())
+                    static_cast<JsonArray*>((*it).second.get())->join(static_cast<const JsonArray &>(*pair.second.get()));
+                else
+                    content.emplace(pair.first, pair.second);
+            }
+            else
+            if(pair.second->isObject())
+            {
+                auto it = content.find(pair.first);
+                if(it != content.end() && (*it).second->isArray())
+                    static_cast<JsonObject*>((*it).second.get())->join(static_cast<const JsonObject &>(*pair.second.get()));
+                else
+                    content.emplace(pair.first, pair.second);
+            }
+            else
+            {
+                auto it = content.find(pair.first);
+                if(it != content.end())
+                    (*it).second = pair.second;
+                else
+                    content.emplace(pair.first, pair.second);
+            }
+        }
     }
 
     /* JsonArray */
@@ -853,6 +883,38 @@ namespace SWE
     void JsonArray::addObject(const JsonObject & val)
     {
         content.emplace_back(val);
+    }
+
+    void JsonArray::join(const JsonArray & ja)
+    {
+        if(content.size() > ja.content.size())
+        { 
+            for(int pos = 0; pos < ja.content.size(); ++pos)
+            {
+                auto & ptr1 = content[pos];
+                auto & ptr2 = ja.content[pos];
+
+                if(ptr2->isArray())
+                {
+                    if(ptr1->isArray())
+                        static_cast<JsonArray*>(ptr1.get())->join(static_cast<const JsonArray &>(*ptr2.get()));
+                    else
+                        ptr1.assign(ptr2);
+                }
+                else
+                if(ptr2->isObject())
+                {
+                    if(ptr1->isObject())
+                        static_cast<JsonObject*>(ptr1.get())->join(static_cast<const JsonObject &>(*ptr2.get()));
+                    else
+                        ptr1.assign(ptr2);
+                }
+            }
+        }
+        else
+        {
+            content = ja.content;
+        }
     }
 
     /* JsonContentFile */

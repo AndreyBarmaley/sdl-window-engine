@@ -155,6 +155,11 @@ namespace SWE
         }
     }
 
+    void UnicodeString::assign(size_t len, int ch)
+    {
+        std::u16string::assign(len, ch);
+    }
+
     void UnicodeString::assign(const_iterator it1, const_iterator it2)
     {
         std::u16string::assign(it1, it2);

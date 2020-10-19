@@ -254,6 +254,7 @@ namespace SWE
 
         void			addArray(const JsonArray &);
         void			addObject(const JsonObject &);
+        void                    join(const JsonArray &);
 
         template<typename T>
         std::vector<T> toStdVector(void) const
@@ -377,6 +378,7 @@ namespace SWE
 
         void			addArray(const std::string &, const JsonArray &);
         void			addObject(const std::string &, const JsonObject &);
+        void                    join(const JsonObject &);
 
         StringList getStringList(const std::string & key) const
         {

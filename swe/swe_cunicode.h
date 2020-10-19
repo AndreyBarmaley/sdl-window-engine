@@ -59,6 +59,7 @@ namespace SWE
         bool		operator!= (const std::string &) const;
 
         void		assign(const std::string &);
+        void		assign(size_t len, int ch);
         void		assign(const_iterator it1, const_iterator it2);
 
         UnicodeString &	append(int);

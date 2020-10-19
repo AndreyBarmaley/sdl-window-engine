@@ -20,7 +20,6 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-/* http://www.lua.org/manual/5.1/manual.html */
 #ifdef SWE_WITH_LUA
 #include <cmath>
 #include <sstream>
@@ -31,15 +30,15 @@
 #include "swe_lua.h"
 
 #if LUA_VERSION_NUM >= 502
-#define LUA_GLOBALSINDEX LUA_REGISTRYINDEX
-#define lua_setfenv lua_setuservalue
-#define lua_getfenv lua_getuservalue
-#define luaL_getn(L,i) ((int)lua_rawlen(L, i))
+ #define LUA_GLOBALSINDEX LUA_REGISTRYINDEX
+ #define lua_setfenv lua_setuservalue
+ #define lua_getfenv lua_getuservalue
+ #define luaL_getn(L,i) ((int)lua_rawlen(L, i))
+#else
+#include "lua-5.1/c-api/compat-5.3.h"
 #endif
 
-#if LUA_VERSION_NUM <= 502
-//#define lua_isinteger(L, i) ((int)lua_isnumber(L, i))
-
+#if LUA_VERSION_NUM < 503
 int lua_isinteger(lua_State* L, int index)
 {
     if(lua_isnumber(L, index))
@@ -55,6 +54,22 @@ int lua_isinteger(lua_State* L, int index)
 
 namespace SWE
 {
+    /* LuaStateDebug */
+    LuaStateDebug::LuaStateDebug(lua_State* L, const char* fname, int num) : LuaState(L), funcname(fname), top(-1), rescount(num)
+    {
+        if(L) top = lua_gettop(L);
+    }
+
+    LuaStateDebug::~LuaStateDebug()
+    {
+        if(LuaState::ptr && 0 <= top)
+        {
+            int size = lua_gettop(LuaState::ptr);
+            if(top + rescount != size)
+                COUT(SWE::String::time() << ": [" << "FIXME" << "]\t" << SWE::shortPrettyName(funcname) << ": " << "stack invalid, " << size - (top + rescount));
+        }
+    }
+
     /* LuaState */
     LuaState LuaState::newState(void)
     {
@@ -74,10 +89,17 @@ namespace SWE
             Engine::except(__FUNCTION__, "null pointer");
     }
 
+
     int LuaState::version(void)
     {
+#if LUA_VERSION_NUM < 502
+	return LUA_VERSION_NUM;
+#elif LUA_VERSION_NUM < 504
         const lua_Number* num = lua_version(ptr);
         return num ? *num : 0;
+#else
+        return lua_version(ptr);
+#endif
     }
 
     int LuaState::doFile(const std::string & file)

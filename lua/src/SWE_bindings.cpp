@@ -448,8 +448,8 @@ int SWE_system_mobile_osname(lua_State* L)
     ll.pushString("symbian");
 #else
     ll.pushNil();
-    return 1;
 #endif
+    return 1;
 }
 
 int SWE_system_current_directory(lua_State* L)
