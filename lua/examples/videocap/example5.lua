@@ -5,7 +5,7 @@ SWE.SetDebug(false)
 
 local win = SWE.DisplayInit("Lua SWE", 640, 480, fullscreen)
 local params = { format = "v4l2", device = "/dev/video0", debug = false, video_standard = "pal", video_size = "320x240" }
-local frs = SWE.FontRender("terminus.ttf", 14, SWE.Font.RenderSolid)
+local frs = SWE.FontRender.System()
 local cam = SWE.VideoCam(params)
 
 function win.RenderWindow()
