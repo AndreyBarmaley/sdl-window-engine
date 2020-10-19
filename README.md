@@ -11,3 +11,6 @@ https://andreybarmaley.github.io/SWE_lua/
 
 SWE_Lua examples and tutorials:
 https://github.com/AndreyBarmaley/SWE_lua/wiki
+
+
+Supported platforms: windows, linux, bsd, android, wince.
