@@ -1162,6 +1162,34 @@ int SWE_window_childrens(lua_State* L)
     return 1;
 }
 
+/// move swe_window top layer
+int SWE_scene_move_toplayer(lua_State* L)
+{
+    // stack: ..., swe_window
+    LuaState ll(L);
+
+    if(! ll.isTopTable())
+    {
+	ERROR("table not found" << ": " << "swe.window");
+	ll.pushBoolean(false);
+	return 1;
+    }
+
+    auto win = SWE_Window::get(ll, -1, __FUNCTION__);
+    if(win)
+    {
+        SWE::DisplayScene::moveTopLayer(*win);
+	ll.pushBoolean(true);
+    }
+    else
+    {
+	ERROR("userdata empty");
+	ll.pushBoolean(false);
+    }
+
+    return 1;
+}
+
 /// remove swe_window from stack
 int SWE_scene_removetop(lua_State* L)
 {
@@ -1840,6 +1868,7 @@ void SWE_Scene::registers(LuaState & ll)
     // SWE.Scene
     ll.pushTable("SWE.Scene");
     ll.pushFunction(SWE_scene_removetop).setFieldTableIndex("Remove", -2);
+    ll.pushFunction(SWE_scene_move_toplayer).setFieldTableIndex("MoveTop", -2);
 
     // SWE.Scene.Windows
     ll.pushTable("SWE.Scene.Windows");
