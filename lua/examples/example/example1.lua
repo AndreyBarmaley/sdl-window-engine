@@ -4,7 +4,7 @@ local fullscreen = false
 
 SWE.SetDebug(true)
 
-local win = SWE.DisplayInit("Lua SWE", 640, 480, fullscreen)
+local win = SWE.DisplayInit("LuaSWE example1", 640, 480, fullscreen)
 local area = SWE.Window(100, 100, 100, 50)
 area.colors = { SWE.Color.Blue, SWE.Color.Red, SWE.Color.Green }
 area.bgcol = 1

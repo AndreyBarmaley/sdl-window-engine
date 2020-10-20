@@ -4,7 +4,7 @@ local fullscreen = false
 
 SWE.SetDebug(true)
 
-local win = SWE.DisplayInit("Lua SWE", 640, 480, fullscreen)
+local win = SWE.DisplayInit("LuaSWE example2", 640, 480, fullscreen)
 
 SWE.CursorHide()
 local txcur = SWE.Texture.Image("cursor16.png")
@@ -78,3 +78,4 @@ function win.KeyPressEvent(key)
 end
 
 SWE.MainLoop(win)
+SWE.CursorShow()
