@@ -31,11 +31,11 @@ add_subdirectory(swe)
 set_target_properties(libswe PROPERTIES PREFIX "")
 set_target_properties(libswe PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
-if(SWE_EXAMPLES)
+if(SWE_EXAMPLES STREQUAL ON)
     add_subdirectory(examples)
 endif()
 
-if(SWE_WITH_LUA)
+if(SWE_WITH_LUA STREQUAL ON)
     pkg_search_module(LUA QUIET lua)
 
     if(LUA_VERSION VERSION_LESS 5.2)

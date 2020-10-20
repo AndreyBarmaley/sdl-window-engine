@@ -26,7 +26,7 @@ if(SWE_EXAMPLES)
     set(SWE_WITH_JSON ON CACHE BOOL "enable builtin json" FORCE)
 endif()
 
-if(SWE_SDL12)
+if(SWE_SDL12 STREQUAL ON)
     pkg_search_module(SDL REQUIRED SDL>=1.2)
 
     add_compile_options(-DSWE_SDL12)
@@ -92,31 +92,31 @@ endif()
 
 link_libraries(z)
 
-if(SWE_DLOPEN)
+if(SWE_DLOPEN STREQUAL ON)
     link_libraries(dl)
 endif()
 
-if(SWE_DISABLE_TERMGUI)
+if(SWE_DISABLE_TERMGUI STREQUAL ON)
     add_compile_options(-DSWE_DISABLE_TERMGUI)
 endif()
 
-if(SWE_DEBUG_MESSAGES)
+if(SWE_DEBUG_MESSAGES STREQUAL ON)
     add_compile_options(-DSWE_DEBUG_MESSAGES)
 endif()
 
-if(SWE_DEBUG_SCENE)
+if(SWE_DEBUG_SCENE STREQUAL ON)
     add_compile_options(-DSWE_DEBUG_SCENE)
 endif()
 
-if(SWE_WITH_JSON)
+if(SWE_WITH_JSON STREQUAL ON)
     add_compile_options(-DSWE_WITH_JSON)
 endif()
 
-if(SWE_SDL12)
+if(SWE_SDL12 STREQUAL ON)
     pkg_search_module(PNG REQUIRED libpng)
     link_libraries(png)
 endif()
 
-if(SWE_WITH_XML)
+if(SWE_WITH_XML STREQUAL ON)
     add_compile_options(-DSWE_WITH_XML)
 endif()

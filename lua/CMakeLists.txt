@@ -74,7 +74,7 @@ project(SWE_LUA_BINDINGS VERSION 20200910.1)
 add_library(SWE SHARED)
 add_subdirectory(src)
 
-if(SWE_WITH_LUA52)
+if(SWE_WITH_LUA52 STREQUAL ON)
     target_sources(SWE PUBLIC ${LUA52_SRC})
     # lua flags
     if(UNIX)
@@ -114,7 +114,7 @@ add_executable(LuaSWE main/SWE_main.cpp
     src/SWE_videocam_ffmpeg.cpp
     src/SWE_window.cpp)
 
-if(SWE_WITH_LUA52)
+if(SWE_WITH_LUA52 STREQUAL ON)
     target_sources(LuaSWE PUBLIC ${LUA52_SRC})
     # lua flags
     if(UNIX)
