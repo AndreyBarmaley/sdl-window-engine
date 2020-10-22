@@ -109,14 +109,6 @@ if(NOT SWE_DISABLE_NETWORK)
     link_libraries(${SDLNET_LIBRARIES})
 endif()
 
-link_libraries(z)
-
-if(SWE_DLOPEN STREQUAL ON)
-    if(LINUX)
-	link_libraries(dl)
-    endif()
-endif()
-
 if(SWE_DISABLE_TERMGUI STREQUAL ON)
     add_compile_options(-DSWE_DISABLE_TERMGUI)
 endif()
@@ -135,9 +127,23 @@ endif()
 
 if(SWE_SDL12 STREQUAL ON)
     pkg_search_module(PNG REQUIRED libpng)
-    link_libraries(png)
+
+    add_compile_options(${PNG_CFLAGS})
+    add_link_options(${PNG_LDFLAGS})
+    link_libraries(${PNG_LIBRARIES})
 endif()
 
 if(SWE_WITH_XML STREQUAL ON)
     add_compile_options(-DSWE_WITH_XML)
+endif()
+
+pkg_search_module(LZ REQUIRED zlib)
+add_compile_options(${LZ_CFLAGS})
+add_link_options(${LZ_LDFLAGS})
+link_libraries(${LZ_LIBRARIES})
+
+if(SWE_DLOPEN STREQUAL ON)
+    if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+	link_libraries(dl)
+    endif()
 endif()
