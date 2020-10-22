@@ -82,32 +82,39 @@ else()
 endif()
 
 add_compile_options(${SDL_CFLAGS})
+add_link_options(${SDL_LDFLAGS})
 link_libraries(${SDL_LIBRARIES})
 
 if(NOT SWE_DISABLE_AUDIO)
     add_compile_options(${SDLMIXER_CFLAGS})
+    add_link_options(${SDLMIXER_LDFLAGS})
     link_libraries(${SDLMIXER_LIBRARIES})
 endif()
 
 if(NOT SWE_DISABLE_IMAGE)
     add_compile_options(${SDLIMAGE_CFLAGS})
+    add_link_options(${SDLIMAGE_LDFLAGS})
     link_libraries(${SDLIMAGE_LIBRARIES})
 endif()
 
 if(NOT SWE_DISABLE_TTF)
     add_compile_options(${SDLTTF_CFLAGS})
+    add_link_options(${SDLTTF_LDFLAGS})
     link_libraries(${SDLTTF_LIBRARIES})
 endif()
 
 if(NOT SWE_DISABLE_NETWORK)
     add_compile_options(${SDLNET_CFLAGS})
+    add_link_options(${SDLNET_LDFLAGS})
     link_libraries(${SDLNET_LIBRARIES})
 endif()
 
 link_libraries(z)
 
 if(SWE_DLOPEN STREQUAL ON)
-    link_libraries(dl)
+    if(LINUX)
+	link_libraries(dl)
+    endif()
 endif()
 
 if(SWE_DISABLE_TERMGUI STREQUAL ON)
