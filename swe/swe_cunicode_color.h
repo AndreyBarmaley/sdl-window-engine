@@ -28,6 +28,7 @@
 #include "swe_colors.h"
 #include "swe_cunicode.h"
 
+/// @brief пространство SWE
 namespace SWE
 {
     /// @brief класс цветного unicode символа

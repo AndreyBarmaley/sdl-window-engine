@@ -26,6 +26,7 @@
 #include <string>
 #include "swe_types.h"
 
+/// @brief пространство SWE
 namespace SWE
 {
 
@@ -45,9 +46,10 @@ namespace SWE
         KeyName(int k, const char* v) : key(k), name(v) {}
     };
 
-
+    /// @brief пространство Key
     namespace Key
     {
+        /// @brief перечисление тип клавиатурных символов
         enum
         {
             NONE = SDLK_UNKNOWN,

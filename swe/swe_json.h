@@ -36,6 +36,7 @@
 #include "swe_rect.h"
 #include "jsmn/jsmn.h"
 
+/// @brief пространство SWE
 namespace SWE
 {
 

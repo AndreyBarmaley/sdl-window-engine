@@ -29,6 +29,7 @@
 #include "swe_types.h"
 #include "swe_tools.h"
 
+/// @brief пространство SWE
 namespace SWE
 {
 

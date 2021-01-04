@@ -37,6 +37,7 @@
 #include "swe_systems.h"
 #include "swe_serialize.h"
 
+/// @brief пространство SWE
 namespace SWE
 {
     namespace Tools

@@ -29,6 +29,7 @@
 
 #include "swe_types.h"
 
+/// @brief пространство SWE
 namespace SWE
 {
 
@@ -39,6 +40,8 @@ namespace SWE
     class UnicodeString : public std::u16string
     {
     protected:
+        static std::u16string   utf8_to_utf16(const std::string &);
+        static std::string      utf16_to_utf8(const std::u16string &);
 
     public:
         UnicodeString();

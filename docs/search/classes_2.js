@@ -8,5 +8,6 @@ var searchData=
   ['colname_5ft',['colname_t',['../structSWE_1_1colname__t.html',1,'SWE']]],
   ['color',['Color',['../classSWE_1_1Color.html',1,'SWE']]],
   ['colorindex',['ColorIndex',['../classSWE_1_1ColorIndex.html',1,'SWE']]],
-  ['colors',['colors',['../structSWE_1_1set_1_1colors.html',1,'SWE::set::colors'],['../structSWE_1_1reset_1_1colors.html',1,'SWE::reset::colors'],['../structSWE_1_1fill_1_1colors.html',1,'SWE::fill::colors']]]
+  ['colors',['colors',['../structSWE_1_1set_1_1colors.html',1,'SWE::set::colors'],['../structSWE_1_1reset_1_1colors.html',1,'SWE::reset::colors'],['../structSWE_1_1fill_1_1colors.html',1,'SWE::fill::colors']]],
+  ['commandconsole',['CommandConsole',['../classSWE_1_1CommandConsole.html',1,'SWE']]]
 ];

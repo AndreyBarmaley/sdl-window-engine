@@ -27,6 +27,7 @@
 
 #include "swe_types.h"
 
+/// @brief пространство SWE
 namespace SWE
 {
 

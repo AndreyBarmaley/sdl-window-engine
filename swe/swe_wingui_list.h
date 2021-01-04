@@ -26,10 +26,11 @@
 #include <vector>
 
 #include "swe_wingui.h"
-// ListWidget emit signals: Signal::ListWidgetChanged, Signal::ListWidgetScrolled
 
+/// @brief пространство SWE
 namespace SWE
 {
+    // ListWidget emit signals: Signal::ListWidgetChanged, Signal::ListWidgetScrolled
     class ListWidget;
 
     class ListWidgetItem : public WindowToolTipArea

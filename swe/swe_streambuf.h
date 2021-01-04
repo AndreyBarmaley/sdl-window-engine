@@ -25,6 +25,7 @@
 
 #include "swe_serialize.h"
 
+/// @brief пространство SWE
 namespace SWE
 {
 

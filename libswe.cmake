@@ -53,6 +53,8 @@ if(SWE_SDL12 STREQUAL ON)
     else()
         pkg_search_module(SDLNET REQUIRED SDL_net>=1.2)
     endif()
+    # link X11, see SWE::Display::isMaximizedWindow
+    link_libraries(X11)
 else()
     pkg_search_module(SDL REQUIRED sdl2>=2.0.1)
 

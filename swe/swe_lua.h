@@ -33,6 +33,7 @@
 
 #include "lua.hpp"
 
+/// @brief пространство SWE
 namespace SWE
 {
 

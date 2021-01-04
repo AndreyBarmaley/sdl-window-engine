@@ -22,10 +22,12 @@
 
 #include <ctime>
 #include <cctype>
+#include <locale>
 #include <cstring>
 #include <sstream>
 #include <iomanip>
 #include <numeric>
+#include <codecvt>
 #include <algorithm>
 
 #include "swe_tools.h"
@@ -96,63 +98,23 @@ namespace SWE
         return *this;
     }
 
+    std::u16string UnicodeString::utf8_to_utf16(const std::string & utf8)
+    {
+        std::wstring_convert<std::codecvt_utf8<char16_t>,char16_t> conv;
+        return conv.from_bytes(utf8);
+    }
+
+    std::string UnicodeString::utf16_to_utf8(const std::u16string & utf16)
+    {
+        std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> conv;
+        return conv.to_bytes(utf16);
+    }
+
     void UnicodeString::assign(const std::string & utf8)
     {
         clear();
         reserve(utf8.size() + 1);
-
-        // convert utf8 to utf16
-        for(auto it = utf8.begin(); it != utf8.end(); ++it)
-        {
-            u16 ch = static_cast<u8>(*it);
-
-            if(ch >= 0xF0)
-            {
-                if(std::distance(it, utf8.end()) > 3)
-                {
-                    ch  =  static_cast<u16>(*it++ & 0x07) << 18;
-                    ch |=  static_cast<u16>(*it++ & 0x3F) << 12;
-                    ch |=  static_cast<u16>(*it++ & 0x3F) << 6;
-                    ch |=  static_cast<u16>(*it & 0x3F);
-                }
-                else break;
-            }
-            else if(ch >= 0xE0)
-            {
-                if(std::distance(it, utf8.end()) > 2)
-                {
-                    ch  =  static_cast<u16>(*it++ & 0x0F) << 12;
-                    ch |=  static_cast<u16>(*it++ & 0x3F) << 6;
-                    ch |=  static_cast<u16>(*it & 0x3F);
-                }
-                else break;
-            }
-            else if(ch >= 0xC0)
-            {
-                if(std::distance(it, utf8.end()) > 1)
-                {
-                    ch  =  static_cast<u16>(*it++ & 0x1F) << 6;
-                    ch |=  static_cast<u16>(*it & 0x3F);
-                }
-                else break;
-            }
-
-            switch(ch)
-            {
-                case '\n':
-                    push_back(ch);
-                    // ERROR("FIXME: " << "skip <endline> for string; " << utf8);
-                    break;
-
-                case '\t':
-                    resize(size() + 4, 0x20);
-                    break;
-
-                default:
-                    push_back(ch);
-                    break;
-            }
-        }
+        std::u16string::assign(utf8_to_utf16(utf8));
     }
 
     void UnicodeString::assign(size_t len, int ch)
@@ -224,28 +186,7 @@ namespace SWE
 
     std::string UnicodeString::toString(void) const
     {
-        std::string str;
-        str.reserve(2 * size());
-
-        // utf16 to utf8
-        for(auto it = begin(); it != end(); ++it)
-        {
-            if(*it < 128)
-                str.append(1, static_cast<char>(*it));
-            else if(*it < 2048)
-            {
-                str.append(1, static_cast<char>(192 + ((*it - (*it % 64)) / 64)));
-                str.append(1, static_cast<char>(128 + (*it % 64)));
-            }
-            else
-            {
-                str.append(1, static_cast<char>(224 + ((*it - (*it % 4096)) / 4096)));
-                str.append(1, static_cast<char>(128 + (((*it % 4096) - (*it % 64)) / 64)));
-                str.append(1, static_cast<char>(128 + (*it % 64)));
-            }
-        }
-
-        return str;
+        return utf16_to_utf8(*this);
     }
 
     std::string UnicodeString::toHexString(const std::string & sep, bool prefix) const

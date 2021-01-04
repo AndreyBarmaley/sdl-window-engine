@@ -32,6 +32,7 @@
 #include "swe_types.h"
 #include "swe_binarybuf.h"
 
+/// @brief пространство SWE
 namespace SWE
 {
 
@@ -182,36 +183,41 @@ namespace SWE
             return *this << p.first << p.second;
         }
 
+        template<typename InputIterator>
+        StreamBase & push(InputIterator first, InputIterator last)
+        {
+            for(auto it = first; it != last; ++it)
+                *this << *it;
+
+            return *this;
+        }
+
         template<class Type>
         StreamBase & operator<< (const std::vector<Type> & v)
         {
-            put32(static_cast<u32>(v.size()));
-            for(auto it = v.begin(); it != v.end(); ++it) *this << *it;
-            return *this;
+            put32(v.size());
+            return push(std::begin(v), std::end(v));
         }
 
         template<class Type>
         StreamBase & operator<< (const std::list<Type> & v)
         {
-            put32(static_cast<u32>(v.size()));
-            for(auto it = v.begin(); it != v.end(); ++it) *this << *it;
-            return *this;
+            put32(v.size());
+            return push(std::begin(v), std::end(v));
         }
 
         template<class Type1, class Type2>
         StreamBase & operator<< (const std::map<Type1, Type2> & v)
         {
-            put32(static_cast<u32>(v.size()));
-            for(auto it = v.begin(); it != v.end(); ++it) *this << (*it).first << (*it).second;
-            return *this;
+            put32(v.size());
+            return push(std::begin(v), std::end(v));
         }
 
         template<class Type1, class Type2, class... Args>
         StreamBase & operator<< (const std::unordered_map<Type1, Type2, Args...> & v)
         {
-            put32(static_cast<u32>(v.size()));
-            for(auto it = v.begin(); it != v.end(); ++it) *this << (*it).first << (*it).second;
-            return *this;
+            put32(v.size());
+            return push(std::begin(v), std::end(v));
         }
     };
 

@@ -1,11 +1,11 @@
 cmake_minimum_required(VERSION 3.14)
 
-project(SDL_WINDOW_ENGINE VERSION 20201010.1)
+project(SDL_WINDOW_ENGINE VERSION 20201210.1)
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -ggdb3 -O0 -Wall -Werror -Wno-sign-compare -fsigned-char")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -ggdb3 -O0 -Wall -Werror -Wno-sign-compare -fsigned-char -DSWE_DEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -Wall -Wno-sign-compare -fsigned-char")
 
 option(SWE_SDL12 "switch to SDL12" OFF)

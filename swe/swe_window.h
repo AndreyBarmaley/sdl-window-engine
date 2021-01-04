@@ -31,6 +31,7 @@
 #include "swe_events.h"
 #include "swe_display.h"
 
+/// @brief пространство SWE
 namespace SWE
 {
 

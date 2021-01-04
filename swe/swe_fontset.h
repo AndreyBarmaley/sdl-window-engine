@@ -28,11 +28,20 @@
 #include "swe_binarybuf.h"
 #include "swe_cunicode_color.h"
 
+/// @brief пространство SWE
 namespace SWE
 {
 
+    /// @enum SWE::AlignType
     /// @brief перечисление типа выравнивания
-    enum AlignType { AlignLeft, AlignRight, AlignTop, AlignBottom, AlignCenter };
+    enum AlignType
+    {
+        AlignLeft,      ///< по левому краю
+        AlignRight,     ///< по правому краю
+        AlignTop,       ///< по верхнему краю
+        AlignBottom,    ///< по нижнему краю
+        AlignCenter     ///< по центру
+    };
 
     struct CharsetID;
 
@@ -56,12 +65,38 @@ namespace SWE
 #define TTF_HINTING_NONE   3
 #endif
 
+    /// @enum SWE::CharRender
     /// @brief перечисление типа рендера
-    enum CharRender { RenderDefault = -1, RenderSolid = 0, RenderBlended = 1, RenderShaded = 2 };
+    enum CharRender
+    {
+        RenderDefault = -1,     ///< по умолчанию (используется значение заданное при инициализации)
+        RenderSolid = 0,        ///< тип solid
+        RenderBlended = 1,      ///< тип blended
+        RenderShaded = 2        ///< тип shaded
+    };
+
+    /// @enum SWE::CharStyle
     /// @brief перечисление типа стиля шрифта
-    enum CharStyle { StyleDefault = -1, StyleNormal = TTF_STYLE_NORMAL, StyleBold = TTF_STYLE_BOLD, StyleItalic = TTF_STYLE_ITALIC, StyleUnderLine = TTF_STYLE_UNDERLINE, StyleStrikeThrough = TTF_STYLE_STRIKETHROUGH };
+    enum CharStyle
+    {
+        StyleDefault = -1,                              ///< по умолчанию (используется значение заданное при инициализации)
+        StyleNormal = TTF_STYLE_NORMAL,                 ///< стиль normal
+        StyleBold = TTF_STYLE_BOLD,                     ///< стиль bold
+        StyleItalic = TTF_STYLE_ITALIC,                 ///< стиль italic
+        StyleUnderLine = TTF_STYLE_UNDERLINE,           ///< стиль under line
+        StyleStrikeThrough = TTF_STYLE_STRIKETHROUGH    ///< стиль strike through
+    };
+
+    /// @enum SWE::CharHinting
     /// @brief перечисление типа сглаживания контура
-    enum CharHinting { HintingDefault = -1, HintingNormal = TTF_HINTING_NORMAL, HintingLight = TTF_HINTING_LIGHT, HintingMono = TTF_HINTING_MONO, HintingNone = TTF_HINTING_NONE };
+    enum CharHinting
+    {
+        HintingDefault = -1,                            ///< по умолчанию (используется значение заданное при инициализации)
+        HintingNormal = TTF_HINTING_NORMAL,             ///< тип normal
+        HintingLight = TTF_HINTING_LIGHT,               ///< тип light
+        HintingMono = TTF_HINTING_MONO,                 ///< тип mono
+        HintingNone = TTF_HINTING_NONE                  ///< тип none
+    };
 
     /// @brief свойства отрисовка символа
     struct CharProperty
@@ -249,6 +284,7 @@ namespace SWE
         Surface			renderCharset(int, const Color &, const CharRender & = RenderDefault, int style = StyleDefault, const CharHinting & = HintingDefault) const override;
     };
 
+    /// @brief встроенный системный рендер PSF шрифта
     class FontAltC8x16 : public FontRenderPSF
     {
     public:
@@ -257,7 +293,8 @@ namespace SWE
 
 #define FontRenderSystem	FontAltC8x16
 
-    /// @brief встроенный рендер PSF шрифта, FontAltC8x16
+    /// @brief альяс на встроенный рендер PSF шрифта
+    /// @see FontAltC8x16
     const FontRenderSystem & 	systemFont(void);
 
 } // SWE

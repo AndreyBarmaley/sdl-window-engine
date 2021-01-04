@@ -23,6 +23,7 @@
 #ifndef _SWE_TRANSLATIONS_
 #define _SWE_TRANSLATIONS_
 
+/// @brief пространство SWE
 namespace SWE
 {
 

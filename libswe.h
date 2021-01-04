@@ -53,7 +53,6 @@
 #include "swe/swe_json.h"
 #include "swe/swe_json_ext.h"
 #include "swe/swe_lua.h"
-#include "swe/swe_xml2.h"
 #include "swe/swe_display_scene.h"
 #include "swe/swe_engine.h"
 

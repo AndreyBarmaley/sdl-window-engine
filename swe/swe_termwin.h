@@ -25,14 +25,23 @@
 
 #include "swe_window.h"
 
+/// @brief пространство SWE
 namespace SWE
 {
+    /// @enum SWE::LineType
     /// @brief перечисление типа символьных линий
-    enum LineType { LineNone, LineAscii, LineThin, LineBold, LineDouble };
+    enum LineType
+    {
+        LineAscii,      ///< ascii линия
+        LineThin,       ///< unicode тонкая
+        LineBold,       ///< unicode толстая
+        LineDouble      ///< unicode двойная
+    };
+
     /// @brief перечисление направления движения курсора в терминале
     enum MoveDirection { MoveCenter, MoveUp, MoveDown, MoveLeft, MoveRight, MoveUpperLeft, MoveUpperRight, MoveLowerLeft, MoveLowerRight, MoveFirst, MoveLast };
 
-    /* line chars */
+    /// @brief пространство символов линий
     namespace acs
     {
 	/// @brief код символа "вертикальная линия"
@@ -119,12 +128,22 @@ namespace SWE
         Rect                    toRect(void) const { return Rect(toPoint(), toSize()); }
     };
 
-    /* CharState */
+    /// @brief класс состояние графического символа
     struct CharState
     {
 	u8			state;
 
-	enum Type { FlipHorz = 0x01, FlipVert = 0x02, FlipBoth = FlipVert | FlipHorz, Inverted = 0x04, Blinked = 0x08, /* AlphaRez = 0xF0 */ };
+        /// @enum CharState::Type
+        /// @brief перечисление тип состояний символа
+	enum Type
+        {
+            FlipHorz = 0x01,                    ///< flip по горизонтали
+            FlipVert = 0x02,                    ///< flip по вертикали
+            FlipBoth = FlipVert | FlipHorz,     ///< flip по горизонтали и вертикали
+            Inverted = 0x04,                    ///< инвертировать цвет символа на увет фона
+            Blinked = 0x08,                     ///< blink state
+            /* AlphaRez = 0xF0 */
+        };
 	CharState(u8 val = 0) : state(val) {}
 
 	void			setState(const Type &, bool f);
@@ -134,6 +153,7 @@ namespace SWE
 	int			alpha(void) const;
     };
 
+    /// @brief пространство манипулятор курсора
     namespace cursor
     {
 	/// @brief класс манипулятор, установка позиции курсора терминала
@@ -192,6 +212,7 @@ namespace SWE
         };
     }
 
+    /// @brief пространство манипулятор set
     namespace set
     {
 	/// @brief класс манипулятор, установка состояния set::fgcolor
@@ -300,6 +321,7 @@ namespace SWE
         struct flush {};
     }
 
+    /// @brief пространство манипулятор reset
     namespace reset
     {
 	/// @brief класс манипулятор, сброс состояния set::fgcolor
@@ -339,6 +361,7 @@ namespace SWE
         struct defaults {};
     }
 
+    /// @brief пространство манипулятор fill
     namespace fill
     {
         /// @protected
@@ -418,6 +441,7 @@ namespace SWE
         };
     }
 
+    /// @brief пространство манипулятор draw
     namespace draw
     {
 	/// @brief класс манипулятор, рисования горизонтальной линии
@@ -450,7 +474,7 @@ namespace SWE
         };
     }
 
-    /* TermCharset */
+    /// @brief класс терминального символа
     class TermCharset
     {
 	// 16 bit + 16 bit

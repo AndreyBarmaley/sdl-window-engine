@@ -1,5 +1,6 @@
 var searchData=
 [
-  ['fontaltc8x16',['FontAltC8x16',['../classSWE_1_1FontAltC8x16.html#aa58f4daa2044084dca01c275781ab9ba',1,'SWE::FontAltC8x16']]],
-  ['frs',['frs',['../classSWE_1_1TermBase.html#a29837c143f07eba369745893c59ecb45',1,'SWE::TermBase']]]
+  ['disabletickevent',['disableTickEvent',['../classSWE_1_1Window.html#a5e074b21906debe18618a49465719136',1,'SWE::Window']]],
+  ['distance',['distance',['../structSWE_1_1Point.html#ae34c96ba547037938f6dda64137fb9cc',1,'SWE::Point']]],
+  ['dumpscene',['dumpScene',['../classSWE_1_1DisplayScene.html#aa92db29a50785140f6ff35e44a73ba29',1,'SWE::DisplayScene']]]
 ];

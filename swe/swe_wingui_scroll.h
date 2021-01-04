@@ -24,12 +24,13 @@
 #define _SWE_GUI_SCROLL_
 
 #include "swe_wingui.h"
-// ScrollBar emit signals: Signal::ScrollBarMoved
 
+/// @brief пространство SWE
 namespace SWE
 {
     class ListWidget;
 
+    // ScrollBar emit signals: Signal::ScrollBarMoved
     class ScrollBar : public Window
     {
 	TexturePos		txcur;

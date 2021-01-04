@@ -29,6 +29,7 @@
 #include "swe_colors.h"
 #include "swe_rect.h"
 
+/// @brief пространство SWE
 namespace SWE
 {
 

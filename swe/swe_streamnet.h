@@ -26,6 +26,7 @@
 #ifndef SWE_DISABLE_NETWORK
 #include "swe_serialize.h"
 
+/// @brief пространство SWE
 namespace SWE
 {
 

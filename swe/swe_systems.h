@@ -37,6 +37,7 @@
 #include "swe_binarybuf.h"
 #include "swe_cstring.h"
 
+/// @brief пространство SWE
 namespace SWE
 {
     class LogWrapper

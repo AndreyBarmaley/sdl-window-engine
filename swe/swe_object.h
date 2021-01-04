@@ -29,6 +29,7 @@
 #include "swe_json_ext.h"
 #endif
 
+/// @brief пространство SWE
 namespace SWE
 {
     class DisplayScene;

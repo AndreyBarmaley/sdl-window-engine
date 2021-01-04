@@ -26,6 +26,7 @@
 #include "swe_wingui.h"
 // WindowButton emit signals: Signal::ButtonPressed, Signal::ButtonReleased, Signal::ButtonClicked
 
+/// @brief пространство SWE
 namespace SWE
 {
     struct KeySym;

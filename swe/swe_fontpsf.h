@@ -2,6 +2,7 @@
 #ifndef _SWE_SYSTEM_FONT_
 #define _SWE_SYSTEM_FONT_
 
+/// @private
 const struct
 {
     int  width;

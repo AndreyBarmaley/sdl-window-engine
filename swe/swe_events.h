@@ -26,6 +26,7 @@
 #include "swe_rect.h"
 #include "swe_object.h"
 
+/// @brief пространство SWE
 namespace SWE
 {
     /// @protected
@@ -105,45 +106,56 @@ namespace SWE
     };
 
 #ifdef SWE_SDL12
-    enum { ButtonNone, ButtonLeft = SDL_BUTTON(SDL_BUTTON_LEFT), ButtonRight = SDL_BUTTON(SDL_BUTTON_RIGHT), ButtonMiddle = SDL_BUTTON(SDL_BUTTON_MIDDLE),
+    /// @enum SWE::ButtonType
+    /// @brief перечисление тип кнопки мышки
+    enum ButtonType
+    {
+        ButtonNone, ButtonLeft = SDL_BUTTON(SDL_BUTTON_LEFT), ButtonRight = SDL_BUTTON(SDL_BUTTON_RIGHT), ButtonMiddle = SDL_BUTTON(SDL_BUTTON_MIDDLE),
            ButtonX1 = SDL_BUTTON(SDL_BUTTON_WHEELUP), ButtonX2 = SDL_BUTTON(SDL_BUTTON_WHEELDOWN), FingerTap = SDL_BUTTON(ButtonLeft)
-         };
+    };
 #else
-    enum { ButtonNone, ButtonLeft = SDL_BUTTON(SDL_BUTTON_LEFT), ButtonRight = SDL_BUTTON(SDL_BUTTON_RIGHT), ButtonMiddle = SDL_BUTTON(SDL_BUTTON_MIDDLE),
+    /// @enum SWE::ButtonType
+    /// @brief перечисление тип кнопки мышки
+    enum ButtonType
+    {
+        ButtonNone, ButtonLeft = SDL_BUTTON(SDL_BUTTON_LEFT), ButtonRight = SDL_BUTTON(SDL_BUTTON_RIGHT), ButtonMiddle = SDL_BUTTON(SDL_BUTTON_MIDDLE),
            ButtonX1 = SDL_BUTTON(SDL_BUTTON_X1), ButtonX2 = SDL_BUTTON(SDL_BUTTON_X2), FingerTap = SDL_BUTTON(ButtonLeft)
-         };
+    };
 #endif
 
+    /// @brief базовый класс кнопки мышки
     class MouseButton
     {
     protected:
-        int              btn;
+        ButtonType      btn;
 
     public:
-        MouseButton(int type = ButtonNone) : btn(type) {}
+        MouseButton(ButtonType type = ButtonNone) : btn(type) {}
 
-        bool 		isButton(int type) const 	{ return btn == type; }
+        bool 		isButton(ButtonType type) const { return btn == type; }
         bool 		isButtonLeft(void) const 	{ return btn == ButtonLeft; }
         bool 		isButtonRight(void) const 	{ return btn == ButtonRight; }
         bool 		isButtonMiddle(void) const 	{ return btn == ButtonMiddle; }
         bool 		isButtonX1(void) const 		{ return btn == ButtonX1; }
         bool 		isButtonX2(void) const 		{ return btn == ButtonX2; }
-        int  		button(void) const 		{ return btn; }
+        const ButtonType & button(void) const 		{ return btn; }
     };
 
+    /// @brief event класс кнопки мыши
     class ButtonEvent : public MouseButton
     {
     protected:
         Point           coord;
 
     public:
-        ButtonEvent(int type = ButtonNone) : MouseButton(type) {}
-        ButtonEvent(int type, const Point & pos) : MouseButton(type), coord(pos) {}
+        ButtonEvent(ButtonType type = ButtonNone) : MouseButton(type) {}
+        ButtonEvent(ButtonType type, const Point & pos) : MouseButton(type), coord(pos) {}
 
         void 		setPosition(const Point & pos) { coord = pos; }
         const Point &	position(void) const { return coord; }
     };
 
+    /// @brief event класс кнопки мыши (с состояниями press, release)
     class ButtonsEvent
     {
     protected:
@@ -151,8 +163,8 @@ namespace SWE
         ButtonEvent     coord2;
 
     public:
-        ButtonsEvent(int type = ButtonNone) : coord1(type), coord2(type) {}
-        ButtonsEvent(int type, const Point & pos1, const Point & pos2) : coord1(type, pos1), coord2(type, pos2) {}
+        ButtonsEvent(ButtonType type = ButtonNone) : coord1(type), coord2(type) {}
+        ButtonsEvent(ButtonType type, const Point & pos1, const Point & pos2) : coord1(type, pos1), coord2(type, pos2) {}
 
         bool		isClick(const Rect & rt) const {
         			return (rt & coord1.position()) && (rt & coord2.position()); }
@@ -170,6 +182,7 @@ namespace SWE
         bool		isButtonX2(void) const 		{ return press().isButtonX2(); }
     };
 
+    /// @brief event класс пользовательских данных
     struct UserEvent
     {
         int                 code;
@@ -186,6 +199,8 @@ namespace SWE
         }
     };
 
+    /// @enum SWE::Signal
+    /// @brief перечисление системных сигналов
     enum Signal
     {
         EventNone = 0x01000000,

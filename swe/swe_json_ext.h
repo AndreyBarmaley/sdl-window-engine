@@ -27,6 +27,7 @@
 
 #include "swe_json.h"
 
+/// @brief пространство SWE
 namespace SWE
 {
 

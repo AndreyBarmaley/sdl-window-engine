@@ -29,11 +29,13 @@
 #include <memory>
 #include "swe_termwin.h"
 
+/// @brief пространство SWE
 namespace SWE
 {
+    /// @brief пространство TermGUI
     namespace TermGUI
     {
-	/* ThemeColors */
+	/// @brief Theme colors base class
         class ThemeColors
         {
         public:
@@ -346,6 +348,34 @@ protected:
         };
 
     } // namespace TermGUI
+
+    class CommandConsole : public TermWindow
+    {
+        UnicodeList             content;
+        std::string             command;
+        
+    protected:
+        FBColors                defaultColors(void) const override;
+        bool                    keyPressEvent(const KeySym &) override;
+        bool                    textInputEvent(const std::string &) override;
+
+        virtual bool            actionCommand(const std::string &);
+        
+    public:
+        CommandConsole(const Size &, const FontRender &, Window &);
+        CommandConsole(const TermSize &, TermWindow &);
+        
+        void                    renderWindow(void) override;
+        
+        const std::string &     commandLine(void) const { return command; }
+        const UnicodeList &     contentLines(void) const { return content; }
+        
+        void                    commandLineClear(void);
+        void                    contentLinesClear(void);
+        
+        void                    contentLinesAppend(const std::string &);
+        void                    contentLinesAppend(const StringList &);
+    };
 
 } // SWE
 #endif // SWE_DISABLE_TERMGUI

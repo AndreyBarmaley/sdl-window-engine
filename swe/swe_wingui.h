@@ -25,6 +25,7 @@
 
 #include "swe_window.h"
 
+/// @brief пространство SWE
 namespace SWE
 {
     class WindowToolTipArea : public Window

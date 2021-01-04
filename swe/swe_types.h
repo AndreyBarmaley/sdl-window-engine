@@ -108,6 +108,7 @@ using namespace std;
 #define _(s)            SWE::Translation::gettext(s)
 #define _n(a,b,c)       SWE::Translation::ngettext(a,b,c)
 
+/// @brief пространство SWE
 namespace SWE
 {
     class StreamBase;

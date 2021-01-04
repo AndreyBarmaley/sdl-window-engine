@@ -24,9 +24,11 @@
 #define _SWE_GUI_INPUT_
 
 #include "swe_wingui.h"
-// LineEdit emit signals: LineEditTextChanged, LineEditCursorChanged, LineEditReturnPressed
+
+/// @brief пространство SWE
 namespace SWE
 {
+    // LineEdit emit signals: LineEditTextChanged, LineEditCursorChanged, LineEditReturnPressed
     class LineEdit : public WindowToolTipArea
     {
         std::string     	content;

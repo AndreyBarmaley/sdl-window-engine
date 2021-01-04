@@ -55,9 +55,11 @@ MainScreen::MainScreen(const std::string & title, int fsz, const char* extfont)
 {
     *this << fill::defaults(defaultColors(), 0x20, defaultProperty()) << cursor::set(0, 0);
 
-    buttons.addLabel(new TermGUI::TextButton("<T>est Button1", 1025, *this));
-    buttons.addLabel(new TermGUI::TextButton("T<e>st Button2", 1026, *this));
-    buttons.addLabel(new TermGUI::TextButton("Te<s>t Button3", 1027, *this));
+    buttons.addLabel(new TermGUI::TextButton("<T>est Button1", 1021, *this));
+    buttons.addLabel(new TermGUI::TextButton("T<e>st Button2", 1022, *this));
+    buttons.addLabel(new TermGUI::TextButton("Te<s>t Button3", 1023, *this));
+    buttons.addLabel(new TermGUI::TextButton("Test <B>utton4", 1024, *this));
+    buttons.addLabel(new TermGUI::TextButton("Test B<u>tton5", 1025, *this));
 
     setButtonsPosition();
     setVisible(true);
@@ -267,6 +269,8 @@ bool MainScreen::keyPressEvent(const KeySym & key)
     if(key.keycode() == Key::F4)
     {
 	TermGUI::HeaderAreaBox msg("Header Box", TermSize(20, 10), *this);
+        msg.setPosition((size() - msg.size()) / 2);
+
 	msg.exec();
 	VERBOSE("HeaderBox: " << "closed");
 	return true;
@@ -275,11 +279,19 @@ bool MainScreen::keyPressEvent(const KeySym & key)
     if(key.keycode() == Key::F5)
     {
 	TermGUI::ButtonsAreaBox msg("Buttons Box", TermSize(20, 10), TermGUI::ButtonYes|TermGUI::ButtonNo|TermGUI::ButtonCancel, *this);
+        msg.setPosition((size() - msg.size()) / 2);
+
 	if(int res = msg.exec())
 	{
 	    VERBOSE("ButtonsBox: " << "return " << res);
 	}
 	return true;
+    }
+    else
+    if(key.keycode() == Key::F6)
+    {
+	CommandConsole console(TermSize(cols(), 10), *this);
+	console.exec();
     }
     else
     if(key.keycode() == Key::ESCAPE)
@@ -331,14 +343,20 @@ bool MainScreen::userEvent(int act, void* data)
 {
     switch(act)
     {
-	case 1025:
+	case 1021:
 	    keyPressEvent(Key::F1);
 	    return true;
-	case 1026:
+	case 1022:
 	    keyPressEvent(Key::F2);
 	    return true;
-	case 1027:
+	case 1023:
 	    keyPressEvent(Key::F3);
+	    return true;
+	case 1024:
+	    keyPressEvent(Key::F4);
+	    return true;
+	case 1025:
+	    keyPressEvent(Key::F5);
 	    return true;
 	default: break;
     }

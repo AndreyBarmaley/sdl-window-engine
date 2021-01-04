@@ -62,7 +62,7 @@ $(function() {
 
 <div id="nav-path" class="navpath">
   <ul>
-<li class="navelem"><b>SWE</b></li><li class="navelem"><a class="el" href="structSWE_1_1CharState.html">CharState</a></li>  </ul>
+<li class="navelem"><a class="el" href="namespaceSWE.html">SWE</a></li><li class="navelem"><a class="el" href="structSWE_1_1CharState.html">CharState</a></li>  </ul>
 </div>
 </div><!-- top -->
 <div class="header">
@@ -75,16 +75,21 @@ $(function() {
 <div class="title">Структура SWE::CharState</div>  </div>
 </div><!--header-->
 <div class="contents">
+
+<p>класс состояние графического символа  
+ <a href="structSWE_1_1CharState.html#details">Подробнее...</a></p>
+
+<p><code>#include &lt;<a class="el" href="swe__termwin_8h_source.html">swe_termwin.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-types"></a>
 Открытые типы</h2></td></tr>
-<tr class="memitem:ac88fbb1b4579f1760c91c19b38f4b37e"><td class="memItemLeft" align="right" valign="top"><a id="ac88fbb1b4579f1760c91c19b38f4b37e"></a>enum &#160;</td><td class="memItemRight" valign="bottom"><b>Type</b> { <br />
-&#160;&#160;<b>FlipHorz</b> = 0x01, 
-<b>FlipVert</b> = 0x02, 
-<b>FlipBoth</b> = FlipVert | FlipHorz, 
-<b>Inverted</b> = 0x04, 
+<tr class="memitem:ac88fbb1b4579f1760c91c19b38f4b37e"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structSWE_1_1CharState.html#ac88fbb1b4579f1760c91c19b38f4b37e">Type</a> { <br />
+&#160;&#160;<a class="el" href="structSWE_1_1CharState.html#ac88fbb1b4579f1760c91c19b38f4b37ea2ca20d10f84ebb94216f25ef7476fc9a">FlipHorz</a> = 0x01, 
+<a class="el" href="structSWE_1_1CharState.html#ac88fbb1b4579f1760c91c19b38f4b37ea752e8a345e6d114f6a0159a98cd1db99">FlipVert</a> = 0x02, 
+<a class="el" href="structSWE_1_1CharState.html#ac88fbb1b4579f1760c91c19b38f4b37eaa42a10c22ba0b9418e5df902951a2c5d">FlipBoth</a> = FlipVert | FlipHorz, 
+<a class="el" href="structSWE_1_1CharState.html#ac88fbb1b4579f1760c91c19b38f4b37ead57f607b5fe6dbf83e7009d509a112f2">Inverted</a> = 0x04, 
 <br />
-&#160;&#160;<b>Blinked</b> = 0x08
+&#160;&#160;<a class="el" href="structSWE_1_1CharState.html#ac88fbb1b4579f1760c91c19b38f4b37eae1e09dc1f531b8ca32c339f0a9b0c0ac">Blinked</a> = 0x08
 <br />
  }</td></tr>
 <tr class="separator:ac88fbb1b4579f1760c91c19b38f4b37e"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -95,10 +100,10 @@ $(function() {
 &#160;</td><td class="memItemRight" valign="bottom"><b>CharState</b> (u8 val=0)</td></tr>
 <tr class="separator:ad1c119f2acde71ecd532a10ac4018580"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a75306726ac54fcc1b53b543b54b2c2db"><td class="memItemLeft" align="right" valign="top"><a id="a75306726ac54fcc1b53b543b54b2c2db"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>setState</b> (const Type &amp;, bool f)</td></tr>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>setState</b> (const <a class="el" href="structSWE_1_1CharState.html#ac88fbb1b4579f1760c91c19b38f4b37e">Type</a> &amp;, bool f)</td></tr>
 <tr class="separator:a75306726ac54fcc1b53b543b54b2c2db"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aed8e4f93684cdbfd6e412a7d12e044e5"><td class="memItemLeft" align="right" valign="top"><a id="aed8e4f93684cdbfd6e412a7d12e044e5"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>checkState</b> (const Type &amp;) const</td></tr>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>checkState</b> (const <a class="el" href="structSWE_1_1CharState.html#ac88fbb1b4579f1760c91c19b38f4b37e">Type</a> &amp;) const</td></tr>
 <tr class="separator:aed8e4f93684cdbfd6e412a7d12e044e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad6cd33232e24e05f408fd988b5cae3c7"><td class="memItemLeft" align="right" valign="top"><a id="ad6cd33232e24e05f408fd988b5cae3c7"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>setAlpha</b> (int)</td></tr>
@@ -113,6 +118,35 @@ int&#160;</td><td class="memItemRight" valign="bottom"><b>alpha</b> (void) const
 u8&#160;</td><td class="memItemRight" valign="bottom"><b>state</b></td></tr>
 <tr class="separator:ac5bd6daa3f4ccf4c9e06f4098d1e6bb4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
+<a name="details" id="details"></a><h2 class="groupheader">Подробное описание</h2>
+<div class="textblock"><p>класс состояние графического символа </p>
+</div><h2 class="groupheader">Перечисления</h2>
+<a id="ac88fbb1b4579f1760c91c19b38f4b37e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac88fbb1b4579f1760c91c19b38f4b37e">&#9670;&nbsp;</a></span>Type</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum <a class="el" href="structSWE_1_1CharState.html#ac88fbb1b4579f1760c91c19b38f4b37e">SWE::CharState::Type</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<table class="fieldtable">
+<tr><th colspan="2">Элементы перечислений</th></tr><tr><td class="fieldname"><a id="ac88fbb1b4579f1760c91c19b38f4b37ea2ca20d10f84ebb94216f25ef7476fc9a"></a>FlipHorz&#160;</td><td class="fielddoc"><p>flip по горизонтали </p>
+</td></tr>
+<tr><td class="fieldname"><a id="ac88fbb1b4579f1760c91c19b38f4b37ea752e8a345e6d114f6a0159a98cd1db99"></a>FlipVert&#160;</td><td class="fielddoc"><p>flip по вертикали </p>
+</td></tr>
+<tr><td class="fieldname"><a id="ac88fbb1b4579f1760c91c19b38f4b37eaa42a10c22ba0b9418e5df902951a2c5d"></a>FlipBoth&#160;</td><td class="fielddoc"><p>flip по горизонтали и вертикали </p>
+</td></tr>
+<tr><td class="fieldname"><a id="ac88fbb1b4579f1760c91c19b38f4b37ead57f607b5fe6dbf83e7009d509a112f2"></a>Inverted&#160;</td><td class="fielddoc"><p>инвертировать цвет символа на увет фона </p>
+</td></tr>
+<tr><td class="fieldname"><a id="ac88fbb1b4579f1760c91c19b38f4b37eae1e09dc1f531b8ca32c339f0a9b0c0ac"></a>Blinked&#160;</td><td class="fielddoc"><p>blink state </p>
+</td></tr>
+</table>
+
+</div>
+</div>
 <hr/>Объявления и описания членов структур находятся в файлах:<ul>
 <li><a class="el" href="swe__termwin_8h_source.html">swe_termwin.h</a></li>
 <li>swe_termwin.cpp</li>

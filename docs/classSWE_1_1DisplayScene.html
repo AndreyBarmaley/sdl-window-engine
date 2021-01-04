@@ -62,7 +62,7 @@ $(function() {
 
 <div id="nav-path" class="navpath">
   <ul>
-<li class="navelem"><b>SWE</b></li><li class="navelem"><a class="el" href="classSWE_1_1DisplayScene.html">DisplayScene</a></li>  </ul>
+<li class="navelem"><a class="el" href="namespaceSWE.html">SWE</a></li><li class="navelem"><a class="el" href="classSWE_1_1DisplayScene.html">DisplayScene</a></li>  </ul>
 </div>
 </div><!-- top -->
 <div class="header">
@@ -112,9 +112,9 @@ static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" hre
 <tr class="memitem:ad5566bf1d21f18b4af9445bee265cfd4"><td class="memItemLeft" align="right" valign="top"><a id="ad5566bf1d21f18b4af9445bee265cfd4"></a>
 static void&#160;</td><td class="memItemRight" valign="bottom"><b>moveTopLayer</b> (const <a class="el" href="classSWE_1_1Window.html">Window</a> &amp;)</td></tr>
 <tr class="separator:ad5566bf1d21f18b4af9445bee265cfd4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad0c8098735074625f7b05095e95f1037"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSWE_1_1DisplayScene.html#ad0c8098735074625f7b05095e95f1037">sceneRedraw</a> (void)</td></tr>
-<tr class="memdesc:ad0c8098735074625f7b05095e95f1037"><td class="mdescLeft">&#160;</td><td class="mdescRight">функция рендера сцены <a class="el" href="classSWE_1_1DisplayScene.html">DisplayScene</a>.  <a href="#ad0c8098735074625f7b05095e95f1037">Подробнее...</a><br /></td></tr>
-<tr class="separator:ad0c8098735074625f7b05095e95f1037"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1e09a2c80a360fef07a92284f2308708"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSWE_1_1DisplayScene.html#a1e09a2c80a360fef07a92284f2308708">sceneRedraw</a> (bool force=false)</td></tr>
+<tr class="memdesc:a1e09a2c80a360fef07a92284f2308708"><td class="mdescLeft">&#160;</td><td class="mdescRight">функция рендера сцены <a class="el" href="classSWE_1_1DisplayScene.html">DisplayScene</a>.  <a href="#a1e09a2c80a360fef07a92284f2308708">Подробнее...</a><br /></td></tr>
+<tr class="separator:a1e09a2c80a360fef07a92284f2308708"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad80d7b4edd13137a1c000f65208df14e"><td class="memItemLeft" align="right" valign="top"><a id="ad80d7b4edd13137a1c000f65208df14e"></a>
 static void&#160;</td><td class="memItemRight" valign="bottom"><b>handleWhileVisible</b> (const <a class="el" href="classSWE_1_1Window.html">Window</a> &amp;)</td></tr>
 <tr class="separator:ad80d7b4edd13137a1c000f65208df14e"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -145,7 +145,7 @@ static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" hre
 <p>Цикл обработки определен в <a class="el" href="classSWE_1_1DisplayScene.html#a7e9b1afbe14373a2a364ad020294f51c" title="функция главного цикла сцены DisplayScene. ">DisplayScene::handleEvents</a>, и состоит из трех из 3 основных частей:</p><ul>
 <li>обработка SDL_Event событий Display::handleEvents и рассылка по адресатам</li>
 <li>генерация события <a class="el" href="classSWE_1_1ObjectEvent.html#a9f08869ea261b90aa6cd3dbc54df2cae" title="метод получатель, вызывается один раз за каждую итерацию главного цикла сцены DisplayScene, но перед отрисовкой всей сцены ">ObjectEvent::tickEvent</a></li>
-<li>рендер сцены <a class="el" href="classSWE_1_1DisplayScene.html#ad0c8098735074625f7b05095e95f1037" title="функция рендера сцены DisplayScene. ">DisplayScene::sceneRedraw</a></li>
+<li>рендер сцены <a class="el" href="classSWE_1_1DisplayScene.html#a1e09a2c80a360fef07a92284f2308708" title="функция рендера сцены DisplayScene. ">DisplayScene::sceneRedraw</a></li>
 </ul>
 <p>Базовое взаимодействиe между объектами сцены <a class="el" href="classSWE_1_1DisplayScene.html">DisplayScene</a>:</p><ol type="1">
 <li>использование методов класса <a class="el" href="classSWE_1_1ObjectEvent.html" title="класс объектов сцены DisplayScene, с возможностью отправки/получения сообщений ">ObjectEvent</a><ul>
@@ -215,7 +215,7 @@ static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" hre
 </div><div class="memdoc">
 
 <p>функция главного цикла сцены <a class="el" href="classSWE_1_1DisplayScene.html">DisplayScene</a>. </p>
-<p>состоит из 3 основных частей, обработка системных событий Display::handleEvents, генерация события <a class="el" href="classSWE_1_1ObjectEvent.html#a9f08869ea261b90aa6cd3dbc54df2cae" title="метод получатель, вызывается один раз за каждую итерацию главного цикла сцены DisplayScene, но перед отрисовкой всей сцены ">ObjectEvent::tickEvent</a>, рендера сцены <a class="el" href="classSWE_1_1DisplayScene.html#ad0c8098735074625f7b05095e95f1037" title="функция рендера сцены DisplayScene. ">DisplayScene::sceneRedraw</a> </p>
+<p>состоит из 3 основных частей, обработка системных событий Display::handleEvents, генерация события <a class="el" href="classSWE_1_1ObjectEvent.html#a9f08869ea261b90aa6cd3dbc54df2cae" title="метод получатель, вызывается один раз за каждую итерацию главного цикла сцены DisplayScene, но перед отрисовкой всей сцены ">ObjectEvent::tickEvent</a>, рендера сцены <a class="el" href="classSWE_1_1DisplayScene.html#a1e09a2c80a360fef07a92284f2308708" title="функция рендера сцены DisplayScene. ">DisplayScene::sceneRedraw</a> </p>
 
 </div>
 </div>
@@ -248,8 +248,8 @@ static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" hre
 
 </div>
 </div>
-<a id="ad0c8098735074625f7b05095e95f1037"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad0c8098735074625f7b05095e95f1037">&#9670;&nbsp;</a></span>sceneRedraw()</h2>
+<a id="a1e09a2c80a360fef07a92284f2308708"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1e09a2c80a360fef07a92284f2308708">&#9670;&nbsp;</a></span>sceneRedraw()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -260,8 +260,8 @@ static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" hre
         <tr>
           <td class="memname">void SWE::DisplayScene::sceneRedraw </td>
           <td>(</td>
-          <td class="paramtype">void&#160;</td>
-          <td class="paramname"></td><td>)</td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>force</em> = <code>false</code></td><td>)</td>
           <td></td>
         </tr>
       </table>

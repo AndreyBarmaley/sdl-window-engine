@@ -1612,9 +1612,10 @@ bool SWE::Display::isMaximizedWindow(void)
 	XFree(properties);
         return maximized == 3;
     }
+#else
+    FIXME("SDL1.2 not supported maximized flag");
 #endif
 
-    FIXME("SDL1.2 not supported maximized flag");
 #else
     if(_window)
         return SDL_WINDOW_MAXIMIZED & SDL_GetWindowFlags(_window);

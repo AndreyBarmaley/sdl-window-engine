@@ -25,6 +25,7 @@
 
 #include "swe_fontset.h"
 
+/// @brief пространство SWE
 namespace SWE
 {
     class Window;

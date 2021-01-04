@@ -1181,6 +1181,160 @@ namespace SWE
         }
 
     } // namespace TermGUI
+
+    /* CommandConsole */
+    CommandConsole::CommandConsole(const TermSize & termsz, TermWindow & term) : TermWindow(termsz, term)
+    {
+        setModality(true);
+        setVisible(true);
+    }
+
+    CommandConsole::CommandConsole(const Size & gfxsz, const FontRender & frs, Window & win) : TermWindow(gfxsz, frs, & win)
+    {
+        setModality(true);
+        setVisible(true);
+    }
+
+    void CommandConsole::renderWindow(void)
+    {
+        const auto hdrcol = Color::White;
+        const auto cmdcol = Color::White;
+        const auto line = LineType::LineThin;
+        const std::string header = "CommandConsole";
+
+        int body = rows() - 4;
+        int skipline = 0;
+
+        if(content.size() > body)
+            skipline = content.size() - body;
+
+        int startline = 1;
+        if(content.size() - skipline < body)
+            startline = 1 + body - (content.size() - skipline);
+
+        *this << fill::defaults(defaultColors(), 0x20, defaultProperty());
+
+        // content
+        for(auto & str : content)
+        {
+            if(0 == skipline)
+            {
+                *this << cursor::set(1, startline) << str;
+                startline++;
+            }
+            else
+                skipline--;
+        }
+
+        *this <<
+            // border
+            draw::rect(0, 0, cols(), rows(), line);
+
+        // header
+        if(header.size())
+        {
+            *this <<
+                cursor::set((cols() - (header.size() + 4)) / 2, 0) << acs::rtee(line) << 0x20 << set::fgcolor(hdrcol) << header << reset::fgcolor() << 0x20 << acs::ltee(line);
+        }
+
+        *this <<
+            // separator line
+            cursor::set(0, rows() - 3) << acs::ltee(line) << draw::hline(cols() - 2, acs::hline(line)) << acs::rtee(line) <<
+            // cursor emulator
+            cursor::set(1, rows() - 2) << set::fgcolor(cmdcol) << command << set::blink() << 0x2581 << reset::blink() << reset::fgcolor() <<
+            // flush
+            set::flush();
+    }
+
+    bool CommandConsole::actionCommand(const std::string & cmd)
+    {
+        command.clear();
+        setDirty(true);
+        return true;
+    }
+
+    bool CommandConsole::keyPressEvent(const KeySym & ks)
+    {
+        if(ks.keycode() == Key::ESCAPE)
+        {
+            setVisible(false);
+            return true;
+        }
+        else
+        if(ks.keycode() == Key::RETURN)
+        {
+            return actionCommand(command);
+        }
+        else
+        if(ks.keycode() == Key::BACKSPACE && command.size())
+        {
+            command.erase(command.size() - 1, 1);
+            setDirty(true);
+            return true;
+        }
+#ifndef SWE_SDL12
+        else
+        if(ks.keycode() == Key::INSERT && ks.keymod().isShift() &&
+            SDL_HasClipboardText())
+        {
+            std::string str = SDL_GetClipboardText();
+            textInputEvent(str);
+            return true;
+        }
+#endif
+
+#ifdef SWE_SDL12
+        // text input SDL12: ascii only
+        if(0x20 <= ks.keychar() && ks.keychar() < 255)
+        {
+            textInputEvent(std::string(1, ks.keychar()));
+            return true;
+        }
+#endif
+
+        return false;
+    }
+
+    bool CommandConsole::textInputEvent(const std::string & str)
+    {
+        if(str.size())
+        {
+            command.append(str);
+            setDirty(true);
+            return true;
+        }
+
+        return false;
+    }
+
+    FBColors CommandConsole::defaultColors(void) const
+    {
+        return FBColors(Color::Silver, Color::MidnightBlue);
+    }
+
+    void CommandConsole::commandLineClear(void)
+    {
+        command.clear();
+        setDirty(true);
+    }
+
+    void CommandConsole::contentLinesClear(void)
+    {
+        content.clear();
+        setDirty(true);
+    }
+
+    void CommandConsole::contentLinesAppend(const std::string & str)
+    {
+        content.append(str);
+        setDirty(true);
+    }
+
+    void CommandConsole::contentLinesAppend(const StringList & list)
+    {
+        content.append(list);
+        setDirty(true);
+    }
 } // namespace SWE
 
 #endif

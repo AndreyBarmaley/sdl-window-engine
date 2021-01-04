@@ -25,6 +25,7 @@
 
 #include "swe_streambuf.h"
 
+/// @brief пространство SWE
 namespace SWE
 {
 /*
