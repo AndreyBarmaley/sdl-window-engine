@@ -180,11 +180,7 @@ namespace SWE
     const StreamBase & StreamBase::operator>> (BinaryBuf & v) const
     {
         u32 size = get32();
-        v.resize(size);
-
-        for(auto it = v.begin(); it != v.end(); ++it)
-            *it = get8();
-
+        v = get(size);
         return *this;
     }
 
@@ -300,10 +296,7 @@ namespace SWE
     StreamBase & StreamBase::operator<< (const BinaryBuf & v)
     {
         put32(v.size());
-
-        for(auto it = v.begin(); it != v.end(); ++it)
-            put8(*it);
-
+        put(reinterpret_cast<const char*>(v.data()), v.size());
         return *this;
     }
 

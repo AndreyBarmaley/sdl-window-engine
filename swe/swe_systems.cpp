@@ -28,6 +28,7 @@
 #include <cstdlib>
 #include <clocale>
 #include <algorithm>
+#include <mutex>
 
 #if defined(__MINGW32CE__) || defined(__MINGW32__) || defined(__WIN32__) || defined(__WIN64__)
 #include <windows.h>
@@ -80,6 +81,7 @@ namespace SWE
 
     std::ostream* LogWrapper::os = nullptr;
     std::string   LogWrapper::id;
+    std::mutex    mtexcl;
 
 #if defined(__SYMBIAN32__)
     LogWrapper::init(const std::string & app, const char* arg0) {}
@@ -99,6 +101,7 @@ namespace SWE
 
     LogWrapper::LogWrapper()
     {
+        mtexcl.lock();
         oslog.str("");
         os = & oslog;
     }
@@ -106,6 +109,7 @@ namespace SWE
     LogWrapper::~LogWrapper()
     {
         __android_log_print(ANDROID_LOG_INFO, id.c_str(), "%s", oslog.str().c_str());
+        mtexcl.unlock();
     }
 #elif defined(__MINGW32__)
     namespace
@@ -126,6 +130,7 @@ namespace SWE
 
     LogWrapper::LogWrapper()
     {
+        mtexcl.lock();
         if(osfile.is_open())
             os = & osfile;
         else
@@ -135,6 +140,7 @@ namespace SWE
     LogWrapper::~LogWrapper()
     {
         if(os) os->flush();
+        mtexcl.unlock();
     }
 #else
     void LogWrapper::init(const std::string & app, const char* arg0)
@@ -144,10 +150,14 @@ namespace SWE
 
     LogWrapper::LogWrapper()
     {
+        mtexcl.lock();
         os = & std::clog;
     }
 
-    LogWrapper::~LogWrapper() {}
+    LogWrapper::~LogWrapper()
+    {
+        mtexcl.unlock();
+    }
 #endif
 
     int Systems::setEnvironment(const char* name, const char* value)
@@ -697,7 +707,7 @@ namespace SWE
     void* Systems::procAddressLib(void* lib, const std::string & func)
     {
 #if defined(__WIN32__) || defined(__WIN64__)
-        return GetProcAddress((HINSTANCE) lib, func.c_str());
+        return (void*) GetProcAddress((HINSTANCE) lib, func.c_str());
 #else
         return dlsym(lib, func.c_str());
 #endif

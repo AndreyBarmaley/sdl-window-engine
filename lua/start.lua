@@ -8,6 +8,7 @@ require 'gui_android'
 require 'gui_filebrowser'
 
 SWE.SetDebug(true)
+-- SWE.Dump(_G)
 
 local function ReadCommanderConfig()
     local sharedir = SWE.SystemShareDirectories()

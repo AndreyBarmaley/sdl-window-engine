@@ -136,6 +136,22 @@ namespace SWE
         return zlibCompress(reinterpret_cast<const u8*>(ptr), size);
     }
 
+    const char* zlibError(int ret)
+    {
+	switch(ret)
+	{
+	    case Z_STREAM_END: return "end";
+	    case Z_NEED_DICT: return "dict";
+	    case Z_ERRNO: return "errno";
+	    case Z_STREAM_ERROR: return "stream";
+	    case Z_DATA_ERROR: return "data";
+	    case Z_MEM_ERROR: return "mem";
+	    case Z_BUF_ERROR: return "buf";
+	    case Z_VERSION_ERROR: return "version";
+	}
+	return "";
+    }
+
     BinaryBuf Tools::zlibCompress(const u8* ptr, size_t size)
     {
         BinaryBuf res;
@@ -152,7 +168,7 @@ namespace SWE
             else
             {
                 res.clear();
-                ERROR("zlib error: " << ret);
+                ERROR("zlib error: " << zlibError(ret) << "(" << ret << ")");
             }
         }
 
@@ -182,7 +198,7 @@ namespace SWE
             else
             {
                 res.clear();
-                ERROR("zlib error: " << ret);
+                ERROR("zlib error: " << zlibError(ret) << "(" << ret << ")");
             }
         }
 

@@ -412,6 +412,7 @@ SWE.Window.SystemUserEvent
     @apiSuccess (Return) {boolean}		result		success if processing
 
     @apiExample usage
+    -- see also SWE.PushEvent
     win.SystemUserEvent = function(code,data)
 	print("code:",code,type(data))
     end

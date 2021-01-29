@@ -39,6 +39,9 @@ namespace SWE
 
     namespace Display
     {
+#ifdef __MINGW32__
+	extern bool fingerEventEmulation;
+#endif
 	void		closeWindow(void);
     }
 }

@@ -151,11 +151,20 @@ namespace SWE
 #define COUT(x) SWE::LogWrapper() << x << "\n";
 
 #if defined(SWE_DEBUG_MESSAGES) || defined(SWE_DEBUG)
- #define PRETTY(x, y) COUT(SWE::String::time() << ": " << x << "\t\x1B[35m" << SWE::shortPrettyName(__PRETTY_FUNCTION__) << ": \x1B[36m" << y << "\033[0m")
- #define VERBOSE(x) { PRETTY("\x1B[31m[VERBOSE]", x); }
- #define ERROR(x)   { PRETTY("\x1B[93m[ERROR]", x); }
- #define FIXME(x)   { PRETTY("\x1B[32m[FIXME]", x); }
- #define DEBUG(x)   { if(SWE::Engine::debugMode()) PRETTY("\x1B[34m[DEBUG]", x); }
+ #if defined(__WIN32__) || (__MINGW32__)
+  #define PRETTY(x, y) COUT(SWE::String::time() << ": " << x << "\t" << SWE::shortPrettyName(__PRETTY_FUNCTION__) << ": " << y)
+  #define VERBOSE(x) { PRETTY("[VERBOSE]", x); }
+  #define ERROR(x)   { PRETTY("[ERROR]", x); }
+  #define FIXME(x)   { PRETTY("[FIXME]", x); }
+  #define DEBUG(x)   { if(SWE::Engine::debugMode()) PRETTY("[DEBUG]", x); }
+ #else
+  // colored console
+  #define PRETTY(x, y) COUT(SWE::String::time() << ": " << x << "\t\x1B[35m" << SWE::shortPrettyName(__PRETTY_FUNCTION__) << ": \x1B[36m" << y << "\033[0m")
+  #define VERBOSE(x) { PRETTY("\x1B[31m[VERBOSE]", x); }
+  #define ERROR(x)   { PRETTY("\x1B[93m[ERROR]", x); }
+  #define FIXME(x)   { PRETTY("\x1B[32m[FIXME]", x); }
+  #define DEBUG(x)   { if(SWE::Engine::debugMode()) PRETTY("\x1B[34m[DEBUG]", x); }
+ #endif
 #else
  #define PRETTY(x, y) COUT(SWE::String::time() << ": " << x << "\t" << SWE::shortPrettyName(__PRETTY_FUNCTION__) << ": " << y)
  #define VERBOSE(x) { PRETTY("[VERBOSE]", x); }
