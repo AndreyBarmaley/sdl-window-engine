@@ -135,16 +135,13 @@ if(SWE_SDL12 STREQUAL ON)
     link_libraries(${PNG_LIBRARIES})
 endif()
 
-if(SWE_WITH_XML STREQUAL ON)
-    add_compile_options(-DSWE_WITH_XML)
-endif()
-
 pkg_search_module(LZ REQUIRED zlib)
 add_compile_options(${LZ_CFLAGS})
 add_link_options(${LZ_LDFLAGS})
 link_libraries(${LZ_LIBRARIES})
 
 if(SWE_DLOPEN STREQUAL ON)
+    add_compile_options(-DSWE_DLOPEN)
     if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
 	link_libraries(dl)
     endif()
