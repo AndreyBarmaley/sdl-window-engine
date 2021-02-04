@@ -135,6 +135,32 @@ local function ShapeAllowMoveLeft(shape)
     return false
 end
 
+local function ShapeRotateRight(shape)
+    local tmp = shape[1]
+    shape[1] = shape[13]
+    shape[13] = shape[16]
+    shape[16] = shape[4]
+    shape[4] = tmp
+
+    tmp = shape[2]
+    shape[2] = shape[9]
+    shape[9] = shape[15]
+    shape[15] = shape[8]
+    shape[8] = tmp
+
+    tmp = shape[3]
+    shape[3] = shape[5]
+    shape[5] = shape[14]
+    shape[14] = shape[12]
+    shape[12] = tmp
+
+    tmp = shape[6]
+    shape[6] = shape[10]
+    shape[10] = shape[11]
+    shape[11] = shape[7]
+    shape[7] = tmp
+end
+
 -- window virtual
 function win.RenderWindow()
     win:RenderClear(SWE.Color.Silver)
@@ -201,6 +227,8 @@ function win.KeyPressEvent(key)
         SWE.DisplayDirty()
         return true
     elseif key == SWE.Key.UP then
+	ShapeRotateRight(config.shape1.shape)
+        SWE.DisplayDirty()
         return true
     elseif key == SWE.Key.DOWN then
 	config.fastdown = true
