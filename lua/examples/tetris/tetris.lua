@@ -21,10 +21,7 @@ config.shape2 = config.shapes[math.random(1, #config.shapes)]
 -- init: tiles array 10x20
 config.tiles = {}
 for id = 1, 200 do
-    local t = {}
-    t.id = id
-    t.color = config.background
-    table.insert(config.tiles, t)
+    table.insert(config.tiles, config.background)
 end
 
 local function ShapeAllowShiftDown(shape, num)
@@ -71,7 +68,7 @@ local function ShapeAllowMoveDown(shape)
 		if not config.tiles[tid2] then
 		    return false
 		end
-		if (config.tiles[tid2].color ~= config.background) then
+		if (config.tiles[tid2] ~= config.background) then
 		    return false
 		end
 	    end
@@ -96,7 +93,7 @@ local function ShapeAllowMoveRight(shape)
 		if not config.tiles[tid2] then
 		    return false
 		end
-        	if config.tiles[tid2].color ~= config.background then
+        	if config.tiles[tid2] ~= config.background then
 		    return false
 		end
 	    end
@@ -121,7 +118,7 @@ local function ShapeAllowMoveLeft(shape)
 		if not config.tiles[tid2] then
 		    return false
 		end
-        	if config.tiles[tid2].color ~= config.background then
+        	if config.tiles[tid2] ~= config.background then
 		    return false
 		end
 	    end
@@ -161,18 +158,59 @@ local function ShapeRotateRight(shape)
     shape[7] = tmp
 end
 
+local function TilesIsFullRow(tiles, tid)
+    for it = 0, 9 do
+        if tiles[tid + it] == config.background then
+            return false
+        end
+    end
+    return true
+end
+
+local function TilesFindCompleteRow(tiles)
+    for tid = 1, 200, 10 do
+        if TilesIsFullRow(tiles, tid) then
+            return tid
+        end
+    end
+    return 0
+end
+
+local function TilesRemoveFullRows(tiles)
+    local tid = TilesFindCompleteRow(tiles)
+    local lines = 0
+    while tid ~= 0 do
+        for it = 1, 10 do
+            table.remove(tiles, tid)
+        end
+        for it = 1, 10 do
+            table.insert(tiles, 1, config.background)
+        end
+        tid = TilesFindCompleteRow(tiles)
+        lines = lines + 1
+    end
+    -- calc scores
+    if lines == 4 then
+        config.score = config.score + 700
+    elseif lines == 3 then
+        config.score = config.score + 500
+    elseif lines == 2 then
+        config.score = config.score + 300
+    else
+        config.score = config.score + 100
+    end
+    config.lines = config.lines + lines
+end
+
 -- window virtual
 function win.RenderWindow()
     win:RenderClear(SWE.Color.Silver)
-    local px = 0
-    local py = 0
-    local si = 0
 
     -- render tiles
     for py = 0, 19 do
 	for px = 0, 9 do
 	    local tid = py * 10 + px + 1
-	    win:RenderRect(config.tiles[tid].color, px * 16, py * 16, 16, 16, true)
+	    win:RenderRect(config.tiles[tid], px * 16, py * 16, 16, 16, true)
 	end
     end
 
@@ -261,11 +299,13 @@ function win.SystemTickEvent(ms)
     		    local tid1 = py * 4 + px + 1
     		    if config.shape1.shape[tid1] == 1 then
     			local tid2 = (config.oy + py) * 10 + config.ox + px + 1
-			config.tiles[tid2].color = SWE.Color[config.shape1.color]
+			config.tiles[tid2] = SWE.Color[config.shape1.color]
 		    end
     		end
 	    end
 	    config.score = config.score + 10
+            --
+            TilesRemoveFullRows(config.tiles)
 	    -- new part: reset values
 	    config.fastdown = false
 	    config.shape1 = config.shape2
