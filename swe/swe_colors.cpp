@@ -236,7 +236,7 @@ namespace SWE
     {
         ColorIndex col = toColorIndex();
 
-        if(0 <= col.index() && col.index() < _colors.size())
+        if(col.index() < _colors.size())
             return _colors[col.index()].name;
         else if(hasAlpha())
             return toHexString();

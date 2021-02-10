@@ -23,6 +23,7 @@
 #ifndef _SWE_TERMWIN_GUI_
 #define _SWE_TERMWIN_GUI_
 
+#pragma clang diagnostic ignored "-Woverloaded-virtual"
 #ifndef SWE_DISABLE_TERMGUI
 
 #include <array>

@@ -1569,9 +1569,11 @@ bool SWE::Display::isFullscreenWindow(void)
 }
 
 #if SWE_SDL12
+#if defined(__LINUX__)
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
 #include "SDL_syswm.h"
+#endif
 #endif
 
 bool SWE::Display::isMaximizedWindow(void)

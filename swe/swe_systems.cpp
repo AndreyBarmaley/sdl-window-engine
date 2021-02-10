@@ -54,6 +54,17 @@ extern "C" {
 extern HICON screen_icn;
 extern HINSTANCE SDL_Instance;
 extern HWND SDL_Window;
+
+namespace std
+{
+    class mutex
+    {
+    public:
+	mutex(){}
+	void lock() {}
+	void unlock() {}
+    };
+}
 #endif
 
 #if defined(__WIN32__)
