@@ -23,12 +23,15 @@
 #ifndef _SWE_TERMWIN_GUI_
 #define _SWE_TERMWIN_GUI_
 
-#pragma clang diagnostic ignored "-Woverloaded-virtual"
 #ifndef SWE_DISABLE_TERMGUI
 
 #include <array>
 #include <memory>
 #include "swe_termwin.h"
+
+#ifdef __clang__
+#pragma clang diagnostic ignored "-Woverloaded-virtual"
+#endif
 
 /// @brief пространство SWE
 namespace SWE
