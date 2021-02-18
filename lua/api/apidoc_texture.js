@@ -109,11 +109,13 @@ SWE.Texture.RenderText
     @apiParam {number}				render		text render (default RenderDefault, used from FontRender), see SWE.Font
     @apiParam {number}				style		text style (default StyleDefault, used from FontRender), see SWE.Font
     @apiParam {number}				hinting		text hinting (default HintingDefault, used from FontRender) see SWE.Font
+    @apiSuccess (Return) {object}               result          SWE.Rect text position
 
     @apiExample usage
     local frs = SWE.FontRender("dejavusans.ttf", 24)
     local image1 = SWE.Texture.Image("logo.png")
-    image1:RenderText(frs,SWE.Color.Red,"APPROVED",image1.width/2,image1.height/2,SWE.Align.Center,SWE.Align.Center)
+    local pos = image1:RenderText(frs,SWE.Color.Red,"APPROVED",image1.width/2,image1.height/2,SWE.Align.Center,SWE.Align.Center)
+    print("texture position:",pos)
 */
 SWE.Texture.RenderTexture
 /**

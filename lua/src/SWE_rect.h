@@ -57,4 +57,11 @@ public:
     static void registers(LuaState &);
 };
 
+namespace SWE_Stack
+{
+    void        point_create(LuaState &, int px, int py);
+    void        size_create(LuaState &, int sw, int sh);
+    void        rect_create(LuaState &, int rx, int ry, int rw, int rh);
+}
+
 #endif

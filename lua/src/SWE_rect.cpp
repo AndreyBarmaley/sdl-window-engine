@@ -25,7 +25,6 @@
 int SWE_point_create(lua_State*);
 int SWE_size_create(lua_State*);
 int SWE_rect_create(lua_State*);
-int SWE_rect_create(LuaState & ll, int rx, int ry, int rw, int rh);
 
 SDL_Rect SDLRect(int x, int y, int w, int h)
 {
@@ -221,7 +220,7 @@ int SWE_rect_intersect(lua_State* L)
 	ll.stackPop(4);
 
 	if(Rect::intersection(rt1, rt2, & res))
-	    SWE_rect_create(ll, res.x, res.y, res.w, res.h);
+	    SWE_Stack::rect_create(ll, res.x, res.y, res.w, res.h);
         else
             ll.pushNil();
     }
@@ -320,7 +319,7 @@ const struct luaL_Reg SWE_rect_functions[] = {
     { NULL, NULL }
 };
 
-int SWE_rect_create(LuaState & ll, int rx, int ry, int rw, int rh)
+void SWE_Stack::rect_create(LuaState & ll, int rx, int ry, int rw, int rh)
 {
     LuaStateValidator(ll, 1);
 
@@ -338,8 +337,6 @@ int SWE_rect_create(LuaState & ll, int rx, int ry, int rw, int rh)
 
     // set functions
     ll.setFunctionsTableIndex(SWE_rect_functions, -1);
-
-    return 1;
 }
 
 int SWE_rect_create(lua_State* L)
@@ -352,7 +349,8 @@ int SWE_rect_create(lua_State* L)
     int rw = ll.toIntegerIndex(4);
     int rh = ll.toIntegerIndex(5);
 
-    return SWE_rect_create(ll, rx, ry, rw, rh);
+    SWE_Stack::rect_create(ll, rx, ry, rw, rh);
+    return 1;
 }
 
 void SWE_Rect::registers(LuaState & ll)
@@ -446,15 +444,9 @@ const struct luaL_Reg SWE_point_functions[] = {
     { NULL, NULL }
 };
 
-int SWE_point_create(lua_State* L)
+void SWE_Stack::point_create(LuaState & ll, int px, int py)
 {
-    // empty params
-
-    const int rescount = 1;
-    LuaStateDefine(ll, L, rescount);
-
-    int px = ll.toIntegerIndex(2);
-    int py = ll.toIntegerIndex(3);
+    LuaStateValidator(ll, 1);
 
     ll.pushTable();
     ll.pushString("swe.point").setFieldTableIndex("__type", -2);
@@ -468,7 +460,19 @@ int SWE_point_create(lua_State* L)
 
     // set functions
     ll.setFunctionsTableIndex(SWE_point_functions, -1);
+}
 
+int SWE_point_create(lua_State* L)
+{
+    // empty params
+
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
+    int px = ll.toIntegerIndex(2);
+    int py = ll.toIntegerIndex(3);
+
+    SWE_Stack::point_create(ll, px, py);
     return rescount;
 }
 
@@ -563,6 +567,24 @@ const struct luaL_Reg SWE_size_functions[] = {
     { NULL, NULL }
 };
 
+void SWE_Stack::size_create(LuaState & ll, int sw, int sh)
+{
+    LuaStateValidator(ll, 1);
+
+    ll.pushTable();
+    ll.pushString("swe.size").setFieldTableIndex("__type", -2);
+    ll.pushInteger(sw).setFieldTableIndex("width", -2);
+    ll.pushInteger(sh).setFieldTableIndex("height", -2);
+
+    // set: tostring
+    ll.pushTable(0, 1);
+    ll.pushFunction(SWE_point_tostring).setFieldTableIndex("__tostring", -2);
+    ll.setMetaTableIndex(-2);
+
+    // set functions
+    ll.setFunctionsTableIndex(SWE_point_functions, -1);
+}
+
 int SWE_size_create(lua_State* L)
 {
     // empty params
@@ -573,19 +595,7 @@ int SWE_size_create(lua_State* L)
     int sw = ll.toIntegerIndex(2);
     int sh = ll.toIntegerIndex(3);
 
-    ll.pushTable();
-    ll.pushString("swe.size").setFieldTableIndex("__type", -2);
-    ll.pushInteger(sw).setFieldTableIndex("width", -2);
-    ll.pushInteger(sh).setFieldTableIndex("height", -2);
-
-    // set: tostring
-    ll.pushTable(0, 1);
-    ll.pushFunction(SWE_size_tostring).setFieldTableIndex("__tostring", -2);
-    ll.setMetaTableIndex(-2);
-
-    // set functions
-    ll.setFunctionsTableIndex(SWE_size_functions, -1);
-
+    SWE_Stack::size_create(ll, sw, sh);
     return rescount;
 }
 

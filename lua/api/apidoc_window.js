@@ -163,6 +163,7 @@ SWE.Window.RenderText
     @apiParam {number}                          render          text render (default RenderDefault, used from FontRender), see SWE.Font
     @apiParam {number}                          style           text style (default RenderDefault, used from FontRender), see SWE.Font
     @apiParam {number}                          hinting         text hinting (default RenderDefault, used from FontRender) see SWE.Font
+    @apiSuccess (Return) {SWE.Rect}		result		SWE.Rect text position
 */
 SWE.Window.RenderTexture
 /**
@@ -412,7 +413,6 @@ SWE.Window.SystemUserEvent
     @apiSuccess (Return) {boolean}		result		success if processing
 
     @apiExample usage
-    -- see also SWE.PushEvent
     win.SystemUserEvent = function(code,data)
 	print("code:",code,type(data))
     end

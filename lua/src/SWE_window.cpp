@@ -998,9 +998,9 @@ int SWE_window_render_text(lua_State* L)
 	}
 
 	Rect area = win->renderText(*frs, text, Color(argb), dst, halign, valign, horizontal, render, style, hinting);
+	SWE_Stack::rect_create(ll, area.x, area.y, area.w, area.h);
 
-	ll.pushInteger(area.x).pushInteger(area.y).pushInteger(area.w).pushInteger(area.h);
-	return 4;
+	return 1;
     }
     else
     {

@@ -812,6 +812,10 @@ int SWE_set_debug(lua_State* L)
 
 int SWE_system_run_command(lua_State* L)
 {
+#if defined(__MINGW32CE__)
+    ERROR("not implemented");
+    return 0;
+#else
     // params: string list
     const int rescount = 1;
     LuaStateDefine(ll, L, rescount);
@@ -847,6 +851,7 @@ int SWE_system_run_command(lua_State* L)
     }
 
     return rescount;
+#endif
 }
 
 int SWE_display_keyboard(lua_State* L)
