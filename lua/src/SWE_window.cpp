@@ -1039,6 +1039,25 @@ int SWE_window_to_json(lua_State* L)
     return 0;
 }
 
+int SWE_window_is_visible(lua_State* L)
+{
+    // params: swe_window
+
+    LuaState ll(L);
+    auto win = SWE_Window::get(ll, 1, __FUNCTION__);
+
+    if(win)
+    {
+	bool res = win->isVisible();
+        ll.pushBoolean(res);
+
+        return 1;
+    }
+
+    ERROR("userdata empty");
+    return 0;
+}
+
 int SWE_window_point_inarea(lua_State* L)
 {
     // params: swe_window, ptx, pty
@@ -1406,6 +1425,7 @@ const struct luaL_Reg SWE_window_functions[] = {
     { "RenderTexture",  SWE_window_render_texture },   // [void]. table window, table texture, rect, point
     { "RenderText",     SWE_window_render_text },      // [rect coords], table window, table fontrender, string, color, point, orientation, render, style, hinting
     { "PointInArea",	SWE_window_point_inarea },     // [bool], table window, int, int
+    { "IsVisible",	SWE_window_is_visible },       // [bool], table window
     { "GetChildrens",	SWE_window_childrens },        // [table], table window
     { "ToJson",		SWE_window_to_json },          // [string], table window
     // virtual

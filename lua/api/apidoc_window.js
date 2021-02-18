@@ -442,6 +442,15 @@ SWE.Window.ToJson
     @apiParam {SWE.Window}                      self            window object
     @apiSuccess (Return) {string}               result          json string
 */
+SWE.Window.IsVisible
+/**
+    @api {window is visible} SWE.Window.IsVisible() SWE.Window.IsVisible
+    @apiGroup SWE.Window
+    @apiName IsVisible
+            
+    @apiParam {SWE.Window}                      self            window object
+    @apiSuccess (Return) {boolean}              result          true if visible
+*/
 SWE.Window.PointInArea
 /**
     @api {point in window area} SWE.Window.PointInArea(self,ptx,pty)(self,point) SWE.Window.PointInArea
