@@ -507,3 +507,22 @@ SWE.MouseButton.EnumConstant
     @apiParam {number}      X1			mouse button x1
     @apiParam {number}      X2			mouse button x2
 **/
+
+SWE.Scene.MoveTop
+/**
+    @api {scene: move window to top layer} SWE.Scene.MoveTop(win) SWE.Scene.MoveTop
+    @apiGroup SWE.Scene
+    @apiName MoveTop
+    
+    @apiParam {SWE.Window}                      win             window object
+    @apiSuccess (Return) {boolean}              result          success operation
+*/
+SWE.Scene.Remove
+/**
+    @api {scene: remove window} SWE.Scene.Remove(win) SWE.Scene.Remove
+    @apiGroup SWE.Scene
+    @apiName Remove
+    
+    @apiParam {SWE.Window}                      win             window object
+    @apiSuccess (Return) {boolean}              result          success operation
+*/

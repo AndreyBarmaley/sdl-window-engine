@@ -28,7 +28,7 @@ using namespace SWE;
 
 #define LuaUnused(val) ((void) val)
 
-#ifdef WITH_DEBUG
+#ifdef LUA_STACK_DEBUG
  #define LuaStateDefine(ls,L,num) LuaStateDebug ls(L,__PRETTY_FUNCTION__,num)
  #define LuaStateValidator(ls,num) LuaStateDebug ls2(ls.L(),__PRETTY_FUNCTION__,num);LuaUnused(ls2)
 #else

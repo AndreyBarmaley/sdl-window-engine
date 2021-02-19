@@ -391,3 +391,43 @@ SWE.SystemRunCommand
     | daemon:x:2:2:daemon:/sbin:/sbin/nologin |
     | adm:x:3:4:adm:/var/adm:/sbin/nologin    |
 */
+SWE.ResourcesRegisterDirectory
+/**
+    @api {register directory for ext resources} SWE.ResourcesRegisterDirectory(directory) SWE.ResourcesRegisterDirectory
+    @apiGroup SWE
+    @apiName ResourcesRegisterDirectory
+
+    @apiParam {string}			path		directory
+    @apiSuccess (Return) {boolean}	result          result: success
+
+    @apiExample usage
+    -- data/images/image1.png
+
+    -- get texture variant 1
+    local tx1 = SWE.Texture.Image("data/images/image1.png")
+
+    -- get texture variant 2
+    SWE.ResourcesRegisterDirectory("data")
+    local tx2 = SWE.Texture.Image("images/image1.png")
+
+    -- get texture variant 3
+    SWE.ResourcesRegisterDirectory(SWE.SystemConcatePath("data", "images"))
+    local tx3 = SWE.Texture.Image("image1.png")
+*/
+SWE.LuaRegisterDirectory
+/**
+    @api {register directory for lua modules} SWE.LuaRegisterDirectory(directory) SWE.LuaRegisterDirectory
+    @apiGroup SWE
+    @apiName LuaRegisterDirectory
+
+    @apiParam {string}			path		directory
+    @apiSuccess (Return) {boolean}	result          result: success
+*/
+SWE.GetVersion
+/**
+    @api {get api version} SWE.GetVersion() SWE.GetVersion
+    @apiGroup SWE
+    @apiName GetVersion
+
+    @apiSuccess (Return) {integer}	result          version
+*/

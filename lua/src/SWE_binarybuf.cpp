@@ -221,13 +221,7 @@ int SWE_binarybuf_readfile1(lua_State* L)
 
     if(! Systems::isFile(filename))
     {
-	std::string filename2 = SWE_Tools::toCurrentPath(ll, filename);
-	if(Systems::isFile(filename2)) std::swap(filename, filename2);
-    }
-
-    if(! Systems::isFile(filename))
-    {
-	std::string filename2 = SWE_Tools::toRunningPath(ll, filename);
+	std::string filename2 = SWE_Tools::findResource(ll, filename);
 	if(Systems::isFile(filename2)) std::swap(filename, filename2);
     }
 
@@ -270,13 +264,7 @@ int SWE_binarybuf_readfile2(lua_State* L)
 
     if(! Systems::isFile(filename))
     {
-	std::string filename2 = SWE_Tools::toCurrentPath(ll, filename);
-	if(Systems::isFile(filename2)) std::swap(filename, filename2);
-    }
-
-    if(! Systems::isFile(filename))
-    {
-	std::string filename2 = SWE_Tools::toRunningPath(ll, filename);
+	std::string filename2 = SWE_Tools::findResource(ll, filename);
 	if(Systems::isFile(filename2)) std::swap(filename, filename2);
     }
 

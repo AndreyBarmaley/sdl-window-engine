@@ -678,8 +678,7 @@ namespace SWE
 
     std::string shortPrettyName(const std::string & name)
     {
-        size_t end = name.rfind('(');
-
+        size_t end = name.find('(');
         if(end == std::string::npos) end = name.size();
 
         size_t begin = 0;

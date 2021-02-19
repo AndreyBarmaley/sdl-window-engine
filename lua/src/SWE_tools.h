@@ -32,6 +32,9 @@ namespace SWE_Tools
     std::string		toRunningPath(LuaState &, const std::string &);
     std::string		convertEncoding(LuaState &, const std::string &);
 
+    bool                addResourceDir(LuaState &, const std::string &);
+    std::string         findResource(LuaState &, const std::string &);
+
     int			pushJsonObject(LuaState &, const JsonObject*);
     int			pushJsonArray(LuaState &, const JsonArray*);
     int			pushJsonValue(LuaState &, const JsonValue*);

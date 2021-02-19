@@ -157,4 +157,5 @@ void SWE_Translation::registers(LuaState & ll)
     // SWE.Translation
     ll.pushTable("SWE.Translation");
     ll.setFunctionsTableIndex(SWE_translation_functions, -1);
+    ll.stackPop();
 }

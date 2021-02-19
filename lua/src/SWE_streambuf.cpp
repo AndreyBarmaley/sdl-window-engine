@@ -380,6 +380,4 @@ void SWE_StreamBuf::registers(LuaState & ll)
     // set metatable: __call
     ll.pushTable(0, 1).pushFunction(SWE_streambuf_create).setFieldTableIndex("__call", -2);
     ll.setMetaTableIndex(-2).stackPop();
-
-    ll.stackPop();
 }

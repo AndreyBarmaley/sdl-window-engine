@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.14)
 
-project(SDL_WINDOW_ENGINE VERSION 20210202.1)
+project(SDL_WINDOW_ENGINE VERSION 20210210.1)
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
@@ -48,5 +48,6 @@ if(SWE_WITH_LUA STREQUAL ON)
     endif()
 
     add_compile_options(-DSWE_WITH_LUA)
+    add_compile_options(-DLUA_STACK_DEBUG)
     add_subdirectory(lua)
 endif()

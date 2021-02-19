@@ -43,7 +43,7 @@
 #include "SWE_translation.h"
 #include "SWE_unicodestring.h"
 
-#define SWE_LUA_VERSION 20200910
+#define SWE_LUA_VERSION 20210210
 #define SWE_LUA_LICENSE "GPL3"
 
 int SWE_window_init2(lua_State* L)
@@ -215,6 +215,14 @@ int SWE_display_size(lua_State* L)
     return 3;
 }
 
+int SWE_get_version(lua_State* L)
+{
+    // params: none
+    LuaState ll(L);
+    ll.pushInteger(SWE_LUA_VERSION);
+    return 1;
+}
+
 int SWE_display_videomodes(lua_State* L)
 {
     // params: none
@@ -341,6 +349,48 @@ int SWE_cursor_info(lua_State* L)
     ll.pushInteger(btn).setFieldTableIndex("buttons", -3);
 
     return 1;
+}
+
+int SWE_register_resources(lua_State* L)
+{
+    // params: string directory
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
+    if(! ll.isTopString())
+    {
+	ERROR("string not found");
+	ll.pushBoolean(false);
+	return rescount;
+    }
+
+    std::string name = ll.getTopString();
+
+    if(! Systems::isDirectory(name))
+    {
+	std::string name2 = SWE_Tools::toRunningPath(ll, name);
+	if(Systems::isDirectory(name2)) std::swap(name, name2);
+    }
+
+    if(! Systems::isDirectory(name))
+    {
+	std::string name2 = SWE_Tools::toCurrentPath(ll, name);
+	if(Systems::isDirectory(name2)) std::swap(name, name2);
+    }
+
+    if(Systems::isDirectory(name))
+    {
+	DEBUG(name);
+	bool res = SWE_Tools::addResourceDir(ll, name);
+	ll.pushBoolean(res);
+    }
+    else
+    {
+	ERROR("directory not found: " << name);
+	ll.pushBoolean(false);
+    }
+
+    return rescount;
 }
 
 int SWE_register_directory(lua_State* L)
@@ -900,6 +950,7 @@ const struct luaL_Reg SWE_functions[] = {
     { "TableToJson", SWE_table_json },	// [string], table
     { "PushEvent", SWE_push_event },	// [void], int code, pointer data, table window
     { "SetDebug", SWE_set_debug }, 	// [void], bool
+    { "GetVersion", SWE_get_version }, 	// [int], void
     { "DisplayWindow", SWE_display_window }, 			// [table swe_window], void
     { "DisplayDirty", SWE_display_dirty }, 			// [void], void
     { "DisplayVideoModes", SWE_display_videomodes }, 		// [string list], void
@@ -908,6 +959,7 @@ const struct luaL_Reg SWE_functions[] = {
     { "DisplayHandleEvents", SWE_display_handleevents }, 	// [void], int interval
     { "RenderScreenshot", SWE_render_screenshot }, 		// [bool], string filename
     { "LuaRegisterDirectory", SWE_register_directory }, 	// [bool], string directory
+    { "ResourcesRegisterDirectory", SWE_register_resources }, 	// [bool], string directory
     { "SystemSleep", SWE_system_delay }, 			// [void], int
     { "SystemMakeDirectory", SWE_system_mkdir },		// [bool], string directory
     { "SystemCurrentDirectory", SWE_system_current_directory },	// [string], void

@@ -46,6 +46,92 @@ std::string SWE_Tools::convertEncoding(LuaState & ll, const std::string & str)
     return res;
 }
 
+bool SWE_Tools::addResourceDir(LuaState & ll, const std::string & dir)
+{
+    LuaStateValidator(ll, 0);
+
+    if(ll.pushTable("SWE.ShareDirs").isTopTable())
+    {
+        int nindex = 1;
+        bool present = false;
+
+        // iterate SWE.Scene.Resources
+        ll.pushNil();
+        while(ll.nextTableIndex(-2))
+        {
+            if(! present)
+            {
+                std::string val = ll.toStringIndex(-1);
+                present = val == dir;
+            }
+            // pop value
+            ll.stackPop();
+            nindex++;
+        }
+
+        if(present)
+        {
+            ERROR("resource exist" << ": " << dir << ", skipping...");
+            return false;
+        }
+
+        // add value
+        ll.pushNumber(nindex).pushString(dir).setTableIndex(-3);
+        // remove table
+        ll.stackPop();
+
+        return true;
+    }
+
+    ERROR("table not found" << ": " << "swe.sharedirs");
+    return false;
+}
+
+std::string SWE_Tools::findResource(LuaState & ll, const std::string & res)
+{
+    LuaStateValidator(ll, 0);
+
+    if(ll.pushTable("SWE.ShareDirs").isTopTable())
+    {
+        // iterate SWE.Scene.Resources
+        ll.pushNil();
+        while(ll.nextTableIndex(-2))
+        {
+            std::string dir = ll.toStringIndex(-1);
+            std::string file = Systems::concatePath(dir, res);
+
+            // pop value
+            ll.stackPop();
+
+            if(Systems::isFile(file))
+            {
+                ll.stackPop(2);
+                return file;
+            }
+        }
+
+        // remove table
+	ll.stackPop();
+
+        std::string file = SWE_Tools::toCurrentPath(ll, res);
+        if(Systems::isFile(file))
+            return file;
+
+        file = SWE_Tools::toRunningPath(ll, res);
+        if(Systems::isFile(file))
+            return file;
+
+        ERROR("resource not found" << ": " << res);
+    }
+    else
+    {
+        ERROR("table not found" << ": " << "swe.sharedirs");
+	ll.stackPop();
+    }
+
+    return res;
+}
+
 std::string SWE_Tools::toRunningPath(LuaState & ll, const std::string & file)
 {
     LuaStateValidator(ll, 0);

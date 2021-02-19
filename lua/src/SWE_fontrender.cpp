@@ -240,13 +240,7 @@ int SWE_fontrender_create_ttf(lua_State* L)
 
     if(! Systems::isFile(font))
     {
-	std::string font2 = SWE_Tools::toCurrentPath(ll, font);
-	if(Systems::isFile(font2)) std::swap(font, font2);
-    }
-
-    if(! Systems::isFile(font))
-    {
-	std::string font2 = SWE_Tools::toRunningPath(ll, font);
+	std::string font2 = SWE_Tools::findResource(ll, font);
 	if(Systems::isFile(font2)) std::swap(font, font2);
     }
 
@@ -300,13 +294,7 @@ int SWE_fontrender_create_psf(lua_State* L)
 
     if(! Systems::isFile(font))
     {
-	std::string font2 = SWE_Tools::toCurrentPath(ll, font);
-	if(Systems::isFile(font2)) std::swap(font, font2);
-    }
-
-    if(! Systems::isFile(font))
-    {
-	std::string font2 = SWE_Tools::toRunningPath(ll, font);
+	std::string font2 = SWE_Tools::findResource(ll, font);
 	if(Systems::isFile(font2)) std::swap(font, font2);
     }
 
