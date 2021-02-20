@@ -1,6 +1,6 @@
 SWE.DisplayInit
 /**
-    @api {create display window object} SWE.DisplayInit(title,width,height,fullscreen)(title,landscape) SWE.DisplayInit
+    @api {create display window object} SWE.DisplayInit(title,width,height,fullscreen)(title,landscape)(table) SWE.DisplayInit
     @apiGroup SWE
     @apiName DisplayInit
 
@@ -9,6 +9,7 @@ SWE.DisplayInit
     @apiParam {number}			height		display size
     @apiParam {boolean}			fullscreen	fullscreen mode, (default false)
     @apiParam {boolean}			landscape	init landscape of portrait mode (mobile os)
+    @apiParam {table}                   params          params: { "title":string, "window":size, "render":size, "fullscreen":bool, "accel":bool, "resized":bool }
     @apiSuccess (Return) {SWE.Window}	result		window object
 
     @apiExample usage
@@ -391,34 +392,56 @@ SWE.SystemRunCommand
     | daemon:x:2:2:daemon:/sbin:/sbin/nologin |
     | adm:x:3:4:adm:/var/adm:/sbin/nologin    |
 */
-SWE.ResourcesRegisterDirectory
+SWE.RegisterResourceDirectory
 /**
-    @api {register directory for ext resources} SWE.ResourcesRegisterDirectory(directory) SWE.ResourcesRegisterDirectory
+    @api {register directory for ext resources} SWE.RegisterResourceDirectory(directory) SWE.RegisterResourceDirectory
     @apiGroup SWE
-    @apiName ResourcesRegisterDirectory
+    @apiName RegisterResourceDirectory
 
     @apiParam {string}			path		directory
     @apiSuccess (Return) {boolean}	result          result: success
 
     @apiExample usage
     -- data/images/image1.png
+    -- data/font.ttf
+    -- data/sound.wav
 
-    -- get texture variant 1
+    -- variant 1
     local tx1 = SWE.Texture.Image("data/images/image1.png")
+    local frs = SWE.FontRender("data/font.ttf", 14, SWE.Font.RenderSolid)
+    SWE.SoundPlay("data/sound.wav")
 
-    -- get texture variant 2
-    SWE.ResourcesRegisterDirectory("data")
+    -- variant 2
+    SWE.RegisterResourceDirectory("data")
     local tx2 = SWE.Texture.Image("images/image1.png")
+    local frs = SWE.FontRender("font.ttf", 14, SWE.Font.RenderSolid)
+    SWE.SoundPlay("sound.wav")
 
-    -- get texture variant 3
-    SWE.ResourcesRegisterDirectory(SWE.SystemConcatePath("data", "images"))
+    -- variant 3
+    SWE.RegisterResourceDirectory(SWE.SystemConcatePath("data", "images"))
     local tx3 = SWE.Texture.Image("image1.png")
 */
-SWE.LuaRegisterDirectory
+SWE.FindResource
 /**
-    @api {register directory for lua modules} SWE.LuaRegisterDirectory(directory) SWE.LuaRegisterDirectory
+    @api {find filename from resource dirs} SWE.FindResource(resource) SWE.FindResource
     @apiGroup SWE
-    @apiName LuaRegisterDirectory
+    @apiName FindResource
+
+    @apiParam {string}			resource	file name
+    @apiSuccess (Return) {string}	result          full path or nil
+
+    @apiExample usage
+    -- data/images/image1.png
+
+    SWE.RegisterResourceDirectory(SWE.SystemConcatePath("data", "images"))
+    local filename = SWE.FindResource("image1.png")
+    print(filename)
+*/
+SWE.RegisterLuaDirectory
+/**
+    @api {register directory for lua modules} SWE.RegisterLuaDirectory(directory) SWE.RegisterLuaDirectory
+    @apiGroup SWE
+    @apiName RegisterLuaDirectory
 
     @apiParam {string}			path		directory
     @apiSuccess (Return) {boolean}	result          result: success

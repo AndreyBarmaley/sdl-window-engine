@@ -453,7 +453,7 @@ end
 os.setlocale("C", "time")
 
 SWE.SetDebug(true)
-SWE.LuaRegisterDirectory("gui")
+SWE.RegisterLuaDirectory("gui")
 
 require 'gui_list'
 require 'gui_tools'

@@ -136,11 +136,18 @@ namespace SWE
         int		nextTableIndex(int);
         int		countFieldsTableIndex(int);
         bool		isSequenceTableIndex(int);
+        bool            isFieldTableIndex(const char*, int);
+        bool            isFieldTableIndex(const std::string &, int);
 
 #ifdef SWE_WITH_JSON
         JsonArray	toJsonArrayTableIndex(int);
         JsonObject	toJsonObjectTableIndex(int);
 #endif
+
+        int             absTableIndex(int);
+
+        LuaState &	getIndexTableIndex(unsigned int seqindex, int tableindex, bool verboseNil = true);
+        LuaState &	setIndexTableIndex(unsigned int seqindex, int tableindex);
 
         LuaState &	getFieldTableIndex(const std::string &, int, bool verboseNil = true);
         LuaState &	setFieldTableIndex(const std::string &, int);

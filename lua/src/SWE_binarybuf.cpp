@@ -421,6 +421,7 @@ int SWE_binarybuf_setbyte(lua_State* L)
 int SWE_binarybuf_getbyte(lua_State* L)
 {
     // params: table binarybuf, int offset
+    // returned variable size
     LuaState ll(L);
 
     if(SWE_BinaryBuf* buf = SWE_BinaryBuf::get(ll, 1, __FUNCTION__))

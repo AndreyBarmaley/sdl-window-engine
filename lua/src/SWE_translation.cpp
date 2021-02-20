@@ -25,9 +25,10 @@
 
 int SWE_translation_bindomain(lua_State* L)
 {
-    // params: swe_translation
-    LuaState ll(L);
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
 
+    // params: swe_translation
     std::string domain = ll.toStringIndex(1);
     bool res = false;
 
@@ -59,61 +60,71 @@ int SWE_translation_bindomain(lua_State* L)
     }
 
     ll.pushBoolean(res);
-    return 1;
+    return rescount;
 }
 
 int SWE_translation_setdomain(lua_State* L)
 {
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_translation
-    LuaState ll(L);
 
     std::string domain = ll.toStringIndex(1);
     bool res = Translation::setDomain(domain);
     ll.pushBoolean(res);
 
-    return 1;
+    return rescount;
 }
 
 int SWE_translation_setstrip(lua_State* L)
 {
+    const int rescount = 0;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_translation
-    LuaState ll(L);
 
     int strip = ll.toIntegerIndex(1);
     if(strip) Translation::setStripContext(strip);
 
-    return 0;
+    return rescount;
 }
 
 int SWE_translation_gettext(lua_State* L)
 {
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_translation
-    LuaState ll(L);
 
     std::string text = ll.toStringIndex(1);
     const char* res  = Translation::gettext(text.c_str());
     ll.pushString(res);
 
-    return 1;
+    return rescount;
 }
 
 int SWE_translation_dgettext(lua_State* L)
 {
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_translation
-    LuaState ll(L);
 
     std::string domain = ll.toStringIndex(1);
     std::string text = ll.toStringIndex(2);
     const char* res  = Translation::dgettext(domain.c_str(), text.c_str());
     ll.pushString(res);
 
-    return 1;
+    return rescount;
 }
 
 int SWE_translation_ngettext(lua_State* L)
 {
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_translation
-    LuaState ll(L);
 
     std::string text = ll.toStringIndex(1);
     std::string plural = ll.toStringIndex(2);
@@ -121,13 +132,15 @@ int SWE_translation_ngettext(lua_State* L)
     const char* res  = Translation::ngettext(text.c_str(), plural.c_str(), number);
     ll.pushString(res);
 
-    return 1;
+    return rescount;
 }
 
 int SWE_translation_dngettext(lua_State* L)
 {
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_translation
-    LuaState ll(L);
 
     std::string domain = ll.toStringIndex(1);
     std::string text = ll.toStringIndex(2);
@@ -136,7 +149,7 @@ int SWE_translation_dngettext(lua_State* L)
     const char* res  = Translation::dngettext(domain.c_str(), text.c_str(), plural.c_str(), number);
     ll.pushString(res);
 
-    return 1;
+    return rescount;
 }
 
 const struct luaL_Reg SWE_translation_functions[] = {

@@ -281,24 +281,31 @@ namespace SWE
         return Tools::AdvancedSplit<std::string>(str, sep);
     }
 
-    StringList String::split(const std::string & str, int sep)
+    StringList String::split(const std::string & str, std::function<bool(int)> fn)
     {
         StringList list;
-        size_t pos1 = 0;
-        size_t pos2 = std::string::npos;
+        auto pos1 = str.begin();
+        auto pos2 = str.end();
 
-        while(pos1 < str.size() &&
-              std::string::npos != (pos2 = str.find(sep, pos1)))
-        {
-            list << str.substr(pos1, pos2 - pos1);
-            pos1 = pos2 + 1;
+        while(pos1 != str.end())
+	{
+	    pos2 = std::find_if(pos1, str.end(), fn);
+	    if(pos2 == str.end()) break;
+
+            list << str.substr(std::distance(str.begin(), pos1), std::distance(pos1, pos2));
+            pos1 = std::next(pos2);
         }
 
         // tail
-        if(pos1 < str.size())
-            list << str.substr(pos1, str.size() - pos1);
+        if(pos1 != str.end())
+            list << str.substr(std::distance(str.begin(), pos1), std::distance(pos1, str.end()));
 
         return list;
+    }
+
+    StringList String::split(const std::string & str, int sep)
+    {
+	return split(str, [=](int ch){ return ch == sep; });
     }
 
     /* StringList */

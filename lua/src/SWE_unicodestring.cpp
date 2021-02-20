@@ -53,10 +53,11 @@ SWE_UnicodeString* SWE_UnicodeString::get(LuaState & ll, int tableIndex, const c
 int SWE_unicodestring_pushback(lua_State* L)
 {
     // params: table unicodestring, int char,int char .. int char
-    LuaState ll(L);
-    SWE_UnicodeString* ustr = SWE_UnicodeString::get(ll, 1, __FUNCTION__);
 
-    if(ustr)
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
+    if(SWE_UnicodeString* ustr = SWE_UnicodeString::get(ll, 1, __FUNCTION__))
     {
 	int params = ll.stackSize();
 
@@ -68,22 +69,25 @@ int SWE_unicodestring_pushback(lua_State* L)
 
 	ll.pushInteger(ustr->size()).setFieldTableIndex("size", 1);
 	ll.pushBoolean(true);
-
-	return 1;
+    }
+    else
+    {
+	ERROR("userdata empty");
+	ll.pushNil();
     }
 
-    ERROR("userdata empty");
-    return 0;
+    return rescount;
 }
 
 int SWE_unicodestring_setchar(lua_State* L)
 {
-    // params: table unicodestring, int pos, int char, int char ... int char
-    LuaState ll(L);
-    int params = ll.stackSize();
-    SWE_UnicodeString* ustr = SWE_UnicodeString::get(ll, 1, __FUNCTION__);
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
 
-    if(ustr)
+    // params: table unicodestring, int pos, int char, int char ... int char
+    int params = ll.stackSize();
+
+    if(SWE_UnicodeString* ustr = SWE_UnicodeString::get(ll, 1, __FUNCTION__))
     {
         int pos = ll.toIntegerIndex(2);
 
@@ -107,20 +111,24 @@ int SWE_unicodestring_setchar(lua_State* L)
             ERROR("out of range");
             ll.pushBoolean(false);
         }
-        return 1;
+    }
+    else
+    {
+	ERROR("userdata empty");
+	ll.pushBoolean(false);
     }
 
-    ERROR("userdata empty");
-    return 0;
+    return rescount;
 }
 
 int SWE_unicodestring_getchar(lua_State* L)
 {
     // params: table unicodestring, int pos
-    LuaState ll(L);
-    SWE_UnicodeString* ustr = SWE_UnicodeString::get(ll, 1, __FUNCTION__);
 
-    if(ustr)
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
+    if(SWE_UnicodeString* ustr = SWE_UnicodeString::get(ll, 1, __FUNCTION__))
     {
 	int pos = ll.toIntegerIndex(2);
 
@@ -131,24 +139,26 @@ int SWE_unicodestring_getchar(lua_State* L)
 	else
 	{
     	    ERROR("out of range");
-	    ll.pushInteger(0);
+	    ll.pushNil();
 	}
-
-	return 1;
+    }
+    else
+    {
+	ERROR("userdata empty");
+	ll.pushNil();
     }
 
-    ERROR("userdata empty");
-    return 0;
+    return rescount;
 }
 
 int SWE_unicodestring_insert(lua_State* L)
 {
     // params: table unicodestring, int pos, (unicodestring, subpos, sublen), (int count, int char)
-    LuaState ll(L);
 
-    SWE_UnicodeString* ustr = SWE_UnicodeString::get(ll, 1, __FUNCTION__);
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
 
-    if(ustr)
+    if(SWE_UnicodeString* ustr = SWE_UnicodeString::get(ll, 1, __FUNCTION__))
     {
 	int pos = ll.toIntegerIndex(2);
 
@@ -209,12 +219,14 @@ int SWE_unicodestring_insert(lua_State* L)
 		ll.pushBoolean(false);
 	    }
 	}
-
-	return 1;
+    }
+    else
+    {
+	ERROR("userdata empty");
+	ll.pushBoolean(false);
     }
 
-    ERROR("userdata empty");
-    return 0;
+    return rescount;
 }
 
 int SWE_unicodestring_substring(lua_State* L)
@@ -254,12 +266,13 @@ int SWE_unicodestring_substring(lua_State* L)
 
 int SWE_unicodestring_erase(lua_State* L)
 {
-    // params: table unicodestring, int size, int val
-    LuaState ll(L);
-    int params = ll.stackSize();
-    SWE_UnicodeString* ustr = SWE_UnicodeString::get(ll, 1, __FUNCTION__);
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
 
-    if(ustr)
+    // params: table unicodestring, int size, int val
+    int params = ll.stackSize();
+
+    if(SWE_UnicodeString* ustr = SWE_UnicodeString::get(ll, 1, __FUNCTION__))
     {
 	int pos = ll.toIntegerIndex(2);
 	int count = 3 > params ? 1 : ll.toIntegerIndex(3);
@@ -286,16 +299,17 @@ int SWE_unicodestring_erase(lua_State* L)
 	ll.pushBoolean(false);
     }
 
-    return 1;
+    return rescount;
 }
 
 int SWE_unicodestring_resize(lua_State* L)
 {
-    // params: table unicodestring, int size, int val
-    LuaState ll(L);
-    SWE_UnicodeString* ustr = SWE_UnicodeString::get(ll, 1, __FUNCTION__);
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
 
-    if(ustr)
+    // params: table unicodestring, int size, int val
+
+    if(SWE_UnicodeString* ustr = SWE_UnicodeString::get(ll, 1, __FUNCTION__))
     {
 	int size = ll.toIntegerIndex(2);
 
@@ -325,32 +339,37 @@ int SWE_unicodestring_resize(lua_State* L)
 	ll.pushBoolean(false);
     }
 
-    return 1;
+    return rescount;
 }
 
 int SWE_unicodestring_to_cstring(lua_State* L)
 {
-    // params: table unicodestring
-    LuaState ll(L);
-    SWE_UnicodeString* ustr = SWE_UnicodeString::get(ll, 1, __FUNCTION__);
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
 
-    if(ustr)
+    // params: table unicodestring
+
+    if(SWE_UnicodeString* ustr = SWE_UnicodeString::get(ll, 1, __FUNCTION__))
     {
         ll.pushString(ustr->toString());
-        return 1;
     }
-    
-    ERROR("userdata empty");
-    return 0;
+    else
+    {
+	ll.pushNil();
+	ERROR("userdata empty");
+    }
+
+    return rescount;
 }
 
 int SWE_unicodestring_clear(lua_State* L)
 {
-    // params: table unicodestring, int pos
-    LuaState ll(L);
-    SWE_UnicodeString* ustr = SWE_UnicodeString::get(ll, 1, __FUNCTION__);
+    const int rescount = 0;
+    LuaStateDefine(ll, L, rescount);
 
-    if(ustr && 0 < ustr->size())
+    // params: table unicodestring, int pos
+
+    if(SWE_UnicodeString* ustr = SWE_UnicodeString::get(ll, 1, __FUNCTION__))
     {
 	ustr->clear();
 	ll.pushInteger(0).setFieldTableIndex("size", -2);
@@ -359,45 +378,50 @@ int SWE_unicodestring_clear(lua_State* L)
     {
 	ERROR("userdata empty");
     }
-    return 0;
+
+    return rescount;
 }
 
 int SWE_unicodestring_to_json(lua_State* L)
 {
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_unicodestring
 
-    LuaState ll(L);
-    SWE_UnicodeString* ustr = SWE_UnicodeString::get(ll, 1, __FUNCTION__);
-
-    if(ustr)
+    if(SWE_UnicodeString* ustr = SWE_UnicodeString::get(ll, 1, __FUNCTION__))
     {
         std::string json = StringFormat("[%1]").arg(ustr->toHexString(",", true));
         ll.pushString(json);
-
-        return 1;
     }
-    
-    ERROR("userdata empty");
-    return 0;
+    else
+    {    
+	ERROR("userdata empty");
+	ll.pushNil();
+    }
+
+    return rescount;
 }           
 
 int SWE_unicodestring_tostring(lua_State* L)
 {
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_unicodestring
 
-    LuaState ll(L);
-    SWE_UnicodeString* ustr = SWE_UnicodeString::get(ll, 1, __FUNCTION__);
-
-    if(ustr)
+    if(SWE_UnicodeString* ustr = SWE_UnicodeString::get(ll, 1, __FUNCTION__))
     {
         std::string str = StringFormat("%1[%2]").arg("swe.unicodestring").arg(ustr->toHexString(",", true));
         ll.pushString(str);
-
-        return 1;
+    }
+    else
+    {    
+	ERROR("userdata empty");
+	ll.pushNil();
     }
     
-    ERROR("userdata empty");
-    return 0;
+    return rescount;
 }           
 
 const struct luaL_Reg SWE_unicodestring_functions[] = {
@@ -463,9 +487,10 @@ SWE_UnicodeString* SWE_Stack::unicode_create(LuaState & ll)
 
 int SWE_unicodestring_create(lua_State* L)
 {
-    // SWE.UnicodeString(self, string)
     const int rescount = 1;
     LuaStateDefine(ll, L, rescount);
+
+    // SWE.UnicodeString(self, string)
 
     SWE_UnicodeString* ustr = SWE_Stack::unicode_create(ll);
 
@@ -491,7 +516,8 @@ int SWE_unicodestring_create(lua_State* L)
 
 int SWE_unicodestring_destroy(lua_State* L)
 {
-    LuaState ll(L);
+    const int rescount = 0;
+    LuaStateDefine(ll, L, rescount);
 
     if(ll.isTopUserData())
     {
@@ -513,6 +539,5 @@ int SWE_unicodestring_destroy(lua_State* L)
         ERROR("not userdata");
     }
 
-    return 0;
+    return rescount;
 }
-

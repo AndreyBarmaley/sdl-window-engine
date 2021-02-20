@@ -154,6 +154,7 @@ test_color()
 test_json()
 
 local pt = SWE.Point(101, 102)
+local pt2 = SWE.Point("107, 108")
 local sz = SWE.Size(103, 104)
 local rt = SWE.Rect(101, 102, 103, 104)
 
@@ -162,6 +163,7 @@ SWE.Dump(sz)
 SWE.Dump(rt)
 
 print(pt:ToJson())
+print(pt2:ToJson())
 print(sz:ToJson())
 print(rt:ToJson())
 
@@ -171,6 +173,7 @@ print(rt:Unpack())
 
 local rt1 = SWE.Rect(10,20,100, 200)
 print("rect1",rt1:ToJson())
+
 local rt2 = SWE.Rect(50,80,100, 200)
 print("rect2",rt2:ToJson())
 
@@ -214,3 +217,14 @@ SWE.Dump(ustr2)
 local utf82 = "Привет Бармалей!"
 local ustr3 = SWE.UnicodeString(utf82)
 print(ustr3:ToJson())
+
+
+-- test net
+print("Test network")
+net = SWE.StreamNet()
+
+net:Connect("test.com", 80)
+net:SendString("GET / HTTP/1.0\r\n\r\n")
+
+str = net:RecvString()
+print(str)

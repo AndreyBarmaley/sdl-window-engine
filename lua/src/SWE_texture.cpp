@@ -55,7 +55,8 @@ SWE_Texture* SWE_Texture::get(LuaState & ll, int tableIndex, const char* funcNam
 ////////////////
 int SWE_texture_save_tofile(lua_State* L)
 {
-    LuaState ll(L);
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
     SWE_Texture* tx = SWE_Texture::get(ll, 1, __FUNCTION__);
 
     if(tx)
@@ -70,14 +71,15 @@ int SWE_texture_save_tofile(lua_State* L)
 	ll.pushBoolean(false);
     }
 
-    return 1;
+    return rescount;
 }
 
 int SWE_texture_render_clear(lua_State* L)
 {
     // params: swe_texture, color
 
-    LuaState ll(L);
+    const int rescount = 0;
+    LuaStateDefine(ll, L, rescount);
     SWE_Texture* tx = SWE_Texture::get(ll, 1, __FUNCTION__);
 
     if(tx)
@@ -90,7 +92,7 @@ int SWE_texture_render_clear(lua_State* L)
 	ERROR("userdata empty");
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_texture_render_rect(lua_State* L)
@@ -98,7 +100,8 @@ int SWE_texture_render_rect(lua_State* L)
     // params: swe_texture, color, rtx, rty, rtw, rth, bool
     // params: swe_texture, color, rect, bool
 
-    LuaState ll(L);
+    const int rescount = 0;
+    LuaStateDefine(ll, L, rescount);
     SWE_Texture* tx = SWE_Texture::get(ll, 1, __FUNCTION__);
     
     if(tx)
@@ -135,7 +138,7 @@ int SWE_texture_render_rect(lua_State* L)
 	ERROR("userdata empty");
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_texture_render_point(lua_State* L)
@@ -143,7 +146,8 @@ int SWE_texture_render_point(lua_State* L)
     // params: swe_texture, color, posx. posy
     // params: swe_texture, color, point
 
-    LuaState ll(L);
+    const int rescount = 0;
+    LuaStateDefine(ll, L, rescount);
     SWE_Texture* tx = SWE_Texture::get(ll, 1, __FUNCTION__);
     
     if(tx)
@@ -166,7 +170,7 @@ int SWE_texture_render_point(lua_State* L)
 	ERROR("userdata empty");
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_texture_render_line(lua_State* L)
@@ -174,7 +178,8 @@ int SWE_texture_render_line(lua_State* L)
     // params: swe_texture, color, pt1x, pt1y, pt2x, pt2y
     // params: swe_texture, color, point1, point2
 
-    LuaState ll(L);
+    const int rescount = 0;
+    LuaStateDefine(ll, L, rescount);
     SWE_Texture* tx = SWE_Texture::get(ll, 1, __FUNCTION__);
     
     if(tx)
@@ -209,7 +214,7 @@ int SWE_texture_render_line(lua_State* L)
 	ERROR("userdata empty");
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_texture_render_cyrcle(lua_State* L)
@@ -217,7 +222,8 @@ int SWE_texture_render_cyrcle(lua_State* L)
     // params: swe_texture, color, px, py, int radius, bool filled
     // params: swe_texture, color, point center, int radius, bool filled
 
-    LuaState ll(L);
+    const int rescount = 0;
+    LuaStateDefine(ll, L, rescount);
     SWE_Texture* tx = SWE_Texture::get(ll, 1, __FUNCTION__);
     
     if(tx)
@@ -252,7 +258,7 @@ int SWE_texture_render_cyrcle(lua_State* L)
 	ERROR("userdata empty");
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_texture_render_texture(lua_State* L)
@@ -260,8 +266,8 @@ int SWE_texture_render_texture(lua_State* L)
     // params: swe_texture, swe_texture, [srcx, srcy, srcw, srch], [dstx, dsty, dstw, dsth]
     // params: swe_texture, swe_texture, rect src, rect dst
 
-
-    LuaState ll(L);
+    const int rescount = 0;
+    LuaStateDefine(ll, L, rescount);
 
     // dst texture
     SWE_Texture* txd = SWE_Texture::get(ll, 1, __FUNCTION__);
@@ -315,7 +321,7 @@ int SWE_texture_render_texture(lua_State* L)
 	ERROR("userdata empty");
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_texture_render_text(lua_State* L)
@@ -323,7 +329,8 @@ int SWE_texture_render_text(lua_State* L)
     // params: swe_texture, swe_fontrender, string, color, dstx, dsty, int halign, int valign, boolean horizontal, int render, int style, int hinting
     // params: swe_texture, swe_fontrender, string, color, point dst, int halign, int valign, boolean horizontal, int render, int style, int hinting
 
-    LuaState ll(L);
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
 
     SWE_Texture* tx = SWE_Texture::get(ll, 1, __FUNCTION__);
     SWE_FontRender* frs = SWE_FontRender::get(ll, 2, __FUNCTION__);
@@ -381,22 +388,22 @@ int SWE_texture_render_text(lua_State* L)
 
 	Rect area = Display::renderText(*frs, text, Color(argb), *tx, dst, halign, valign, horizontal, render, style, hinting);
 	SWE_Stack::rect_create(ll, area.x, area.y, area.w, area.h);
-
-	return 1;
     }
     else
     {
 	ERROR("userdata empty");
+	ll.pushNil();
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_texture_to_json(lua_State* L)
 {
     // params: swe_texture
 
-    LuaState ll(L);
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
     SWE_Texture* tx = SWE_Texture::get(ll, 1, __FUNCTION__);
 
     if(tx)
@@ -411,11 +418,14 @@ int SWE_texture_to_json(lua_State* L)
             arg("swe.texture").arg(width).arg(height).arg(alpha).arg(_class);
 
         ll.pushString(str);
-        return 1;
+    }
+    else
+    {
+	ERROR("userdata empty");
+	ll.pushNil();
     }
 
-    ERROR("userdata empty");
-    return 0;
+    return rescount;
 }
 
 const struct luaL_Reg SWE_texture_functions[] = {
@@ -434,16 +444,18 @@ const struct luaL_Reg SWE_texture_functions[] = {
 ///////////////////////////////////////////////////////////
 int SWE_texture_create_rect(lua_State* L)
 {
-    // SWE.Texture(self, color, color, size, int)
-    LuaState ll(L);
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
 
+    // SWE.Texture(self, color, color, size, int)
     int params = ll.stackSize();
 
     if(5 > params || ! ll.isNumberIndex(2) || ! ll.isNumberIndex(3) || 
 	! ll.isNumberIndex(4) || ! ll.isNumberIndex(5))
     {
         ERROR("require minimum params: " << "int color, int color, int width, int height");
-        return 0;
+	ll.pushNil();
+        return rescount;
     }
 
     ll.pushTable();
@@ -478,21 +490,22 @@ int SWE_texture_create_rect(lua_State* L)
     ll.setFunctionsTableIndex(SWE_texture_functions, -1);
 
     DEBUG(String::pointer(ptr) << ": [" << String::pointer(*ptr) << "]");
-
-    return 1;
+    return rescount;
 }
 
 int SWE_texture_create_text(lua_State* L)
 {
-    // SWE.Texture(self, fontrender, string, color, color)
-    LuaState ll(L);
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
 
+    // SWE.Texture(self, fontrender, string, color, color)
     int params = ll.stackSize();
 
     if(4 > params || ! ll.isTableIndex(2) || ! ll.isStringIndex(3) || ! ll.isNumberIndex(4))
     {
         ERROR("require minimum params: " << "table fontrender, string, int color");
-        return 0;
+	ll.pushNil();
+        return rescount;
     }
 
     SWE_FontRender* frs = SWE_FontRender::get(ll, 2, __FUNCTION__);
@@ -529,21 +542,22 @@ int SWE_texture_create_text(lua_State* L)
     ll.setFunctionsTableIndex(SWE_texture_functions, -1);
 
     DEBUG(String::pointer(ptr) << ": [" << String::pointer(*ptr) << "]");
-
-    return 1;
+    return rescount;
 }
 
 int SWE_texture_create_image(lua_State* L)
 {
-    // SWE.Texture(self, string, crop, colorkey)
-    LuaState ll(L);
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
 
+    // SWE.Texture(self, string, crop, colorkey)
     int params = ll.stackSize();
 
     if(! ll.isStringIndex(2))
     {
         ERROR("require minimum params: " << "string (image file)");
-        return 0;
+	ll.pushNil();
+        return rescount;
     }
 
     ll.pushTable();
@@ -621,14 +635,15 @@ int SWE_texture_create_image(lua_State* L)
     ll.setFunctionsTableIndex(SWE_texture_functions, -1);
 
     DEBUG(String::pointer(ptr) << ": [" << String::pointer(*ptr) << "]");
-
-    return 1;
+    return rescount;
 }
 
 int SWE_texture_create(lua_State* L)
 {
-    // SWE.Texture(self, w, h)
-    LuaState ll(L);
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
+    // params: SWE.Texture(self, w, h)
 
     ll.pushTable();
 
@@ -666,13 +681,13 @@ int SWE_texture_create(lua_State* L)
     ll.setFunctionsTableIndex(SWE_texture_functions, -1);
 
     DEBUG(String::pointer(ptr) << ": [" << String::pointer(*ptr) << "]");
-
-    return 1;
+    return rescount;
 }
 
 int SWE_texture_destroy(lua_State* L)
 {
-    LuaState ll(L);
+    const int rescount = 0;
+    LuaStateDefine(ll, L, rescount);
 
     if(ll.isTopUserData())
     {
@@ -694,7 +709,7 @@ int SWE_texture_destroy(lua_State* L)
         ERROR("not userdata");
     }
 
-    return 0;
+    return rescount;
 }
 
 void SWE_Texture::registers(LuaState & ll)

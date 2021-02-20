@@ -147,7 +147,8 @@ int SWE_streamfile_write_bytes(lua_State* L)
 {
     // params: swe_streamfile, swe_binarybuf
 
-    LuaState ll(L);
+    const int rescount = 0;
+    LuaStateDefine(ll, L, rescount);
 
     SWE_StreamFile* stream = SWE_StreamFile::get(ll, 1, __FUNCTION__);
     SWE_BinaryBuf* buf = SWE_BinaryBuf::get(ll, 2, __FUNCTION__);
@@ -162,7 +163,7 @@ int SWE_streamfile_write_bytes(lua_State* L)
         ERROR("userdata empty");
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_streamfile_write_value_type(lua_State* L, IntType type)
@@ -236,7 +237,8 @@ int SWE_streamfile_seek(lua_State* L)
 {
     // params: swe_streamfile, number
 
-    LuaState ll(L);
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
     SWE_StreamFile* stream = SWE_StreamFile::get(ll, 1, __FUNCTION__);
 
     if(stream)
@@ -252,36 +254,38 @@ int SWE_streamfile_seek(lua_State* L)
 	ll.pushBoolean(false);
     }
 
-    return 1;
+    return rescount;
 }
 
 int SWE_streamfile_tell(lua_State* L)
 {
     // params: swe_streamfile
 
-    LuaState ll(L);
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
     SWE_StreamFile* stream = SWE_StreamFile::get(ll, 1, __FUNCTION__);
 
     if(stream)
     {
         int res = stream->tell();
 	ll.pushInteger(res);
-
-	return 1;
     }
     else
     {
         ERROR("userdata empty");
+	ll.pushNil();
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_streamfile_open(lua_State* L)
 {
     // params: swe_streamfile, filename, mode
 
-    LuaState ll(L);
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
     SWE_StreamFile* stream = SWE_StreamFile::get(ll, 1, __FUNCTION__);
 
     if(stream)
@@ -297,18 +301,22 @@ int SWE_streamfile_open(lua_State* L)
 	ll.pushString("size").pushInteger(stream->size()).setTableIndex(1);
 
         ll.pushBoolean(res);
-        return 1;
+    }
+    else
+    {
+        ll.pushBoolean(false);
+	ERROR("userdata empty");
     }
 
-    ERROR("userdata empty");
-    return 0;
+    return rescount;
 }
 
 int SWE_streamfile_close(lua_State* L)
 {
     // params: swe_streamfile
 
-    LuaState ll(L);
+    const int rescount = 0;
+    LuaStateDefine(ll, L, rescount);
     SWE_StreamFile* stream = SWE_StreamFile::get(ll, 1, __FUNCTION__);
 
     if(stream)
@@ -325,14 +333,15 @@ int SWE_streamfile_close(lua_State* L)
         ERROR("userdata empty");
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_streamfile_to_json(lua_State* L)
 {   
     // params: swe_streamfile
 
-    LuaState ll(L);
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
     SWE_StreamFile* stream = SWE_StreamFile::get(ll, 1, __FUNCTION__);
 
     if(stream)
@@ -346,11 +355,14 @@ int SWE_streamfile_to_json(lua_State* L)
             arg("swe.streamfile").arg(name).arg(mode).arg(pos);
 
         ll.pushString(str);
-        return 1;
+    }
+    else
+    {
+	ERROR("userdata empty");
+        ll.pushNil();
     }
 
-    ERROR("userdata empty");
-    return 0;
+    return rescount;
 }
 
 const struct luaL_Reg SWE_streamfile_functions[] = {
@@ -380,8 +392,9 @@ const struct luaL_Reg SWE_streamfile_functions[] = {
 
 int SWE_streamfile_create(lua_State* L)
 {
-    // empty params
-    LuaState ll(L);
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
     ll.pushTable();
 
     // userdata
@@ -424,12 +437,13 @@ int SWE_streamfile_create(lua_State* L)
 
     DEBUG(String::pointer(ptr) << ": [" << String::pointer(*ptr) << "]");
 
-    return 1;
+    return rescount;
 }
 
 int SWE_streamfile_destroy(lua_State* L)
 {
-    LuaState ll(L);
+    const int rescount = 0;
+    LuaStateDefine(ll, L, rescount);
 
     if(ll.isTopUserData())
     {
@@ -451,7 +465,7 @@ int SWE_streamfile_destroy(lua_State* L)
         ERROR("not userdata");
     }
 
-    return 0;
+    return rescount;
 }
 
 void SWE_StreamFile::registers(LuaState & ll)

@@ -101,13 +101,20 @@ function CreateBit(order)
 	    bit:MoveBit(t.down)
 	end
 
+        local sound = nil
+
 	if CheckWins() and scoreAllow then
 	    score = score + 1
 	    scoreAllow = false
-	    SWE.Audio.SoundPlayBuf(sndTada)
+	    sound = sndTada
 	else
-	    SWE.Audio.SoundPlayBuf(sndClick)
+	    sound = sndClick
 	end
+
+        if sound ~= nil then
+	    SWE.Audio.SoundPlayBuf(sound)
+        end
+
 	return true
     end
 

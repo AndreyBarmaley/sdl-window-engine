@@ -154,6 +154,7 @@ int SWE_fontrender_symbol_advance(lua_State* L)
 int SWE_fontrender_split_stringwidth(lua_State* L)
 {
     // params: swe_fontrender, int width
+    // returned variable size
     LuaState ll(L);
 
     if(SWE_FontRender* frs = SWE_FontRender::get(ll, 1, __FUNCTION__))

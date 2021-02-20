@@ -160,7 +160,9 @@ int SWE_streamnet_recv_string(lua_State* L)
         return 0;
 #else
     // params: swe_streamnet, int endl, int wait ms
-    LuaState ll(L);
+
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
 
     SWE_StreamNet* stream = SWE_StreamNet::get(ll, 1, __FUNCTION__);
     if(stream)
@@ -195,14 +197,14 @@ int SWE_streamnet_recv_string(lua_State* L)
 	}
 
 	ll.pushString(res);
-	return 1;
     }
     else
     {
         ERROR("userdata empty");
+	ll.pushNil();
     }
 
-    return 0;
+    return rescount;
 #endif
 }
 
@@ -213,7 +215,9 @@ int SWE_streamnet_send_bytes(lua_State* L)
         return 0;
 #else
     // params: swe_streamnet, swe_binarybuf
-    LuaState ll(L);
+
+    const int rescount = 0;
+    LuaStateDefine(ll, L, rescount);
 
     SWE_StreamNet* stream = SWE_StreamNet::get(ll, 1, __FUNCTION__);
     SWE_BinaryBuf* buf = SWE_BinaryBuf::get(ll, 2, __FUNCTION__);
@@ -227,7 +231,7 @@ int SWE_streamnet_send_bytes(lua_State* L)
         ERROR("userdata empty");
     }
 
-    return 0;
+    return rescount;
 #endif
 }
 
@@ -238,7 +242,9 @@ int SWE_streamnet_send_string(lua_State* L)
         return 0;
 #else
     // params: swe_streamnet, string
-    LuaState ll(L);
+
+    const int rescount = 0;
+    LuaStateDefine(ll, L, rescount);
 
     SWE_StreamNet* stream = SWE_StreamNet::get(ll, 1, __FUNCTION__);
     if(stream)
@@ -251,7 +257,7 @@ int SWE_streamnet_send_string(lua_State* L)
         ERROR("userdata empty");
     }
 
-    return 0;
+    return rescount;
 #endif
 }
 
@@ -331,7 +337,9 @@ int SWE_streamnet_wait_string(lua_State* L)
         return 0;
 #else
     // params: swe_streamnet, string
-    LuaState ll(L);
+
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
 
     SWE_StreamNet* stream = SWE_StreamNet::get(ll, 1, __FUNCTION__);
     std::string str = ll.toStringIndex(2);
@@ -340,19 +348,20 @@ int SWE_streamnet_wait_string(lua_State* L)
     {
 	bool res = stream->wait(str);
 	ll.pushBoolean(res);
-	return 1;
     }
     else
     if(str.empty())
     {
         ERROR("string empty");
+	ll.pushNil();
     }
     else
     {
         ERROR("userdata empty");
+	ll.pushNil();
     }
 
-    return 0;
+    return rescount;
 #endif
 }
 
@@ -363,7 +372,9 @@ int SWE_streamnet_connect(lua_State* L)
         return 0;
 #else
     // params: swe_streamnet, string, int port
-    LuaState ll(L);
+
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
 
     SWE_StreamNet* stream = SWE_StreamNet::get(ll, 1, __FUNCTION__);
     if(stream)
@@ -379,11 +390,14 @@ int SWE_streamnet_connect(lua_State* L)
 	}
 
 	ll.pushBoolean(res);
-	return 1;
+    }
+    else
+    {
+	ll.pushNil();
+	ERROR("userdata empty");
     }
 
-    ERROR("userdata empty");
-    return 0;
+    return rescount;
 #endif
 }
 
@@ -394,18 +408,23 @@ int SWE_streamnet_data_ready(lua_State* L)
         return 0;
 #else
     // params: swe_streamnet, int port
-    LuaState ll(L);
+
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
 
     SWE_StreamNet* stream = SWE_StreamNet::get(ll, 1, __FUNCTION__);
     if(stream)
     {
 	bool res = stream->ready();
 	ll.pushBoolean(res);
-	return 1;
+    }
+    else
+    {
+	ERROR("userdata empty");
+	ll.pushNil();
     }
 
-    ERROR("userdata empty");
-    return 0;
+    return rescount;
 #endif
 }
 
@@ -416,7 +435,8 @@ int SWE_streamnet_listen(lua_State* L)
         return 0;
 #else
     // params: swe_streamnet, int port
-    LuaState ll(L);
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
 
     SWE_StreamNet* stream = SWE_StreamNet::get(ll, 1, __FUNCTION__);
     if(stream)
@@ -431,11 +451,14 @@ int SWE_streamnet_listen(lua_State* L)
 	}
 
 	ll.pushBoolean(res);
-	return 1;
+    }
+    else
+    {
+	ERROR("userdata empty");
+	ll.pushNil();
     }
 
-    ERROR("userdata empty");
-    return 0;
+    return rescount;
 #endif
 }
 
@@ -495,7 +518,8 @@ int SWE_streamnet_disable(lua_State* L)
         return 0;
 #else
     // params: swe_streamnet
-    LuaState ll(L);
+    const int rescount = 0;
+    LuaStateDefine(ll, L, rescount);
 
     SWE_StreamNet* stream = SWE_StreamNet::get(ll, 1, __FUNCTION__);
     if(stream)
@@ -509,7 +533,7 @@ int SWE_streamnet_disable(lua_State* L)
         ERROR("userdata empty");
     }
 
-    return 0;
+    return rescount;
 #endif
 }
 
@@ -520,7 +544,9 @@ int SWE_streamnet_close(lua_State* L)
         return 0;
 #else
     // params: swe_streamnet
-    LuaState ll(L);
+
+    const int rescount = 0;
+    LuaStateDefine(ll, L, rescount);
 
     SWE_StreamNet* stream = SWE_StreamNet::get(ll, 1, __FUNCTION__);
     if(stream)
@@ -532,7 +558,7 @@ int SWE_streamnet_close(lua_State* L)
         ERROR("userdata empty");
     }
 
-    return 0;
+    return rescount;
 #endif
 }
 
@@ -543,7 +569,9 @@ int SWE_streamnet_to_json(lua_State* L)
         return 0;
 #else
     // params: swe_streamnet
-    LuaState ll(L);
+
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
 
     SWE_StreamNet* stream = SWE_StreamNet::get(ll, 1, __FUNCTION__);
     if(stream)
@@ -556,11 +584,14 @@ int SWE_streamnet_to_json(lua_State* L)
             arg("swe.streamnet").arg(address).arg(port);
 
         ll.pushString(str);
-        return 1;
+    }
+    else
+    {
+	ERROR("userdata empty");
+	ll.pushNil();
     }
 
-    ERROR("userdata empty");
-    return 0;
+    return rescount;
 #endif
 }
 
@@ -596,7 +627,6 @@ const struct luaL_Reg SWE_streamnet_functions[] = {
 
 SWE_StreamNet* SWE_Stack::streamnet_create(LuaState & ll)
 {
-
     LuaStateValidator(ll, 1);
 
     // result
@@ -656,7 +686,8 @@ int SWE_streamnet_create(lua_State* L)
 
 int SWE_streamnet_destroy(lua_State* L)
 {
-    LuaState ll(L);
+    const int rescount = 0;
+    LuaStateDefine(ll, L, rescount);
 
     if(ll.isTopUserData())
     {
@@ -678,7 +709,7 @@ int SWE_streamnet_destroy(lua_State* L)
         ERROR("not userdata");
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_streamnet_local_addresses(lua_State* L)
@@ -687,6 +718,7 @@ int SWE_streamnet_local_addresses(lua_State* L)
         ERROR("not supported module: " << "swe.streamnet");
         return 0;
 #else
+    // returned variable size
     LuaState ll(L);
 
     StringList addrs = StreamNetwork::localAddresses();

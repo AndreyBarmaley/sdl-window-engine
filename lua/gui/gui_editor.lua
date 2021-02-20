@@ -1,6 +1,5 @@
 -- require 'SWE'
 
-SWE.LuaRegisterDirectory("gui")
 require 'gui_tools'
 require 'gui_button'
 require 'gui_action'
@@ -618,8 +617,11 @@ function EditorInit(win, frs2, filename)
     end
 
     area.NewFile = function(area)
-	area:LoadFile("template.lua")
-	area.basename = "newfile"
+        local file = SWE.FindResource("template.lua")
+	if file ~= nil then
+            area:LoadFile(file)
+	end
+        area.basename = "newfile"
 	area.filename = ""
     end
 

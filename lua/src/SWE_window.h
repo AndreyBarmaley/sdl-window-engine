@@ -84,7 +84,7 @@ public:
 
     void        renderWindow(void) override { SWE_window_render(ll, *this); }
 
-    static Window* get(LuaState &, int tableIndex, const char* funcName);
+    static SWE_Window* get(LuaState &, int tableIndex, const char* funcName);
     static void registers(LuaState &);
 };
 
@@ -117,7 +117,7 @@ public:
     void	includeRegion(const Points &);
     void	excludeRegion(const Points &);
 
-    static Window* get(LuaState &, int tableIndex, const char* funcName);
+    static SWE_Polygon* get(LuaState &, int tableIndex, const char* funcName);
     static void registers(LuaState &);
 };
 

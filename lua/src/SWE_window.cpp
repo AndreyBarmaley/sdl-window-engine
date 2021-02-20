@@ -494,7 +494,7 @@ SWE_Window::SWE_Window(lua_State* L, const Point & pos, const Size & winsz, Wind
     setVisible(true);
 }
 
-Window* SWE_Window::get(LuaState & ll, int tableIndex, const char* funcName)
+SWE_Window* SWE_Window::get(LuaState & ll, int tableIndex, const char* funcName)
 {
     LuaStateValidator(ll, 0);
 
@@ -505,7 +505,7 @@ Window* SWE_Window::get(LuaState & ll, int tableIndex, const char* funcName)
 	if(0 != type.compare("swe.window") &&
 	    0 != type.compare("swe.terminal") && 0 != type.compare("swe.polygon"))
 	{
-    	    ERROR(funcName << ": " << "table not found, index: " << tableIndex);
+    	    ERROR(funcName << ": " << "table not found, index: " << tableIndex << ", type: " << type);
     	    return NULL;
 	}
     }
@@ -522,27 +522,55 @@ Window* SWE_Window::get(LuaState & ll, int tableIndex, const char* funcName)
 	return NULL;
     }
 
-    auto ptr = static_cast<Window**>(ll.getTopUserData());
+    auto ptr = static_cast<SWE_Window**>(ll.getTopUserData());
     ll.stackPop();
 
     return ptr ? *ptr : NULL;
 }
 
-Window* SWE_Polygon::get(LuaState & ll, int tableIndex, const char* funcName)
+SWE_Polygon* SWE_Polygon::get(LuaState & ll, int tableIndex, const char* funcName)
 {
-    return SWE_Window::get(ll, tableIndex, funcName);
+    LuaStateValidator(ll, 0);
+
+    if(ll.isTableIndex(tableIndex))
+    {
+	const std::string type = ll.popFieldTableIndex("__type", tableIndex);
+
+	if(0 != type.compare("swe.polygon"))
+	{
+    	    ERROR(funcName << ": " << "table not found, index: " << tableIndex << ", type: " << type);
+    	    return NULL;
+	}
+    }
+    else
+    {
+    	ERROR(funcName << ": " << "table not found, index: " << tableIndex);
+    	return NULL;
+    }
+
+    if(! ll.getFieldTableIndex("userdata", tableIndex).isTopUserData())
+    {
+	ERROR(funcName << ": " << "not userdata, index: " << tableIndex << ", " << ll.getTopTypeName());
+	ll.stackPop();
+	return NULL;
+    }
+
+    auto ptr = static_cast<SWE_Polygon**>(ll.getTopUserData());
+    ll.stackPop();
+
+    return ptr ? *ptr : NULL;
 }
 
 /////////////////////////////////////// 
 
 int SWE_window_set_position(lua_State* L)
 {
+    const int rescount = 0;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_window, posx, posy
 
-    LuaState ll(L);
-    auto win = SWE_Window::get(ll, 1, __FUNCTION__);
-
-    if(win)
+    if(auto win = SWE_Window::get(ll, 1, __FUNCTION__))
     {
 	int posx = ll.toIntegerIndex(2);
 	int posy = ll.toIntegerIndex(3);
@@ -558,17 +586,17 @@ int SWE_window_set_position(lua_State* L)
 	ERROR("userdata empty");
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_window_set_size(lua_State* L)
 {
+    const int rescount = 0;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_window, width, height
 
-    LuaState ll(L);
-    auto win = SWE_Window::get(ll, 1, __FUNCTION__);
-
-    if(win)
+    if(auto win = SWE_Window::get(ll, 1, __FUNCTION__))
     {
 	int width = ll.toIntegerIndex(2);
 	int height = ll.toIntegerIndex(3);
@@ -584,17 +612,17 @@ int SWE_window_set_size(lua_State* L)
 	ERROR("userdata empty");
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_window_set_result(lua_State* L)
 {
+    const int rescount = 0;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_window, int
 
-    LuaState ll(L);
-    auto win = SWE_Window::get(ll, 1, __FUNCTION__);
-
-    if(win)
+    if(auto win = SWE_Window::get(ll, 1, __FUNCTION__))
     {
 	bool result = ll.toIntegerIndex(2);
 	win->setResultCode(result);
@@ -607,17 +635,17 @@ int SWE_window_set_result(lua_State* L)
 	ERROR("userdata empty");
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_window_set_visible(lua_State* L)
 {
+    const int rescount = 0;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_window, bool
 
-    LuaState ll(L);
-    auto win = SWE_Window::get(ll, 1, __FUNCTION__);
-
-    if(win)
+    if(auto win = SWE_Window::get(ll, 1, __FUNCTION__))
     {
 	bool flag = ll.toBooleanIndex(2);
 	win->setVisible(flag);
@@ -628,17 +656,17 @@ int SWE_window_set_visible(lua_State* L)
 	ERROR("userdata empty");
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_window_set_modality(lua_State* L)
 {
+    const int rescount = 0;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_window, bool
 
-    LuaState ll(L);
-    auto win = SWE_Window::get(ll, 1, __FUNCTION__);
-
-    if(win)
+    if(auto win = SWE_Window::get(ll, 1, __FUNCTION__))
     {
 	bool flag = ll.toBooleanIndex(2);
 	win->setModality(flag);
@@ -649,17 +677,17 @@ int SWE_window_set_modality(lua_State* L)
 	ERROR("userdata empty");
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_window_set_keyhandle(lua_State* L)
 {
+    const int rescount = 0;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_window, bool
 
-    LuaState ll(L);
-    auto win = SWE_Window::get(ll, 1, __FUNCTION__);
-
-    if(win)
+    if(auto win = SWE_Window::get(ll, 1, __FUNCTION__))
     {
 	bool flag = ll.toBooleanIndex(2);
 	win->setKeyHandle(flag);
@@ -670,17 +698,17 @@ int SWE_window_set_keyhandle(lua_State* L)
 	ERROR("userdata empty");
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_window_set_mousetrack(lua_State* L)
 {
+    const int rescount = 0;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_window, bool
 
-    LuaState ll(L);
-    auto win = SWE_Window::get(ll, 1, __FUNCTION__);
-
-    if(win)
+    if(auto win = SWE_Window::get(ll, 1, __FUNCTION__))
     {
 	bool flag = ll.toBooleanIndex(2);
 	win->setMouseTrack(flag);
@@ -690,17 +718,17 @@ int SWE_window_set_mousetrack(lua_State* L)
 	ERROR("userdata empty");
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_window_render_clear(lua_State* L)
 {
+    const int rescount = 0;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_window, color
 
-    LuaState ll(L);
-    auto win = SWE_Window::get(ll, 1, __FUNCTION__);
-
-    if(win)
+    if(auto win = SWE_Window::get(ll, 1, __FUNCTION__))
     {
 	ARGB argb = ll.toIntegerIndex(2);
 	win->renderClear(Color(argb));
@@ -710,18 +738,18 @@ int SWE_window_render_clear(lua_State* L)
 	ERROR("userdata empty");
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_window_render_rect(lua_State* L)
 {
+    const int rescount = 0;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_window, color, posx, posy, width, height, bool
     // params: swe_window, color, rect, bool
 
-    LuaState ll(L);
-    auto win = SWE_Window::get(ll, 1, __FUNCTION__);
-    
-    if(win)
+    if(auto win = SWE_Window::get(ll, 1, __FUNCTION__))
     {
         ARGB argb = ll.toIntegerIndex(2);
 	int filled = false;
@@ -755,18 +783,18 @@ int SWE_window_render_rect(lua_State* L)
 	ERROR("userdata empty");
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_window_render_point(lua_State* L)
 {
+    const int rescount = 0;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_window, color, posx. posy
     // params: swe_window, color, point
 
-    LuaState ll(L);
-    auto win = SWE_Window::get(ll, 1, __FUNCTION__);
-    
-    if(win)
+    if(auto win = SWE_Window::get(ll, 1, __FUNCTION__))
     {
 	ARGB argb = ll.toIntegerIndex(2);
 	Point pt;
@@ -786,18 +814,18 @@ int SWE_window_render_point(lua_State* L)
 	ERROR("userdata empty");
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_window_render_line(lua_State* L)
 {
+    const int rescount = 0;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_window, color, pt1x, pt1y, pt2x, pt2y
     // params: swe_window, color, point1, point2
 
-    LuaState ll(L);
-    auto win = SWE_Window::get(ll, 1, __FUNCTION__);
-    
-    if(win)
+    if(auto win = SWE_Window::get(ll, 1, __FUNCTION__))
     {
 	ARGB argb = ll.toIntegerIndex(2);
 	Point pt1, pt2;
@@ -829,18 +857,18 @@ int SWE_window_render_line(lua_State* L)
 	ERROR("userdata empty");
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_window_render_cyrcle(lua_State* L)
 {
+    const int rescount = 0;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_window, color, px, py, int radius, bool filled
     // params: swe_window, color, point center, int radius, bool filled
 
-    LuaState ll(L);
-    auto win = SWE_Window::get(ll, 1, __FUNCTION__);
-    
-    if(win)
+    if(auto win = SWE_Window::get(ll, 1, __FUNCTION__))
     {
         ARGB argb = ll.toIntegerIndex(2);
 	Point center;
@@ -872,19 +900,20 @@ int SWE_window_render_cyrcle(lua_State* L)
 	ERROR("userdata empty");
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_window_render_texture(lua_State* L)
 {
+    const int rescount = 0;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_window, swe_texture, [srcx, srcy, srcw, srch], [dstx, dsty]
     // params: swe_window, swe_texture, [dstx, dsty]
     // params: swe_window, swe_texture, rect src, point dst
     // params: swe_window, swe_texture, point dst
 
-    LuaState ll(L);
-
-    auto win = SWE_Window::get(ll, 1, __FUNCTION__);
+    SWE_Window* win = SWE_Window::get(ll, 1, __FUNCTION__);
     SWE_Texture* ptr = SWE_Texture::get(ll, 2, __FUNCTION__);
     
     if(win && ptr)
@@ -933,17 +962,18 @@ int SWE_window_render_texture(lua_State* L)
 	ERROR("userdata empty");
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_window_render_text(lua_State* L)
 {
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_window, swe_fontrender, string, color, dstx, dsty, int halign, int valign, boolean horizontal, int render, int style, int hinting
     // params: swe_window, swe_fontrender, string, color, point dst, int halign, int valign, boolean horizontal, int render, int style, int hinting
 
-    LuaState ll(L);
-
-    auto win = SWE_Window::get(ll, 1, __FUNCTION__);
+    SWE_Window* win = SWE_Window::get(ll, 1, __FUNCTION__);
     SWE_FontRender* frs = SWE_FontRender::get(ll, 2, __FUNCTION__);
 
     if(win && frs)
@@ -999,25 +1029,24 @@ int SWE_window_render_text(lua_State* L)
 
 	Rect area = win->renderText(*frs, text, Color(argb), dst, halign, valign, horizontal, render, style, hinting);
 	SWE_Stack::rect_create(ll, area.x, area.y, area.w, area.h);
-
-	return 1;
     }
     else
     {
 	ERROR("userdata empty");
+	ll.pushNil();
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_window_to_json(lua_State* L)
 {
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_window
 
-    LuaState ll(L);
-    auto win = SWE_Window::get(ll, 1, __FUNCTION__);
-
-    if(win)
+    if(auto win = SWE_Window::get(ll, 1, __FUNCTION__))
     {
         bool visible = ll.getFieldTableIndex("visible", 1).getTopBoolean();
         bool modality = ll.getFieldTableIndex("modality", 1).getTopBoolean();
@@ -1032,41 +1061,46 @@ int SWE_window_to_json(lua_State* L)
             arg(posx).arg(posy).arg(width).arg(height).arg(visible).arg(modality).arg(keyhandle);
 
         ll.pushString(str);
-        return 1;
+    }
+    else
+    {
+	ERROR("userdata empty");
+	ll.pushNil();
     }
 
-    ERROR("userdata empty");
-    return 0;
+    return rescount;
 }
 
 int SWE_window_is_visible(lua_State* L)
 {
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_window
 
-    LuaState ll(L);
-    auto win = SWE_Window::get(ll, 1, __FUNCTION__);
-
-    if(win)
+    if(auto win = SWE_Window::get(ll, 1, __FUNCTION__))
     {
 	bool res = win->isVisible();
         ll.pushBoolean(res);
-
-        return 1;
+    }
+    else
+    {
+	ERROR("userdata empty");
+        ll.pushBoolean(false);
     }
 
-    ERROR("userdata empty");
-    return 0;
+    return rescount;
 }
 
 int SWE_window_point_inarea(lua_State* L)
 {
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_window, ptx, pty
     // params: swe_window, point
 
-    LuaState ll(L);
-    auto win = SWE_Window::get(ll, 1, __FUNCTION__);
-
-    if(win)
+    if(auto win = SWE_Window::get(ll, 1, __FUNCTION__))
     {
 	Point pt;
 
@@ -1081,24 +1115,27 @@ int SWE_window_point_inarea(lua_State* L)
 
 	bool res = win->isAreaPoint(pt);
         ll.pushBoolean(res);
-
-        return 1;
+    }
+    else
+    {
+	ERROR("userdata empty");
+        ll.pushBoolean(false);
     }
 
-    ERROR("userdata empty");
-    return 0;
+    return rescount;
 }
 
 int SWE_window_set_tooltip(lua_State* L)
 {
-    // params: swe_window, string, fontrender, color, color, color
+    const int rescount = 0;
+    LuaStateDefine(ll, L, rescount);
 
-    LuaState ll(L);
+    // params: swe_window, string, fontrender, color, color, color
 
     if(! ll.isStringIndex(2))
     {
         ERROR("string not found");
-	return 0;
+	return rescount;
     }
 
     auto win = static_cast<SWE_Window*>(SWE_Window::get(ll, 1, __FUNCTION__));
@@ -1106,7 +1143,7 @@ int SWE_window_set_tooltip(lua_State* L)
     if(! win)
     {
 	ERROR("userdata empty");
-	return 0;
+	return rescount;
     }
 
     std::string text = ll.toStringIndex(2);
@@ -1131,14 +1168,15 @@ int SWE_window_set_tooltip(lua_State* L)
 	win->setToolTip(text);
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_window_childrens(lua_State* L)
 {
-    // params: swe_window
-    LuaState ll(L);
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
 
+    // params: swe_window
     auto win = SWE_Window::get(ll, 1, __FUNCTION__);
 
     // add result: table
@@ -1147,13 +1185,13 @@ int SWE_window_childrens(lua_State* L)
     if(! win)
     {
 	ERROR("userdata empty");
-	return 1;
+	return rescount;
     }
 
     if(! ll.pushTable("SWE.Scene.Windows").isTopTable())
     {
 	ERROR("table not found" << ": " << "swe.scene");
-	return 1;
+	return rescount;
     }
 
     // iterate SWE.Scene.Windows
@@ -1177,25 +1215,26 @@ int SWE_window_childrens(lua_State* L)
     // stack: swe_window, table result, SWE.Scene.Windows
     ll.stackPop();
 
-    // stack: swe_window, table result
-    return 1;
+    // table result
+    return rescount;
 }
 
 /// move swe_window top layer
 int SWE_scene_move_toplayer(lua_State* L)
 {
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
     // stack: ..., swe_window
-    LuaState ll(L);
 
     if(! ll.isTopTable())
     {
 	ERROR("table not found" << ": " << "swe.window");
 	ll.pushBoolean(false);
-	return 1;
+	return rescount;
     }
 
-    auto win = SWE_Window::get(ll, -1, __FUNCTION__);
-    if(win)
+    if(auto win = SWE_Window::get(ll, -1, __FUNCTION__))
     {
         SWE::DisplayScene::moveTopLayer(*win);
 	ll.pushBoolean(true);
@@ -1206,20 +1245,22 @@ int SWE_scene_move_toplayer(lua_State* L)
 	ll.pushBoolean(false);
     }
 
-    return 1;
+    return rescount;
 }
 
 /// remove swe_window from stack
 int SWE_scene_removetop(lua_State* L)
 {
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
     // stack: ..., swe_window
-    LuaState ll(L);
 
     if(! ll.isTopTable())
     {
 	ERROR("table not found" << ": " << "swe.window");
 	ll.pushBoolean(false);
-	return 1;
+	return rescount;
     }
 
     auto win = SWE_Window::get(ll, -1, __FUNCTION__);
@@ -1227,7 +1268,7 @@ int SWE_scene_removetop(lua_State* L)
     {
 	ERROR("userdata empty");
 	ll.pushBoolean(false);
-	return 1;
+	return rescount;
     }
 
     if(! ll.pushTable("SWE.Scene.Windows").isTopTable())
@@ -1235,7 +1276,7 @@ int SWE_scene_removetop(lua_State* L)
 	ERROR("table not found" << ": " << "swe.scene.windows");
 	ll.stackPop();
 	ll.pushBoolean(false);
-	return 1;
+	return rescount;
     }
 
     win->setVisible(false);
@@ -1249,7 +1290,7 @@ int SWE_scene_removetop(lua_State* L)
     ll.garbageCollect();
 
     ll.pushBoolean(true);
-    return 1;
+    return rescount;
 }
 
 /* SWE_Scene */
@@ -1490,7 +1531,8 @@ void SWE_Stack::window_create(LuaState & ll, const Point & pos, const Size & wsz
 
 int SWE_window_create(lua_State* L)
 {
-    LuaState ll(L);
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
 
     // self, x, y, w, h, parent
     int posx = ll.toIntegerIndex(2);
@@ -1507,12 +1549,13 @@ int SWE_window_create(lua_State* L)
 	parent = DisplayScene::rootWindow();
 
     SWE_Stack::window_create(ll, Point(posx, posy), Size(width, height), parent);
-    return 1;
+    return rescount;
 }
 
 int SWE_window_destroy(lua_State* L)
 {
-    LuaState ll(L);
+    const int rescount = 0;
+    LuaStateDefine(ll, L, rescount);
 
     if(ll.isTopTable())
     {
@@ -1553,20 +1596,22 @@ int SWE_window_destroy(lua_State* L)
 	ERROR("not userdata");
     }
 
-    return 0;
+    return rescount;
 }
 
 // SWE_Polygon
 int SWE_polygon_to_json(lua_State* L)
 {
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_polygon
 
-    LuaState ll(L);
-
-    auto poly = static_cast<SWE_Polygon*>(SWE_Polygon::get(ll, 1, __FUNCTION__));
-    if(poly)
+    if(auto poly = static_cast<SWE_Polygon*>(SWE_Polygon::get(ll, 1, __FUNCTION__)))
     {
-	if(SWE_window_to_json(ll.L()))
+	SWE_window_to_json(ll.L());
+
+	if(ll.isTopString())
 	{
 	    std::string window = ll.getTopString();
 	    ll.stackPop(1);
@@ -1576,12 +1621,15 @@ int SWE_polygon_to_json(lua_State* L)
 		JsonPack::points(poly->getPoints()).toString() << "}";
 
 	    ll.pushString(os.str());
-    	    return 1;
 	}
     }
+    else
+    {
+	ERROR("userdata empty");
+	ll.pushNil();
+    }
 
-    ERROR("userdata empty");
-    return 0;
+    return rescount;
 }
 
 const struct luaL_Reg SWE_polygon_functions[] = {
@@ -1819,8 +1867,10 @@ void SWE_Polygon::excludeRegion(const Points & pts)
 
 int SWE_polygon_create(lua_State* L)
 {
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
     // SWE.Polygon(self, x1, y1, x2, y2, ... [xN, yN], table parent)
-    LuaState ll(L);
     
     int params = ll.stackSize();
     Window* parent = NULL;
@@ -1873,7 +1923,7 @@ int SWE_polygon_create(lua_State* L)
     DEBUG(String::pointer(ptr) << ": [" << String::pointer(*ptr) << "]");
     SWE_Scene::window_add(ll,  hexid, !parent);
 
-    return 1;
+    return rescount;
 }
 
 int SWE_polygon_destroy(lua_State* L)

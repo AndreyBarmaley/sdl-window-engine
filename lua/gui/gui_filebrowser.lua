@@ -535,12 +535,22 @@ function FileBrowserInit(win, frs, path, params)
 	    term.result = nil
 	    term:SetVisible(false)
 	    return true
-	-- android back
-	elseif key == 0x4000010e then
-	    term.result = nil
-	    term:SetVisible(false)
-	    return true
-	end
+        end
+
+        if SWE.SystemMobileOs() ~= nil then
+	    -- android back
+	    if key == 0x4000010e then
+	        term.result = nil
+	        term:SetVisible(false)
+	        return true
+	    end
+	    -- wince exit
+	    if key == 312 then
+	        term.result = nil
+	        term:SetVisible(false)
+	        return true
+	    end
+        end
 
 	return false
     end

@@ -25,6 +25,7 @@
 
 #include <list>
 #include <string>
+#include <functional>
 
 #include "swe_types.h"
 
@@ -84,6 +85,7 @@ namespace SWE
         std::string     replace(const std::string &, const char*, int);
 
         StringList      split(const std::string &, int);
+	StringList	split(const std::string & str, std::function<bool(int)>);
         StringList      split(const std::string & str, const std::string & sep);
 
         std::string     hex(u64 value, int width = 8);

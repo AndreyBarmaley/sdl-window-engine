@@ -1,11 +1,12 @@
 SWE.Point
 /**
-    @api {point constructor} SWE.Point(posx,posy) SWE.Point
+    @api {point constructor} SWE.Point(posx,posy)SWE.Point(string) SWE.Point
     @apiGroup SWE.Point
     @apiName Constructor
             
     @apiParam {number}				posx		position
     @apiParam {number}				posy		position
+    @apiParam {string}				string		parse string (delimiter: any non digital)
     @apiSuccess (Return) {SWE.Point}		result		point object
 
     @apiExample usage
@@ -49,12 +50,13 @@ SWE.Point.Unpack
 
 SWE.Size
 /**
-    @api {size constructor} SWE.Size(width,height) SWE.Size
+    @api {size constructor} SWE.Size(width,height)SWE.Size(string) SWE.Size
     @apiGroup SWE.Size
     @apiName Constructor
             
     @apiParam {number}				width		size value
     @apiParam {number}				height		size value
+    @apiParam {string}				string		parse string (delimiter: any non digital)
     @apiSuccess (Return) {SWE.Size}		result		size object
 
     @apiExample usage
@@ -92,7 +94,7 @@ SWE.Size.Unpack
 
 SWE.Rect
 /**
-    @api {rect constructor} SWE.Rect(posx,posy,width,height) SWE.Rect
+    @api {rect constructor} SWE.Rect(posx,posy,width,height)SWE.Rect(string) SWE.Rect
     @apiGroup SWE.Rect
     @apiName Constructor
             
@@ -100,6 +102,7 @@ SWE.Rect
     @apiParam {number}				posy		position
     @apiParam {number}				width		size
     @apiParam {number}				height		size
+    @apiParam {string}				string		parse string (delimiter: any non digital)
     @apiSuccess (Return) {SWE.Rect}		result		rect object
 
     @apiExample usage

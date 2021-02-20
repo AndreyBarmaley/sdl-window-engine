@@ -81,12 +81,12 @@ SWE_VideoCam* SWE_VideoCam::get(LuaState & ll, int tableIndex, const char* funcN
 
 int SWE_videocam_get_frame(lua_State* L)
 {
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_videocam
 
-    LuaState ll(L);
-    SWE_VideoCam* cam = SWE_VideoCam::get(ll, 1, __FUNCTION__);
-
-    if(cam)
+    if(SWE_VideoCam* cam = SWE_VideoCam::get(ll, 1, __FUNCTION__))
     {
 	const Texture* tx1 = cam->contextCapture() ? cam->contextFrame() : NULL;
 
@@ -106,30 +106,30 @@ int SWE_videocam_get_frame(lua_State* L)
 		ll.pushString("alpha").pushInteger(tx2->alphaMod()).setTableIndex(-3);
 	        ll.pushString("class").pushString("capture").setTableIndex(-3);
 	    }
-
-	    return 1;
 	}
 	else
 	{
-	    // ERROR("error context");
+	    ERROR("cam context busy");
+	    ll.pushNil();
 	}
     }
     else
     {
 	ERROR("userdata empty");
+	ll.pushNil();
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_videocam_to_json(lua_State* L)
 {
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_videocam
 
-    LuaState ll(L);
-    SWE_VideoCam* cam = SWE_VideoCam::get(ll, 1, __FUNCTION__);
-
-    if(cam)
+    if(SWE_VideoCam* cam = SWE_VideoCam::get(ll, 1, __FUNCTION__))
     {
 	std::string params;
 
@@ -150,12 +150,14 @@ int SWE_videocam_to_json(lua_State* L)
 	if(params.size()) str.append(params);
 	str.append("}");
         ll.pushString(str);
-
-	return 1;
+    }
+    else
+    {
+	ERROR("userdata empty");
+	ll.pushNil();
     }
 
-    ERROR("userdata empty");
-    return 0;
+    return rescount;
 }
 
 const struct luaL_Reg SWE_videocam_functions[] = {
@@ -166,8 +168,10 @@ const struct luaL_Reg SWE_videocam_functions[] = {
 
 int SWE_videocam_create(lua_State* L)
 {
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
     // empty params
-    LuaState ll(L);
 
     ll.pushTable();
 
@@ -198,13 +202,13 @@ int SWE_videocam_create(lua_State* L)
     ll.setFunctionsTableIndex(SWE_videocam_functions, -1);
 
     DEBUG(String::pointer(ptr) << ": [" << String::pointer(*ptr) << "]");
-
-    return 1;
+    return rescount;
 }
 
 int SWE_videocam_destroy(lua_State* L)
 {
-    LuaState ll(L);
+    const int rescount = 0;
+    LuaStateDefine(ll, L, rescount);
 
     if(ll.isTopUserData())
     {
@@ -226,7 +230,7 @@ int SWE_videocam_destroy(lua_State* L)
         ERROR("not userdata");
     }
 
-    return 0;
+    return rescount;
 }
 
 void SWE_VideoCam::registers(LuaState & ll)

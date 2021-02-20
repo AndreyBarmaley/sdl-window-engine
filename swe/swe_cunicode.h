@@ -23,6 +23,7 @@
 #ifndef _SWE_CUNICODE_
 #define _SWE_CUNICODE_
 
+#include <functional>
 #include <string>
 #include <vector>
 #include <list>
@@ -69,6 +70,7 @@ namespace SWE
         UnicodeString &	append(const UnicodeString &);
 
         UnicodeList	split(int sep) const;
+	UnicodeList     split(std::function<bool(int)>) const;
         UnicodeList	splitWidth(const FontRender &, int width) const;
         UnicodeList	wrap(int) const;
 

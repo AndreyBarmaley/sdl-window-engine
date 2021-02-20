@@ -155,8 +155,8 @@ bool SWE::Display::init(const std::string & title, const Size & win, bool fullsc
 
         return init(title, winsz, rensz, true, accel, false);
     }
-    else
-        return init(title, win, win, fullscreen, accel, false);
+
+    return init(title, win, win, fullscreen, accel, false);
 }
 
 bool SWE::Display::init(const std::string & title, const Size & winsz, const Size & rensz, bool fullscreen, bool accel, bool resized)

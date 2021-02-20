@@ -43,10 +43,10 @@
 #include "SWE_translation.h"
 #include "SWE_unicodestring.h"
 
-#define SWE_LUA_VERSION 20210210
+#define SWE_LUA_VERSION 20210220
 #define SWE_LUA_LICENSE "GPL3"
 
-int SWE_window_init2(lua_State* L)
+int SWE_window_init_mobile(lua_State* L)
 {
     // params: string title, bool landscape
     const int rescount = 1;
@@ -87,14 +87,10 @@ int SWE_window_init2(lua_State* L)
     return rescount;
 }
 
-int SWE_window_init(lua_State* L)
+int SWE_window_init_simple(lua_State* L)
 {
     const int rescount = 1;
     LuaStateDefine(ll, L, rescount);
-
-    // params: string title, int width, int height, bool fullscreen
-    if(ll.isBooleanIndex(2))
-	return SWE_window_init2(L);
 
     int params = ll.stackSize();
     std::string title = ll.toStringIndex(1);
@@ -135,6 +131,79 @@ int SWE_window_init(lua_State* L)
 
     return rescount;
 }
+
+int SWE_window_init_extend(lua_State* L)
+{
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
+    std::string title;
+    Size winsz, rendersz;
+    bool fullscreen = false;
+    bool accel = false;
+    bool resized = false;
+
+    // iterate table
+    ll.pushNil();
+    while(ll.nextTableIndex(-2))
+    {
+        std::string key = ll.toStringIndex(-2);
+
+        if(key == "title")
+            title = ll.toStringIndex(-1);
+        else
+        if(key == "window")
+            winsz = SWE_Size::get(ll, -1, __FUNCTION__);
+        else
+        if(key == "render")
+            rendersz = SWE_Size::get(ll, -1, __FUNCTION__);
+        else
+        if(key == "fullscreen")
+            fullscreen = ll.toBooleanIndex(-1);
+        else
+        if(key == "accel")
+            accel = ll.toBooleanIndex(-1);
+        else
+        if(key == "resized")
+            resized = ll.toBooleanIndex(-1);
+
+        // pop value
+        ll.stackPop();
+    }
+
+    SWE_Scene::clean(ll, false);
+    DEBUG("display init: " << winsz.toString());
+
+    if(Display::init(title, winsz, rendersz, fullscreen, accel, resized))
+    {
+	SWE_Stack::window_create(ll, Point(0, 0), Display::size(), NULL);
+    }
+    else
+    {
+	ERROR("display init failed");
+	ll.pushNil();
+    }
+
+    return rescount;
+}
+
+int SWE_window_init(lua_State* L)
+{
+    LuaState ll(L);
+
+    // simple params: string title, int width, int height, bool fullscreen
+    // mobile params: string title, bool landscape
+    // extend params: table { "title":string, "window":size, "render":size, "fullscreen":bool, "accel":bool, "resized":bool }
+
+    if(ll.isTopTable())
+	return SWE_window_init_extend(L);
+
+    if(ll.isBooleanIndex(2))
+	return SWE_window_init_mobile(L);
+
+    return SWE_window_init_simple(L);
+}
+
 
 int SWE_terminal_init(lua_State* L)
 {
@@ -351,12 +420,41 @@ int SWE_cursor_info(lua_State* L)
     return 1;
 }
 
-int SWE_register_resources(lua_State* L)
+int SWE_find_resource(lua_State* L)
 {
-    // params: string directory
     const int rescount = 1;
     LuaStateDefine(ll, L, rescount);
 
+    // params: string resource
+    if(! ll.isTopString())
+    {
+	ERROR("string not found");
+	ll.pushBoolean(false);
+	return rescount;
+    }
+
+    std::string resname = ll.getTopString();
+    std::string filename = SWE_Tools::findResource(ll, resname);
+
+    if(Systems::isFile(filename))
+    {
+        DEBUG(filename);
+        ll.pushString(filename);
+    }
+    else
+    {
+        ll.pushNil();
+    }
+
+    return rescount;
+}
+
+int SWE_register_resources(lua_State* L)
+{
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
+    // params: string directory
     if(! ll.isTopString())
     {
 	ERROR("string not found");
@@ -514,8 +612,10 @@ int SWE_system_current_directory(lua_State* L)
     if(! ll.isTopString())
     {
 	ERROR("SWE.getcwd not found");
-	ll.pushString("./");
+	ll.stackPop().pushString("./");
     }
+    // rmove table
+    ll.stackRemoveIndex(-2);
 
     return rescount;
 }
@@ -958,8 +1058,9 @@ const struct luaL_Reg SWE_functions[] = {
     { "DisplayKeyboard", SWE_display_keyboard }, 		// [void], bool show
     { "DisplayHandleEvents", SWE_display_handleevents }, 	// [void], int interval
     { "RenderScreenshot", SWE_render_screenshot }, 		// [bool], string filename
-    { "LuaRegisterDirectory", SWE_register_directory }, 	// [bool], string directory
-    { "ResourcesRegisterDirectory", SWE_register_resources }, 	// [bool], string directory
+    { "RegisterLuaDirectory", SWE_register_directory }, 	// [bool], string directory
+    { "RegisterResourceDirectory", SWE_register_resources }, 	// [bool], string directory
+    { "FindResource", SWE_find_resource },                      // [string], string resource
     { "SystemSleep", SWE_system_delay }, 			// [void], int
     { "SystemMakeDirectory", SWE_system_mkdir },		// [bool], string directory
     { "SystemCurrentDirectory", SWE_system_current_directory },	// [string], void
@@ -1054,7 +1155,7 @@ extern "C" {
     bool res = Engine::init();
     if(! res) ERROR("libswe init failed");
 
-    DEBUG("usage " << LUA_RELEASE << ", " << "init version: " << SWE_LUA_VERSION);
+    DEBUG("usage " << LUA_RELEASE << ", " << "bindings version: " << SWE_LUA_VERSION);
     return 1;
  }
 }

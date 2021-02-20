@@ -119,15 +119,18 @@ namespace SWE
             if(getFieldTableIndex("path", -1).isTopString())
             {
                 std::string newPath = StringFormat("%1;%2").arg(toStringIndex(-1)).arg(Systems::concatePath(dir, "?.lua"));
-                stackPop();
+                stackPop(); // field
                 pushString(newPath).setFieldTableIndex("path", -2);
+                stackPop(); // table
                 return true;
             }
             else
+	    {
                 ERROR("field not found: " << "path");
+	    }
         }
 
-        stackPop();
+        stackPop(2);
         return false;
     }
 
@@ -862,13 +865,41 @@ namespace SWE
         return *this;
     }
 
-    LuaState & LuaState::getFieldTableIndex(const char* field, int index, bool verboseNil)
+    bool LuaState::isFieldTableIndex(const char* field, int index)
     {
+        if(index < 0)
+            index = lua_absindex(ptr, index);
+
         if(lua_istable(ptr, index))
         {
-            // lua_getfield(ptr, index, field);
-            // change getfield, disable meta
+            lua_pushstring(ptr, field);
+            lua_rawget(ptr, index);
+
+            bool res = ! lua_isnil(ptr, -1);
+            lua_pop(ptr, 1);
+            return res;
+        }
+        else
+        {
+            ERROR("table not found, index: " << index);
+            lua_pushnil(ptr);
+        }
+
+        return false;
+    }
+
+    bool LuaState::isFieldTableIndex(const std::string & field, int index)
+    {
+        return isFieldTableIndex(field.c_str(), index);
+    }
+
+    LuaState & LuaState::getFieldTableIndex(const char* field, int index, bool verboseNil)
+    {
+        if(index < 0)
             index = lua_absindex(ptr, index);
+
+        if(lua_istable(ptr, index))
+        {
             lua_pushstring(ptr, field);
             lua_rawget(ptr, index);
 
@@ -884,9 +915,35 @@ namespace SWE
         return *this;
     }
 
+    int LuaState::absTableIndex(int index)
+    {
+        return lua_absindex(ptr, index);
+    }
+
     LuaState & LuaState::getFieldTableIndex(const std::string & field, int index, bool verboseNil)
     {
         return getFieldTableIndex(field.c_str(), index, verboseNil);
+    }
+
+    LuaState & LuaState::getIndexTableIndex(unsigned int seqindex, int index, bool verboseNil)
+    {
+        if(index < 0)
+            index = lua_absindex(ptr, index);
+
+        if(lua_istable(ptr, index))
+        {
+	    lua_rawgeti(ptr, index, seqindex);
+
+            if(lua_isnil(ptr, -1) && verboseNil)
+                ERROR("seq index is nil: " << seqindex);
+        }
+        else
+        {
+            ERROR("table not found, index: " << index);
+            lua_pushnil(ptr);
+        }
+
+        return *this;
     }
 
     std::string LuaState::popFieldTableIndex(const std::string & field, int index)
@@ -898,11 +955,11 @@ namespace SWE
     {
         std::string res;
 
+        if(index < 0)
+            index = lua_absindex(ptr, index);
+
         if(lua_istable(ptr, index))
         {
-            // lua_getfield(ptr, index, field);
-            // change getfield, disable meta
-            index = lua_absindex(ptr, index);
             lua_pushstring(ptr, field);
             lua_rawget(ptr, index);
 
@@ -923,6 +980,9 @@ namespace SWE
 
     LuaState & LuaState::setFieldTableIndex(const char* field, int index)
     {
+        if(index < 0)
+            index = lua_absindex(ptr, index);
+
         if(lua_istable(ptr, index))
             lua_setfield(ptr, index, field);
         else
@@ -934,6 +994,19 @@ namespace SWE
     LuaState & LuaState::setFieldTableIndex(const std::string & field, int index)
     {
         return setFieldTableIndex(field.c_str(), index);
+    }
+
+    LuaState & LuaState::setIndexTableIndex(unsigned int seqindex, int index)
+    {
+        if(index < 0)
+            index = lua_absindex(ptr, index);
+
+        if(lua_istable(ptr, index))
+            lua_rawseti(ptr, index, seqindex);
+        else
+            ERROR("table not found, index: " << index);
+
+        return *this;
     }
 
     int LuaState::getTypeIndex(int index) const
@@ -953,7 +1026,9 @@ namespace SWE
 
     int LuaState::countFieldsTableIndex(int index)
     {
-        index = lua_absindex(ptr, index);
+        if(index < 0)
+            index = lua_absindex(ptr, index);
+
         int res = 0;
         lua_pushnil(ptr);
 
@@ -968,7 +1043,9 @@ namespace SWE
 
     bool LuaState::isSequenceTableIndex(int index)
     {
-        index = lua_absindex(ptr, index);
+        if(index < 0)
+            index = lua_absindex(ptr, index);
+
         int prev = 0;
         lua_pushnil(ptr);
 

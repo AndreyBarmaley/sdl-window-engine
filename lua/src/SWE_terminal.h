@@ -70,7 +70,7 @@ public:
 
     void        renderWindow(void) override { SWE_window_render(ll, *this); }
 
-    static TermWindow* get(LuaState &, int tableIndex, const char* funcName);
+    static SWE_Terminal* get(LuaState &, int tableIndex, const char* funcName);
     static void registers(LuaState &);
 };
 

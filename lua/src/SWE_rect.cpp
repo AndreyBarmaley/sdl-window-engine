@@ -38,17 +38,26 @@ Point SWE_Point::get(LuaState & ll, int tableIndex, const char* funcName)
     LuaStateValidator(ll, 0);
     Point res;
 
+    tableIndex = ll.absTableIndex(tableIndex);
+
     if(! ll.isTableIndex(tableIndex))
     {
         ERROR(funcName << ": " << "table not found, index: " << tableIndex);
         return res;
     }
 
-    res.x = ll.getFieldTableIndex("posx", tableIndex).getTopInteger();
-    res.y = ll.getFieldTableIndex("posy", tableIndex).getTopInteger();
- 
-    ll.stackPop(2);
+    if(ll.isSequenceTableIndex(tableIndex))
+    {
+        res.x = ll.getIndexTableIndex(1, tableIndex).getTopInteger();
+        res.y = ll.getIndexTableIndex(2, tableIndex).getTopInteger();
+    }
+    else
+    {
+        res.x = ll.getFieldTableIndex("posx", tableIndex).getTopInteger();
+        res.y = ll.getFieldTableIndex("posy", tableIndex).getTopInteger();
+    }
 
+    ll.stackPop(2);
     return res;
 }
 
@@ -57,17 +66,26 @@ Size SWE_Size::get(LuaState & ll, int tableIndex, const char* funcName)
     LuaStateValidator(ll, 0);
     Size res;
 
+    tableIndex = ll.absTableIndex(tableIndex);
+
     if(! ll.isTableIndex(tableIndex))
     {
         ERROR(funcName << ": " << "table not found, index: " << tableIndex);
         return res;
     }
 
-    res.w = ll.getFieldTableIndex("width", tableIndex).getTopInteger();
-    res.h = ll.getFieldTableIndex("height", tableIndex).getTopInteger();
- 
-    ll.stackPop(2);
+    if(ll.isSequenceTableIndex(tableIndex))
+    {
+        res.w = ll.getIndexTableIndex(1, tableIndex).getTopInteger();
+        res.h = ll.getIndexTableIndex(2, tableIndex).getTopInteger();
+    }
+    else
+    {
+        res.w = ll.getFieldTableIndex("width", tableIndex).getTopInteger();
+        res.h = ll.getFieldTableIndex("height", tableIndex).getTopInteger();
+    }
 
+    ll.stackPop(2);
     return res;
 }
 
@@ -76,19 +94,30 @@ Rect SWE_Rect::get(LuaState & ll, int tableIndex, const char* funcName)
     LuaStateValidator(ll, 0);
     Rect res;
 
+    tableIndex = ll.absTableIndex(tableIndex);
+
     if(! ll.isTableIndex(tableIndex))
     {
         ERROR(funcName << ": " << "table not found, index: " << tableIndex);
         return res;
     }
 
-    res.x = ll.getFieldTableIndex("posx", tableIndex).getTopInteger();
-    res.y = ll.getFieldTableIndex("posy", tableIndex).getTopInteger();
-    res.w = ll.getFieldTableIndex("width", tableIndex).getTopInteger();
-    res.h = ll.getFieldTableIndex("height", tableIndex).getTopInteger();
+    if(ll.isSequenceTableIndex(tableIndex))
+    {
+        res.x = ll.getIndexTableIndex(1, tableIndex).getTopInteger();
+        res.y = ll.getIndexTableIndex(2, tableIndex).getTopInteger();
+        res.w = ll.getIndexTableIndex(3, tableIndex).getTopInteger();
+        res.h = ll.getIndexTableIndex(4, tableIndex).getTopInteger();
+    }
+    else
+    {
+        res.x = ll.getFieldTableIndex("posx", tableIndex).getTopInteger();
+        res.y = ll.getFieldTableIndex("posy", tableIndex).getTopInteger();
+        res.w = ll.getFieldTableIndex("width", tableIndex).getTopInteger();
+        res.h = ll.getFieldTableIndex("height", tableIndex).getTopInteger();
+    }
 
     ll.stackPop(4);
-
     return res;
 }
 
@@ -341,16 +370,50 @@ void SWE_Stack::rect_create(LuaState & ll, int rx, int ry, int rw, int rh)
 
 int SWE_rect_create(lua_State* L)
 {
-    // empty params
-    LuaState ll(L);
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
 
-    int rx = ll.toIntegerIndex(2);
-    int ry = ll.toIntegerIndex(3);
-    int rw = ll.toIntegerIndex(4);
-    int rh = ll.toIntegerIndex(5);
+    int rx,ry,rw,rh;
+
+    if(ll.isTableIndex(2))
+    {
+        auto rt = SWE_Rect::get(ll, 2, __FUNCTION__);
+        rx = rt.x;
+        ry = rt.y;
+        rw = rt.w;
+        rh = rt.h;
+    }
+    else
+    if(1 == ll.stackSize() && ll.isStringIndex(2))
+    {
+        auto str = ll.toStringIndex(2);
+	StringList list = String::split(str, [](int ch){ return ! ::isdigit(ch); });
+	if(3 < list.size())
+	{
+    	    rx = String::toInt(list.front());
+    	    ry = String::toInt(*std::next(list.begin(), 1));
+    	    rw = String::toInt(*std::next(list.begin(), 2));
+    	    rh = String::toInt(list.back());
+	}
+	else
+	{
+	    ERROR("parse error: `" << str << "'");
+    	    rx = -1;
+    	    ry = -1;
+    	    rw = 0;
+    	    rh = 0;
+	}
+    }
+    else
+    {
+        rx = ll.toIntegerIndex(2);
+        ry = ll.toIntegerIndex(3);
+        rw = ll.toIntegerIndex(4);
+        rh = ll.toIntegerIndex(5);
+    }
 
     SWE_Stack::rect_create(ll, rx, ry, rw, rh);
-    return 1;
+    return rescount;
 }
 
 void SWE_Rect::registers(LuaState & ll)
@@ -367,10 +430,10 @@ void SWE_Rect::registers(LuaState & ll)
 /////////////////////////////////////////////////////////////////////
 int SWE_point_to_json(lua_State* L)
 {
-    // params: swe_point
-
     const int rescount = 1;
     LuaStateDefine(ll, L, rescount);
+
+    // params: swe_point
 
     if(ll.isTableIndex(1) && 0 == ll.popFieldTableIndex("__type", 1).compare("swe.point"))
     {
@@ -469,8 +532,36 @@ int SWE_point_create(lua_State* L)
     const int rescount = 1;
     LuaStateDefine(ll, L, rescount);
 
-    int px = ll.toIntegerIndex(2);
-    int py = ll.toIntegerIndex(3);
+    int px, py;
+
+    if(ll.isTableIndex(2))
+    {
+        auto pt = SWE_Point::get(ll, 2, __FUNCTION__);
+        px = pt.x;
+        py = pt.y;
+    }
+    else
+    if(1 == ll.stackSize() && ll.isStringIndex(2))
+    {
+        auto str = ll.toStringIndex(2);
+	StringList list = String::split(str, [](int ch){ return ! ::isdigit(ch); });
+	if(1 < list.size())
+	{
+    	    px = String::toInt(list.front());
+    	    py = String::toInt(list.back());
+	}
+	else
+	{
+	    ERROR("parse error: `" << str << "'");
+    	    px = -1;
+    	    py = -1;
+	}
+    }
+    else
+    {
+        px = ll.toIntegerIndex(2);
+        py = ll.toIntegerIndex(3);
+    }
 
     SWE_Stack::point_create(ll, px, py);
     return rescount;
@@ -582,7 +673,7 @@ void SWE_Stack::size_create(LuaState & ll, int sw, int sh)
     ll.setMetaTableIndex(-2);
 
     // set functions
-    ll.setFunctionsTableIndex(SWE_point_functions, -1);
+    ll.setFunctionsTableIndex(SWE_size_functions, -1);
 }
 
 int SWE_size_create(lua_State* L)
@@ -592,8 +683,36 @@ int SWE_size_create(lua_State* L)
     const int rescount = 1;
     LuaStateDefine(ll, L, rescount);
 
-    int sw = ll.toIntegerIndex(2);
-    int sh = ll.toIntegerIndex(3);
+    int sw, sh;
+
+    if(ll.isTableIndex(2))
+    {
+        auto sz = SWE_Size::get(ll, 2, __FUNCTION__);
+        sw = sz.w;
+        sh = sz.h;
+    }
+    else
+    if(1 == ll.stackSize() && ll.isStringIndex(2))
+    {
+        auto str = ll.toStringIndex(2);
+	StringList list = String::split(str, [](int ch){ return ! ::isdigit(ch); });
+	if(1 < list.size())
+	{
+    	    sw = String::toInt(list.front());
+    	    sh = String::toInt(list.back());
+	}
+	else
+	{
+	    ERROR("parse error: `" << str << "'");
+    	    sw = 0;
+    	    sh = 0;
+	}
+    }
+    else
+    {
+        sw = ll.toIntegerIndex(2);
+        sh = ll.toIntegerIndex(3);
+    }
 
     SWE_Stack::size_create(ll, sw, sh);
     return rescount;

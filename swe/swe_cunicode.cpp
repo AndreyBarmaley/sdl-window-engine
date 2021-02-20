@@ -216,24 +216,31 @@ namespace SWE
         return Tools::AdvancedSplit<UnicodeString>(str, sep);
     }
 
-    UnicodeList UnicodeString::split(int sep) const
+    UnicodeList UnicodeString::split(std::function<bool(int)> fn) const
     {
         UnicodeList list;
         const_iterator pos1 = begin();
         const_iterator pos2 = end();
 
-        while(static_cast<size_t>(std::distance(begin(), pos1)) < size() &&
-              end() != (pos2 = std::find(pos1, end(), sep)))
-        {
+        while(pos1 != end())
+	{
+    	    pos2 = std::find_if(pos1, end(), fn);
+	    if(pos2 == end()) break;
+
             list << UnicodeString(pos1, pos2);
-            pos1 = pos2 + 1;
+            pos1 = std::next(pos2);
         }
 
         // tail
-        if(static_cast<size_t>(std::distance(begin(), pos1)) < size())
+        if(pos1 != end())
             list << UnicodeString(pos1, pos2);
 
         return list;
+    }
+
+    UnicodeList UnicodeString::split(int sep) const
+    {
+	return split([=](int ch){ return ch == sep; });
     }
 
     UnicodeList UnicodeString::splitWidth(const FontRender & frs, int width) const

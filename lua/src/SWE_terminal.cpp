@@ -56,9 +56,37 @@ SWE_Terminal::SWE_Terminal(lua_State* L, const FontRender & frs, int cols, int r
     setVisible(true);
 }
 
-TermWindow* SWE_Terminal::get(LuaState & ll, int tableIndex, const char* funcName)
+SWE_Terminal* SWE_Terminal::get(LuaState & ll, int tableIndex, const char* funcName)
 {
-    return static_cast<TermWindow*>(SWE_Window::get(ll, tableIndex, funcName));
+    LuaStateValidator(ll, 0);
+
+    if(ll.isTableIndex(tableIndex))
+    {
+        const std::string type = ll.popFieldTableIndex("__type", tableIndex);
+
+        if(0 != type.compare("swe.terminal"))
+        {
+            ERROR(funcName << ": " << "table not found, index: " << tableIndex << ", type: " << type);
+            return NULL;
+        }
+    }
+    else
+    {
+        ERROR(funcName << ": " << "table not found, index: " << tableIndex);
+        return NULL;
+    }
+
+    if(! ll.getFieldTableIndex("userdata", tableIndex).isTopUserData())
+    {
+        ERROR(funcName << ": " << "not userdata, index: " << tableIndex << ", " << ll.getTopTypeName());
+        ll.stackPop();
+        return NULL;
+    }
+
+    auto ptr = static_cast<SWE_Terminal**>(ll.getTopUserData());
+    ll.stackPop();
+
+    return ptr ? *ptr : NULL;
 }
 
 FBColors SWE_terminal_default_colors(LuaState & ll, const TermWindow & term)
@@ -190,9 +218,11 @@ void SWE_font_resize_event(LuaState & ll, TermWindow & term)
 
 int SWE_terminal_set_termsize(lua_State* L)
 {
+    const int rescount = 0;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_terminal, cols, rows
 
-    LuaState ll(L);
     if(auto term = SWE_Terminal::get(ll, 1, __FUNCTION__))
     {
 	int cols = ll.toIntegerIndex(2);
@@ -211,17 +241,17 @@ int SWE_terminal_set_termsize(lua_State* L)
 	ERROR("userdata empty");
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_terminal_to_json(lua_State* L)
 {
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_terminal
 
-    LuaState ll(L);
-    auto term = SWE_Terminal::get(ll, 1, __FUNCTION__);
-
-    if(term)
+    if(auto term = SWE_Terminal::get(ll, 1, __FUNCTION__))
     {
         bool visible = ll.getFieldTableIndex("visible", 1).getTopBoolean();
         bool modality = ll.getFieldTableIndex("modality", 1).getTopBoolean();
@@ -238,19 +268,24 @@ int SWE_terminal_to_json(lua_State* L)
             arg("swe.terminal").arg(posx).arg(posy).arg(width).arg(height).arg(visible).arg(modality).arg(keyhandle).arg(cols).arg(rows);
 
         ll.pushString(str);
-        return 1;
+    }
+    else
+    {
+	ERROR("userdata empty");
+	ll.pushNil();
     }
 
-    ERROR("userdata empty");
-    return 0;
+    return rescount;
 }
 
 ////// terminal functions
 int SWE_terminal_fill_fgcolor(lua_State* L)
 {
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_terminal, color, cols, rows
 
-    LuaState ll(L);
     if(auto term = SWE_Terminal::get(ll, 1, __FUNCTION__))
     {
 	int params = ll.stackSize();
@@ -262,21 +297,23 @@ int SWE_terminal_fill_fgcolor(lua_State* L)
 	*term << fill::fgcolor(Color(colorFg).toColorIndex(), TermSize(cols, rows));
 
 	ll.pushValueIndex(1);
-	return 1;
     }
     else
     {
 	ERROR("userdata empty");
+	ll.pushNil();
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_terminal_fill_bgcolor(lua_State* L)
 {
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_terminal, color, cols, rows
 
-    LuaState ll(L);
     if(auto term = SWE_Terminal::get(ll, 1, __FUNCTION__))
     {
 	int params = ll.stackSize();
@@ -288,21 +325,23 @@ int SWE_terminal_fill_bgcolor(lua_State* L)
 	*term << fill::bgcolor(Color(colorBg).toColorIndex(), TermSize(cols, rows));
 
 	ll.pushValueIndex(1);
-	return 1;
     }
     else
     {
 	ERROR("userdata empty");
+	ll.pushNil();
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_terminal_fill_colors(lua_State* L)
 {
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_terminal, color, color, cols, rows
 
-    LuaState ll(L);
     if(auto term = SWE_Terminal::get(ll, 1, __FUNCTION__))
     {
 	int params = ll.stackSize();
@@ -315,21 +354,23 @@ int SWE_terminal_fill_colors(lua_State* L)
 	*term << fill::colors(Color(colorFg).toColorIndex(), Color(colorBg).toColorIndex(), TermSize(cols, rows));
 
 	ll.pushValueIndex(1);
-	return 1;
     }
     else
     {
 	ERROR("userdata empty");
+	ll.pushNil();
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_terminal_fill_property(lua_State* L)
 {
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_terminal, blended, style, hinting, cols, rows
 
-    LuaState ll(L);
     if(auto term = SWE_Terminal::get(ll, 1, __FUNCTION__))
     {
 	int params = ll.stackSize();
@@ -343,21 +384,23 @@ int SWE_terminal_fill_property(lua_State* L)
 	*term << fill::property(CharProperty(blended, style, hinting), TermSize(cols, rows));
 
 	ll.pushValueIndex(1);
-	return 1;
     }
     else
     {
 	ERROR("userdata empty");
+	ll.pushNil();
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_terminal_fill_charset(lua_State* L)
 {
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_terminal, charset, cols, rows
 
-    LuaState ll(L);
     if(auto term = SWE_Terminal::get(ll, 1, __FUNCTION__))
     {
 	int params = ll.stackSize();
@@ -369,63 +412,69 @@ int SWE_terminal_fill_charset(lua_State* L)
 	*term << fill::charset(charset, TermSize(cols, rows));
 
 	ll.pushValueIndex(1);
-	return 1;
     }
     else
     {
 	ERROR("userdata empty");
+	ll.pushNil();
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_terminal_set_fgcolor(lua_State* L)
 {
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_terminal, color
 
-    LuaState ll(L);
     if(auto term = SWE_Terminal::get(ll, 1, __FUNCTION__))
     {
 	ARGB colorFg = ll.toIntegerIndex(2);
 	*term << set::fgcolor(Color(colorFg).toColorIndex());
 
 	ll.pushValueIndex(1);
-	return 1;
     }
     else
     {
 	ERROR("userdata empty");
+	ll.pushNil();
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_terminal_set_bgcolor(lua_State* L)
 {
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_terminal, color
 
-    LuaState ll(L);
     if(auto term = SWE_Terminal::get(ll, 1, __FUNCTION__))
     {
 	ARGB colorBg = ll.toIntegerIndex(2);
 	*term << set::bgcolor(Color(colorBg).toColorIndex());
 
 	ll.pushValueIndex(1);
-	return 1;
     }
     else
     {
 	ERROR("userdata empty");
+	ll.pushNil();
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_terminal_set_colors(lua_State* L)
 {
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_terminal, color, color
 
-    LuaState ll(L);
     if(auto term = SWE_Terminal::get(ll, 1, __FUNCTION__))
     {
 	int params = ll.stackSize();
@@ -436,21 +485,23 @@ int SWE_terminal_set_colors(lua_State* L)
 	*term << set::colors(Color(colorFg).toColorIndex(), Color(colorBg).toColorIndex());
 
 	ll.pushValueIndex(1);
-	return 1;
     }
     else
     {
 	ERROR("userdata empty");
+	ll.pushNil();
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_terminal_set_property(lua_State* L)
 {
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_terminal, int render, int style, int hinting
 
-    LuaState ll(L);
     if(auto term = SWE_Terminal::get(ll, 1, __FUNCTION__))
     {
 	int params = ll.stackSize();
@@ -462,142 +513,156 @@ int SWE_terminal_set_property(lua_State* L)
 	*term << set::property(render, style, hinting);
 
 	ll.pushValueIndex(1);
-	return 1;
     }
     else
     {
 	ERROR("userdata empty");
+	ll.pushNil();
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_terminal_set_wrap(lua_State* L)
 {
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_terminal
 
-    LuaState ll(L);
     if(auto term = SWE_Terminal::get(ll, 1, __FUNCTION__))
     {
 	*term << set::wrap();
 
 	ll.pushValueIndex(1);
-	return 1;
     }
     else
     {
 	ERROR("userdata empty");
+	ll.pushNil();
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_terminal_set_blink(lua_State* L)
 {
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_terminal
 
-    LuaState ll(L);
     if(auto term = SWE_Terminal::get(ll, 1, __FUNCTION__))
     {
 	*term << set::blink();
 
 	ll.pushValueIndex(1);
-	return 1;
     }
     else
     {
 	ERROR("userdata empty");
+	ll.pushNil();
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_terminal_set_invert(lua_State* L)
 {
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_terminal
 
-    LuaState ll(L);
     if(auto term = SWE_Terminal::get(ll, 1, __FUNCTION__))
     {
 	*term << set::invert();
 
 	ll.pushValueIndex(1);
-	return 1;
     }
     else
     {
 	ERROR("userdata empty");
+	ll.pushNil();
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_terminal_set_flipvert(lua_State* L)
 {
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_terminal
 
-    LuaState ll(L);
     if(auto term = SWE_Terminal::get(ll, 1, __FUNCTION__))
     {
 	*term << set::flipvert();
 
 	ll.pushValueIndex(1);
-	return 1;
     }
     else
     {
 	ERROR("userdata empty");
+	ll.pushNil();
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_terminal_set_fliphorz(lua_State* L)
 {
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_terminal
 
-    LuaState ll(L);
     if(auto term = SWE_Terminal::get(ll, 1, __FUNCTION__))
     {
 	*term << set::fliphorz();
 
 	ll.pushValueIndex(1);
-	return 1;
     }
     else
     {
 	ERROR("userdata empty");
+	ll.pushNil();
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_terminal_set_alpha(lua_State* L)
 {
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_terminal, int alpha
 
-    LuaState ll(L);
     if(auto term = SWE_Terminal::get(ll, 1, __FUNCTION__))
     {
 	int val = ll.toIntegerIndex(2);
 	*term << set::alpha(val);
 
 	ll.pushValueIndex(1);
-	return 1;
     }
     else
     {
 	ERROR("userdata empty");
+	ll.pushNil();
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_terminal_set_padding(lua_State* L)
 {
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_terminal, left, right, top, bottom
 
-    LuaState ll(L);
     if(auto term = SWE_Terminal::get(ll, 1, __FUNCTION__))
     {
 	int left   = ll.toIntegerIndex(2);
@@ -608,226 +673,249 @@ int SWE_terminal_set_padding(lua_State* L)
 	*term << set::padding(left, right, top, bottom);
 
 	ll.pushValueIndex(1);
-	return 1;
     }
     else
     {
 	ERROR("userdata empty");
+	ll.pushNil();
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_terminal_reset_property(lua_State* L)
 {
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_terminal
 
-    LuaState ll(L);
     if(auto term = SWE_Terminal::get(ll, 1, __FUNCTION__))
     {
 	*term << reset::property();
 
 	ll.pushValueIndex(1);
-	return 1;
     }
     else
     {
 	ERROR("userdata empty");
+	ll.pushNil();
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_terminal_reset_colors(lua_State* L)
 {
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_terminal
 
-    LuaState ll(L);
     if(auto term = SWE_Terminal::get(ll, 1, __FUNCTION__))
     {
 	*term << reset::colors();
 
 	ll.pushValueIndex(1);
-	return 1;
     }
     else
     {
 	ERROR("userdata empty");
+	ll.pushNil();
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_terminal_reset_fgcolor(lua_State* L)
 {
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_terminal
 
-    LuaState ll(L);
     if(auto term = SWE_Terminal::get(ll, 1, __FUNCTION__))
     {
 	*term << reset::fgcolor();
 
 	ll.pushValueIndex(1);
-	return 1;
     }
     else
     {
 	ERROR("userdata empty");
+	ll.pushNil();
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_terminal_reset_bgcolor(lua_State* L)
 {
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_terminal
 
-    LuaState ll(L);
     if(auto term = SWE_Terminal::get(ll, 1, __FUNCTION__))
     {
 	*term << reset::bgcolor();
 
 	ll.pushValueIndex(1);
-	return 1;
     }
     else
     {
 	ERROR("userdata empty");
+	ll.pushNil();
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_terminal_reset_padding(lua_State* L)
 {
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_terminal
 
-    LuaState ll(L);
     if(auto term = SWE_Terminal::get(ll, 1, __FUNCTION__))
     {
 	*term << reset::padding();
 
 	ll.pushValueIndex(1);
-	return 1;
     }
     else
     {
 	ERROR("userdata empty");
+	ll.pushNil();
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_terminal_reset_wrap(lua_State* L)
 {
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_terminal
 
-    LuaState ll(L);
     if(auto term = SWE_Terminal::get(ll, 1, __FUNCTION__))
     {
 	*term << reset::wrap();
 
 	ll.pushValueIndex(1);
-	return 1;
     }
     else
     {
 	ERROR("userdata empty");
+	ll.pushNil();
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_terminal_reset_blink(lua_State* L)
 {
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_terminal
 
-    LuaState ll(L);
     if(auto term = SWE_Terminal::get(ll, 1, __FUNCTION__))
     {
 	*term << reset::blink();
 
 	ll.pushValueIndex(1);
-	return 1;
     }
     else
     {
 	ERROR("userdata empty");
+	ll.pushNil();
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_terminal_reset_invert(lua_State* L)
 {
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_terminal
 
-    LuaState ll(L);
     if(auto term = SWE_Terminal::get(ll, 1, __FUNCTION__))
     {
 	*term << reset::invert();
 
 	ll.pushValueIndex(1);
-	return 1;
     }
     else
     {
 	ERROR("userdata empty");
+	ll.pushNil();
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_terminal_reset_flip(lua_State* L)
 {
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_terminal
 
-    LuaState ll(L);
     if(auto term = SWE_Terminal::get(ll, 1, __FUNCTION__))
     {
 	*term << reset::flip();
 
 	ll.pushValueIndex(1);
-	return 1;
     }
     else
     {
 	ERROR("userdata empty");
+	ll.pushNil();
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_terminal_reset_alpha(lua_State* L)
 {
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_terminal
 
-    LuaState ll(L);
     if(auto term = SWE_Terminal::get(ll, 1, __FUNCTION__))
     {
 	*term << reset::alpha();
 
 	ll.pushValueIndex(1);
-	return 1;
     }
     else
     {
 	ERROR("userdata empty");
+	ll.pushNil();
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_terminal_cursor_position(lua_State* L)
 {
+    // return variable size
+    LuaState ll(L);
+
+    // params: swe_terminal, (returned cur pos)
     // params: swe_terminal, posx, posy
 
-    LuaState ll(L);
     if(auto term = SWE_Terminal::get(ll, 1, __FUNCTION__))
     {
 	int params = ll.stackSize();
 
-	if(2 > params)
+	if(1 == params)
 	{
 	    const TermPos & tp = term->cursor();
 	    ll.pushInteger(tp.posx());
@@ -837,105 +925,114 @@ int SWE_terminal_cursor_position(lua_State* L)
 
 	int posx = ll.toIntegerIndex(2);
 	int posy = ll.toIntegerIndex(3);
-
 	*term << cursor::set(posx, posy);
 
 	ll.pushValueIndex(1);
-	return 1;
     }
     else
     {
 	ERROR("userdata empty");
+	ll.pushNil();
     }
 
-    return 0;
+    return 1;
 }
 
 int SWE_terminal_cursor_topleft(lua_State* L)
 {
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_terminal
 
-    LuaState ll(L);
     if(auto term = SWE_Terminal::get(ll, 1, __FUNCTION__))
     {
 	*term << cursor::set(0, 0);
 
 	ll.pushValueIndex(1);
-	return 1;
     }
     else
     {
 	ERROR("userdata empty");
+	ll.pushNil();
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_terminal_cursor_topright(lua_State* L)
 {
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_terminal
 
-    LuaState ll(L);
     if(auto term = SWE_Terminal::get(ll, 1, __FUNCTION__))
     {
 	*term << cursor::set(term->cols() - 1, 0);
 
 	ll.pushValueIndex(1);
-	return 1;
     }
     else
     {
 	ERROR("userdata empty");
+	ll.pushNil();
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_terminal_cursor_bottomleft(lua_State* L)
 {
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_terminal
 
-    LuaState ll(L);
     if(auto term = SWE_Terminal::get(ll, 1, __FUNCTION__))
     {
 	*term << cursor::set(0, term->rows() - 1);
 
 	ll.pushValueIndex(1);
-	return 1;
     }
     else
     {
 	ERROR("userdata empty");
+	ll.pushNil();
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_terminal_cursor_bottomright(lua_State* L)
 {
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_terminal
 
-    LuaState ll(L);
     if(auto term = SWE_Terminal::get(ll, 1, __FUNCTION__))
     {
 	*term << cursor::set(term->cols() - 1, term->rows() - 1);
 
 	ll.pushValueIndex(1);
-	return 1;
     }
     else
     {
 	ERROR("userdata empty");
+	ll.pushNil();
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_terminal_cursor_moveup(lua_State* L)
 {
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_terminal, count
 
-    LuaState ll(L);
     if(auto term = SWE_Terminal::get(ll, 1, __FUNCTION__))
     {
 	int params = ll.stackSize();
@@ -943,21 +1040,23 @@ int SWE_terminal_cursor_moveup(lua_State* L)
 	*term << cursor::up(counts);
 
 	ll.pushValueIndex(1);
-	return 1;
     }
     else
     {
 	ERROR("userdata empty");
+	ll.pushNil();
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_terminal_cursor_movedown(lua_State* L)
 {
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_terminal, count
 
-    LuaState ll(L);
     if(auto term = SWE_Terminal::get(ll, 1, __FUNCTION__))
     {
 	int params = ll.stackSize();
@@ -965,21 +1064,23 @@ int SWE_terminal_cursor_movedown(lua_State* L)
 	*term << cursor::down(counts);
 
 	ll.pushValueIndex(1);
-	return 1;
     }
     else
     {
 	ERROR("userdata empty");
+	ll.pushNil();
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_terminal_cursor_moveleft(lua_State* L)
 {
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_terminal, count
 
-    LuaState ll(L);
     if(auto term = SWE_Terminal::get(ll, 1, __FUNCTION__))
     {
 	int params = ll.stackSize();
@@ -987,21 +1088,23 @@ int SWE_terminal_cursor_moveleft(lua_State* L)
 	*term << cursor::left(counts);
 
 	ll.pushValueIndex(1);
-	return 1;
     }
     else
     {
 	ERROR("userdata empty");
+	ll.pushNil();
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_terminal_cursor_moveright(lua_State* L)
 {
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_terminal, count
 
-    LuaState ll(L);
     if(auto term = SWE_Terminal::get(ll, 1, __FUNCTION__))
     {
 	int params = ll.stackSize();
@@ -1009,61 +1112,67 @@ int SWE_terminal_cursor_moveright(lua_State* L)
 	*term << cursor::right(counts);
 
 	ll.pushValueIndex(1);
-	return 1;
     }
     else
     {
 	ERROR("userdata empty");
+	ll.pushNil();
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_terminal_cursor_movefirst(lua_State* L)
 {
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_terminal
 
-    LuaState ll(L);
     if(auto term = SWE_Terminal::get(ll, 1, __FUNCTION__))
     {
 	*term << cursor::move(MoveFirst);
 
 	ll.pushValueIndex(1);
-	return 1;
     }
     else
     {
 	ERROR("userdata empty");
+	ll.pushNil();
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_terminal_cursor_movelast(lua_State* L)
 {
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_terminal
 
-    LuaState ll(L);
     if(auto term = SWE_Terminal::get(ll, 1, __FUNCTION__))
     {
 	*term << cursor::move(MoveLast);
 
 	ll.pushValueIndex(1);
-	return 1;
     }
     else
     {
 	ERROR("userdata empty");
+	ll.pushNil();
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_terminal_set_flush(lua_State* L)
 {
+    const int rescount = 0;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_terminal
 
-    LuaState ll(L);
     if(auto term = SWE_Terminal::get(ll, 1, __FUNCTION__))
     {
 	*term << set::flush();
@@ -1078,9 +1187,11 @@ int SWE_terminal_set_flush(lua_State* L)
 
 int SWE_terminal_draw_hline(lua_State* L)
 {
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_terminal, length, line
 
-    LuaState ll(L);
     if(auto term = SWE_Terminal::get(ll, 1, __FUNCTION__))
     {
 	int params = ll.stackSize();
@@ -1108,21 +1219,23 @@ int SWE_terminal_draw_hline(lua_State* L)
 	}
 
 	ll.pushValueIndex(1);
-	return 1;
     }
     else
     {
 	ERROR("userdata empty");
+	ll.pushNil();
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_terminal_draw_vline(lua_State* L)
 {
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_terminal, length, line
 
-    LuaState ll(L);
     if(auto term = SWE_Terminal::get(ll, 1, __FUNCTION__))
     {
 	int params = ll.stackSize();
@@ -1150,21 +1263,23 @@ int SWE_terminal_draw_vline(lua_State* L)
 	}
 
 	ll.pushValueIndex(1);
-	return 1;
     }
     else
     {
 	ERROR("userdata empty");
+	ll.pushNil();
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_terminal_draw_rect(lua_State* L)
 {
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_terminal, rtw, rth, line
 
-    LuaState ll(L);
     if(auto term = SWE_Terminal::get(ll, 1, __FUNCTION__))
     {
 	int params = ll.stackSize();
@@ -1194,21 +1309,23 @@ int SWE_terminal_draw_rect(lua_State* L)
 	*term << draw::rect(tp.posx(), tp.posy(), rtw, rth, line);
 
 	ll.pushValueIndex(1);
-	return 1;
     }
     else
     {
 	ERROR("userdata empty");
+	ll.pushNil();
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_terminal_draw_text(lua_State* L)
 {
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_terminal, text, .. text
 
-    LuaState ll(L);
     if(auto term = SWE_Terminal::get(ll, 1, __FUNCTION__))
     {
 	int params = ll.stackSize();
@@ -1240,21 +1357,23 @@ int SWE_terminal_draw_text(lua_State* L)
 	}
 
 	ll.pushValueIndex(1);
-	return 1;
     }
     else
     {
 	ERROR("userdata empty");
+	ll.pushNil();
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_terminal_draw_char(lua_State* L)
 {
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_terminal, char, .. char
 
-    LuaState ll(L);
     if(auto term = SWE_Terminal::get(ll, 1, __FUNCTION__))
     {
 	int params = ll.stackSize();
@@ -1279,27 +1398,29 @@ int SWE_terminal_draw_char(lua_State* L)
 	}
 
 	ll.pushValueIndex(1);
-	return 1;
     }
     else
     {
 	ERROR("userdata empty");
+	ll.pushNil();
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_terminal_charset_info(lua_State* L)
 {
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
     // params: swe_terminal
 
-    LuaState ll(L);
     if(auto term = SWE_Terminal::get(ll, 1, __FUNCTION__))
     {
+	ll.pushTable();
+
 	if(const TermCharset* tc = term->charset())
 	{
-	    ll.pushTable();
-
 	    const CharProperty & cp = tc->property();
 
 	    ll.pushString(String::hex(tc->unicode(), 4)).setFieldTableIndex("unicode", -2);
@@ -1312,16 +1433,19 @@ int SWE_terminal_charset_info(lua_State* L)
 	    ll.pushBoolean(tc->inverted()).setFieldTableIndex("inverted", -2);
 	    ll.pushInteger(tc->flip()).setFieldTableIndex("flip", -2);
 	    ll.pushInteger(tc->alpha()).setFieldTableIndex("alpha", -2);
-
-	    return 1;
+	}
+	else
+	{
+	    ERROR("unknown context");
 	}
     }
     else
     {
 	ERROR("userdata empty");
+	ll.pushNil();
     }
 
-    return 0;
+    return rescount;
 }
 
 const struct luaL_Reg SWE_terminal_functions[] = {
@@ -1443,8 +1567,10 @@ void SWE_Stack::terminal_create(LuaState & ll, const FontRender & frs, int cols,
 
 int SWE_terminal_create(lua_State* L)
 {
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
     // SWE.Terminal(self, fontrender, cols, rows, table parent)
-    LuaState ll(L);
 
     const FontRender* frs = SWE_FontRender::get(ll, 2, __FUNCTION__);
     int cols = ll.toIntegerIndex(3);
@@ -1453,13 +1579,13 @@ int SWE_terminal_create(lua_State* L)
 
     // get parent
     if(ll.isTopTable())
-	parent = SWE_Terminal::get(ll, -1, __FUNCTION__);
+	parent = SWE_Window::get(ll, -1, __FUNCTION__);
     else
     // set parent DisplayWindow
 	parent = DisplayScene::rootWindow();
 
     SWE_Stack::terminal_create(ll, frs ? *frs : SWE::systemFont(), cols, rows, parent);
-    return 1;
+    return rescount;
 }
 
 int SWE_terminal_destroy(lua_State* L)
@@ -1469,9 +1595,10 @@ int SWE_terminal_destroy(lua_State* L)
 
 int SWE_char_ltee(lua_State* L)
 {
-    // params: line
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
 
-    LuaState ll(L);
+    // params: line
     int type = ll.toIntegerIndex(1);
 
     switch(type)
@@ -1480,21 +1607,25 @@ int SWE_char_ltee(lua_State* L)
 	case LineThin:
 	case LineBold:
 	case LineDouble:
-	    ll.pushInteger(acs::ltee(static_cast<LineType>(type)));
-	    return 1;
+	    break;
 
 	default:
 	    ERROR("unknown line type: " << type);
+            type = LineAscii;
 	    break;
     }
-    return 0;
+
+    ll.pushInteger(acs::ltee(static_cast<LineType>(type)));
+    return rescount;
 }
 
 int SWE_char_rtee(lua_State* L)
 {
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
     // params: line
 
-    LuaState ll(L);
     int type = ll.toIntegerIndex(1);
 
     switch(type)
@@ -1503,21 +1634,24 @@ int SWE_char_rtee(lua_State* L)
 	case LineThin:
 	case LineBold:
 	case LineDouble:
-	    ll.pushInteger(acs::rtee(static_cast<LineType>(type)));
-	    return 1;
+	    break;
 
 	default:
 	    ERROR("unknown line type: " << type);
+            type = LineAscii;
 	    break;
     }
-    return 0;
+
+    ll.pushInteger(acs::rtee(static_cast<LineType>(type)));
+    return rescount;
 }
 
 int SWE_char_ttee(lua_State* L)
 {
-    // params: line
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
 
-    LuaState ll(L);
+    // params: line
     int type = ll.toIntegerIndex(1);
 
     switch(type)
@@ -1526,21 +1660,24 @@ int SWE_char_ttee(lua_State* L)
 	case LineThin:
 	case LineBold:
 	case LineDouble:
-	    ll.pushInteger(acs::ttee(static_cast<LineType>(type)));
-	    return 1;
+	    break;
 
 	default:
 	    ERROR("unknown line type: " << type);
+            type = LineAscii;
 	    break;
     }
-    return 0;
+
+    ll.pushInteger(acs::ttee(static_cast<LineType>(type)));
+    return rescount;
 }
 
 int SWE_char_btee(lua_State* L)
 {
-    // params: line
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
 
-    LuaState ll(L);
+    // params: line
     int type = ll.toIntegerIndex(1);
 
     switch(type)
@@ -1549,21 +1686,24 @@ int SWE_char_btee(lua_State* L)
 	case LineThin:
 	case LineBold:
 	case LineDouble:
-	    ll.pushInteger(acs::btee(static_cast<LineType>(type)));
-	    return 1;
+	    break;
 
 	default:
 	    ERROR("unknown line type: " << type);
+            type = LineAscii;
 	    break;
     }
-    return 0;
+
+    ll.pushInteger(acs::btee(static_cast<LineType>(type)));
+    return rescount;
 }
 
 int SWE_char_ulcorner(lua_State* L)
 {
-    // params: line
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
 
-    LuaState ll(L);
+    // params: line
     int type = ll.toIntegerIndex(1);
 
     switch(type)
@@ -1572,21 +1712,24 @@ int SWE_char_ulcorner(lua_State* L)
 	case LineThin:
 	case LineBold:
 	case LineDouble:
-	    ll.pushInteger(acs::ulcorner(static_cast<LineType>(type)));
-	    return 1;
+	    break;
 
 	default:
 	    ERROR("unknown line type: " << type);
+            type = LineAscii;
 	    break;
     }
-    return 0;
+
+    ll.pushInteger(acs::ulcorner(static_cast<LineType>(type)));
+    return rescount;
 }
 
 int SWE_char_urcorner(lua_State* L)
 {
-    // params: line
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
 
-    LuaState ll(L);
+    // params: line
     int type = ll.toIntegerIndex(1);
 
     switch(type)
@@ -1595,21 +1738,24 @@ int SWE_char_urcorner(lua_State* L)
 	case LineThin:
 	case LineBold:
 	case LineDouble:
-	    ll.pushInteger(acs::urcorner(static_cast<LineType>(type)));
-	    return 1;
+	    break;
 
 	default:
 	    ERROR("unknown line type: " << type);
+            type = LineAscii;
 	    break;
     }
-    return 0;
+
+    ll.pushInteger(acs::urcorner(static_cast<LineType>(type)));
+    return rescount;
 }
 
 int SWE_char_llcorner(lua_State* L)
 {
-    // params: line
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
 
-    LuaState ll(L);
+    // params: line
     int type = ll.toIntegerIndex(1);
 
     switch(type)
@@ -1618,21 +1764,24 @@ int SWE_char_llcorner(lua_State* L)
 	case LineThin:
 	case LineBold:
 	case LineDouble:
-	    ll.pushInteger(acs::llcorner(static_cast<LineType>(type)));
-	    return 1;
+	    break;
 
 	default:
 	    ERROR("unknown line type: " << type);
+            type = LineAscii;
 	    break;
     }
-    return 0;
+
+    ll.pushInteger(acs::llcorner(static_cast<LineType>(type)));
+    return rescount;
 }
 
 int SWE_char_lrcorner(lua_State* L)
 {
-    // params: line
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
 
-    LuaState ll(L);
+    // params: line
     int type = ll.toIntegerIndex(1);
 
     switch(type)
@@ -1641,21 +1790,24 @@ int SWE_char_lrcorner(lua_State* L)
 	case LineThin:
 	case LineBold:
 	case LineDouble:
-	    ll.pushInteger(acs::lrcorner(static_cast<LineType>(type)));
-	    return 1;
+	    break;
 
 	default:
 	    ERROR("unknown line type: " << type);
+            type = LineAscii;
 	    break;
     }
-    return 0;
+
+    ll.pushInteger(acs::lrcorner(static_cast<LineType>(type)));
+    return rescount;
 }
 
 int SWE_char_hline(lua_State* L)
 {
-    // params: line
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
 
-    LuaState ll(L);
+    // params: line
     int type = ll.toIntegerIndex(1);
 
     switch(type)
@@ -1664,21 +1816,24 @@ int SWE_char_hline(lua_State* L)
 	case LineThin:
 	case LineBold:
 	case LineDouble:
-	    ll.pushInteger(acs::hline(static_cast<LineType>(type)));
-	    return 1;
+	    break;
 
 	default:
 	    ERROR("unknown line type: " << type);
+            type = LineAscii;
 	    break;
     }
-    return 0;
+
+    ll.pushInteger(acs::hline(static_cast<LineType>(type)));
+    return rescount;
 }
 
 int SWE_char_vline(lua_State* L)
 {
-    // params: line
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
 
-    LuaState ll(L);
+    // params: line
     int type = ll.toIntegerIndex(1);
 
     switch(type)
@@ -1687,21 +1842,24 @@ int SWE_char_vline(lua_State* L)
 	case LineThin:
 	case LineBold:
 	case LineDouble:
-	    ll.pushInteger(acs::vline(static_cast<LineType>(type)));
-	    return 1;
+	    break;
 
 	default:
 	    ERROR("unknown line type: " << type);
+            type = LineAscii;
 	    break;
     }
-    return 0;
+
+    ll.pushInteger(acs::vline(static_cast<LineType>(type)));
+    return rescount;
 }
 
 int SWE_char_plus(lua_State* L)
 {
-    // params: line
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
 
-    LuaState ll(L);
+    // params: line
     int type = ll.toIntegerIndex(1);
 
     switch(type)
@@ -1710,14 +1868,16 @@ int SWE_char_plus(lua_State* L)
 	case LineThin:
 	case LineBold:
 	case LineDouble:
-	    ll.pushInteger(acs::plus(static_cast<LineType>(type)));
-	    return 1;
+	    break;
 
 	default:
 	    ERROR("unknown line type: " << type);
+            type = LineAscii;
 	    break;
     }
-    return 0;
+
+    ll.pushInteger(acs::plus(static_cast<LineType>(type)));
+    return rescount;
 }
 
 const struct luaL_Reg SWE_char_functions[] = {
