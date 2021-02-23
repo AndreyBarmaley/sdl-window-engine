@@ -1046,7 +1046,7 @@ int SWE_window_to_json(lua_State* L)
 
     // params: swe_window
 
-    if(auto win = SWE_Window::get(ll, 1, __FUNCTION__))
+    if(SWE_Window::get(ll, 1, __FUNCTION__))
     {
         bool visible = ll.getFieldTableIndex("visible", 1).getTopBoolean();
         bool modality = ll.getFieldTableIndex("modality", 1).getTopBoolean();

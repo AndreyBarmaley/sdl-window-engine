@@ -134,9 +134,19 @@ int main(int argc, char** argv)
 
         LuaState ll = LuaState::newState();
 
+	if(! ll.L())
+	{
+	    ERROR("LuaState: is NULL");
+	    return EXIT_FAILURE;
+	}
+
 	// register directories
-	ll.registerDirectory(cwd);
-	ll.registerDirectory(Systems::dirname(runfile));
+	if(Systems::isDirectory(cwd))
+	    ll.registerDirectory(cwd);
+
+	const std::string crd = Systems::dirname(runfile);
+	if(crd.size() && Systems::isDirectory(crd))
+	    ll.registerDirectory(crd);
 
         luaopen_SWE(ll.L());
 

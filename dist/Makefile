@@ -12,9 +12,6 @@ endif
 ifdef SWE_WITH_JSON
 SOURCEDIR       := $(SOURCEDIR) ../swe/jsmn
 endif
-ifdef SWE_WITH_XML
-SOURCEDIR       := $(SOURCEDIR) ../swe/tinyxml2
-endif
 
 SEARCH          := $(addsuffix /*.cpp, $(SOURCEDIR))
 

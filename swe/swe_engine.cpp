@@ -137,7 +137,11 @@ bool SWE::Engine::init(bool debug)
     if(sdlver1)
         DEBUG("usage " << "SDL_mixer" << ", " << "version: " << static_cast<int>(sdlver1->major) << "." << static_cast<int>(sdlver1->minor) << "." << static_cast<int>(sdlver1->patch));
 
+#if (SDL_VERSIONNUM(SDL_MIXER_MAJOR_VERSION, SDL_MIXER_MINOR_VERSION, SDL_MIXER_PATCHLEVEL) < SDL_VERSIONNUM(2,0,4))
     int formats = MIX_INIT_MP3|MIX_INIT_OGG|MIX_INIT_MOD;
+#else
+    int formats = MIX_INIT_MP3|MIX_INIT_OGG|MIX_INIT_MOD|MIX_INIT_MID;
+#endif
     int res = Mix_Init(formats);
 
     if(res != formats)

@@ -251,7 +251,7 @@ int SWE_terminal_to_json(lua_State* L)
 
     // params: swe_terminal
 
-    if(auto term = SWE_Terminal::get(ll, 1, __FUNCTION__))
+    if(SWE_Terminal::get(ll, 1, __FUNCTION__))
     {
         bool visible = ll.getFieldTableIndex("visible", 1).getTopBoolean();
         bool modality = ll.getFieldTableIndex("modality", 1).getTopBoolean();
@@ -1182,7 +1182,7 @@ int SWE_terminal_set_flush(lua_State* L)
 	ERROR("userdata empty");
     }
 
-    return 0;
+    return rescount;
 }
 
 int SWE_terminal_draw_hline(lua_State* L)

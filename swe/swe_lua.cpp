@@ -114,7 +114,13 @@ namespace SWE
 
     bool LuaState::registerDirectory(const std::string & dir)
     {
-        if(getGlobalName("package").isTopTable() && Systems::isDirectory(dir))
+	if(! Systems::isDirectory(dir))
+	{
+	    ERROR("dir not found: " << dir);
+	    return false;
+	}
+
+        if(getGlobalName("package").isTopTable())
         {
             if(getFieldTableIndex("path", -1).isTopString())
             {
@@ -127,10 +133,15 @@ namespace SWE
             else
 	    {
                 ERROR("field not found: " << "path");
+    		stackPop(2);
 	    }
         }
+	else
+	{
+	    ERROR("table not found: " << "package");
+    	    stackPop();
+	}
 
-        stackPop(2);
         return false;
     }
 

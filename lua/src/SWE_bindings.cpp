@@ -43,7 +43,7 @@
 #include "SWE_translation.h"
 #include "SWE_unicodestring.h"
 
-#define SWE_LUA_VERSION 20210220
+#define SWE_LUA_VERSION 20210223
 #define SWE_LUA_LICENSE "GPL3"
 
 int SWE_window_init_mobile(lua_State* L)
@@ -1081,7 +1081,6 @@ extern "C" {
  int luaopen_SWE(lua_State* L)
  {
     LuaState ll(L);
-
     if(ll.version() < 501)
     {
 	ERROR("minimum Lua API version 5.1");

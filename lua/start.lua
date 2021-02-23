@@ -1,11 +1,14 @@
 -- require 'SWE'
 
-SWE.LuaRegisterDirectory("gui")
+SWE.RegisterLuaDirectory("gui")
 require 'gui_tools'
 require 'gui_dialog'
 require 'gui_editor'
 require 'gui_android'
 require 'gui_filebrowser'
+
+SWE.RegisterResourceDirectory("gui")
+SWE.RegisterResourceDirectory("examples")
 
 SWE.SetDebug(true)
 -- SWE.Dump(_G)
@@ -16,7 +19,7 @@ local function ReadCommanderConfig()
         local file = SWE.SystemConcatePath(sharedir, "commander.json")
         SWE.Debug("check config:", file)
 	local buf = SWE.BinaryBuf.ReadFromFile(file)
-        if buf then
+        if buf ~= nil then
             local cfg = SWE.JsonParse(buf:ToString())
             if cfg then
                 return cfg.cwd, cfg.fsz
@@ -27,8 +30,10 @@ local function ReadCommanderConfig()
     local cwd = SWE.SystemCurrentDirectory()
     -- calculate font size
     local dw,dh,df = SWE.DisplaySize()
-    local fsz = ToInt(dw / 320 * 12)
-
+    local fsz = 14
+    if dw > 0 then
+        fsz = ToInt(dw / 320 * 12)
+    end
     return cwd,fsz
 end
 
@@ -104,6 +109,16 @@ local function CommanderInit(win, frs, cwd)
     term.bzi = TermLabelActionCreate("F+", frs, term.cols - 5, term.rows - 1, term, SWE.Color.White)
     term.bed = TermLabelActionCreate("ED", frs, 6, term.rows - 1, term, SWE.Color.White)
     term.bed.disable = true
+
+    -- add close button
+    if SWE.SystemMobileOs() then
+        term.cls = TermLabelActionCreate("X", frs, term.cols - 5, 0, term, SWE.Color.White)
+
+        term.cls.MouseClickEvent = function(px,py,pb,rx,ry,rb)
+            term:SetVisible(false)
+	    return true
+        end
+    end
 
     term.bed.MouseClickEvent = function(px,py,pb,rx,ry,rb)
 	local stat = SWE.SystemFileStat(term.result)

@@ -129,7 +129,7 @@ int SWE_videocam_to_json(lua_State* L)
 
     // params: swe_videocam
 
-    if(SWE_VideoCam* cam = SWE_VideoCam::get(ll, 1, __FUNCTION__))
+    if(SWE_VideoCam::get(ll, 1, __FUNCTION__))
     {
 	std::string params;
 
