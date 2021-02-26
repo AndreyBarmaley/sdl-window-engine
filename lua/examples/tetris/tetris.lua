@@ -256,6 +256,13 @@ function win.KeyPressEvent(key)
         return true
     end
 
+    if SWE.SystemMobileOs() ~= nil then
+        if key == SWE.Key.ANDROID_BACK or key == SWE.Key.WINCE_EXIT then
+            win:SetVisible(false)
+            return true
+        end
+    end
+
     if key == SWE.Key.LEFT and ShapeAllowMoveLeft(config.shape1.shape) then
         config.ox = config.ox - 1
         SWE.DisplayDirty()

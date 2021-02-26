@@ -128,10 +128,9 @@ int SWE_rect_point_inrect(lua_State* L)
     const int rescount = 1;
     LuaStateDefine(ll, L, rescount);
 
-    if(ll.isTableIndex(1) && 0 == ll.popFieldTableIndex("__type", 1).compare("swe.rect") &&
-	ll.isTableIndex(2) && 0 == ll.popFieldTableIndex("__type", 2).compare("swe.point"))
+    if(ll.isTableIndex(1) && 0 == ll.popFieldTableIndex("__type", 1).compare("swe.rect"))
     {
-	Rect rt; Point pt;
+	Rect rt;
 
 	rt.x = ll.getFieldTableIndex("posx", 1).getTopInteger();
 	rt.y = ll.getFieldTableIndex("posy", 1).getTopInteger();
@@ -139,12 +138,33 @@ int SWE_rect_point_inrect(lua_State* L)
 	rt.h = ll.getFieldTableIndex("height", 1).getTopInteger();
 	ll.stackPop(4);
 
-	pt.x = ll.getFieldTableIndex("posx", 2).getTopInteger();
-	pt.y = ll.getFieldTableIndex("posy", 2).getTopInteger();
-	ll.stackPop(2);
+        if(ll.isNumberIndex(2) && ll.isNumberIndex(3))
+        {
+            Point pt;
 
-	bool res = rt & pt;
-	ll.pushBoolean(res);
+            pt.x = ll.toIntegerIndex(2);
+            pt.y = ll.toIntegerIndex(3);
+
+	    bool res = rt & pt;
+	    ll.pushBoolean(res);
+        }
+        else
+        if(ll.isTableIndex(2) && 0 == ll.popFieldTableIndex("__type", 2).compare("swe.point"))
+        {
+            Point pt;
+
+	    pt.x = ll.getFieldTableIndex("posx", 2).getTopInteger();
+	    pt.y = ll.getFieldTableIndex("posy", 2).getTopInteger();
+	    ll.stackPop(2);
+
+	    bool res = rt & pt;
+	    ll.pushBoolean(res);
+        }
+        else
+        {
+            ERROR("unknown params");
+	    ll.pushBoolean(false);
+        }
     }
     else
     {
@@ -390,10 +410,22 @@ int SWE_rect_create(lua_State* L)
 	StringList list = String::split(str, [](int ch){ return ! ::isdigit(ch); });
 	if(3 < list.size())
 	{
-    	    rx = String::toInt(list.front());
-    	    ry = String::toInt(*std::next(list.begin(), 1));
-    	    rw = String::toInt(*std::next(list.begin(), 2));
-    	    rh = String::toInt(list.back());
+            // swe.rect[xxx,xxx]
+            if(0 == str.compare(0, 8, "swe.rect"))
+	    {
+    	        rx = String::toInt(*std::prev(list.end(), 4));
+    	        ry = String::toInt(*std::prev(list.end(), 3));
+    	        rw = String::toInt(*std::prev(list.end(), 2));
+    	        rh = String::toInt(*std::prev(list.end(), 1));
+            }
+            // any: xxx,xxx
+            else
+            {
+    	        rx = String::toInt(list.front());
+    	        ry = String::toInt(*std::next(list.begin(), 1));
+    	        rw = String::toInt(*std::next(list.begin(), 2));
+    	        rh = String::toInt(list.back());
+            }
 	}
 	else
 	{
@@ -544,18 +576,31 @@ int SWE_point_create(lua_State* L)
     if(1 == ll.stackSize() && ll.isStringIndex(2))
     {
         auto str = ll.toStringIndex(2);
+
 	StringList list = String::split(str, [](int ch){ return ! ::isdigit(ch); });
 	if(1 < list.size())
 	{
-    	    px = String::toInt(list.front());
-    	    py = String::toInt(list.back());
+            // swe.point[xxx,xxx]
+            if(0 == str.compare(0, 9, "swe.point"))
+	    {
+                auto it1 = std::prev(list.end(), 2);
+                auto it2 = std::prev(list.end(), 1);
+    	        px = String::toInt(*it1);
+    	        py = String::toInt(*it2);
+            }
+            // any: xxx,xxx
+            else
+            {
+    	        px = String::toInt(list.front());
+    	        py = String::toInt(list.back());
+	    }
 	}
-	else
+        else
 	{
 	    ERROR("parse error: `" << str << "'");
     	    px = -1;
     	    py = -1;
-	}
+        }
     }
     else
     {
@@ -698,8 +743,20 @@ int SWE_size_create(lua_State* L)
 	StringList list = String::split(str, [](int ch){ return ! ::isdigit(ch); });
 	if(1 < list.size())
 	{
-    	    sw = String::toInt(list.front());
-    	    sh = String::toInt(list.back());
+            // swe.size[xxx,xxx]
+            if(0 == str.compare(0, 8, "swe.size"))
+	    {
+                auto it1 = std::prev(list.end(), 2);
+                auto it2 = std::prev(list.end(), 1);
+    	        sw = String::toInt(*it1);
+    	        sh = String::toInt(*it2);
+            }
+            // any: xxx,xxx
+            else
+            {
+    	        sw = String::toInt(list.front());
+    	        sh = String::toInt(list.back());
+            }
 	}
 	else
 	{

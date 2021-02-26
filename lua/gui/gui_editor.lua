@@ -688,11 +688,18 @@ function EditorInit(win, frs2, filename)
 	if SWE.Key.ESCAPE == key then
     	    area:SetVisible(false)
 	    return true
-	-- android back key
-	elseif key == 0x4000010e then
-    	    area:SetVisible(false)
-	    return true
-	elseif SWE.Key.RETURN == key then	return AreaKeyReturn(area)
+        end
+
+        if SWE.SystemMobileOs() ~= nil then
+            -- android back
+            -- wince exit
+            if key == SWE.Key.ANDROID_BACK or key == SWE.Key.WINCE_EXIT then
+                area:SetVisible(false)
+                return true
+            end
+        end
+
+	if SWE.Key.RETURN == key then	return AreaKeyReturn(area)
 	elseif SWE.Key.BACKSPACE == key then	return AreaKeyBackspace(area)
 	elseif SWE.Key.HOME == key then		return AreaLineHome(area)
 	elseif SWE.Key.END == key then		return AreaGotoLineEnd(area)

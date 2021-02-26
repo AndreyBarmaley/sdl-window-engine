@@ -31,8 +31,8 @@
 #include <list>
 
 #ifdef SWE_SDL12
- #include "./rotozoom1/SDL_rotozoom.h"
- #include "./rotozoom1/SDL_gfxPrimitives.h"
+ #include "SDL_rotozoom.h"
+ #include "SDL_gfxPrimitives.h"
 #endif
 
 #include "swe_engine.h"
@@ -48,6 +48,8 @@ namespace SWE
     namespace Display
     {
         bool		fingerEventEmulation = false;
+        const int       fingerMoveDelta = 4;
+        const int       fingerGestureDelta = 15;
 
 #ifdef SWE_SDL12
         SDL_Surface*	_window = nullptr;
@@ -1165,10 +1167,14 @@ void SWE::Display::handleMouseMotion(const SDL_MouseMotionEvent & ev)
         const s32 & dx = ev.xrel;
         const s32 & dy = ev.yrel;
 
-        if(std::abs(dx) > std::abs(dy))
-            DisplayScene::pushEvent(nullptr, 0 < dx ? Signal::FingerMoveRight : Signal::FingerMoveLeft, nullptr);
-        else if(std::abs(dy) > std::abs(dx))
-            DisplayScene::pushEvent(nullptr, 0 < dy ? Signal::FingerMoveDown : Signal::FingerMoveUp, nullptr);
+        if(fingerMoveDelta <= std::abs(dx) || fingerMoveDelta <= std::abs(dy))
+        {
+            if(std::abs(dx) > std::abs(dy))
+                DisplayScene::pushEvent(nullptr, 0 < dx ? Signal::FingerMoveRight : Signal::FingerMoveLeft, nullptr);
+            else
+            if(std::abs(dy) > std::abs(dx))
+                DisplayScene::pushEvent(nullptr, 0 < dy ? Signal::FingerMoveDown : Signal::FingerMoveUp, nullptr);
+        }
     }
 }
 
@@ -1222,13 +1228,14 @@ void SWE::Display::handleFingerTap(const SDL_TouchFingerEvent & ev)
 #if (defined ANDROID)
             // gesture finger event
             Point delta = coords.press().position() - coords.release().position();
-            const int val = 15;
 
-            if(val > std::abs(delta.x) && val > std::abs(delta.y))
+            if(fingerGestureDelta > std::abs(delta.x) && fingerGestureDelta > std::abs(delta.y))
                 DisplayScene::mouseClickHandle(coords);
-            else if(std::abs(delta.x) > std::abs(delta.y))
+            else
+            if(std::abs(delta.x) > std::abs(delta.y))
                 DisplayScene::pushEvent(nullptr, 0 > delta.x ? Signal::GestureFingerRight : Signal::GestureFingerLeft, nullptr);
-            else if(std::abs(delta.x) < std::abs(delta.y))
+            else
+            if(std::abs(delta.x) < std::abs(delta.y))
                 DisplayScene::pushEvent(nullptr, 0 > delta.y ? Signal::GestureFingerDown : Signal::GestureFingerUp, nullptr);
 
 #else

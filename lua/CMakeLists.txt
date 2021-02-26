@@ -74,7 +74,7 @@ project(SWE_LUA_BINDINGS VERSION 20200910.1)
 add_library(SWE SHARED)
 add_subdirectory(src)
 
-if(SWE_WITH_LUA52 STREQUAL ON)
+if(SWE_WITH_LUA52)
     target_sources(SWE PUBLIC ${LUA52_SRC})
     # lua flags
     if(UNIX)
@@ -116,7 +116,7 @@ add_executable(LuaSWE main/SWE_main.cpp
     src/SWE_videocam_ffmpeg.cpp
     src/SWE_window.cpp)
 
-if(SWE_WITH_LUA52 STREQUAL ON)
+if(SWE_WITH_LUA52)
     target_sources(LuaSWE PUBLIC ${LUA52_SRC})
     # lua flags
     if(UNIX)
@@ -132,8 +132,12 @@ endif()
 # auto: support ffmpeg
 pkg_check_modules(FFMPEG QUIET libavdevice libavformat libavcodec libswscale libavutil)
 if(${FFMPEG_FOUND})
-    target_compile_options(LuaSWE PUBLIC -DWITH_VIDEOCAM_FFMPEG ${FFMPEG_CFLAGS})
-    target_link_libraries(LuaSWE avdevice avformat avcodec swscale avutil)
+    if(NOT SWE_SDL12)
+        target_compile_options(LuaSWE PUBLIC -DWITH_VIDEOCAM_FFMPEG ${FFMPEG_CFLAGS})
+        target_link_libraries(LuaSWE avdevice avformat avcodec swscale avutil)
+    else()
+        message("ffmpeg need SDL2 skipped..")
+    endif()
 else()
     message("skipping ffmpeg support, not found: libavdevice, libavformat, libavcodec, libswscale, or libavutil")
 endif()

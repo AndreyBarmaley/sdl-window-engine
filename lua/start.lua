@@ -31,6 +31,9 @@ local function ReadCommanderConfig()
     -- calculate font size
     local dw,dh,df = SWE.DisplaySize()
     local fsz = 14
+    if SWE.SystemMobileOs() == "android" then
+	fsz = 32
+    end
     if dw > 0 then
         fsz = ToInt(dw / 320 * 12)
     end

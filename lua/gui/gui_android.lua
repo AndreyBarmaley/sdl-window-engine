@@ -89,11 +89,16 @@ function CatLogInit(win, frs, params)
         if key == SWE.Key.ESCAPE then
             term:SetVisible(false)
             return true
-        -- android back
-        elseif key == 0x4000010e then
-            term:SetVisible(false)
-            return true
-	end
+        end
+
+        if SWE.SystemMobileOs() ~= nil then
+            -- android back
+            -- wince exit
+            if key == SWE.Key.ANDROID_BACK or key == SWE.Key.WINCE_EXIT then
+                term:SetVisible(false)
+                return true
+            end
+        end
 
 	return false
     end

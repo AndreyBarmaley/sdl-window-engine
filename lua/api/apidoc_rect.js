@@ -141,12 +141,14 @@ SWE.Rect.Unpack
 */
 SWE.Rect.PointInRect
 /**
-    @api {check point in rect} SWE.Rect.PointInRect(self,point) SWE.Rect.PointInRect
+    @api {check point in rect} SWE.Rect.PointInRect(self,point)SWE.Rect.PointInRect(self,px,py) SWE.Rect.PointInRect
     @apiGroup SWE.Rect
     @apiName PointInRect
 
     @apiParam {SWE.Rect}			self		rect object
     @apiParam {SWE.Point}			point		point object
+    @apiParam {number}			        px		point value
+    @apiParam {number}			        py		point value
     @apiSuccess (Return) {boolean}		result		true if point resides inside rectangle
 
     @apiExample usage

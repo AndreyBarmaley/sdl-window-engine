@@ -4,7 +4,6 @@ SOURCEDIR       := ../swe
 ifdef SWE_SDL12
 ifndef SWE_DISABLE_IMAGE
 SOURCEDIR       := $(SOURCEDIR) ../swe/savepng
-SOURCEDIR       := $(SOURCEDIR) ../swe/rotozoom1
 endif
 else
 SOURCEDIR       := $(SOURCEDIR) ../swe/rotozoom2

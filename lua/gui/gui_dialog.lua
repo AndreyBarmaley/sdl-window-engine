@@ -30,6 +30,16 @@ function DialogInform(parent, frs, header, message)
             area:SetVisible(false)
             return true
         end
+
+        if SWE.SystemMobileOs() ~= nil then
+            -- android back
+            -- wince exit
+            if key == SWE.Key.ANDROID_BACK or key == SWE.Key.WINCE_EXIT then
+                area:SetVisible(false)
+                return true
+            end
+        end
+
         return false
     end
 

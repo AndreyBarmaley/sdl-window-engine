@@ -27,7 +27,7 @@
 #include "swe_surface.h"
 
 #ifdef SWE_SDL12
- #include "./rotozoom1/SDL_rotozoom.h"
+ #include "SDL_rotozoom.h"
  #ifndef SWE_DISABLE_IMAGE
  #include "./savepng/IMG_savepng.h"
  #endif

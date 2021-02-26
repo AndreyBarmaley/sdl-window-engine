@@ -26,8 +26,10 @@ if(SWE_EXAMPLES)
     set(SWE_WITH_JSON ON CACHE BOOL "enable builtin json" FORCE)
 endif()
 
-if(SWE_SDL12 STREQUAL ON)
+if(SWE_SDL12)
     pkg_search_module(SDL REQUIRED SDL>=1.2)
+    pkg_search_module(SDLGFX REQUIRED SDL_gfx>=2.0)
+
     add_compile_options(-DSWE_SDL12)
 
     if(SWE_DISABLE_AUDIO)
@@ -45,7 +47,7 @@ if(SWE_SDL12 STREQUAL ON)
     if(SWE_DISABLE_TTF)
         add_compile_options(-DSWE_DISABLE_TTF)
     else()
-        pkg_search_module(SDLTTF REQUIRED SDL_ttf>=1.2)
+        pkg_search_module(SDLTTF REQUIRED SDL_ttf>=2.0)
     endif()
 
     if(SWE_DISABLE_NETWORK)
@@ -55,8 +57,16 @@ if(SWE_SDL12 STREQUAL ON)
     endif()
     # link X11, see SWE::Display::isMaximizedWindow
     link_libraries(X11)
+
+    add_compile_options(${SDL_CFLAGS})
+    add_link_options(${SDL_LDFLAGS})
+    link_libraries(${SDL_LIBRARIES})
+
+    add_compile_options(${SDLGFX_CFLAGS})
+    add_link_options(${SDLGFX_LDFLAGS})
+    link_libraries(${SDLGFX_LIBRARIES})
 else()
-    pkg_search_module(SDL REQUIRED sdl2>=2.0.1)
+    pkg_search_module(SDL2 REQUIRED sdl2>=2.0.1)
 
     if(SWE_DISABLE_AUDIO)
         add_compile_options(-DSWE_DISABLE_AUDIO)
@@ -81,11 +91,12 @@ else()
     else()
         pkg_search_module(SDLNET REQUIRED SDL2_net>=2.0.1)
     endif()
+
+    add_compile_options(${SDL2_CFLAGS})
+    add_link_options(${SDL2_LDFLAGS})
+    link_libraries(${SDL2_LIBRARIES})
 endif()
 
-add_compile_options(${SDL_CFLAGS})
-add_link_options(${SDL_LDFLAGS})
-link_libraries(${SDL_LIBRARIES})
 
 if(NOT SWE_DISABLE_AUDIO)
     add_compile_options(${SDLMIXER_CFLAGS})
@@ -111,23 +122,23 @@ if(NOT SWE_DISABLE_NETWORK)
     link_libraries(${SDLNET_LIBRARIES})
 endif()
 
-if(SWE_DISABLE_TERMGUI STREQUAL ON)
+if(SWE_DISABLE_TERMGUI)
     add_compile_options(-DSWE_DISABLE_TERMGUI)
 endif()
 
-if(SWE_DEBUG_MESSAGES STREQUAL ON)
+if(SWE_DEBUG_MESSAGES)
     add_compile_options(-DSWE_DEBUG_MESSAGES)
 endif()
 
-if(SWE_DEBUG_SCENE STREQUAL ON)
+if(SWE_DEBUG_SCENE)
     add_compile_options(-DSWE_DEBUG_SCENE)
 endif()
 
-if(SWE_WITH_JSON STREQUAL ON)
+if(SWE_WITH_JSON)
     add_compile_options(-DSWE_WITH_JSON)
 endif()
 
-if(SWE_SDL12 STREQUAL ON)
+if(SWE_SDL12)
     pkg_search_module(PNG REQUIRED libpng)
 
     add_compile_options(${PNG_CFLAGS})
@@ -140,7 +151,7 @@ add_compile_options(${LZ_CFLAGS})
 add_link_options(${LZ_LDFLAGS})
 link_libraries(${LZ_LIBRARIES})
 
-if(SWE_DLOPEN STREQUAL ON)
+if(SWE_DLOPEN)
     add_compile_options(-DSWE_DLOPEN)
     if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
 	link_libraries(dl)

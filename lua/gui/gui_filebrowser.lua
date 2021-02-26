@@ -360,7 +360,13 @@ local function TermSelectName(term, name)
 end
 
 local function TermCreateHeader(term)
-    local hdr = ShrinkLongName(term.cwd, term.cols - 4)
+    -- reserve border -[]-
+    local len = term.cols - 4
+    if SWE.SystemMobileOs() ~= nil then
+        -- reserve close button [x]
+        len = len - 3
+    end
+    local hdr = ShrinkLongName(term.cwd, len)
     if term.header then
 	term.header:SetVisible(false)
     end
@@ -539,13 +545,8 @@ function FileBrowserInit(win, frs, path, params)
 
         if SWE.SystemMobileOs() ~= nil then
 	    -- android back
-	    if key == 0x4000010e then
-	        term.result = nil
-	        term:SetVisible(false)
-	        return true
-	    end
 	    -- wince exit
-	    if key == 312 then
+	    if key == SWE.Key.ANDROID_BACK or key == SWE.Key.WINCE_EXIT then
 	        term.result = nil
 	        term:SetVisible(false)
 	        return true

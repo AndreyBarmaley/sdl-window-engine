@@ -38,6 +38,12 @@ function win.KeyPressEvent(key)
         win:SetVisible(false)
         return true
     end
+    if SWE.SystemMobileOs() ~= nil then
+        if key == SWE.Key.ANDROID_BACK or key == SWE.Key.WINCE_EXIT then
+            win:SetVisible(false)
+            return true
+        end
+    end
     return false
 end
 

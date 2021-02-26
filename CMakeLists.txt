@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.14)
 
-project(SDL_WINDOW_ENGINE VERSION 20210220.1)
+project(SDL_WINDOW_ENGINE VERSION 20210226.1)
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
@@ -31,11 +31,11 @@ add_subdirectory(swe)
 set_target_properties(libswe PROPERTIES PREFIX "")
 set_target_properties(libswe PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
-if(SWE_EXAMPLES STREQUAL ON)
+if(SWE_EXAMPLES)
     add_subdirectory(examples)
 endif()
 
-if(SWE_WITH_LUA STREQUAL ON)
+if(SWE_WITH_LUA)
     pkg_search_module(LUA QUIET lua)
 
     if(LUA_VERSION VERSION_LESS 5.2)
