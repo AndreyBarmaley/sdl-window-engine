@@ -40,4 +40,9 @@ public:
     static void registers(LuaState & ll);
 };
 
+namespace SWE_Stack
+{
+    SWE_Texture*      texture_create(LuaState &);
+}
+
 #endif

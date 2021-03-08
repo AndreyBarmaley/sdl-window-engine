@@ -35,6 +35,13 @@
 #include <iphlpapi.h>
 #undef ERROR
 #undef DELETE
+#else
+#include <unistd.h>
+#include <sys/ioctl.h>
+#include <net/if.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
 #endif
 
 int SDLNet_GetLocalAddresses(IPaddress* addresses, int maxcount)
@@ -45,27 +52,30 @@ int SDLNet_GetLocalAddresses(IPaddress* addresses, int maxcount)
 #ifndef _SIZEOF_ADDR_IFREQ
 #define _SIZEOF_ADDR_IFREQ sizeof
 #endif
-    SOCKET sock;
+    int sock;
     struct ifconf conf;
     char data[4096];
     struct ifreq* ifr;
     struct sockaddr_in* sock_addr;
     sock = socket(AF_INET, SOCK_DGRAM, 0);
 
-    if(sock == INVALID_SOCKET)
+    if(0 > sock)
+    {
+        ERROR("invalid socket");
         return 0;
+    }
 
     conf.ifc_len = sizeof(data);
     conf.ifc_buf = (caddr_t) data;
 
     if(ioctl(sock, SIOCGIFCONF, &conf) < 0)
     {
-        closesocket(sock);
+        close(sock);
+        ERROR("invalid ioctl");
         return 0;
     }
 
     ifr = (struct ifreq*)data;
-
     while((char*)ifr < data + conf.ifc_len)
     {
         if(ifr->ifr_addr.sa_family == AF_INET)
@@ -83,7 +93,7 @@ int SDLNet_GetLocalAddresses(IPaddress* addresses, int maxcount)
         ifr = (struct ifreq*)((char*)ifr + _SIZEOF_ADDR_IFREQ(*ifr));
     }
 
-    closesocket(sock);
+    close(sock);
 #elif defined(__WIN32__)
     PIP_ADAPTER_INFO pAdapterInfo;
     PIP_ADAPTER_INFO pAdapter;
@@ -127,6 +137,7 @@ int SDLNet_GetLocalAddresses(IPaddress* addresses, int maxcount)
     return count;
 }
 #endif
+
 
 #include "swe_streamnet.h"
 

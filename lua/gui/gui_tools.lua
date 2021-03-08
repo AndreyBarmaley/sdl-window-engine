@@ -11,3 +11,21 @@ function StringSplit(str, sep)
    end
    return result
 end
+
+function ToolsKeyExit(key)
+    if key == SWE.Key.ESCAPE then
+        return true
+    end
+
+    local mobos = SWE.SystemMobileOs()
+
+    if mobos ~= nil then
+        if key == SWE.Key.ANDROID_BACK and mobos == "android" then
+            return true
+        end
+
+        if key == SWE.Key.WINCE_EXIT and mobos == "wince" then
+            return true
+        end
+    end
+end

@@ -685,18 +685,9 @@ function EditorInit(win, frs2, filename)
 	    SWE.DisplayDirty()
 	end
 
-	if SWE.Key.ESCAPE == key then
+	if ToolsKeyExit(key) then
     	    area:SetVisible(false)
 	    return true
-        end
-
-        if SWE.SystemMobileOs() ~= nil then
-            -- android back
-            -- wince exit
-            if key == SWE.Key.ANDROID_BACK or key == SWE.Key.WINCE_EXIT then
-                area:SetVisible(false)
-                return true
-            end
         end
 
 	if SWE.Key.RETURN == key then	return AreaKeyReturn(area)

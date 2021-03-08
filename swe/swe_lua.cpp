@@ -54,6 +54,8 @@ int lua_isinteger(lua_State* L, int index)
 
 namespace SWE
 {
+    std::string stacktrace;
+
     /* LuaStateDebug */
     LuaStateDebug::LuaStateDebug(lua_State* L, const char* fname, int num) : LuaState(L), funcname(fname), top(-1), rescount(num)
     {
@@ -74,7 +76,8 @@ namespace SWE
     LuaState LuaState::newState(void)
     {
         lua_State* L = luaL_newstate();
-        luaL_openlibs(L);
+        if(L) luaL_openlibs(L);
+
         return LuaState(L);
     }
 
@@ -89,6 +92,10 @@ namespace SWE
             Engine::except(__FUNCTION__, "null pointer");
     }
 
+    const std::string & LuaState::stackTrace(void)
+    {
+        return stacktrace;
+    }
 
     int LuaState::version(void)
     {
@@ -102,14 +109,102 @@ namespace SWE
 #endif
     }
 
-    int LuaState::doFile(const std::string & file)
+
+    const char* luaStringError(int err)
     {
-        return luaL_dofile(ptr, file.c_str());
+        switch(err)
+        {
+            case LUA_OK:        return "LUA_OK";
+            case LUA_ERRRUN:    return "LUA_ERRRUN";
+            case LUA_ERRMEM:    return "LUA_ERRMEM";
+            case LUA_ERRERR:    return "LUA_ERRERR";
+            case LUA_ERRGCMM:    return "LUA_ERRGCMM";
+            default: break;
+        }
+
+        return "LUA_UNKNOWN";
     }
 
-    int LuaState::doString(const std::string & str)
+    int errorHandler(lua_State* L)
     {
-        return luaL_dostring(ptr, str.c_str());
+	// param: origin error
+
+	lua_getglobal(L, "debug");
+	if(LUA_TTABLE != lua_type(L, -1))
+	{
+	    lua_pop(L, 1);
+	    // return origin error
+	    return 1;
+	}
+
+	lua_getfield(L, -1, "traceback");
+	if(LUA_TFUNCTION != lua_type(L, -1))
+	{
+	    lua_pop(L, 2);
+	    // return origin error
+	    return 1;
+	}
+
+	// remove debug
+	lua_remove(L, 2);
+
+	int err = lua_pcall(L, 0, 1, 0);
+
+	// stack: traceback, error
+	if(err == LUA_OK)
+        {
+            stacktrace = lua_tostring(L, -1);
+	    lua_pop(L, 1);
+        }
+        else
+        {
+            stacktrace = "pcall return: ";
+            stacktrace.append(luaStringError(err));
+        }
+
+	return 1;
+    }
+
+    bool LuaState::doFile(const std::string & file)
+    {
+	int err = luaL_loadfile(ptr, file.c_str());
+	if(LUA_OK != err)
+	{
+            DEBUG("loadfile return: " << luaStringError(err));
+	    return false;
+	}
+
+	lua_pushcfunction(ptr, errorHandler);
+        int findex = lua_absindex(ptr, -2);
+	lua_insert(ptr, findex);
+
+	bool res = LUA_OK == lua_pcall(ptr, 0, LUA_MULTRET, findex);
+   
+	// remove func
+	lua_remove(ptr, findex);
+
+	return res;
+    }
+
+    bool LuaState::doString(const std::string & str)
+    {
+	int err = luaL_loadstring(ptr, str.c_str());
+	if(LUA_OK != err)
+	{
+            DEBUG("loadstring return: " << luaStringError(err));
+	    return false;
+	}
+
+	lua_pushcfunction(ptr, errorHandler);
+        int findex = lua_absindex(ptr, -2);
+	lua_insert(ptr, findex);
+
+	bool res = LUA_OK == lua_pcall(ptr, 0, LUA_MULTRET, findex);
+
+	// remove func
+	lua_remove(ptr, findex);
+
+	return res;
     }
 
     bool LuaState::registerDirectory(const std::string & dir)
@@ -478,7 +573,7 @@ namespace SWE
         return lua_newuserdata(ptr, sz);
     }
 
-    LuaState & LuaState::stackDump(void)
+    LuaState & LuaState::stackDump(bool expand)
     {
         VERBOSE("+----------------------> " << "stack");
         int index = stackSize();
@@ -492,11 +587,14 @@ namespace SWE
         VERBOSE("+----------------------< " << "stack");
         index = stackSize();
 
-        while(index)
+        if(expand)
         {
-            if(isTableIndex(index)) dumpTable(index);
-
-            index--;
+            while(index)
+            {
+                if(isTableIndex(index))
+                    dumpTable(index);
+                index--;
+            }
         }
 
         return *this;
@@ -577,6 +675,14 @@ namespace SWE
     }
 
 #ifdef SWE_WITH_JSON
+    std::string LuaState::toJsonStringTableIndex(int index)
+    {
+        if(isSequenceTableIndex(index))
+            return toJsonArrayTableIndex(-1).toString();
+
+        return toJsonObjectTableIndex(-1).toString();
+    }
+
     JsonArray LuaState::toJsonArrayTableIndex(int index)
     {
         JsonArray res;
@@ -603,7 +709,8 @@ namespace SWE
                         break;
 
                     case LUA_TSTRING:
-                        res.addString(String::escapeChar(toStringIndex(-1), '"'));
+                        //res.addString(String::escapeChar(toStringIndex(-1), '"'));
+                        res.addString(toStringIndex(-1));
                         break;
 
                     case LUA_TNUMBER:
@@ -681,7 +788,8 @@ namespace SWE
                         break;
 
                     case LUA_TSTRING:
-                        res.addString(key, String::escapeChar(toStringIndex(-1), '"'));
+                        //res.addString(key, String::escapeChar(toStringIndex(-1), '"'));
+                        res.addString(key, toStringIndex(-1));
                         break;
 
                     case LUA_TNUMBER:
@@ -1057,6 +1165,14 @@ namespace SWE
         if(index < 0)
             index = lua_absindex(ptr, index);
 
+        // fast check
+        lua_len(ptr, index);
+        int len = lua_tointeger(ptr, -1);
+        lua_pop(ptr, 1);
+
+        if(0 == len)
+            return false;
+
         int prev = 0;
         lua_pushnil(ptr);
 
@@ -1072,8 +1188,8 @@ namespace SWE
                 return false;
             }
 
+            // next key is sequence
             int next = lua_tointeger(ptr, -1);
-
             if(next - prev != 1)
             {
                 lua_pop(ptr, 1);

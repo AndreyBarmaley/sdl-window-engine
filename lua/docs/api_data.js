@@ -64,6 +64,36 @@ define({ "api": [
     "groupTitle": "SWE"
   },
   {
+    "type": "logging debug message (split with space)",
+    "url": "SWE.Debug(val1,val2,..valn)",
+    "title": "SWE.Debug",
+    "group": "SWE",
+    "name": "Debug",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "string",
+            "optional": false,
+            "field": "val1",
+            "description": "<p>value1</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "string",
+            "optional": false,
+            "field": "val2",
+            "description": "<p>value2</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "./api/apidoc_swe.js",
+    "groupTitle": "SWE"
+  },
+  {
     "type": "set display scene dirty mode",
     "url": "SWE.DisplayDirty()",
     "title": "SWE.DisplayDirty",
@@ -76,7 +106,7 @@ define({ "api": [
   },
   {
     "type": "handle events intervals",
-    "url": "SWE.DisplayVideoModes(interval)",
+    "url": "SWE.DisplayHandleEvents(interval)",
     "title": "SWE.DisplayHandleEvents",
     "group": "SWE",
     "name": "DisplayHandleEvents",
@@ -85,7 +115,7 @@ define({ "api": [
         "Parameter": [
           {
             "group": "Parameter",
-            "type": "numberl",
+            "type": "number",
             "optional": false,
             "field": "interval",
             "description": "<p>handle events loop for interval (ms)</p>"
@@ -284,6 +314,73 @@ define({ "api": [
     "groupTitle": "SWE"
   },
   {
+    "type": "dump lua object to console",
+    "url": "SWE.Dump(val1,val2,..valn)",
+    "title": "SWE.Dump",
+    "group": "SWE",
+    "name": "Dump",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "string",
+            "optional": false,
+            "field": "val1",
+            "description": "<p>value1</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "number",
+            "optional": false,
+            "field": "val2",
+            "description": "<p>value2</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "table",
+            "optional": false,
+            "field": "valn",
+            "description": "<p>valuen</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "./api/apidoc_swe.js",
+    "groupTitle": "SWE"
+  },
+  {
+    "type": "logging error message (split with space)",
+    "url": "SWE.Error(val1,val2,..valn)",
+    "title": "SWE.Error",
+    "group": "SWE",
+    "name": "Error",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "string",
+            "optional": false,
+            "field": "val1",
+            "description": "<p>value1</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "string",
+            "optional": false,
+            "field": "val2",
+            "description": "<p>value2</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "./api/apidoc_swe.js",
+    "groupTitle": "SWE"
+  },
+  {
     "type": "find filename from resource dirs",
     "url": "SWE.FindResource(resource)",
     "title": "SWE.FindResource",
@@ -337,7 +434,7 @@ define({ "api": [
         "Return": [
           {
             "group": "Return",
-            "type": "integer",
+            "type": "number",
             "optional": false,
             "field": "result",
             "description": "<p>version</p>"
@@ -431,6 +528,36 @@ define({ "api": [
         "type": "json"
       }
     ],
+    "version": "0.0.0",
+    "filename": "./api/apidoc_swe.js",
+    "groupTitle": "SWE"
+  },
+  {
+    "type": "logging simple message (split with comma)",
+    "url": "SWE.Print(val1,val2,..valn)",
+    "title": "SWE.Print",
+    "group": "SWE",
+    "name": "Print",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "string",
+            "optional": false,
+            "field": "val1",
+            "description": "<p>value1</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "string",
+            "optional": false,
+            "field": "val2",
+            "description": "<p>value2</p>"
+          }
+        ]
+      }
+    },
     "version": "0.0.0",
     "filename": "./api/apidoc_swe.js",
     "groupTitle": "SWE"
@@ -775,7 +902,7 @@ define({ "api": [
     "examples": [
       {
         "title": "usage",
-        "content": "local stat = SWE.SystemFileStat(\"/var/tmp/screenshot.png\")\n\n.... dump stat\n| mode  | 33204                   | \n| gid   | 1000                    | \n| uid   | 1000                    | \n| nlink | 1                       | \n| size  | 404930                  | \n| atime | 1565677681              | \n| mtime | 1565677681              | \n| ctime | 1565677681              | \n| isdir | false                   |\n| type  | file                    |\n| path  | /var/tmp/screenshot.png |",
+        "content": "local stat = SWE.SystemFileStat(\"/var/tmp/screenshot.png\")\n\n.... dump stat\n| mode  | 33204                   | \n| gid   | 1000                    | \n| uid   | 1000                    | \n| nlink | 1                       | \n| size  | 404930                  | \n| atime | 1565677681              | \n| mtime | 1565677681              | \n| ctime | 1565677681              | \n| isdir | false                   |\n| type  | file                    | \"sock\",\"link\",\"block\",\"char\",\"fifo\",\"dir\",\"file\"\n| path  | /var/tmp/screenshot.png |",
         "type": "json"
       }
     ],
@@ -1010,6 +1137,29 @@ define({ "api": [
             "optional": false,
             "field": "delay",
             "description": "<p>sleep delay ms</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "./api/apidoc_swe.js",
+    "groupTitle": "SWE"
+  },
+  {
+    "type": "get system counter",
+    "url": "SWE.SystemTick()",
+    "title": "SWE.SystemTick",
+    "group": "SWE",
+    "name": "SystemTick",
+    "success": {
+      "fields": {
+        "Return": [
+          {
+            "group": "Return",
+            "type": "number",
+            "optional": false,
+            "field": "counter",
+            "description": "<p>constantly counter (milliseconds) from the starting</p>"
           }
         ]
       }
@@ -1375,6 +1525,56 @@ define({ "api": [
     "groupTitle": "SWE_Audio"
   },
   {
+    "type": "assign buf",
+    "url": "SWE.BinaryBuf.Assign(self,size,value)",
+    "title": "SWE.BinaryBuf.Assign",
+    "group": "SWE_BinaryBuf",
+    "name": "Assign",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "SWE.BinaryBuf",
+            "optional": false,
+            "field": "self",
+            "description": "<p>binarybuf raw data</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "number",
+            "optional": false,
+            "field": "size",
+            "description": "<p>new size</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "number",
+            "optional": false,
+            "field": "value",
+            "description": "<p>assign content</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Return": [
+          {
+            "group": "Return",
+            "type": "SWE.BinaryBuf",
+            "optional": false,
+            "field": "result",
+            "description": "<p>bynarybuf raw data</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "./api/apidoc_binarybuf.js",
+    "groupTitle": "SWE_BinaryBuf"
+  },
+  {
     "type": "base64 decode",
     "url": "SWE.BinaryBuf.Base64Decode(inputbuf),(inputstr)",
     "title": "SWE.BinaryBuf.Base64Decode",
@@ -1477,6 +1677,56 @@ define({ "api": [
     "groupTitle": "SWE_BinaryBuf"
   },
   {
+    "type": "compare bytes",
+    "url": "SWE.BinaryBuf.CompareBytes(self,offset,value...value)",
+    "title": "SWE.BinaryBuf.CompareBytes",
+    "group": "SWE_BinaryBuf",
+    "name": "CompareBytes",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "SWE.BinaryBuf",
+            "optional": false,
+            "field": "self",
+            "description": "<p>binarybuf raw data</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "number",
+            "optional": false,
+            "field": "offset",
+            "description": "<p>offset data</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "number",
+            "optional": false,
+            "field": "value",
+            "description": "<p>byte value (list)</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Return": [
+          {
+            "group": "Return",
+            "type": "boolean",
+            "optional": false,
+            "field": "result",
+            "description": "<p>success</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "./api/apidoc_binarybuf.js",
+    "groupTitle": "SWE_BinaryBuf"
+  },
+  {
     "type": "binarybuf constructor",
     "url": "SWE.BinaryBuf(),(inputstr),(length),(inputptr,length)",
     "title": "SWE.BinaryBuf",
@@ -1525,7 +1775,7 @@ define({ "api": [
     "examples": [
       {
         "title": "usage",
-        "content": "local buf = SWE.BinaryBuf(\"0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ\")\nlocal zip = buf:ZlibCompress()\nlocal base64 = zip:Base64Encode()\nprint(base64)",
+        "content": "    local buf = SWE.BinaryBuf(\"0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ\")\n    local zip = buf:ZlibCompress()\n    local base64 = zip:Base64Encode()\n    print(base64)\n\n    local size1 = buf.size\n    local size2 = #buf\n    if size1 == size2 then\n\tprint(\"equivalent\")\n    end\n\n    -- start index is zero!\n    local byte1 = buf:GetByte(5)\n    local byte2 = buf[5]\n    if byte1 == byte2 then\n\tprint(\"equivalent\")\n    end",
         "type": "json"
       },
       {
@@ -1634,6 +1884,13 @@ define({ "api": [
         ]
       }
     },
+    "examples": [
+      {
+        "title": "usage",
+        "content": "    local buf = SWE.BinaryBuf(\"0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ\")\n    -- start index is zero!\n    local byte1 = buf:GetByte(5)\n    local byte2 = buf[5]\n    if byte1 == byte2 then\n\tprint(\"equivalent\")\n    end",
+        "type": "json"
+      }
+    ],
     "version": "0.0.0",
     "filename": "./api/apidoc_binarybuf.js",
     "groupTitle": "SWE_BinaryBuf"
@@ -1690,7 +1947,7 @@ define({ "api": [
   },
   {
     "type": "calculate crc32b sum",
-    "url": "SWE.BinaryBuf.GetCRC32b(inputbuf)",
+    "url": "SWE.BinaryBuf.GetCRC32b(inputbuf)SWE.BinaryBuf.GetCRC32b(inputbuf,magic)",
     "title": "SWE.BinaryBuf.GetCRC32b",
     "group": "SWE_BinaryBuf",
     "name": "GetCRC32b",
@@ -1703,6 +1960,13 @@ define({ "api": [
             "optional": false,
             "field": "inputbuf",
             "description": "<p>binarybuf raw data</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "number",
+            "optional": false,
+            "field": "magic",
+            "description": "<p>default value (0xEDB88320)</p>"
           }
         ]
       }
@@ -5911,7 +6175,7 @@ define({ "api": [
   },
   {
     "type": "check point in rect",
-    "url": "SWE.Rect.PointInRect(self,point)",
+    "url": "SWE.Rect.PointInRect(self,point)SWE.Rect.PointInRect(self,px,py)",
     "title": "SWE.Rect.PointInRect",
     "group": "SWE_Rect",
     "name": "PointInRect",
@@ -5931,6 +6195,20 @@ define({ "api": [
             "optional": false,
             "field": "point",
             "description": "<p>point object</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "number",
+            "optional": false,
+            "field": "px",
+            "description": "<p>point value</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "number",
+            "optional": false,
+            "field": "py",
+            "description": "<p>point value</p>"
           }
         ]
       }
@@ -6741,6 +7019,49 @@ define({ "api": [
     "groupTitle": "SWE_StreamBuf"
   },
   {
+    "type": "streambuf get string",
+    "url": "SWE.StreamBuf.GetString(self,length)",
+    "title": "SWE.StreamBuf.GetString",
+    "group": "SWE_StreamBuf",
+    "name": "GetString",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "SWE.StreamBuf",
+            "optional": false,
+            "field": "self",
+            "description": "<p>streambuf object</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "number",
+            "optional": false,
+            "field": "length",
+            "description": "<p>length data</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Return": [
+          {
+            "group": "Return",
+            "type": "string",
+            "optional": false,
+            "field": "result",
+            "description": "<p>string data</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "./api/apidoc_streambuf.js",
+    "groupTitle": "SWE_StreamBuf"
+  },
+  {
     "type": "streambuf put 16 bit value",
     "url": "SWE.StreamBuf.PutBE16(self,value)",
     "title": "SWE.StreamBuf.PutBE16",
@@ -7452,6 +7773,49 @@ define({ "api": [
     "groupTitle": "SWE_StreamFile"
   },
   {
+    "type": "streamfile read string",
+    "url": "SWE.StreamFile.ReadString(self,length)",
+    "title": "SWE.StreamFile.ReadString",
+    "group": "SWE_StreamFile",
+    "name": "ReadString",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "SWE.StreamFile",
+            "optional": false,
+            "field": "self",
+            "description": "<p>streamfile object</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "number",
+            "optional": false,
+            "field": "length",
+            "description": "<p>length data</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Return": [
+          {
+            "group": "Return",
+            "type": "string",
+            "optional": false,
+            "field": "result",
+            "description": "<p>string data</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "./api/apidoc_streamfile.js",
+    "groupTitle": "SWE_StreamFile"
+  },
+  {
     "type": "streamfile seek pos",
     "url": "SWE.StreamFile.Seek(self,offset,whence)",
     "title": "SWE.StreamFile.Seek",
@@ -8016,6 +8380,36 @@ define({ "api": [
         ]
       }
     },
+    "version": "0.0.0",
+    "filename": "./api/apidoc_streamnet.js",
+    "groupTitle": "SWE_StreamNet"
+  },
+  {
+    "type": "return local addresses",
+    "url": "SWE.StreamNet.LocalAddresses()",
+    "title": "SWE.StreamNet.LocalAddresses",
+    "group": "SWE_StreamNet",
+    "name": "LocalAddresses",
+    "success": {
+      "fields": {
+        "Return": [
+          {
+            "group": "Return",
+            "type": "table",
+            "optional": false,
+            "field": "result",
+            "description": "<p>local addresses list</p>"
+          }
+        ]
+      }
+    },
+    "examples": [
+      {
+        "title": "usage",
+        "content": "local addrs = SWE.StreamNet.LocalAddresses()\nfor i=1,#addrs do\n    print(\"ip address\" .. addrs[i])\nend",
+        "type": "json"
+      }
+    ],
     "version": "0.0.0",
     "filename": "./api/apidoc_streamnet.js",
     "groupTitle": "SWE_StreamNet"
@@ -11980,6 +12374,120 @@ define({ "api": [
     "groupTitle": "SWE_Texture"
   },
   {
+    "type": "texture crop to texture",
+    "url": "SWE.Texture.CropImage(self,cx,cy,cw,ch)SWE.Texture.CropImage(self,rect)",
+    "title": "SWE.Texture.CropImage",
+    "group": "SWE_Texture",
+    "name": "CropImage",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "SWE.Texture",
+            "optional": false,
+            "field": "self",
+            "description": "<p>texture object</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "number",
+            "optional": false,
+            "field": "cx",
+            "description": "<p>crop area</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "number",
+            "optional": false,
+            "field": "cy",
+            "description": "<p>crop area</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "number",
+            "optional": false,
+            "field": "cw",
+            "description": "<p>crop area</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "number",
+            "optional": false,
+            "field": "ch",
+            "description": "<p>crop area</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "SWE.Rect",
+            "optional": false,
+            "field": "rect",
+            "description": "<p>crop area</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Return": [
+          {
+            "group": "Return",
+            "type": "SWE.Texture",
+            "optional": false,
+            "field": "result",
+            "description": "<p>texture object</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "./api/apidoc_texture.js",
+    "groupTitle": "SWE_Texture"
+  },
+  {
+    "type": "texture flip",
+    "url": "SWE.Texture.FlipImage(self,flip)",
+    "title": "SWE.Texture.FlipImage",
+    "group": "SWE_Texture",
+    "name": "FlipImage",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "SWE.Texture",
+            "optional": false,
+            "field": "self",
+            "description": "<p>texture object</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "number",
+            "optional": false,
+            "field": "flip",
+            "description": "<p>possible value: SWE.Texture.FlipVertical or SWE.Texture.FlipHorizontal or combined</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Return": [
+          {
+            "group": "Return",
+            "type": "SWE.Texture",
+            "optional": false,
+            "field": "result",
+            "description": "<p>texture object</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "./api/apidoc_texture.js",
+    "groupTitle": "SWE_Texture"
+  },
+  {
     "type": "texture clear",
     "url": "SWE.Texture.RenderClear(self,color)",
     "title": "SWE.Texture.RenderClear",
@@ -12892,7 +13400,7 @@ define({ "api": [
   },
   {
     "type": "translation: same as dngettext",
-    "url": "SWE.Translation.DNGetText(domain,text,plural,number)",
+    "url": "SWE.Translation.DNGetText(domain,text,plural,count)",
     "title": "SWE.Translation.DNGetText",
     "group": "SWE_Translation",
     "name": "DNGetText",
@@ -12922,10 +13430,10 @@ define({ "api": [
           },
           {
             "group": "Parameter",
-            "type": "integer",
+            "type": "number",
             "optional": false,
-            "field": "number",
-            "description": "<p>translation plural number</p>"
+            "field": "count",
+            "description": "<p>translation plural count</p>"
           }
         ]
       }
@@ -12992,7 +13500,7 @@ define({ "api": [
   },
   {
     "type": "translation: same as ngettext",
-    "url": "SWE.Translation.NGetText(text,plural,number)",
+    "url": "SWE.Translation.NGetText(text,plural,count)",
     "title": "SWE.Translation.NGetText",
     "group": "SWE_Translation",
     "name": "NGetText",
@@ -13015,10 +13523,10 @@ define({ "api": [
           },
           {
             "group": "Parameter",
-            "type": "integer",
+            "type": "number",
             "optional": false,
-            "field": "number",
-            "description": "<p>translation plural number</p>"
+            "field": "count",
+            "description": "<p>translation plural count</p>"
           }
         ]
       }
@@ -13094,7 +13602,7 @@ define({ "api": [
         "Parameter": [
           {
             "group": "Parameter",
-            "type": "integer",
+            "type": "number",
             "optional": false,
             "field": "context",
             "description": "<p>translation strip context symbol</p>"
@@ -13185,7 +13693,12 @@ define({ "api": [
     "examples": [
       {
         "title": "ext table fields (read only)",
-        "content": "| size    | number  | unicodestring length",
+        "content": "| size    | number  | unicodestring length\n\n-- also method __concat, __index and __len worked",
+        "type": "json"
+      },
+      {
+        "title": "usage",
+        "content": "local ucs1 = SWE.UnicodeString(\"Привет123\")\nlocal ucs2 = SWE.UnicodeString(\"Привет321\")\nlocal ucs3 = ucs1 .. ucs2\nprint(ucs3:ToJson())",
         "type": "json"
       }
     ],
@@ -13857,6 +14370,36 @@ define({ "api": [
     "groupTitle": "SWE_Window"
   },
   {
+    "type": "window mark will be destroyed",
+    "url": "SWE.Window.MarkDestroyed(self)",
+    "title": "SWE.Window.MarkDestroyed",
+    "group": "SWE_Window",
+    "name": "MarkDestroyed",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "SWE.Window",
+            "optional": false,
+            "field": "self",
+            "description": "<p>window object</p>"
+          }
+        ]
+      }
+    },
+    "examples": [
+      {
+        "title": "usage",
+        "content": "-- create window area(30,30,200,100) on display scene\nlocal win2 = SWE.Window(30,30,200,100)\n\n....\nwin2:MarkDestroyed()\n\n-- equivalent to:\nwin2 = nil\ncollectgarbage()",
+        "type": "json"
+      }
+    ],
+    "version": "0.0.0",
+    "filename": "./api/apidoc_window.js",
+    "groupTitle": "SWE_Window"
+  },
+  {
     "type": "point in window area",
     "url": "SWE.Window.PointInArea(self,ptx,pty)(self,point)",
     "title": "SWE.Window.PointInArea",
@@ -14318,7 +14861,7 @@ define({ "api": [
   },
   {
     "type": "window render texture",
-    "url": "SWE.Window.RenderTexture(self,texture,srcx,srcy,srcw,srch,dstx,dsty)(self,texture,src_rt,dst_pt)(self,texture,dstx,dsty)(self,texture,dst_pt)",
+    "url": "SWE.Window.RenderTexture(self,texture,srcx,srcy,srcw,srch,dstx,dsty,flip)(self,texture,srcrt,dstpt,flip)(self,texture,dstx,dsty,flip)(self,texture,dstpt,flip)",
     "title": "SWE.Window.RenderTexture",
     "group": "SWE_Window",
     "name": "RenderTexture",
@@ -14385,15 +14928,22 @@ define({ "api": [
             "group": "Parameter",
             "type": "SWE.Rect",
             "optional": false,
-            "field": "src_rt",
-            "description": "<p>src rect object</p>"
+            "field": "srcrt",
+            "description": "<p>SWE.Rect object or table</p>"
           },
           {
             "group": "Parameter",
             "type": "SWE.Point",
             "optional": false,
-            "field": "dst_pt",
-            "description": "<p>dst point object</p>"
+            "field": "dstpt",
+            "description": "<p>SWE.Point object or table</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "number",
+            "optional": false,
+            "field": "flip",
+            "description": "<p>possible value: SWE.Texture.FlipVertical or SWE.Texture.FlipHorizontal or combined</p>"
           }
         ]
       }
@@ -15222,6 +15772,29 @@ define({ "api": [
         "type": "json"
       }
     ],
+    "version": "0.0.0",
+    "filename": "./api/apidoc_window.js",
+    "groupTitle": "SWE_Window_Events"
+  },
+  {
+    "type": "window event: render compete event",
+    "url": "SWE.Window.SystemRenderEvent(ms)",
+    "title": "SWE.Window.SystemRenderEvent",
+    "group": "SWE_Window_Events",
+    "name": "SystemRenderEvent",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "number",
+            "optional": false,
+            "field": "ms",
+            "description": "<p>render work milliseconds</p>"
+          }
+        ]
+      }
+    },
     "version": "0.0.0",
     "filename": "./api/apidoc_window.js",
     "groupTitle": "SWE_Window_Events"

@@ -30,6 +30,7 @@
 #include "SWE_audio.h"
 #include "SWE_color.h"
 #include "SWE_signal.h"
+#include "SWE_global.h"
 #include "SWE_window.h"
 #include "SWE_texture.h"
 #include "SWE_videocam.h"
@@ -42,9 +43,6 @@
 #include "SWE_fontrender.h"
 #include "SWE_translation.h"
 #include "SWE_unicodestring.h"
-
-#define SWE_LUA_VERSION 20210223
-#define SWE_LUA_LICENSE "GPL3"
 
 int SWE_window_init_mobile(lua_State* L)
 {
@@ -366,6 +364,22 @@ int SWE_print(lua_State* L)
     return 0;
 }
 
+int SWE_error(lua_State* L)
+{
+    // params: 
+    LuaState ll(L);
+    std::ostringstream os;
+
+    for(int index = 1; index <= ll.stackSize(); ++index)
+    {
+	if(1 < index) os << " ";
+	os << ll.toStringIndex(index);
+    }
+
+    ERROR(os.str());
+    return 0;
+}
+
 int SWE_debug(lua_State* L)
 {
     // params: 
@@ -374,11 +388,11 @@ int SWE_debug(lua_State* L)
 
     for(int index = 1; index <= ll.stackSize(); ++index)
     {
-	if(1 < index) os << ", ";
+	if(1 < index) os << " ";
 	os << ll.toStringIndex(index);
     }
 
-    VERBOSE(os.str());
+    DEBUG(os.str());
     return 0;
 }
 
@@ -862,6 +876,16 @@ int SWE_string_encode_utf8(lua_State* L)
     return rescount;
 }
 
+int SWE_system_tick(lua_State* L)
+{
+    // params: none
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
+    ll.pushNumber(Tools::ticks() - Display::timeStart());
+    return rescount;
+}
+
 int SWE_table_json(lua_State* L)
 {
     // params: string json
@@ -870,10 +894,7 @@ int SWE_table_json(lua_State* L)
 
     if(ll.isTableIndex(-1))
     {
-	if(ll.isSequenceTableIndex(-1))
-	    ll.pushString(ll.toJsonArrayTableIndex(-1).toString());
-	else
-	    ll.pushString(ll.toJsonObjectTableIndex(-1).toString());
+	ll.pushString(ll.toJsonStringTableIndex(-1));
     }
     else
     {
@@ -1034,6 +1055,27 @@ int SWE_display_handleevents(lua_State* L)
     return 0;
 }
 
+/*
+int SWE_debug_test(lua_State* L)
+{
+    // params: int interval
+    LuaState ll(L);
+
+    if(ll.isTableIndex(1))
+    {
+	JsonObject params = ll.toJsonObjectTableIndex(1);
+	DEBUG(params.toString());
+	DEBUG("dev: " << "`" << params.getString("device") << "'");
+    }
+    else
+    {
+	ERROR("table not found");
+    }
+
+    return 0;
+}
+*/
+
 // library interface
 const struct luaL_Reg SWE_functions[] = {
     { "DisplayInit", SWE_window_init }, // [table swe_window], string title, int width, int height
@@ -1041,6 +1083,7 @@ const struct luaL_Reg SWE_functions[] = {
     { "Dump", SWE_dump }, 		// [void], void or object
     { "Debug", SWE_debug },		// [void], params
     { "Print", SWE_print },		// [void], params
+    { "Error", SWE_error },		// [void], params
     { "MainLoop", SWE_loop }, 		// [int window result code], table: window
     { "CursorShow", SWE_cursor_show },	// [void], void
     { "CursorHide", SWE_cursor_hide },	// [void], void
@@ -1072,7 +1115,9 @@ const struct luaL_Reg SWE_functions[] = {
     { "SystemMemoryUsage", SWE_system_memory_usage },		// [number], void
     { "SystemMobileOs", SWE_system_mobile_osname },		// [string], void
     { "SystemRunCommand", SWE_system_run_command },		// [table], string cmd, string params, string params
+    { "SystemTick", SWE_system_tick },				// [number], void
     { "StringEncodeToUTF8", SWE_string_encode_utf8 },		// [string], string str, string from charset
+    // { "DebugTest", SWE_debug_test },
     { NULL, NULL }
 };
 

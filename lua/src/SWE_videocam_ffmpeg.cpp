@@ -122,31 +122,64 @@ int ffmpeg_v4l2_channel_input(const std::string & dev, const std::string & chann
 #endif
 
 #ifndef FFMPEG_OLD_API
-void ffmpeg_list_devices(void)
+std::string ffmpeg_err_string(int errnum)
+{
+    char errstr[AV_ERROR_MAX_STRING_SIZE] = {0};
+    av_make_error_string(errstr, AV_ERROR_MAX_STRING_SIZE, errnum);
+    return std::string(errstr);
+}
+
+/*
+void ffmpeg_list_devices_format(AVInputFormat* format)
+{
+    AVFormatContext* formatCtx = avformat_alloc_context();
+    AVDictionary* opts = NULL;
+    av_dict_set(&opts, "list_devices", "true", 0);
+    int errnum = avformat_open_input(&formatCtx, "dummy", format, &opts);
+    if(errnum < 0)
+    {
+	ERROR("sources list empty: " << ffmpeg_err_string(errnum));
+    }
+    avformat_close_input(&formatCtx);
+    av_dict_free(&opts);
+    avformat_free_context(formatCtx);
+}
+*/
+
+bool ffmpeg_list_devices(void)
 {
     // list format
-    AVInputFormat* format = NULL;
-    while(NULL != (format = av_input_video_device_next(format)))
+    AVInputFormat* format = av_input_video_device_next(NULL);
+    if(! format)
+    {
+	ERROR("format list empty");
+	return false;
+    }
+
+    while(NULL != format)
     {
 	DEBUG("available format: " << format->name << ", (" << format->long_name << ")");
 
 	AVDeviceInfoList* device_list = NULL;
+	int errnum = avdevice_list_input_sources(format, NULL, NULL, &device_list);
 
-	if(format->get_device_list &&
-	    0 == avdevice_list_input_sources(format, NULL, NULL, &device_list))
+	if(0 == errnum)
 	{
-	    for(int ii = 0; ii < device_list->nb_devices; ++ii) if(device_list->devices[ii])
-	    {
-		DEBUG("available source: " << device_list->devices[ii]->device_name << ", (" << device_list->devices[ii]->device_description << ")");
-	    }
+	    for(int ii = 0; ii < device_list->nb_devices; ++ii)
+		if(device_list->devices[ii])
+		    DEBUG("available source: " << device_list->devices[ii]->device_name << ", (" << device_list->devices[ii]->device_description << ")");
 	}
-        else
+    	else
 	{
-	    DEBUG("sources: empty");
+	    ERROR("sources list empty: " << ffmpeg_err_string(errnum));
+	    // ffmpeg_list_devices_format(format);
 	}
 
 	avdevice_free_list_devices(&device_list);
+	format = av_input_video_device_next(format);
     }
+
+    return true;
 }
 #endif
 
@@ -154,6 +187,9 @@ bool FFmpegContext::init(const JsonObject & params)
 {
     std::string strFormat = params.getString("format");
     std::string strDevice = params.getString("device");
+
+    DEBUG("avdevice version: " << AV_STRINGIFY(LIBAVDEVICE_VERSION));
+    DEBUG("avformat version: " << AV_STRINGIFY(LIBAVFORMAT_VERSION));
 
     if(strFormat.empty())
     {
@@ -191,13 +227,27 @@ bool FFmpegContext::init(const JsonObject & params)
 #endif
 
     AVInputFormat *pFormatInput = av_find_input_format(strFormat.c_str());
+#ifdef FFMPEG_OLD_API
+    char* v4l2Standard = NULL;
+#else
+    AVDictionary** curParams = NULL;
+#endif
+
+    auto localFree = [=](){
+#ifdef FFMPEG_OLD_API
+        if(v4l2Standard)
+            free(v4l2Standard);
+#else
+        if(curParams)
+            av_dict_free(curParams);
+#endif
+    };
 
 #ifdef FFMPEG_OLD_API
     AVFormatParameters v4l2Params;
     v4l2Params.time_base = AV_TIME_BASE_Q;
     AVFormatParameters* curParams = NULL;
     StringList keys = params.keys();
-    char* v4l2Standard = NULL;
 
     for(auto it = keys.begin(); it != keys.end(); ++it)
     {
@@ -259,7 +309,6 @@ bool FFmpegContext::init(const JsonObject & params)
     err = av_open_input_file(& ctxFormat, strDevice.c_str(), pFormatInput, 0, curParams);
 #else
     AVDictionary* v4l2Params = NULL;
-    AVDictionary** curParams = NULL;
     StringList keys = params.keys();
 
     for(auto it = keys.begin(); it != keys.end(); ++it)
@@ -292,12 +341,13 @@ bool FFmpegContext::init(const JsonObject & params)
 	curParams = & v4l2Params;
     }
 
-    err = avformat_open_input(& ctxFormat, strDevice.c_str(), pFormatInput, curParams);
+    err = avformat_open_input(& ctxFormat, strDevice.empty() ? NULL : strDevice.c_str(), pFormatInput, curParams);
 #endif
 
     if(err < 0)
     {
-    	ERROR("unable to open device: " << strDevice << ", error: " << err);
+    	ERROR("unable to open device: " << strDevice << ", error: " << ffmpeg_err_string(err));
+        localFree();
     	return false;
     }
 
@@ -308,7 +358,8 @@ bool FFmpegContext::init(const JsonObject & params)
 #endif
     if(err < 0)
     {
-    	ERROR("unable to find stream info" << ", error: " << err);
+    	ERROR("unable to find stream info" << ", error: " << ffmpeg_err_string(err));
+        localFree();
     	return false;
     }
 
@@ -331,7 +382,8 @@ bool FFmpegContext::init(const JsonObject & params)
 
     if(NULL == av_stream)
     {
-    	ERROR("unable to find video stream" << ", error: " << err);
+    	ERROR("unable to find video stream" << ", error: " << ffmpeg_err_string(err));
+        localFree();
     	return false;
     }
 
@@ -346,17 +398,13 @@ bool FFmpegContext::init(const JsonObject & params)
     err = avcodec_open2(ctxCodec, codec, NULL);
 #endif
 
+    localFree();
+
     if(err < 0)
     {
-    	ERROR("unable to open codec" << ", error: " << err);
+    	ERROR("unable to open codec" << ", error: " << ffmpeg_err_string(err));
     	return false;
     }
-
-#ifdef FFMPEG_OLD_API
-    if(v4l2Standard) free(v4l2Standard);
-#else
-    if(curParams) av_dict_free(curParams);
-#endif
 
     return true;
 }

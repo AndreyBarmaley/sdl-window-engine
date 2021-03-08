@@ -22,6 +22,13 @@ local function ReadCommanderConfig()
         if buf ~= nil then
             local cfg = SWE.JsonParse(buf:ToString())
             if cfg then
+		local fs = SWE.SystemFileStat(cfg.cwd)
+		if fs == nil or not fs.isdir then
+		    cfg.cwd = SWE.SystemCurrentDirectory()
+		end
+		if tonumber(cfg.fsz) <= 0 then
+		    cfg.fsz = 14
+		end
                 return cfg.cwd, cfg.fsz
             end
         end

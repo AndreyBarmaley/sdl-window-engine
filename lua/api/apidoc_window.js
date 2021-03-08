@@ -24,6 +24,25 @@ SWE.Window
     | modality  | boolean | window is modality (defalut false)
     | keyhangle | boolean | window is global key handle (defalut false)
 */
+SWE.Window.MarkDestroyed
+/**
+    @api {window mark will be destroyed} SWE.Window.MarkDestroyed(self) SWE.Window.MarkDestroyed
+    @apiGroup SWE.Window
+    @apiName MarkDestroyed
+    
+    @apiParam {SWE.Window}              self		window object
+
+    @apiExample usage
+    -- create window area(30,30,200,100) on display scene
+    local win2 = SWE.Window(30,30,200,100)
+
+    ....
+    win2:MarkDestroyed()
+
+    -- equivalent to:
+    win2 = nil
+    collectgarbage()
+*/
 SWE.Window.SetVisible
 /**
     @api {window set visible mode} SWE.Window.SetVisible(self,visible) SWE.Window.SetVisible
@@ -167,7 +186,7 @@ SWE.Window.RenderText
 */
 SWE.Window.RenderTexture
 /**
-    @api {window render texture} SWE.Window.RenderTexture(self,texture,srcx,srcy,srcw,srch,dstx,dsty)(self,texture,src_rt,dst_pt)(self,texture,dstx,dsty)(self,texture,dst_pt) SWE.Window.RenderTexture
+    @api {window render texture} SWE.Window.RenderTexture(self,texture,srcx,srcy,srcw,srch,dstx,dsty,flip)(self,texture,srcrt,dstpt,flip)(self,texture,dstx,dsty,flip)(self,texture,dstpt,flip) SWE.Window.RenderTexture
     @apiGroup SWE.Window
     @apiName RenderTexture
     
@@ -179,8 +198,9 @@ SWE.Window.RenderTexture
     @apiParam {number}				srch		src size
     @apiParam {number}				dstx		dst position
     @apiParam {number}				dsty		dst position
-    @apiParam {SWE.Rect}			src_rt		src rect object
-    @apiParam {SWE.Point}			dst_pt		dst point object
+    @apiParam {SWE.Rect}			srcrt		SWE.Rect object or table
+    @apiParam {SWE.Point}			dstpt		SWE.Point object or table
+    @apiParam {number}				flip		possible value: SWE.Texture.FlipVertical or SWE.Texture.FlipHorizontal or combined
 */
 
 SWE.Window.MousePressEvent
@@ -401,6 +421,14 @@ SWE.Window.SystemTickEvent
     win.SystemTickEvent = function(tick)
 	print("tick:",tick)
     end
+*/
+SWE.Window.SystemRenderEvent
+/**
+    @api {window event: render compete event} SWE.Window.SystemRenderEvent(ms) SWE.Window.SystemRenderEvent
+    @apiGroup SWE.Window.Events
+    @apiName SystemRenderEvent
+    
+    @apiParam {number}                          ms		render work milliseconds
 */
 SWE.Window.SystemUserEvent
 /**

@@ -86,20 +86,10 @@ function CatLogInit(win, frs, params)
     end
 
     term.KeyPressEvent = function(key,mod,scancode)
-        if key == SWE.Key.ESCAPE then
+        if ToolsKeyExit(key) then
             term:SetVisible(false)
             return true
         end
-
-        if SWE.SystemMobileOs() ~= nil then
-            -- android back
-            -- wince exit
-            if key == SWE.Key.ANDROID_BACK or key == SWE.Key.WINCE_EXIT then
-                term:SetVisible(false)
-                return true
-            end
-        end
-
 	return false
     end
 

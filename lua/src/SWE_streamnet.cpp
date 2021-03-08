@@ -722,10 +722,13 @@ int SWE_streamnet_local_addresses(lua_State* L)
     LuaState ll(L);
 
     StringList addrs = StreamNetwork::localAddresses();
-    for(auto it = addrs.begin(); it != addrs.end(); ++it)
-	ll.pushString(*it);
+    ll.pushTable(addrs.size(), 0);
+    int field = 1;
 
-    return addrs.size();
+    for(auto & str : addrs)
+	ll.pushString(str).setIndexTableIndex(field++, -2);
+
+    return 1;
 #endif
 }
 

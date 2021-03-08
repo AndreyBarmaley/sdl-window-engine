@@ -633,7 +633,12 @@ int SWE_binarybuf_getcrc32b(lua_State* L)
 
     if(SWE_BinaryBuf* buf = SWE_BinaryBuf::get(ll, 1, __FUNCTION__))
     {
-	ll.pushInteger(buf->crc32b());
+	int magic = 0xEDB88320;
+
+	if(ll.isNumberIndex(2))
+	    magic = ll.toIntegerIndex(2);
+
+	ll.pushInteger(Tools::crc32b(buf->data(), buf->size(), magic));
     }
     else
     {
@@ -740,6 +745,121 @@ int SWE_binarybuf_erase(lua_State* L)
     return rescount;
 }
 
+int SWE_binarybuf_compare(lua_State* L)
+{
+    // params: table binarybuf, int offset, int byte, int byte ... int byte
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
+    int params = ll.stackSize();
+    if(SWE_BinaryBuf* buf = SWE_BinaryBuf::get(ll, 1, __FUNCTION__))
+    {
+	int offset = ll.toIntegerIndex(2);
+	if(0 <= offset && offset <= buf->size())
+	{
+	    bool res = true;
+
+    	    for(int ii = 3; ii <= params; ++ii)
+    	    {
+    		int byte = ll.toIntegerIndex(ii);
+		if(offset < buf->size())
+		{
+		    if(buf->operator[](offset) != byte)
+		    {
+			res = false;
+			break;
+		    }
+		}
+		else
+		{
+    		    ERROR("out of range");
+		    res = false;
+		    break;
+		}
+		offset += 1;
+    	    }
+
+    	    ll.pushBoolean(res);
+	}
+	else
+	{
+    	    ERROR("out of range");
+	    ll.pushBoolean(false);
+	}
+    }
+    else
+    {
+	ERROR("userdata empty");
+	ll.pushBoolean(false);
+    }
+
+    return rescount;
+}
+
+int SWE_binarybuf_equals(lua_State* L)
+{
+    // params: table bunarybuf1, table binarybuf2
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
+    SWE_BinaryBuf* buf1 = SWE_BinaryBuf::get(ll, 1, __FUNCTION__);
+    SWE_BinaryBuf* buf2 = SWE_BinaryBuf::get(ll, 2, __FUNCTION__);
+
+    if(buf1 && buf2)
+    {
+        bool res = buf1->size() == buf2->size() &&
+            std::equal(buf1->begin(), buf1->end(), buf2->begin());
+
+        ll.pushBoolean(res);
+    }
+    else
+    {
+        ERROR("userdata empty");
+        ll.pushNil();
+    }
+
+    return rescount;
+}
+
+int SWE_binarybuf_assign(lua_State* L)
+{
+    // params: table binarybuf, int size, int val
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
+    if(SWE_BinaryBuf* buf = SWE_BinaryBuf::get(ll, 1, __FUNCTION__))
+    {
+        int size = ll.toIntegerIndex(2);
+
+        if(0 < size)
+        {
+            int val = ll.toIntegerIndex(3);
+            buf->assign(size, val);
+            ll.pushString("size").pushInteger(buf->size()).setTableIndex(1);
+            ll.pushBoolean(true);
+        }
+        else
+	if(0 == size)
+        {
+            buf->clear();
+            ll.pushString("size").pushInteger(buf->size()).setTableIndex(1);
+            ll.pushBoolean(true);
+        }
+        else
+        {
+            ERROR("out of range");
+            ll.pushBoolean(false);
+        }
+    }
+    else
+    {
+        ERROR("userdata empty");
+        ll.pushBoolean(false);
+    }
+
+    return rescount;
+}
+
 int SWE_binarybuf_resize(lua_State* L)
 {
     // params: table binarybuf, int size, int val
@@ -779,13 +899,32 @@ int SWE_binarybuf_resize(lua_State* L)
     return rescount;
 }
 
+int SWE_binarybuf_getsize(lua_State* L)
+{
+    // params: table binarybuf, int size, int val
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
+    if(SWE_BinaryBuf* buf = SWE_BinaryBuf::get(ll, 1, __FUNCTION__))
+    {
+        ll.pushNumber(buf->size());
+    }
+    else
+    {
+        ERROR("userdata empty");
+        ll.pushNumber(0);
+    }
+
+    return rescount;
+}
+
 const struct luaL_Reg SWE_binarybuf_functions[] = {
     { "PushBack", SWE_binarybuf_pushback },             // [bool], table binarybuf, int byte, int byte ... int byte
     { "ZlibCompress", SWE_binarybuf_zlib_compress },	// [table binarybuf], table binarybuf
     { "ZlibDecompress", SWE_binarybuf_zlib_decompress },// [table binarybuf], table binarybuf
     { "Base64Decode", SWE_binarybuf_base64_decode },	// [table binarybuf], table binarybuf | string base64
     { "Base64Encode", SWE_binarybuf_base64_encode },	// [string base64], table binarybuf
-    { "GetCRC32b", SWE_binarybuf_getcrc32b },		// [int crc], table binarybuf
+    { "GetCRC32b", SWE_binarybuf_getcrc32b },		// [int crc], table binarybuf, number magic
     { "ReadFromFile", SWE_binarybuf_readfile },		// [bool], table binarybuf, string filename, number
     { "SaveToFile", SWE_binarybuf_savefile },		// [bool], table binarybuf, string filename, number
     { "ToString", SWE_binarybuf_to_cstring },		// [string], table binarybuf
@@ -796,6 +935,8 @@ const struct luaL_Reg SWE_binarybuf_functions[] = {
     { "GetBytes", SWE_binarybuf_getbytes },		// [table binarybuf], table binarybuf, int offset, int size
     { "Insert", SWE_binarybuf_insert },                 // [bool], table binarybuf, int offset, (binarybuf, subpos, sublen), (int count, int byte)
     { "Clear", SWE_binarybuf_clear },			// [void], table binarybuf
+    { "CompareBytes", SWE_binarybuf_compare },		// [bool], table binarybuf, int offset, int byte, int byte ... int byte
+    { "Assign", SWE_binarybuf_assign },			// [void], table binarybuf, int size, int val
     { "Resize", SWE_binarybuf_resize },                 // [bool], table binarybuf, int size, int val
     { "Erase", SWE_binarybuf_erase },                   // [bool], table binarybuf, int pos, int count
     { NULL, NULL }
@@ -825,6 +966,9 @@ SWE_BinaryBuf* SWE_Stack::binarybuf_create(LuaState & ll)
     // set: tostring
     ll.pushTable(0, 1);
     ll.pushFunction(SWE_binarybuf_tostring).setFieldTableIndex("__tostring", -2);
+    ll.pushFunction(SWE_binarybuf_getsize).setFieldTableIndex("__len", -2);
+    ll.pushFunction(SWE_binarybuf_getbyte).setFieldTableIndex("__index", -2);
+    ll.pushFunction(SWE_binarybuf_equals).setFieldTableIndex("__eq", -2);
     ll.setMetaTableIndex(-2);
 
     // userdata

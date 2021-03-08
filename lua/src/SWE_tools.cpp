@@ -283,10 +283,7 @@ std::string SWE_Tools::toJsonString(LuaState & ll, int index)
 	{
 	    ll.stackPop(1);
 	    // dump table to json
-	    if(ll.isSequenceTableIndex(index))
-		res = ll.toJsonArrayTableIndex(index).toString();
-	    else
-		res = ll.toJsonObjectTableIndex(index).toString();
+	    res = ll.toJsonStringTableIndex(index);
 	}
     }
     else

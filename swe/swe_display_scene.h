@@ -90,6 +90,7 @@ namespace SWE
 	static Window*          focusedWindow(void);
 	/// @private
 	static Window*          windowsFocusHandle(void);
+
 	/// @private
         static bool             keyHandle(const KeySym &, bool);
 	/// @private

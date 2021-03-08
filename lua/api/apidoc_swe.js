@@ -109,11 +109,11 @@ SWE.DisplayVideoModes
 */
 SWE.DisplayHandleEvents
 /**
-    @api {handle events intervals} SWE.DisplayVideoModes(interval) SWE.DisplayHandleEvents
+    @api {handle events intervals} SWE.DisplayHandleEvents(interval) SWE.DisplayHandleEvents
     @apiGroup SWE
     @apiName DisplayHandleEvents
 
-    @apiParam {numberl}			interval	handle events loop for interval (ms)
+    @apiParam {number}			interval	handle events loop for interval (ms)
 */
 SWE.CursorHide
 /**
@@ -315,7 +315,7 @@ SWE.SystemFileStat
     | mtime | 1565677681              | 
     | ctime | 1565677681              | 
     | isdir | false                   |
-    | type  | file                    |
+    | type  | file                    | "sock","link","block","char","fifo","dir","file"
     | path  | /var/tmp/screenshot.png |
 
 */
@@ -446,11 +446,56 @@ SWE.RegisterLuaDirectory
     @apiParam {string}			path		directory
     @apiSuccess (Return) {boolean}	result          result: success
 */
+SWE.SystemTick
+/**
+    @api {get system counter} SWE.SystemTick() SWE.SystemTick
+    @apiGroup SWE
+    @apiName SystemTick
+
+    @apiSuccess (Return) {number}	counter          constantly counter (milliseconds) from the starting
+*/
 SWE.GetVersion
 /**
     @api {get api version} SWE.GetVersion() SWE.GetVersion
     @apiGroup SWE
     @apiName GetVersion
 
-    @apiSuccess (Return) {integer}	result          version
+    @apiSuccess (Return) {number}	result          version
+*/
+SWE.Print
+/**
+    @api {logging simple message (split with comma)} SWE.Print(val1,val2,..valn) SWE.Print
+    @apiGroup SWE
+    @apiName Print
+
+    @apiParam {string}			val1		value1
+    @apiParam {string}			val2		value2
+*/
+SWE.Debug
+/**
+    @api {logging debug message (split with space)} SWE.Debug(val1,val2,..valn) SWE.Debug
+    @apiGroup SWE
+    @apiName Debug
+
+    @apiParam {string}			val1		value1
+    @apiParam {string}			val2		value2
+*/
+SWE.Error
+/**
+    @api {logging error message (split with space)} SWE.Error(val1,val2,..valn) SWE.Error
+    @apiGroup SWE
+    @apiName Error
+
+    @apiParam {string}			val1		value1
+    @apiParam {string}			val2		value2
+*/
+SWE.Dump
+/**
+    @api {dump lua object to console} SWE.Dump(val1,val2,..valn) SWE.Dump
+    @apiGroup SWE
+    @apiName Dump
+
+    @apiParam {string}			val1		value1
+    @apiParam {number}			val2		value2
+    @apiParam {table}			valn		valuen
 */

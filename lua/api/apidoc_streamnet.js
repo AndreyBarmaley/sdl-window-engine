@@ -291,6 +291,20 @@ SWE.StreamNet.WaitString
 	print("error: res false")
     end
 */
+SWE.StreamNet.LocalAddresses
+/**
+    @api {return local addresses} SWE.StreamNet.LocalAddresses() SWE.StreamNet.LocalAddresses
+    @apiGroup SWE.StreamNet
+    @apiName LocalAddresses
+            
+    @apiSuccess (Return) {table}               result          local addresses list
+
+    @apiExample usage
+    local addrs = SWE.StreamNet.LocalAddresses()
+    for i=1,#addrs do
+        print("ip address" .. addrs[i])
+    end
+*/
 SWE.StreamNet.ToJson
 /**
     @api {convert streamnet to json string} SWE.StreamNet.ToJson(self) SWE.StreamNet.ToJson

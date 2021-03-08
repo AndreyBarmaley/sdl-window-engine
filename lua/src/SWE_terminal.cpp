@@ -1449,6 +1449,7 @@ int SWE_terminal_charset_info(lua_State* L)
 }
 
 const struct luaL_Reg SWE_terminal_functions[] = {
+    { "MarkDestroyed",  SWE_window_set_destroyed },    // [void], table terminal
     { "SetVisible",     SWE_window_set_visible },      // [void], table terminal, bool flag
     { "SetResultCode",  SWE_window_set_result },       // [void], table terminal, int code
     { "SetModality",    SWE_window_set_modality },     // [void], table terminal, int code

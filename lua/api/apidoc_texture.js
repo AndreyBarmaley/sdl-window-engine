@@ -26,6 +26,30 @@ SWE.Texture.SaveToFile
     @apiParam {string}			filename	save to filename
     @apiParam {boolean}			result		if success
 */
+SWE.Texture.CropImage
+/**
+    @api {texture crop to texture} SWE.Texture.CropImage(self,cx,cy,cw,ch)SWE.Texture.CropImage(self,rect) SWE.Texture.CropImage
+    @apiGroup SWE.Texture
+    @apiName CropImage
+    
+    @apiParam {SWE.Texture}                     self            texture object
+    @apiParam {number}                          cx		crop area
+    @apiParam {number}                          cy		crop area
+    @apiParam {number}                          cw		crop area
+    @apiParam {number}                          ch		crop area
+    @apiParam {SWE.Rect}                        rect		crop area
+    @apiSuccess (Return) {SWE.Texture}	        result		texture object
+*/
+SWE.Texture.FlipImage
+/**
+    @api {texture flip} SWE.Texture.FlipImage(self,flip) SWE.Texture.FlipImage
+    @apiGroup SWE.Texture
+    @apiName FlipImage
+    
+    @apiParam {SWE.Texture}                     self            texture object
+    @apiParam {number}                          flip		possible value: SWE.Texture.FlipVertical or SWE.Texture.FlipHorizontal or combined
+    @apiSuccess (Return) {SWE.Texture}	        result		texture object
+*/
 SWE.Texture.RenderClear
 /**
     @api {texture clear} SWE.Texture.RenderClear(self,color) SWE.Texture.RenderClear

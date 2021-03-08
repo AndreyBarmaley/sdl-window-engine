@@ -47,6 +47,7 @@ void SWE_system_tick_event(LuaState &, Window &, u32);
 void SWE_system_render_event(LuaState &, Window &, u32);
 void SWE_window_render(LuaState &, Window &);
 
+int SWE_window_set_destroyed(lua_State* L);
 int SWE_window_set_visible(lua_State* L);
 int SWE_window_set_result(lua_State* L);
 int SWE_window_set_modality(lua_State* L);

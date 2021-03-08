@@ -50,9 +50,11 @@ namespace SWE
 
         u32		crc32b(const std::string &);
         u32		crc32b(const u8*, size_t);
+        u32		crc32b(const u8*, size_t, u32 magic);
 
         int		crc16b(const std::string &);
         int		crc16b(const u8*, size_t);
+        int		crc16b(const u8*, size_t, u16 magic);
 
         u32		ticks(void);
         int		signValue(int v);

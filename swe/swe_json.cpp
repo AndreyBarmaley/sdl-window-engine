@@ -171,7 +171,7 @@ namespace SWE
 
     std::string JsonString::toString(void) const
     {
-        return StringFormat("\"%1\"").arg(content);
+        return StringFormat("\"%1\"").arg(String::escapeChar(content, '"'));
     }
 
     /* JsonValuePtr */
@@ -675,7 +675,8 @@ namespace SWE
         {
             if((*it).second)
             {
-                os << "\"" << (*it).first << "\": " << (*it).second->toString();
+
+                os << "\"" << String::escapeChar((*it).first, '"') << "\": " << (*it).second->toString();
                 if(std::next(it) != content.end()) os << ", ";
             }
         }

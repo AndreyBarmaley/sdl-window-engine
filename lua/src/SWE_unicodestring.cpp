@@ -422,7 +422,80 @@ int SWE_unicodestring_tostring(lua_State* L)
     }
     
     return rescount;
-}           
+}
+
+int SWE_unicodestring_equals(lua_State* L)
+{
+    // params: table unicodestring1, table unicodestring2
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
+    SWE_UnicodeString* ustr1 = SWE_UnicodeString::get(ll, 1, __FUNCTION__);
+    SWE_UnicodeString* ustr2 = SWE_UnicodeString::get(ll, 2, __FUNCTION__);
+
+    if(ustr1 && ustr2)
+    {
+        bool res = ustr1->size() == ustr2->size() &&
+            std::equal(ustr1->begin(), ustr1->end(), ustr2->begin());
+
+	ll.pushBoolean(res);
+    }
+    else
+    {
+	ERROR("userdata empty");
+	ll.pushNil();
+    }
+
+    return rescount;
+}
+
+int SWE_unicodestring_concat(lua_State* L)
+{
+    // params: table unicodestring1, table unicodestring2
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
+    SWE_UnicodeString* ustr1 = SWE_UnicodeString::get(ll, 1, __FUNCTION__);
+    SWE_UnicodeString* ustr2 = SWE_UnicodeString::get(ll, 2, __FUNCTION__);
+
+    if(ustr1 && ustr2)
+    {
+	SWE_UnicodeString* res = SWE_Stack::unicode_create(ll);
+	res->resize(ustr1->size() + ustr2->size(), 0);
+
+	std::copy(ustr1->begin(), ustr1->end(), res->begin());
+	std::copy(ustr2->begin(), ustr2->end(), res->begin() + ustr1->size());
+
+	ll.pushString("size").pushInteger(res->size()).setTableIndex(-3);
+    }
+    else
+    {
+	ERROR("userdata empty");
+	ll.pushNil();
+    }
+
+    return rescount;
+}
+
+int SWE_unicodestring_getsize(lua_State* L)
+{
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
+    // params: swe_unicodestring
+
+    if(SWE_UnicodeString* ustr = SWE_UnicodeString::get(ll, 1, __FUNCTION__))
+    {
+        ll.pushNumber(ustr->size());
+    }
+    else
+    {    
+	ERROR("userdata empty");
+	ll.pushNumber(0);
+    }
+    
+    return rescount;
+}
 
 const struct luaL_Reg SWE_unicodestring_functions[] = {
     { "PushBack", SWE_unicodestring_pushback },		// [bool], table unicodestring, int char, int char .. int char
@@ -459,10 +532,14 @@ SWE_UnicodeString* SWE_Stack::unicode_create(LuaState & ll)
     // result
     ll.pushTable();
 
-    // set: tostring
-    //ll.pushTable(0, 1);
+    // set: meta
+    ll.pushTable(0, 1);
     //ll.pushFunction(SWE_unicodestring_tostring).setFieldTableIndex("__tostring", -2);
-    //ll.setMetaTableIndex(-2);
+    ll.pushFunction(SWE_unicodestring_getchar).setFieldTableIndex("__index", -2);
+    ll.pushFunction(SWE_unicodestring_concat).setFieldTableIndex("__concat", -2);
+    ll.pushFunction(SWE_unicodestring_getsize).setFieldTableIndex("__len", -2);
+    ll.pushFunction(SWE_unicodestring_equals).setFieldTableIndex("__eq", -2);
+    ll.setMetaTableIndex(-2);
 
     // set userdata
     ll.pushString("userdata");
@@ -507,7 +584,21 @@ int SWE_unicodestring_create(lua_State* L)
     // SWE_UnicodeString: string
     if(ll.isStringIndex(2))
     {
-        ustr->assign(ll.toStringIndex(2));
+        std::string str = ll.toStringIndex(2);
+
+        // swe.unicodestring[0x0001,0x0002,.. 0x0099]
+        if(0 == str.compare(0, 18, "swe.unicodestring[") && str.back() == ']')
+        {
+            auto list = String::split(str.substr(17, str.size() - 18), [](int ch){ return ! ::isxdigit(ch); });
+            ustr->reserve(list.size());
+
+            for(auto & hv : list)
+                ustr->append(String::toInt(hv));
+        }
+        else
+        {
+            ustr->assign(str);
+        }
         ll.pushString("size").pushInteger(ustr->size()).setTableIndex(-3);
     }
 

@@ -11,6 +11,13 @@ SWE.UnicodeString
 
     @apiExample ext table fields (read only)
     | size    | number  | unicodestring length
+
+    -- also method __concat, __index and __len worked
+    @apiExample usage
+    local ucs1 = SWE.UnicodeString("Привет123")
+    local ucs2 = SWE.UnicodeString("Привет321")
+    local ucs3 = ucs1 .. ucs2
+    print(ucs3:ToJson())
 */
 SWE.UnicodeString.ToUtf8String
 /**

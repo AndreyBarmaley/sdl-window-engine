@@ -46,7 +46,7 @@ SWE.Translation.SetStripContext
     @apiGroup SWE.Translation
     @apiName SetStripContext
             
-    @apiParam {integer}			context		translation strip context symbol
+    @apiParam {number}			context		translation strip context symbol
 
     @apiExample usage
     local res = SWE.Translation.BindDomain("test1", "ru.mo")
@@ -92,25 +92,25 @@ SWE.Translation.DGetText
 
 SWE.Translation.NGetText
 /**
-    @api {translation: same as ngettext} SWE.Translation.NGetText(text,plural,number) SWE.Translation.NGetText
+    @api {translation: same as ngettext} SWE.Translation.NGetText(text,plural,count) SWE.Translation.NGetText
     @apiGroup SWE.Translation
     @apiName NGetText
             
     @apiParam {string}			text		translation string
     @apiParam {string}			plural		translation plural form
-    @apiParam {integer}			number		translation plural number
+    @apiParam {number}			count		translation plural count
     @apiSuccess (Return) {string}	result		result string
 */
 
 SWE.Translation.DNGetText
 /**
-    @api {translation: same as dngettext} SWE.Translation.DNGetText(domain,text,plural,number) SWE.Translation.DNGetText
+    @api {translation: same as dngettext} SWE.Translation.DNGetText(domain,text,plural,count) SWE.Translation.DNGetText
     @apiGroup SWE.Translation
     @apiName DNGetText
             
     @apiParam {string}			domain		translation domain
     @apiParam {string}			text		translation string
     @apiParam {string}			plural		translation plural form
-    @apiParam {integer}			number		translation plural number
+    @apiParam {number}			count		translation plural count
     @apiSuccess (Return) {string}	result		result string
 */

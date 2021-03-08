@@ -403,24 +403,26 @@ namespace SWE
             SDL_RWseek(rw, 0, RW_SEEK_END);
             size_t filesz = SDL_RWtell(rw);
 
-            if(offset > filesz)
-            {
-                ERROR("offset out of range, file size: " << filesz);
-                return buf;
-            }
-
-            // fixed block size
-            if(offset + size > filesz)
-                size = filesz - offset;
-            else
-                size = filesz;
-
-            if(0 == size)
+            if(0 == filesz)
             {
                 SDL_RWclose(rw);
                 DEBUG("file empty, nothing to read");
                 return buf;
             }
+
+            if(offset > filesz)
+            {
+                ERROR("offset out of range, file size: " << filesz << ", offset: " << offset);
+                return buf;
+            }
+
+	    // fixed default
+	    if(0 == size)
+                size = filesz;
+
+            // fixed block size
+            if(offset + size > filesz)
+                size = filesz - offset;
 
             buf.resize(size);
             SDL_RWseek(rw, offset, RW_SEEK_SET);

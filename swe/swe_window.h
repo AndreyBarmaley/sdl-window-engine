@@ -39,7 +39,7 @@ namespace SWE
     struct KeySym;
 
     enum { // Window 0xxxxx0000
-	    FlagVisible = 0x80000000, FlagModality = 0x40000000, FlagFocused = 0x20000000,
+	    FlagVisible = 0x80000000, FlagModality = 0x40000000, FlagFocused = 0x20000000, FlagBroken = 0x10000000,
 
 	    FlagKeyHandle = 0x04000000, FlagMouseTracking = 0x02000000, FlagSystemTickSkip = 0x01000000,
 	    FlagLayoutHidden = 0x00800000, FlagLayoutBackground = 0x00200000, FlagLayoutForeground = 0x00100000,
@@ -112,7 +112,6 @@ namespace SWE
     protected:
         bool		checkState(size_t) const;
         void		setState(size_t);
-        void		setState(size_t, bool f);
         void		resetState(size_t);
         void		switchedState(size_t);
 
@@ -158,6 +157,7 @@ namespace SWE
         int		resultCode(void) const;
         Rect		rect(void) const;
 
+        void		setState(size_t, bool f);
 	void		setDirty(bool);
         void		setParent(Window*);
         void		setVisible(bool);

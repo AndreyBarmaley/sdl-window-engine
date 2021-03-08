@@ -46,7 +46,8 @@ namespace SWE
         if(str.empty()) return str;
 
         StringList list = String::split(str, ch);
-        list.remove("");
+	if(str.back() == ch) list.emplace_back("");
+
         return list.join(std::string(1, '\\').append(1, ch));
     }
 

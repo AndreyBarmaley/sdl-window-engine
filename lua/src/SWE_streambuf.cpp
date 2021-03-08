@@ -118,6 +118,28 @@ int SWE_streambuf_get_le64(lua_State* L)
     return SWE_streambuf_get_value_type(L, IntType::IntLE64);
 }
 
+int SWE_streambuf_get_string(lua_State* L)
+{
+    // params: swe_streambuf, size
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
+    if(SWE_StreamBuf* buf = SWE_StreamBuf::get(ll, 1, __FUNCTION__))
+    {
+	int size = ll.toIntegerIndex(2);
+        auto data = static_cast<StreamBufRW*>(buf)->get(size);
+
+        ll.pushString(data.toString());
+    }
+    else
+    {
+	ERROR("userdata empty");
+	ll.pushNil();
+    }
+
+    return rescount;
+}
+
 int SWE_streambuf_get_bytes(lua_State* L)
 {
     // params: swe_streambuf, size
@@ -267,6 +289,7 @@ const struct luaL_Reg SWE_streambuf_functions[] = {
     { "GetLE32", SWE_streambuf_get_le32 },		// [int], swe_streambuf
     { "GetLE64", SWE_streambuf_get_le64 },		// [number], swe_streambuf
     { "GetBytes", SWE_streambuf_get_bytes }, 		// [swe_binarybuf], swe_streambuf, number size
+    { "GetString",SWE_streambuf_get_string }, 		// [string], swe_streambuf, number size
     { "PutByte", SWE_streambuf_put_byte }, 		// [void], swe_streambuf, int
     { "PutBE16", SWE_streambuf_put_be16 },		// [void], swe_streambuf, int
     { "PutBE32", SWE_streambuf_put_be32 },		// [void], swe_streambuf, int

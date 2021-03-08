@@ -247,6 +247,42 @@ std::list<SWE::Window*> SWE::DisplayScene::findChilds(const Window & win)
     return childs;
 }
 
+/*
+#include <bitset>
+bool SWE::DisplayScene::windowVisible(const Window & win)
+{
+    const Size & dsz = Display::size();
+    static std::vector<bool> points(dsz.w * dsz.h, false);
+    Rect hidden;
+
+    auto itw = std::find(sceneItems.begin(), sceneItems.end(), & win);
+    if(itw == sceneItems.end())
+        return false;
+
+    points.resize(win.width() * win.height(), false);
+    for(int pos = 0; pos < points.size(); ++pos)
+        points[pos] = true;
+
+    for(auto it = std::next(itw); it != sceneItems.end(); ++it)
+    {
+        if(! Rect::intersection(win.area(), (*it)->area(), & hidden))
+            continue;
+
+        for(int rx = 0; rx < hidden.w; ++rx)
+        {
+            for(int ry = 0; ry < hidden.h; ++ry)
+            {
+                int offset = (hidden.y + ry - win.position().y) * win.width() + hidden.x + rx - win.position().x;
+                if(offset < points.size())
+                    points[offset] = false;
+            }
+        }
+    }
+
+    return std::any_of(points.begin(), points.end(), [](const auto & v){ return v; });
+}
+*/
+
 void SWE::DisplayScene::addObject(BaseObject & obj)
 {
     /* back: top level */
@@ -389,6 +425,7 @@ void SWE::DisplayScene::pushEvent(const ObjectEvent* dst, int code, void* data)
 {
     SDL_Event event;
     std::memset(&event, 0, sizeof(event));
+
     event.type = SDL_USEREVENT;
     event.user.code = code;
     event.user.data1 = const_cast<ObjectEvent*>(dst);
@@ -397,6 +434,7 @@ void SWE::DisplayScene::pushEvent(const ObjectEvent* dst, int code, void* data)
     if(0 > SDL_PushEvent(&event))
     {
 #ifdef SWE_SDL12
+        // backup sdl12 event
 	events.emplace_back(UserEvent(event.user.code, event.user.data1, event.user.data2));
 #else
         ERROR("win: " << String::pointer(dst) << ", " << "code: " << String::hex(code) << ", " << "error: " << SDL_GetError());

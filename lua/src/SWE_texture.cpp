@@ -398,15 +398,76 @@ int SWE_texture_render_text(lua_State* L)
     return rescount;
 }
 
+int SWE_texture_flip_image(lua_State* L)
+{
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
+    // params: swe_texture, rect
+    if(SWE_Texture* tx = SWE_Texture::get(ll, 1, __FUNCTION__))
+    {
+	int flip = ll.toIntegerIndex(2);
+        Texture txflip = Texture::copy(*tx, flip);
+        SWE_Texture* res = SWE_Stack::texture_create(ll);
+        res->swap(txflip);
+        ll.pushString("width").pushInteger(res->width()).setTableIndex(-3);
+        ll.pushString("height").pushInteger(res->height()).setTableIndex(-3);
+        ll.pushString("alpha").pushInteger(res->alphaMod()).setTableIndex(-3);
+    }
+    else
+    {
+	ERROR("userdata empty");
+	ll.pushNil();
+    }
+
+    return rescount;
+}
+
+int SWE_texture_crop_image(lua_State* L)
+{
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
+    // params: swe_texture, rect
+    if(SWE_Texture* tx = SWE_Texture::get(ll, 1, __FUNCTION__))
+    {
+        Rect crop;
+
+    	if(ll.isTableIndex(2))
+    	{
+	    crop = SWE_Rect::get(ll, 2, __FUNCTION__);
+    	}
+    	else
+    	{
+	    crop.x = ll.toIntegerIndex(2);
+	    crop.y = ll.toIntegerIndex(3);
+	    crop.w = ll.toIntegerIndex(4);
+	    crop.h = ll.toIntegerIndex(5);
+        }
+        Texture txcrop = Texture::copy(*tx, crop);
+        SWE_Texture* res = SWE_Stack::texture_create(ll);
+        res->swap(txcrop);
+        ll.pushString("width").pushInteger(res->width()).setTableIndex(-3);
+        ll.pushString("height").pushInteger(res->height()).setTableIndex(-3);
+        ll.pushString("alpha").pushInteger(res->alphaMod()).setTableIndex(-3);
+    }
+    else
+    {
+	ERROR("userdata empty");
+	ll.pushNil();
+    }
+
+    return rescount;
+}
+
 int SWE_texture_to_json(lua_State* L)
 {
     // params: swe_texture
 
     const int rescount = 1;
     LuaStateDefine(ll, L, rescount);
-    SWE_Texture* tx = SWE_Texture::get(ll, 1, __FUNCTION__);
 
-    if(tx)
+    if(SWE_Texture::get(ll, 1, __FUNCTION__))
     {
         int alpha = ll.getFieldTableIndex("alpha", 1).getTopInteger();
         int width = ll.getFieldTableIndex("width", 1).getTopInteger();
@@ -437,11 +498,45 @@ const struct luaL_Reg SWE_texture_functions[] = {
     { "RenderPoint",    SWE_texture_render_point },     // [void], table texture, enum: color, point
     { "RenderTexture",  SWE_texture_render_texture },   // [void], table texture, table texture, rect, rect
     { "RenderText",     SWE_texture_render_text },      // [rect coords], table texture, table fontrender, color, point, halign, valign, horizontal, render, style, hinting
+    { "CropImage",      SWE_texture_crop_image },       // [texture], table texture, rect
+    { "FlipImage",      SWE_texture_flip_image },       // [texture], table texture, number
     { "ToJson",         SWE_texture_to_json },          // [void], table texture
     { NULL, NULL }
 };
 
 ///////////////////////////////////////////////////////////
+SWE_Texture* SWE_Stack::texture_create(LuaState & ll)
+{
+    LuaStateValidator(ll, 1);
+
+    // result
+    ll.pushTable();
+
+    // userdata
+    ll.pushString("userdata");
+    auto ptr = static_cast<SWE_Texture**>(ll.pushUserData(sizeof(SWE_Texture*)));
+    *ptr = new SWE_Texture();
+
+    // set metatable: __gc
+    ll.pushTable(0, 1);
+    ll.pushFunction(SWE_texture_destroy).setFieldTableIndex("__gc", -2);
+    ll.setMetaTableIndex(-2).setTableIndex(-3);
+
+    // set functions
+    ll.setFunctionsTableIndex(SWE_texture_functions, -1);
+
+    DEBUG(String::pointer(ptr) << ": [" << String::pointer(*ptr) << "]");
+
+    // add values
+    ll.pushString("__type").pushString("swe.texture").setTableIndex(-3);
+    ll.pushString("width").pushInteger(0).setTableIndex(-3);
+    ll.pushString("height").pushInteger(0).setTableIndex(-3);
+    ll.pushString("alpha").pushInteger((*ptr)->alphaMod()).setTableIndex(-3);
+    ll.pushString("class").pushString("").setTableIndex(-3);
+
+    return *ptr;
+}
+
 int SWE_texture_create_rect(lua_State* L)
 {
     const int rescount = 1;
@@ -644,17 +739,7 @@ int SWE_texture_create(lua_State* L)
     LuaStateDefine(ll, L, rescount);
 
     // params: SWE.Texture(self, w, h)
-
-    ll.pushTable();
-
-    // userdata
-    ll.pushString("userdata");
-    auto ptr = static_cast<SWE_Texture**>(ll.pushUserData(sizeof(SWE_Texture*)));
-
-    // set metatable: __gc
-    ll.pushTable(0, 1);
-    ll.pushFunction(SWE_texture_destroy).setFieldTableIndex("__gc", -2);
-    ll.setMetaTableIndex(-2).setTableIndex(-3);
+    SWE_Texture* tx = SWE_Stack::texture_create(ll);
 
     // SWE_Texture: size
     if(ll.isNumberIndex(2) && ll.isNumberIndex(3))
@@ -662,25 +747,12 @@ int SWE_texture_create(lua_State* L)
 	int tw = ll.toIntegerIndex(2);
 	int th = ll.toIntegerIndex(3);
 
-	*ptr = new SWE_Texture(Display::createTexture(Size(tw, th)));
-    }
-    else
-    // SWE_Texture: empty
-    {
-	*ptr = new SWE_Texture();
+	tx->setTexture(Display::createTexture(Size(tw, th)));
+        ll.pushString("width").pushInteger(tx->width()).setTableIndex(-3);
+        ll.pushString("height").pushInteger(tx->height()).setTableIndex(-3);
+        ll.pushString("alpha").pushInteger(tx->alphaMod()).setTableIndex(-3);
     }
 
-    // add values
-    ll.pushString("__type").pushString("swe.texture").setTableIndex(-3);
-    ll.pushString("width").pushInteger((*ptr)->width()).setTableIndex(-3);
-    ll.pushString("height").pushInteger((*ptr)->height()).setTableIndex(-3);
-    ll.pushString("alpha").pushInteger((*ptr)->alphaMod()).setTableIndex(-3);
-    ll.pushString("class").pushString("").setTableIndex(-3);
-
-    // set functions
-    ll.setFunctionsTableIndex(SWE_texture_functions, -1);
-
-    DEBUG(String::pointer(ptr) << ": [" << String::pointer(*ptr) << "]");
     return rescount;
 }
 
@@ -720,7 +792,11 @@ void SWE_Texture::registers(LuaState & ll)
     ll.pushTable("SWE.Texture");
     // set metatable: __call
     ll.pushTable(0, 1).pushFunction(SWE_texture_create).setFieldTableIndex("__call", -2);
-    ll.setMetaTableIndex(-2).stackPop();
+    ll.setMetaTableIndex(-2);
+
+    ll.pushInteger(SWE::FlipVertical).setFieldTableIndex("FlipVertical", -2);
+    ll.pushInteger(SWE::FlipHorizontal).setFieldTableIndex("FlipHorizontal", -2);
+    ll.stackPop();
 
     ll.pushTable("SWE.Texture.Rect");
     // set metatable: __call

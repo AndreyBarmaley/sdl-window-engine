@@ -20,6 +20,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include "SWE_tools.h"
 #include "SWE_binarybuf.h"
 #include "SWE_translation.h"
 
@@ -48,6 +49,12 @@ int SWE_translation_bindomain(lua_State* L)
     if(ll.isStringIndex(2))
     {
 	std::string filemo = ll.toStringIndex(2);
+
+        if(! Systems::isFile(filemo))
+        {
+            std::string filemo2 = SWE_Tools::findResource(ll, filemo);
+            if(Systems::isFile(filemo2)) std::swap(filemo, filemo2);
+        }
 
 	if(Systems::isFile(filemo))
 	{

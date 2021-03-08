@@ -537,20 +537,10 @@ function FileBrowserInit(win, frs, path, params)
 	    return TermScrollDown(term)
 	elseif key == SWE.Key.RETURN then
 	    return TermSelectedAction(term)
-	elseif key == SWE.Key.ESCAPE then
+	elseif ToolsKeyExit(key) then
 	    term.result = nil
 	    term:SetVisible(false)
 	    return true
-        end
-
-        if SWE.SystemMobileOs() ~= nil then
-	    -- android back
-	    -- wince exit
-	    if key == SWE.Key.ANDROID_BACK or key == SWE.Key.WINCE_EXIT then
-	        term.result = nil
-	        term:SetVisible(false)
-	        return true
-	    end
         end
 
 	return false
@@ -561,11 +551,8 @@ function FileBrowserInit(win, frs, path, params)
     end
 
     term.SystemUserEvent = function(event,obj)
-        if event == SWE.Signal.FingerMoveUp then
-            return TermScrollDown(term)
-        elseif event == SWE.Signal.FingerMoveDown then
-            return TermScrollUp(term)
-        elseif event == SWE.Action.ItemSelected then
+
+        if event == SWE.Action.ItemSelected then
 	    if term.button1 then
 		term.button1.disable = obj.isdir
 	    end
@@ -578,6 +565,14 @@ function FileBrowserInit(win, frs, path, params)
         elseif event == SWE.Action.ChangeValue then
     	    TermFillItems(term, obj)
 	end
+
+        if SWE.SystemMobileOs() == "android" then
+            if event == SWE.Signal.FingerMoveUp then
+                return TermScrollDown(term)
+            elseif event == SWE.Signal.FingerMoveDown then
+                return TermScrollUp(term)
+            end
+        end
 
         return term:LocalUserEvent(event, obj)
     end

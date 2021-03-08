@@ -220,7 +220,7 @@ namespace SWE
 
     bool Window::isVisible(void) const
     {
-        return checkState(FlagVisible);
+        return checkState(FlagVisible) && ! checkState(FlagBroken);
     }
 
     bool Window::isModality(void) const

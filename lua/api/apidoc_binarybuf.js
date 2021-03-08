@@ -15,6 +15,19 @@ SWE.BinaryBuf
     local base64 = zip:Base64Encode()
     print(base64)
 
+    local size1 = buf.size
+    local size2 = #buf
+    if size1 == size2 then
+	print("equivalent")
+    end
+
+    -- start index is zero!
+    local byte1 = buf:GetByte(5)
+    local byte2 = buf[5]
+    if byte1 == byte2 then
+	print("equivalent")
+    end
+
     @apiExample ext table fields (read only)
     | size    | number  | binarybuf length
 */
@@ -94,11 +107,12 @@ SWE.BinaryBuf.SaveToFile
 */
 SWE.BinaryBuf.GetCRC32b
 /**
-    @api {calculate crc32b sum} SWE.BinaryBuf.GetCRC32b(inputbuf) SWE.BinaryBuf.GetCRC32b
+    @api {calculate crc32b sum} SWE.BinaryBuf.GetCRC32b(inputbuf)SWE.BinaryBuf.GetCRC32b(inputbuf,magic) SWE.BinaryBuf.GetCRC32b
     @apiGroup SWE.BinaryBuf
     @apiName GetCRC32b
     
     @apiParam {SWE.BinaryBuf}     		inputbuf   	binarybuf raw data
+    @apiParam {number}    			magic		default value (0xEDB88320)
     @apiSuccess (Return) {number}    		result   	crc32b code
 */
 SWE.BinaryBuf.ToString
@@ -185,6 +199,15 @@ SWE.BinaryBuf.GetByte
     @apiParam {number}     			offset1   	first data offset
     @apiParam {number}     			offset2   	last data offset (default: nil)
     @apiSuccess (Return) {list}    		result   	bytes list values
+
+    @apiExample usage
+    local buf = SWE.BinaryBuf("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+    -- start index is zero!
+    local byte1 = buf:GetByte(5)
+    local byte2 = buf[5]
+    if byte1 == byte2 then
+	print("equivalent")
+    end
 */
 SWE.BinaryBuf.GetBytes
 /**
@@ -208,6 +231,17 @@ SWE.BinaryBuf.Resize
     @apiParam {number}     			value   	default value
     @apiSuccess (Return) {SWE.BinaryBuf}  	result   	bynarybuf raw data
 */
+SWE.BinaryBuf.Assign
+/**
+    @api {assign buf} SWE.BinaryBuf.Assign(self,size,value) SWE.BinaryBuf.Assign
+    @apiGroup SWE.BinaryBuf
+    @apiName Assign
+
+    @apiParam {SWE.BinaryBuf}     		self   		binarybuf raw data
+    @apiParam {number}     			size  	 	new size
+    @apiParam {number}     			value   	assign content
+    @apiSuccess (Return) {SWE.BinaryBuf}  	result   	bynarybuf raw data
+*/
 SWE.BinaryBuf.Erase
 /**
     @api {erase element} SWE.BinaryBuf.Erase(self,pos,count) SWE.BinaryBuf.Erase
@@ -226,4 +260,15 @@ SWE.BinaryBuf.Clear
     @apiName Clear
 
     @apiParam {SWE.BinaryBuf}                   self           binarybuf raw data
+*/
+SWE.BinaryBuf.CompareBytes
+/**
+    @api {compare bytes} SWE.BinaryBuf.CompareBytes(self,offset,value...value) SWE.BinaryBuf.CompareBytes
+    @apiGroup SWE.BinaryBuf
+    @apiName CompareBytes
+    
+    @apiParam {SWE.BinaryBuf}     		self   		binarybuf raw data
+    @apiParam {number}     			offset   	offset data
+    @apiParam {number}     			value   	byte value (list)
+    @apiSuccess (Return) {boolean}    		result   	success
 */

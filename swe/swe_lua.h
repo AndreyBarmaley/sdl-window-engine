@@ -53,8 +53,8 @@ namespace SWE
         static void	closeState(LuaState &);
 
         int		version(void);
-        int		doFile(const std::string &);
-        int		doString(const std::string &);
+        bool		doFile(const std::string &);
+        bool		doString(const std::string &);
 
         lua_State*	L(void) { return ptr; }
         LuaState  &	callFunction(int nargs, int nresults);
@@ -140,6 +140,7 @@ namespace SWE
         bool            isFieldTableIndex(const std::string &, int);
 
 #ifdef SWE_WITH_JSON
+        std::string	toJsonStringTableIndex(int);
         JsonArray	toJsonArrayTableIndex(int);
         JsonObject	toJsonObjectTableIndex(int);
 #endif
@@ -174,8 +175,11 @@ namespace SWE
         LuaState &	stackInsertIndex(int);		// insert top to stack index
         LuaState &	stackRemoveIndex(int);		// remove stack index
         LuaState &	stackTopIndex(int);		// resize stack, set new top index
-        LuaState &	stackDump(void);
+        LuaState &	stackDump(bool expand = true);
         LuaState &	stackPop(size_t num = 1);
+
+        static const std::string &
+                        stackTrace(void);
 
         LuaState &	garbageCollect(int mode = LUA_GCCOLLECT);
     };

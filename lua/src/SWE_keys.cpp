@@ -97,11 +97,8 @@ void SWE_Key::registers(LuaState & ll)
     for(auto & kv : Key::allKeys())
         ll.pushInteger(kv.key).setFieldTableIndex(kv.name, -2);
 
-#if defined(ANDROID)
-        ll.pushInteger(0x4000010e).setFieldTableIndex("ANDROID_BACK", -2);
-#elif defined(__MINGW32CE__)
-        ll.pushInteger(312).setFieldTableIndex("WINCE_EXIT", -2);
-#endif
+    ll.pushInteger(0x4000010e).setFieldTableIndex("ANDROID_BACK", -2);
+    ll.pushInteger(312).setFieldTableIndex("WINCE_EXIT", -2);
 
     // SWE.Key: set metatable: __index
     ll.pushTable(0, 1).pushFunction(SWE_key_index).setFieldTableIndex("__index", -2);

@@ -39,6 +39,16 @@ bool findUserStorageFolder(const std::string & str)
     return false;
 }
 
+void printHelp(const char* prog)
+{
+    COUT("Usage: " << prog << " <file> | <path>\n" <<
+            "\t<file> - starting script (default start.lua or main.lua)\n" <<
+            "\t<path> - path to starting script or directory (if default starting script exists there)\n\n" <<
+            "\tSWE bindings version: " << SWE_LUA_VERSION << "\n" <<
+            "\tSWE bindings license: " << SWE_LUA_LICENSE << "\n" <<
+            "\tbuild with " << LUA_VERSION << "\n");
+}
+
 int main(int argc, char** argv)
 {
     Systems::setLocale(LC_ALL, "");
@@ -64,8 +74,9 @@ int main(int argc, char** argv)
 	}
 #endif
 
-	const char* start = 1 < argc ? argv[1] : Systems::environment("SWE_START");
-	if(! start) start = "start.lua";
+	const char* start1 = "start.lua";
+        const char* start2 = "main.lua";
+        const char* params = 1 < argc ? argv[1] : Systems::environment("SWE_START");
 
 	std::string runfile;
 	StringList dirs = Systems::shareDirectories(app);
@@ -89,7 +100,7 @@ int main(int argc, char** argv)
 		    std::string dstdir = Systems::dirname(dstfile);
 
 		    if(! Systems::isDirectory(dstdir)) Systems::makeDirectory(dstdir);
-		    if(*as == start) runfile = dstfile;
+		    if(*as == start1) runfile = dstfile;
 
 		    Systems::saveString2File(body, dstfile);
 		    DEBUG("sync: " << *as << " => " << dstfile);
@@ -97,8 +108,41 @@ int main(int argc, char** argv)
 	    }
 	}
 #else
-	if(Systems::isFile(start))
-	    runfile = start;
+        // params priority
+        if(params)
+	{
+            if(0 == strcmp(params, "--help") || 0 == strcmp(params, "-h"))
+            {
+                printHelp(argv[0]);
+                return EXIT_SUCCESS;
+            }
+
+            if(Systems::isFile(params))
+                std::swap(start1, params);
+
+	    if(Systems::isDirectory(params))
+            {
+                for(auto str : { "start.lua", "main.lua" })
+                {
+		    std::string path = Systems::concatePath(params, str);
+                    if(Systems::isFile(path))
+                    {
+                        runfile = path;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if(runfile.empty())
+        {
+            // safe run start2
+	    if(! Systems::isFile(start1) && Systems::isFile(start2))
+                std::swap(start1, start2);
+
+	    if(Systems::isFile(start1))
+	        runfile = start1;
+        }
 
 	if(cwd.size()) 
 	    dirs.push_back(cwd);
@@ -110,7 +154,7 @@ int main(int argc, char** argv)
 
 	    if(runfile.empty())
 	    {
-		std::string check = Systems::concatePath(*it, start);
+		std::string check = Systems::concatePath(*it, start1);
 		if(Systems::isFile(check))
 		{
 		    DEBUG("start found: " << check);
@@ -123,7 +167,7 @@ int main(int argc, char** argv)
 	// check params
 	if(runfile.empty())
 	{
-	    ERROR("file not found runfile: " << start);
+	    ERROR("starting file not found");
 	    return EXIT_FAILURE;
 	}
 
@@ -136,7 +180,7 @@ int main(int argc, char** argv)
 
 	if(! ll.L())
 	{
-	    ERROR("LuaState: is NULL");
+	    ERROR("LuaState failure");
 	    return EXIT_FAILURE;
 	}
 
@@ -189,12 +233,20 @@ int main(int argc, char** argv)
     	ll.stackPop();
 #endif
 
-        ll.doFile(runfile);
-
-        if(ll.isTopString())
-            ERROR(ll.getTopString());
+        std::string err, trace;
+        if(! ll.doFile(runfile))
+	{
+            err = ll.getTopString();
+            trace = ll.stackTrace();
+	}
 
         LuaState::closeState(ll);
+
+        if(! err.empty())
+            ERROR(err);
+
+        if(! trace.empty())
+            ERROR(trace);
     }
     catch(Engine::exception &)
     {

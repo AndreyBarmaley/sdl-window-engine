@@ -81,6 +81,16 @@ SWE.StreamBuf.GetBytes
     @apiParam {number}				length		length data
     @apiSuccess (Return) {SWE.BinaryBuf}	result		binarybuf object
 */
+SWE.StreamBuf.GetString
+/**
+    @api {streambuf get string} SWE.StreamBuf.GetString(self,length) SWE.StreamBuf.GetString
+    @apiGroup SWE.StreamBuf
+    @apiName GetString
+
+    @apiParam {SWE.StreamBuf}			self		streambuf object
+    @apiParam {number}				length		length data
+    @apiSuccess (Return) {string}		result		string data
+*/
 SWE.StreamBuf.PutByte
 /**
     @api {streambuf put 8 bit value} SWE.StreamBuf.PutByte(self,value) SWE.StreamBuf.PutByte

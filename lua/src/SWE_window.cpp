@@ -638,6 +638,25 @@ int SWE_window_set_result(lua_State* L)
     return rescount;
 }
 
+int SWE_window_set_destroyed(lua_State* L)
+{
+    const int rescount = 0;
+    LuaStateDefine(ll, L, rescount);
+
+    // params: swe_window, bool
+
+    if(auto win = SWE_Window::get(ll, 1, __FUNCTION__))
+    {
+	win->setState(FlagBroken, true);
+    }
+    else
+    {
+	ERROR("userdata empty");
+    }
+
+    return rescount;
+}
+
 int SWE_window_set_visible(lua_State* L)
 {
     const int rescount = 0;
@@ -908,37 +927,39 @@ int SWE_window_render_texture(lua_State* L)
     const int rescount = 0;
     LuaStateDefine(ll, L, rescount);
 
-    // params: swe_window, swe_texture, [srcx, srcy, srcw, srch], [dstx, dsty]
-    // params: swe_window, swe_texture, [dstx, dsty]
-    // params: swe_window, swe_texture, rect src, point dst
-    // params: swe_window, swe_texture, point dst
 
     SWE_Window* win = SWE_Window::get(ll, 1, __FUNCTION__);
     SWE_Texture* ptr = SWE_Texture::get(ll, 2, __FUNCTION__);
-    
+    int flip = SWE::FlipNone;
+
     if(win && ptr)
     {
 	Rect src;
 	Point dst;
         int params = ll.stackSize();
 
+	// params: swe_window, swe_texture, [rect src], [point dst], flip
+	// params: swe_window, swe_texture, [point dst], flip
 	if(ll.isTableIndex(3))
 	{
-	    src = SWE_Rect::get(ll, 3, __FUNCTION__);
-
 	    if(ll.isTableIndex(4))
 	    {
+		src = SWE_Rect::get(ll, 3, __FUNCTION__);
 		dst = SWE_Point::get(ll, 4, __FUNCTION__);
+    		flip = 4 < params ? ll.toIntegerIndex(5) : SWE::FlipNone;
 	    }
 	    else
 	    {
-    		dst = src;
 		src = ptr->rect();
+		dst = SWE_Point::get(ll, 3, __FUNCTION__);
+    		flip = 3 < params ? ll.toIntegerIndex(4) : SWE::FlipNone;
 	    }
 	}
+	// params: swe_window, swe_texture, srcx, srcy, srcw, srch, dstx, dsty, flip
+        // params: swe_window, swe_texture, dstx, dsty, flip
 	else
 	{
-	    if(4 < params)
+	    if(5 < params)
     	    {
 		src.x = ll.toIntegerIndex(3);
     		src.y = ll.toIntegerIndex(4);
@@ -946,16 +967,18 @@ int SWE_window_render_texture(lua_State* L)
     		src.h = ll.toIntegerIndex(6);
     		dst.x = ll.toIntegerIndex(7);
     		dst.y = ll.toIntegerIndex(8);
+    		flip = 8 < params ? ll.toIntegerIndex(9) : SWE::FlipNone;
 	    }
 	    else
 	    {
     		dst.x = ll.toIntegerIndex(3);
     		dst.y = ll.toIntegerIndex(4);
+    		flip = 4 < params ? ll.toIntegerIndex(5) : SWE::FlipNone;
 		src = ptr->rect();
 	    }
 	}
 
-	win->renderTexture(*ptr, src, dst);
+	win->renderTexture(*ptr, src, dst, flip);
     }
     else
     {
@@ -1450,6 +1473,7 @@ void SWE_Scene::clean(LuaState & ll, bool saveDisplay)
 }
 
 const struct luaL_Reg SWE_window_functions[] = {
+    { "MarkDestroyed",    SWE_window_set_destroyed },  // [void], table window
     { "SetVisible",     SWE_window_set_visible },      // [void], table window, bool flag
     { "SetResultCode",  SWE_window_set_result },       // [void], table window, int code
     { "SetModality",    SWE_window_set_modality },     // [void], table window, int code
@@ -1634,6 +1658,7 @@ int SWE_polygon_to_json(lua_State* L)
 
 const struct luaL_Reg SWE_polygon_functions[] = {
     // window func
+    { "MarkDestroyed",   SWE_window_set_destroyed },   // [void], table window
     { "SetVisible",     SWE_window_set_visible },      // [void], table window, bool flag
     { "SetResultCode",  SWE_window_set_result },       // [void], table window, int code
     { "SetModality",    SWE_window_set_modality },     // [void], table window, int code

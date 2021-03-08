@@ -159,9 +159,10 @@ namespace SWE
   #define DEBUG(x)   { if(SWE::Engine::debugMode()) PRETTY("[DEBUG]", x); }
  #else
   // colored console
-  #define PRETTY(x, y) COUT(SWE::String::time() << ": " << x << "\t\x1B[35m" << SWE::shortPrettyName(__PRETTY_FUNCTION__) << ": \x1B[36m" << y << "\033[0m")
+  #define PRETTY3(x, y, c) COUT(SWE::String::time() << ": " << x << "\t\x1B[35m" << SWE::shortPrettyName(__PRETTY_FUNCTION__) << ": " << c << y << "\033[0m")
+  #define PRETTY(x, y) PRETTY3(x, y, "\x1B[36m")
   #define VERBOSE(x) { PRETTY("\x1B[31m[VERBOSE]", x); }
-  #define ERROR(x)   { PRETTY("\x1B[93m[ERROR]", x); }
+  #define ERROR(x)   { PRETTY3("\x1B[93m[ERROR]", x, "\x1B[93m"); }
   #define FIXME(x)   { PRETTY("\x1B[32m[FIXME]", x); }
   #define DEBUG(x)   { if(SWE::Engine::debugMode()) PRETTY("\x1B[34m[DEBUG]", x); }
  #endif

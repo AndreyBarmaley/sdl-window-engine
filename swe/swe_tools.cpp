@@ -73,19 +73,24 @@ namespace SWE
 
     u32 Tools::crc32b(const std::string & str)
     {
-	return crc32b(reinterpret_cast<const u8*>(str.data()), str.size());
+	return crc32b(reinterpret_cast<const u8*>(str.data()), str.size(), 0xEDB88320);
     }
 
     u32 Tools::crc32b(const u8* ptr, size_t size)
     {
-	u32 res = std::accumulate(ptr, ptr + size, 0xFFFFFFFF, [](u32 crc, int val)
+	return crc32b(ptr, size, 0xEDB88320);
+    }
+
+    u32 Tools::crc32b(const u8* ptr, size_t size, u32 magic)
+    {
+	u32 res = std::accumulate(ptr, ptr + size, 0xFFFFFFFF, [=](u32 crc, int val)
 	{
     	    crc ^= val;
 
     	    for(int bit = 0; bit < 8; ++bit)
     	    {
         	u32 mask = crc & 1 ? 0xFFFFFFFF : 0;
-        	crc = (crc >> 1) ^ (0xEDB88320 & mask);
+        	crc = (crc >> 1) ^ (magic & mask);
     	    }
 
 	    return crc;
@@ -96,19 +101,24 @@ namespace SWE
 
     int Tools::crc16b(const std::string & str)
     {
-	return crc32b(reinterpret_cast<const u8*>(str.data()), str.size());
+	return crc16b(reinterpret_cast<const u8*>(str.data()), str.size(), 0x8320);
     }
 
     int Tools::crc16b(const u8* ptr, size_t size)
     {
-	u16 res = std::accumulate(ptr, ptr + size, 0xFFFF, [](u16 crc, int val)
+	return crc16b(ptr, size, 0x8320);
+    }
+
+    int Tools::crc16b(const u8* ptr, size_t size, u16 magic)
+    {
+	u16 res = std::accumulate(ptr, ptr + size, 0xFFFF, [=](u16 crc, int val)
 	{
     	    crc ^= val;
 
     	    for(int bit = 0; bit < 8; ++bit)
     	    {
         	u16 mask = crc & 1 ? 0xFFFF : 0;
-        	crc = (crc >> 1) ^ (0x8320 & mask);
+        	crc = (crc >> 1) ^ (magic & mask);
     	    }
 
 	    return crc;

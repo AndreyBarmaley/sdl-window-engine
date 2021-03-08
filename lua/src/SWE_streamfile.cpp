@@ -119,6 +119,28 @@ int SWE_streamfile_read_le64(lua_State* L)
     return SWE_streamfile_read_value_type(L, IntType::IntLE64);
 }
 
+int SWE_streamfile_read_string(lua_State* L)
+{
+    // params: swe_streamfile, size
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
+    if(SWE_StreamFile* stream = SWE_StreamFile::get(ll, 1, __FUNCTION__))
+    {
+	int size = ll.toIntegerIndex(2);
+        auto data = static_cast<StreamFile*>(stream)->get(size);
+
+        ll.pushString(data.toString());
+    }
+    else
+    {
+	ERROR("userdata empty");
+	ll.pushNil();
+    }
+
+    return rescount;
+}
+
 int SWE_streamfile_read_bytes(lua_State* L)
 {
     // params: swe_streamfile, size
@@ -374,6 +396,7 @@ const struct luaL_Reg SWE_streamfile_functions[] = {
     { "ReadLE32", SWE_streamfile_read_le32 },		// [int], swe_streamfile
     { "ReadLE64", SWE_streamfile_read_le64 },		// [number], swe_streamfile
     { "ReadBytes", SWE_streamfile_read_bytes }, 	// [swe_binarybuf], swe_streamfile, number size
+    { "ReadString",SWE_streamfile_read_string }, 	// [string], swe_streamfile, number size
     { "WriteByte", SWE_streamfile_write_byte }, 	// [void], swe_streamfile, int
     { "WriteBE16", SWE_streamfile_write_be16 },		// [void], swe_streamfile, int
     { "WriteBE32", SWE_streamfile_write_be32 },		// [void], swe_streamfile, int

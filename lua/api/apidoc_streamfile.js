@@ -113,6 +113,16 @@ SWE.StreamFile.ReadLE64
     @apiParam {SWE.StreamFile}			self		streamfile object
     @apiSuccess (Return) {number}		result		64 bit value (little endian)
 */
+SWE.StreamFile.ReadString
+/**
+    @api {streamfile read string} SWE.StreamFile.ReadString(self,length) SWE.StreamFile.ReadString
+    @apiGroup SWE.StreamFile
+    @apiName ReadString
+
+    @apiParam {SWE.StreamFile}			self		streamfile object
+    @apiParam {number}				length		length data
+    @apiSuccess (Return) {string}		result		string data
+*/
 SWE.StreamFile.ReadBytes
 /**
     @api {streamfile read bytes} SWE.StreamFile.ReadBytes(self,length) SWE.StreamFile.ReadBytes
