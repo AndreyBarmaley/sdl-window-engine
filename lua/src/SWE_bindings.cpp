@@ -1134,11 +1134,13 @@ extern "C" {
 
     ll.pushTable("SWE");
     ll.getFieldTableIndex("version", -1, false);
+    int swever = ll.getTopNumber();
 
-    if(ll.getTopNumber() == SWE_LUA_VERSION)
+    if(SWE_LUA_VERSION == swever)
     {
 	// SWE also loaded
 	ll.stackPop();
+	DEBUG("also loaded: " << swever);
 	return 1;
     }
 

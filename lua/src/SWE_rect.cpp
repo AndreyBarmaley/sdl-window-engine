@@ -400,7 +400,8 @@ const struct luaL_Reg SWE_rect_functions2[] = {
     { "PointInRect", SWE_rect_point_inrect },		// [bool], swe_rect, swe_point
     { "HasIntersection", SWE_rect_has_intersection },	// [bool], swe_rect, swe_rect
     { "RectEquals", SWE_rect_equals },			// [bool], swe_rect, swe_rect
-    { "GetIntersectRect", SWE_rect_intersect }		// [swe_rect], swe_rect, swe_rect
+    { "GetIntersectRect", SWE_rect_intersect },		// [swe_rect], swe_rect, swe_rect
+    { NULL, NULL }
 };
 
 void SWE_Rect::registers(LuaState & ll)
