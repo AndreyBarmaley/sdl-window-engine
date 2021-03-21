@@ -125,6 +125,8 @@ namespace SWE
 
         bool			getBoolean(void) const override;
         std::string		toString(void) const override;
+
+        static std::string      escapeChars(std::string);
     };
 
     /* JsonDouble */
@@ -407,7 +409,7 @@ namespace SWE
         std::string		content;
 
     protected:
-        std::string		stringTocken(const JsmnToken &) const;
+        std::string		stringToken(const JsmnToken &) const;
         jsmntok_t*		toJsmnTok(void);
         std::pair<JsonValue*, int>
     				getValue(const const_iterator &, JsonContainer* cont) const;

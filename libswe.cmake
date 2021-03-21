@@ -9,6 +9,8 @@ FIND_PACKAGE(Boost 1.62 OPTIONAL_COMPONENTS stacktrace_addr2line)
 
 if(Boost_STACKTRACE_ADDR2LINE_FOUND)
     option(SWE_STACKTRACE "boost stacktrace on exception" ON)
+else()
+    unset(SWE_STACKTRACE CACHE)
 endif()
 
 if(SWE_STACKTRACE)

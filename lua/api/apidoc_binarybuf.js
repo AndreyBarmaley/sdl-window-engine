@@ -21,9 +21,10 @@ SWE.BinaryBuf
 	print("equivalent")
     end
 
-    -- start index is zero!
+    -- C style offset
     local byte1 = buf:GetByte(5)
-    local byte2 = buf[5]
+    -- Lua style offset
+    local byte2 = buf[4]
     if byte1 == byte2 then
 	print("equivalent")
     end
@@ -160,6 +161,11 @@ SWE.BinaryBuf.SetByte
     @apiParam {number}     			offset   	offset data
     @apiParam {number}     			value   	byte value (list)
     @apiSuccess (Return) {boolean}    		result   	success
+
+    @apiExample usage
+    local buf = SWE.BinaryBuf("0123456789")
+    -- C style offset
+    buf:SetByte(0, 0x31, 0x32, 0x33)
 */
 SWE.BinaryBuf.SetBytes
 /**
@@ -202,11 +208,12 @@ SWE.BinaryBuf.GetByte
 
     @apiExample usage
     local buf = SWE.BinaryBuf("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
-    -- start index is zero!
+    -- C style offset
     local byte1 = buf:GetByte(5)
-    local byte2 = buf[5]
+    -- Lua style offset
+    local byte2 = buf[4]
     if byte1 == byte2 then
-	print("equivalent")
+	print("equals")
     end
 */
 SWE.BinaryBuf.GetBytes

@@ -314,6 +314,7 @@ void SWE::DisplayScene::removeItem(const Window & win)
 
 void SWE::DisplayScene::moveTopLayer(const Window & win)
 {
+    // move top sorting
     removeItem(win);
     addItem(const_cast<Window &>(win));
 

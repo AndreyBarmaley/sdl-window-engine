@@ -1,4 +1,5 @@
 -- require 'SWE'
+assert(SWE, "SDL Window Engine only")
 
 -- main window
 local win = SWE.DisplayInit("Tetris", 240, 320, false)

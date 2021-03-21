@@ -1,4 +1,5 @@
 -- require 'SWE'
+assert(SWE, "SDL Window Engine only")
 
 SWE.SetDebug(true)
 local win = SWE.DisplayInit("Lua SWE Clock", 320, 240, false)

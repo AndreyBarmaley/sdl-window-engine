@@ -193,6 +193,14 @@ int SWE_window_init(lua_State* L)
     // mobile params: string title, bool landscape
     // extend params: table { "title":string, "window":size, "render":size, "fullscreen":bool, "accel":bool, "resized":bool }
 
+    // check force windowed params
+    ll.pushTable("SWE");
+    ll.getFieldTableIndex("forceWindowed", -1, false);
+    if(ll.isTopBoolean())
+	SWE::Display::setForceWindowed(ll.toBooleanIndex(-1));
+    // remove field, table
+    ll.stackPop(2);
+
     if(ll.isTopTable())
 	return SWE_window_init_extend(L);
 

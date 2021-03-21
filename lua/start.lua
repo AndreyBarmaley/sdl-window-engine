@@ -1,4 +1,5 @@
 -- require 'SWE'
+assert(SWE, "SDL Window Engine only")
 
 SWE.RegisterLuaDirectory("gui")
 require 'gui_tools'

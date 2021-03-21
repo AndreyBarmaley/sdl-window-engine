@@ -709,7 +709,6 @@ namespace SWE
                         break;
 
                     case LUA_TSTRING:
-                        //res.addString(String::escapeChar(toStringIndex(-1), '"'));
                         res.addString(toStringIndex(-1));
                         break;
 
@@ -788,7 +787,6 @@ namespace SWE
                         break;
 
                     case LUA_TSTRING:
-                        //res.addString(key, String::escapeChar(toStringIndex(-1), '"'));
                         res.addString(key, toStringIndex(-1));
                         break;
 

@@ -1,4 +1,5 @@
 -- require 'SWE'
+assert(SWE, "SDL Window Engine only")
 
 local fullscreen = false
 SWE.SetDebug(false)

@@ -1,4 +1,5 @@
 -- require 'SWE'
+assert(SWE, "SDL Window Engine only")
 SWE.SetDebug(true)
 
 local frs = SWE.FontRender("DejaVuSansMono.ttf", 14, SWE.Font.RenderBlended)

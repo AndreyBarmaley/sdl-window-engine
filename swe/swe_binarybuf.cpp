@@ -120,10 +120,10 @@ namespace SWE
             std::ostringstream os;
 
 	    std::transform(begin(), end(), std::back_inserter(list),
-		[&](const u8 & val)
+		[&](int val)
 		{
 		    os.str(prefix ? "0x" : "");
-            	    os << std::setw(2) << std::setfill('0') << std::uppercase << std::hex << static_cast<int>(val);
+            	    os << std::setw(2) << std::setfill('0') << std::uppercase << std::hex << val;
 		    return os.str();
 		});
 

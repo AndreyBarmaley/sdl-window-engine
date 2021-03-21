@@ -732,10 +732,26 @@ int SWE_streamnet_local_addresses(lua_State* L)
 #endif
 }
 
+int SWE_streamnet_supported(lua_State* L)
+{   
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
+#ifdef SWE_DISABLE_NETWORK
+    ll.pushBoolean(false);
+#else
+    ll.pushBoolean(true);
+#endif
+
+    return rescount;
+}
+
 const struct luaL_Reg SWE_streamnet_functions2[] = {
+    { "IsSupported", SWE_streamnet_supported },
     { "LocalAddresses", SWE_streamnet_local_addresses },
     { NULL, NULL }
 };
+
 
 void SWE_StreamNet::registers(LuaState & ll)
 {

@@ -305,6 +305,42 @@ int SWE_rect_unpack(lua_State* L)
     return rescount;
 }
 
+int SWE_rect_index(lua_State* L)
+{
+    // params: table, key
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+    
+    if(ll.isTopNumber())
+    {
+	switch(ll.toIntegerIndex(-1))
+	{
+	    case 1:
+		ll.getFieldTableIndex("posx", -2, false);
+		return rescount;
+
+	    case 2:
+		ll.getFieldTableIndex("posy", -2, false);
+		return rescount;
+
+	    case 3:
+		ll.getFieldTableIndex("width", -2, false);
+		return rescount;
+
+	    case 4:
+		ll.getFieldTableIndex("height", -2, false);
+		return rescount;
+
+	    default: break;
+	}
+    }
+
+    ERROR("unknown params");
+    ll.pushNil();
+
+    return rescount;
+}
+
 const struct luaL_Reg SWE_rect_functions[] = {
     { "PointInRect", SWE_rect_point_inrect },		// [bool], swe_rect, swe_point
     { "HasIntersection", SWE_rect_has_intersection },	// [bool], swe_rect, swe_rect
@@ -330,6 +366,7 @@ void SWE_Stack::rect_create(LuaState & ll, int rx, int ry, int rw, int rh)
     ll.pushTable(0, 1);
     ll.pushFunction(SWE_rect_tostring).setFieldTableIndex("__tostring", -2);
     ll.pushFunction(SWE_rect_equals).setFieldTableIndex("__eq", -2);
+    ll.pushFunction(SWE_rect_index).setFieldTableIndex("__index", -2);
     ll.setMetaTableIndex(-2);
 
     // set functions
@@ -403,6 +440,7 @@ const struct luaL_Reg SWE_rect_functions2[] = {
     { "GetIntersectRect", SWE_rect_intersect },		// [swe_rect], swe_rect, swe_rect
     { NULL, NULL }
 };
+
 
 void SWE_Rect::registers(LuaState & ll)
 {
@@ -515,6 +553,34 @@ int SWE_point_equals(lua_State* L)
     return rescount;
 }
 
+int SWE_point_index(lua_State* L)
+{
+    // params: table, key
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+    
+    if(ll.isTopNumber())
+    {
+	switch(ll.toIntegerIndex(-1))
+	{
+	    case 1:
+		ll.getFieldTableIndex("posx", -2, false);
+		return rescount;
+
+	    case 2:
+		ll.getFieldTableIndex("posy", -2, false);
+		return rescount;
+
+	    default: break;
+	}
+    }
+
+    ERROR("unknown params");
+    ll.pushNil();
+
+    return rescount;
+}
+
 const struct luaL_Reg SWE_point_functions[] = {
     { "ToJson", SWE_point_to_json }, 	// [string], swe_point
     { "Unpack", SWE_point_unpack }, 	// [list int], swe_point
@@ -534,6 +600,7 @@ void SWE_Stack::point_create(LuaState & ll, int px, int py)
     ll.pushTable(0, 1);
     ll.pushFunction(SWE_point_tostring).setFieldTableIndex("__tostring", -2);
     ll.pushFunction(SWE_point_equals).setFieldTableIndex("__eq", -2);
+    ll.pushFunction(SWE_point_index).setFieldTableIndex("__index", -2);
     ll.setMetaTableIndex(-2);
 
     // set functions
@@ -703,6 +770,34 @@ int SWE_size_equals(lua_State* L)
     return rescount;
 }
 
+int SWE_size_index(lua_State* L)
+{
+    // params: table, key
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+    
+    if(ll.isTopNumber())
+    {
+	switch(ll.toIntegerIndex(-1))
+	{
+	    case 1:
+		ll.getFieldTableIndex("width", -2, false);
+		return rescount;
+
+	    case 2:
+		ll.getFieldTableIndex("height", -2, false);
+		return rescount;
+
+	    default: break;
+	}
+    }
+
+    ERROR("unknown params");
+    ll.pushNil();
+
+    return rescount;
+}
+
 const struct luaL_Reg SWE_size_functions[] = {
     { "ToJson", SWE_size_to_json }, 		// [string], swe_size
     { "Unpack", SWE_size_unpack }, 		// [list int], swe_size
@@ -722,6 +817,7 @@ void SWE_Stack::size_create(LuaState & ll, int sw, int sh)
     ll.pushTable(0, 1);
     ll.pushFunction(SWE_size_tostring).setFieldTableIndex("__tostring", -2);
     ll.pushFunction(SWE_size_equals).setFieldTableIndex("__eq", -2);
+    ll.pushFunction(SWE_size_index).setFieldTableIndex("__index", -2);
     ll.setMetaTableIndex(-2);
 
     // set functions

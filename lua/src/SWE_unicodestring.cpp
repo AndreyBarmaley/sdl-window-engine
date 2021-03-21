@@ -108,7 +108,7 @@ int SWE_unicodestring_setchar(lua_State* L)
         }
         else
         {
-            ERROR("out of range");
+            ERROR("out of range" << ", " << ustr->size() << ", " << pos);
             ll.pushBoolean(false);
         }
     }
@@ -138,7 +138,7 @@ int SWE_unicodestring_getchar(lua_State* L)
 	}
 	else
 	{
-    	    ERROR("out of range");
+    	    ERROR("out of range" << ", " << ustr->size() << ", " << pos);
 	    ll.pushNil();
 	}
     }
@@ -164,7 +164,7 @@ int SWE_unicodestring_insert(lua_State* L)
 
         if(0 > pos || pos > ustr->size())
         {
-            ERROR("out of range");
+            ERROR("out of range" << ", " << ustr->size() << ", " << pos);
             ll.pushBoolean(false);
         }
         else
@@ -202,7 +202,7 @@ int SWE_unicodestring_insert(lua_State* L)
 		    }
 		    else
 		    {
-    		        ERROR("out of range");
+    		        ERROR("out of range" << ", " << ustr2->size() << ", " << subpos);
 			ll.pushBoolean(false);
 		    }
 		}
@@ -251,7 +251,7 @@ int SWE_unicodestring_substring(lua_State* L)
 	}
 	else
 	{
-    	    ERROR("out of range" << ", " << pos << ", " << ustr->size());
+    	    ERROR("out of range" << ", " << ustr->size() << ", " << pos);
 	    ll.pushNil();
 	}
     }
@@ -289,7 +289,7 @@ int SWE_unicodestring_erase(lua_State* L)
 	}
 	else
 	{
-    	    ERROR("out of range" << ", " << pos << ", " << ustr->size());
+    	    ERROR("out of range" << ", " << ", " << ustr->size() << ", " << pos);
 	    ll.pushBoolean(false);
 	}
     }
@@ -329,7 +329,7 @@ int SWE_unicodestring_resize(lua_State* L)
 	}
 	else
 	{
-    	    ERROR("out of range");
+    	    ERROR("out of range" << ", " << size);
 	    ll.pushBoolean(false);
 	}
     }
@@ -497,6 +497,34 @@ int SWE_unicodestring_getsize(lua_State* L)
     return rescount;
 }
 
+int SWE_unicodestring_index(lua_State* L)
+{
+    // params: table unicodestring, int offset (lua style: start 1)
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
+    if(SWE_UnicodeString* ustr = SWE_UnicodeString::get(ll, 1, __FUNCTION__))
+    {
+        int offset = ll.toIntegerIndex(2);
+        if(0 < offset && offset <= ustr->size())
+        {
+            ll.pushInteger(ustr->operator[](offset - 1));
+        }
+        else
+        {
+            ERROR("out of range" << ", " << ustr->size() << ", " << offset);
+            ll.pushNil();
+        }
+    }
+    else
+    {
+        ERROR("userdata empty");
+        ll.pushNil();
+    }
+
+    return rescount;
+}
+
 const struct luaL_Reg SWE_unicodestring_functions[] = {
     { "PushBack", SWE_unicodestring_pushback },		// [bool], table unicodestring, int char, int char .. int char
     { "SetChar", SWE_unicodestring_setchar },		// [bool], table unicodestring, int pos, int char, int char .. int char
@@ -535,7 +563,7 @@ SWE_UnicodeString* SWE_Stack::unicode_create(LuaState & ll)
     // set: meta
     ll.pushTable(0, 1);
     //ll.pushFunction(SWE_unicodestring_tostring).setFieldTableIndex("__tostring", -2);
-    ll.pushFunction(SWE_unicodestring_getchar).setFieldTableIndex("__index", -2);
+    ll.pushFunction(SWE_unicodestring_index).setFieldTableIndex("__index", -2);
     ll.pushFunction(SWE_unicodestring_concat).setFieldTableIndex("__concat", -2);
     ll.pushFunction(SWE_unicodestring_getsize).setFieldTableIndex("__len", -2);
     ll.pushFunction(SWE_unicodestring_equals).setFieldTableIndex("__eq", -2);

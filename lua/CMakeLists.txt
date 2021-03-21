@@ -68,66 +68,43 @@ set(LUA54_SRC
         party/lua54/src/lutf8lib.c
         party/lua54/src/linit.c)
 
-#poject1
-project(SWE_LUA_BINDINGS VERSION 20200910.1)
+# project1 SWE bindings static
+project(SWE_bindings VERSION 20210301.1)
 
-add_library(SWE SHARED)
+add_library(SWE_bindings STATIC)
 add_subdirectory(src)
 
-if(SWE_WITH_LUA52)
-    target_sources(SWE PUBLIC ${LUA52_SRC})
+if(SWE_WITH_LUA_PARTY)
+    target_sources(SWE_bindings PUBLIC ${LUA52_SRC})
     # lua flags
     if(UNIX)
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DLUA_USE_POSIX -DLUA_USE_DLOPEN")
         if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-            target_link_libraries(SWE dl)
+            target_link_libraries(SWE_bindings dl)
         endif()
     endif()
 else()
-    target_link_libraries(SWE lua)
+    target_link_libraries(SWE_bindings lua)
 endif()
 
-target_link_libraries(SWE libswe)
-set_target_properties(SWE PROPERTIES PREFIX "")
-set_target_properties(SWE PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(SWE_bindings libswe)
 
-# project2
-project(LuaSWE VERSION 20200920.1)
+# project2 SWE bindings shared for lua plugins
+if(SWE_FOR_LUA_PLUGIN)
+    project(SWE_plugin VERSION 20210301.1)
 
-add_executable(LuaSWE main/SWE_main.cpp 
-    src/SWE_audio.cpp
-    src/SWE_binarybuf.cpp
-    src/SWE_bindings.cpp
-    src/SWE_color.cpp
-    src/SWE_fontrender.cpp
-    src/SWE_keys.cpp
-    src/SWE_randomhit.cpp
-    src/SWE_rect.cpp
-    src/SWE_signal.cpp
-    src/SWE_streambuf.cpp
-    src/SWE_streamfile.cpp
-    src/SWE_streamnet.cpp
-    src/SWE_terminal.cpp
-    src/SWE_texture.cpp
-    src/SWE_tools.cpp
-    src/SWE_translation.cpp
-    src/SWE_unicodestring.cpp
-    src/SWE_videocam.cpp
-    src/SWE_videocam_ffmpeg.cpp
-    src/SWE_window.cpp)
+    add_library(SWE_plugin SHARED)
+    target_link_libraries(SWE_plugin SWE_bindings)
 
-if(SWE_WITH_LUA52)
-    target_sources(LuaSWE PUBLIC ${LUA52_SRC})
-    # lua flags
-    if(UNIX)
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DLUA_USE_POSIX -DLUA_USE_DLOPEN")
-        if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-            target_link_libraries(LuaSWE dl)
-        endif()
-    endif()
-else()
-    target_link_libraries(LuaSWE lua)
+    set_target_properties(SWE_plugin PROPERTIES PREFIX "")
+    set_target_properties(SWE_plugin PROPERTIES OUTPUT_NAME SWE)
+    set_target_properties(SWE_plugin PROPERTIES POSITION_INDEPENDENT_CODE 1)
+    set_target_properties(SWE_plugin PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 endif()
+
+# project3 LuaSWE starter
+project(LuaSWE VERSION 20210301.1)
+add_executable(LuaSWE main/SWE_main.cpp)
 
 # auto: support ffmpeg
 pkg_check_modules(FFMPEG QUIET libavdevice libavformat libavcodec libswscale libavutil)
@@ -151,5 +128,6 @@ else()
     message("skipping fireware support, not found: libraw1394, libavc1394, libiec61883, libdv, libmpeg2, or libmpeg2convert")
 endif()
 
+target_link_libraries(LuaSWE SWE_bindings)
 target_link_libraries(LuaSWE libswe)
 set_target_properties(LuaSWE PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})

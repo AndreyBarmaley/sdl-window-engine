@@ -291,6 +291,14 @@ SWE.StreamNet.WaitString
 	print("error: res false")
     end
 */
+SWE.StreamNet.IsSupported
+/**
+    @api {return network supported} SWE.StreamNet.IsSupported() SWE.StreamNet.IsSupported
+    @apiGroup SWE.StreamNet
+    @apiName IsSupported
+            
+    @apiSuccess (Return) {boolean}               result          true if supported
+*/
 SWE.StreamNet.LocalAddresses
 /**
     @api {return local addresses} SWE.StreamNet.LocalAddresses() SWE.StreamNet.LocalAddresses

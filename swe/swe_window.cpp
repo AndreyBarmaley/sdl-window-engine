@@ -331,9 +331,9 @@ namespace SWE
 
     void Window::setVisible(bool f)
     {
-        // set for all childrens
-        for(auto & child : DisplayScene::findChilds(*this))
-            child->setVisible(f);
+    	// set for all childrens (if for parent applies)
+    	for(auto & child : DisplayScene::items())
+    	    if(child->parent() == this) child->setVisible(f);
 
         if(checkState(FlagVisible) != f)
         {

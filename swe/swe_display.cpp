@@ -47,6 +47,7 @@ namespace SWE
 {
     namespace Display
     {
+        bool            forceWindowed = false;
         bool		fingerEventEmulation = false;
         const int       fingerMoveDelta = 4;
         const int       fingerGestureDelta = 15;
@@ -177,6 +178,9 @@ bool SWE::Display::init(const std::string & title, const Size & winsz, const Siz
     if(Systems::isEmbeded())
         fullscreen = true;
 
+    if(forceWindowed)
+        fullscreen = false;
+
 #ifdef SWE_SDL12
 
     if(fullscreen)
@@ -230,7 +234,7 @@ bool SWE::Display::createWindow(const std::string & title, const Size & newsz, i
 
     DEBUG("window: " << winsz.w << "x" << winsz.h);
 
-    if(Systems::isEmbeded())
+    if(Systems::isEmbeded() && !forceWindowed)
         hardwareCursorHide();
 
     tickStart = Tools::ticks();
@@ -1631,4 +1635,9 @@ bool SWE::Display::isMaximizedWindow(void)
 #endif
 
     return false;
+}
+
+void SWE::Display::setForceWindowed(bool f)
+{
+    forceWindowed = f;
 }

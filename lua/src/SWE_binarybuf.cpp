@@ -404,7 +404,7 @@ int SWE_binarybuf_setbyte(lua_State* L)
 	}
 	else
 	{
-    	    ERROR("out of range");
+    	    ERROR("out of range" << ", " << buf->size() << ", " << offset);
 	    ll.pushBoolean(false);
 	}
 	return 1;
@@ -440,7 +440,7 @@ int SWE_binarybuf_getbyte(lua_State* L)
 	    }
 	    else
 	    {
-    		ERROR("out of range " << buf->size() << ", " << offset1 << ", " << offset2);
+    		ERROR("out of range" << ", " << buf->size() << ", " << offset1 << ", " << offset2);
 		ll.pushNil();
 
 		return 1;
@@ -454,7 +454,7 @@ int SWE_binarybuf_getbyte(lua_State* L)
 	    }
 	    else
 	    {
-    		ERROR("out of range " << buf->size() << offset1);
+    		ERROR("out of range" << ", " << buf->size() << ", " << offset1);
 		ll.pushNil();
 	    }
 
@@ -492,7 +492,7 @@ int SWE_binarybuf_getbytes(lua_State* L)
 	}
 	else
 	{
-    	    ERROR("out of range");
+    	    ERROR("out of range" << ", " << buf->size() << ", " << pos);
 	    ll.pushNil();
 	}
     }
@@ -517,7 +517,7 @@ int SWE_binarybuf_insert(lua_State* L)
 
 	if(0 > pos || pos > buf1->size())
         {
-            ERROR("out of range");
+            ERROR("out of range" << ", " << buf1->size() << ", " << pos);
             ll.pushBoolean(false);
 	}
 	else
@@ -554,7 +554,7 @@ int SWE_binarybuf_insert(lua_State* L)
                     }
                     else
                     {
-                        ERROR("out of range");
+                        ERROR("out of range" << ", " << buf2->size() << ", " << subpos);
                         ll.pushBoolean(false);
                     }
                 }
@@ -612,7 +612,7 @@ int SWE_binarybuf_setbytes(lua_State* L)
 	}
 	else
 	{
-    	    ERROR("out of range");
+    	    ERROR("out of range" << ", " << buf1->size() << ", " << offset1 << ", " << buf2->size() << ", " << offset2);
 	    ll.pushBoolean(false);
 	}
     }
@@ -732,7 +732,7 @@ int SWE_binarybuf_erase(lua_State* L)
         }
         else
         {
-            ERROR("out of range" << ", " << pos << ", " << buf->size());
+            ERROR("out of range" << ", " << buf->size() << ", " << pos);
             ll.pushBoolean(false);
         }
     }
@@ -772,7 +772,7 @@ int SWE_binarybuf_compare(lua_State* L)
 		}
 		else
 		{
-    		    ERROR("out of range");
+    		    ERROR("out of range" << ", " << buf->size() << ", " << offset);
 		    res = false;
 		    break;
 		}
@@ -783,7 +783,7 @@ int SWE_binarybuf_compare(lua_State* L)
 	}
 	else
 	{
-    	    ERROR("out of range");
+    	    ERROR("out of range" << ", " << buf->size() << ", " << offset);
 	    ll.pushBoolean(false);
 	}
     }
@@ -847,7 +847,7 @@ int SWE_binarybuf_assign(lua_State* L)
         }
         else
         {
-            ERROR("out of range");
+            ERROR("out of range" << ", " << size);
             ll.pushBoolean(false);
         }
     }
@@ -886,7 +886,7 @@ int SWE_binarybuf_resize(lua_State* L)
         }
         else
         {
-            ERROR("out of range");
+            ERROR("out of range" << ", " << size);
             ll.pushBoolean(false);
         }
     }
@@ -913,6 +913,34 @@ int SWE_binarybuf_getsize(lua_State* L)
     {
         ERROR("userdata empty");
         ll.pushNumber(0);
+    }
+
+    return rescount;
+}
+
+int SWE_binarybuf_index(lua_State* L)
+{
+    // params: table binarybuf, int offset (lua style: start 1)
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
+    if(SWE_BinaryBuf* buf = SWE_BinaryBuf::get(ll, 1, __FUNCTION__))
+    {
+	int offset = ll.toIntegerIndex(2);
+	if(0 < offset && offset <= buf->size())
+	{
+	    ll.pushInteger(buf->operator[](offset - 1));
+	}
+	else
+	{
+    	    ERROR("out of range" << ", " << buf->size() << ", " << offset);
+	    ll.pushNil();
+	}
+    }
+    else
+    {
+	ERROR("userdata empty");
+	ll.pushNil();
     }
 
     return rescount;
@@ -963,11 +991,11 @@ SWE_BinaryBuf* SWE_Stack::binarybuf_create(LuaState & ll)
     // result
     ll.pushTable();
 
-    // set: tostring
+    // set: meta
     ll.pushTable(0, 1);
     ll.pushFunction(SWE_binarybuf_tostring).setFieldTableIndex("__tostring", -2);
     ll.pushFunction(SWE_binarybuf_getsize).setFieldTableIndex("__len", -2);
-    ll.pushFunction(SWE_binarybuf_getbyte).setFieldTableIndex("__index", -2);
+    ll.pushFunction(SWE_binarybuf_index).setFieldTableIndex("__index", -2);
     ll.pushFunction(SWE_binarybuf_equals).setFieldTableIndex("__eq", -2);
     ll.setMetaTableIndex(-2);
 

@@ -1,4 +1,5 @@
 -- require 'SWE'
+assert(SWE, "SDL Window Engine only")
 
 SWE.SetDebug(true)
 local win = SWE.DisplayInit("Lua SWE: TestFPS(5000 Rects)", 800, 600, false)

@@ -59,6 +59,7 @@ int SWE_translation_bindomain(lua_State* L)
 	if(Systems::isFile(filemo))
 	{
     	    res = Translation::bindDomain(domain, filemo);
+            DEBUG("loaded: " << filemo);
 	}
 	else
 	{

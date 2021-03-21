@@ -86,7 +86,7 @@ SWE.UnicodeString.Clear
 */
 SWE.UnicodeString.SetChar
 /**
-    @api {set char value} SWE.UnicodeString.SetChar(self,offset,value...value) SWE.UnicodeString.SetChar
+    @api {set byte value} SWE.UnicodeString.SetChar(self,offset,value...value) SWE.UnicodeString.SetChar
     @apiGroup SWE.UnicodeString
     @apiName SetChar
     
@@ -94,16 +94,31 @@ SWE.UnicodeString.SetChar
     @apiParam {number}                          offset          offset data
     @apiParam {number}                          value           byte value (list)
     @apiSuccess (Return) {boolean}              result          success
+
+    @apiExample usage
+    local ucs = SWE.UnicodeString("123456")
+    -- C style offset
+    ucs:SetChar(0, 0x33, 0x33)
 */
 SWE.UnicodeString.GetChar
 /**
-    @api {get char value} SWE.UnicodeString.GetChar(self,offset) SWE.UnicodeString.GetChar
+    @api {get byte value} SWE.UnicodeString.GetChar(self,offset) SWE.UnicodeString.GetChar
     @apiGroup SWE.UnicodeString
     @apiName GetChar
     
     @apiParam {SWE.UnicodeString}               self            unicodestring raw data
     @apiParam {number}                          offset          offset data
     @apiSuccess (Return) {number}               result          byte value
+
+    @apiExample usage
+    local ucs = SWE.UnicodeString("123456")
+    -- C style offset
+    local byte1 = ucs:GetChar(0)
+    -- Lua style offset
+    local byte2 = ucs[1]
+    if byte1 == byte2 then
+        print("equals")
+    end
 */
 SWE.UnicodeString.ToJson
 /**

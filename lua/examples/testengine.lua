@@ -1,4 +1,5 @@
 -- require 'SWE'
+assert(SWE, "SDL Window Engine only")
 
 SWE.SetDebug(false)
 
@@ -220,11 +221,13 @@ print(ustr3:ToJson())
 
 
 -- test net
-print("Test network")
-net = SWE.StreamNet()
+if SWE.StreamNet.IsSupported() then
+    print("Test network")
+    net = SWE.StreamNet()
 
-net:Connect("test.com", 80)
-net:SendString("GET / HTTP/1.0\r\n\r\n")
+    net:Connect("test.com", 80)
+    net:SendString("GET / HTTP/1.0\r\n\r\n")
 
-str = net:RecvString()
-print(str)
+    str = net:RecvString()
+    print(str)
+end

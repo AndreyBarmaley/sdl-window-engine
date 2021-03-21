@@ -169,9 +169,17 @@ namespace SWE
         return getInteger();
     }
 
+    std::string JsonString::escapeChars(std::string str)
+    {
+        for(auto ch : { '"', '\\' })
+            str = String::escapeChar(str, ch);
+
+        return str;
+    }
+
     std::string JsonString::toString(void) const
     {
-        return StringFormat("\"%1\"").arg(String::escapeChar(content, '"'));
+        return StringFormat("\"%1\"").arg(escapeChars(content));
     }
 
     /* JsonValuePtr */
@@ -347,7 +355,7 @@ namespace SWE
         return buf.size() ? parseBinary(reinterpret_cast<const char*>(buf.data()), buf.size()) : false;
     }
 
-    std::string JsonContent::stringTocken(const JsmnToken & tok) const
+    std::string JsonContent::stringToken(const JsmnToken & tok) const
     {
         return content.substr(tok.start(), tok.size());
     }
@@ -398,9 +406,12 @@ namespace SWE
 
     	    while(counts-- && itval != end())
     	    {
-                if(!(*itkey).isKey()) ERROR("not key, index: " << std::distance(begin(), itkey) << ", key: \"" << stringTocken(*itkey) << "\"");
+                if(!(*itkey).isKey()) ERROR("not key, index: " << std::distance(begin(), itkey) << ", key: \"" << stringToken(*itkey) << "\"");
 
-                std::string key = stringTocken(*itkey);
+                std::string key = stringToken(*itkey);
+        	key = String::replace(key, "\\\"", "\"");
+        	key = String::replace(key, "\\\\", "\\");
+
                 auto valp = getValue(itval, nullptr);
 
                 if(valp.first)
@@ -419,7 +430,7 @@ namespace SWE
 
         if(tok.isPrimitive())
         {
-            const std::string & val = stringTocken(tok);
+            const std::string & val = stringToken(tok);
 
             if(!(*it).isValue()) ERROR("not value, index: " << std::distance(begin(), it) << ", value: \"" << val << "\"");
 
@@ -454,12 +465,15 @@ namespace SWE
         }
         else
         {
-            const std::string & val = stringTocken(tok);
+            std::string val = stringToken(tok);
 
             if(!(*it).isValue())
 		ERROR("not value, index: " << std::distance(begin(), it) << ", value: \"" << val << "\"");
 
-            res = new JsonString(String::replace(val, "\\\"", "\""));
+            val = String::replace(val, "\\\"", "\"");
+            val = String::replace(val, "\\\\", "\\");
+
+            res = new JsonString(val);
             skip = 1;
         }
 
@@ -676,7 +690,7 @@ namespace SWE
             if((*it).second)
             {
 
-                os << "\"" << String::escapeChar((*it).first, '"') << "\": " << (*it).second->toString();
+                os << "\"" << JsonString::escapeChars((*it).first) << "\": " << (*it).second->toString();
                 if(std::next(it) != content.end()) os << ", ";
             }
         }

@@ -4,6 +4,7 @@
 -- FTP data port set 45001 - 450999
 
 -- require 'SWE'
+assert(SWE, "SDL Window Engine only")
 SWE.SetDebug(true)
 
 local version = "LuaFTP 01"
@@ -237,6 +238,7 @@ function FtpCommands(client)
 	if stat ~= nil then
 	    ftp.client:SendString("150 ok to send data\r\n")
 	    while offset < stat.size do
+		-- skip create object
 		buf:ReadFromFile(file, offset, block)
 		if 0 < buf.size then
 		    ftp.data.sock:SendBytes(buf)

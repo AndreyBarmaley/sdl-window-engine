@@ -44,12 +44,12 @@ class MainWindow : public DisplayWindow
     std::list<ColorRect>rects;
 
 public:
-    MainWindow(const Color & col, const std::string & file2) : DisplayWindow(col)
+    MainWindow(const Color & col, const std::string & file2, int ncounts) : DisplayWindow(col)
     {
 	Display::hardwareCursorHide();
 	Display::renderCursor(Display::createTexture(file2));
 
-	for(int it = 0; it < 5000; ++it)
+	for(int it = 0; it < ncounts; ++it)
 	    rects.emplace_back(ColorRect::rand(size()));
 
     }
@@ -139,7 +139,8 @@ public:
 	if(! Engine::init())
     	    return EXIT_FAILURE;
 
-	const std::string title = StringFormat("SWE: TestFPS(5000 Rects): %1").arg(Engine::version());
+	const int ncounts = 5000;
+	const std::string title = StringFormat("SWE: TestFPS(%1 Rects): %2").arg(ncounts).arg(Engine::version());
 
 	const Size render(800, 600);
 	const Size geometry(800, 600);
@@ -147,7 +148,7 @@ public:
 	if(! Display::init(title, geometry, render, false, true, false))
     	    return false;
 
-	MainWindow(Color::Navy, "cursor16.png").exec();
+	MainWindow(Color::Navy, "cursor16.png", ncounts).exec();
 
 	Engine::quit();
 	return true;

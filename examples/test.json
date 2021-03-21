@@ -1,5 +1,5 @@
 {
-    "test string":	"Hello World!",
+    "test string":	"Hello \\World!",
     "test int":		1234567,
     "test float":	1.234567,
     "test point":	[ 123, 456 ],
