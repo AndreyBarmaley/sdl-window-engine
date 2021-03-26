@@ -1557,7 +1557,13 @@ void SWE_Stack::terminal_create(LuaState & ll, const FontRender & frs, int cols,
     ll.pushString("cols").pushInteger(cols).setTableIndex(-3);
     ll.pushString("rows").pushInteger(rows).setTableIndex(-3);
     ll.pushString("hexid").pushString(hexid).setTableIndex(-3);
-    ll.pushString("parent").pushString(parid).setTableIndex(-3);
+
+    if(parent)
+    {
+        ll.pushString("parent");
+        SWE_Scene::window_pushtop(ll, *parent);
+        ll.setTableIndex(-3);
+    }
 
     // set functions
     ll.setFunctionsTableIndex(SWE_terminal_functions, -1);

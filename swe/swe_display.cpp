@@ -50,7 +50,9 @@ namespace SWE
         bool            forceWindowed = false;
         bool		fingerEventEmulation = false;
         const int       fingerMoveDelta = 4;
+#ifdef ANDROID
         const int       fingerGestureDelta = 15;
+#endif
 
 #ifdef SWE_SDL12
         SDL_Surface*	_window = nullptr;
@@ -1229,7 +1231,7 @@ void SWE::Display::handleFingerTap(const SDL_TouchFingerEvent & ev)
             coords.setRelease(real);
             // generate release
             DisplayScene::mouseButtonHandle(coords.release(), true);
-#if (defined ANDROID)
+#ifdef ANDROID
             // gesture finger event
             Point delta = coords.press().position() - coords.release().position();
 

@@ -80,7 +80,6 @@ function CreateSimpleColorWindow(color, str, posx, posy, parent)
     res.stbar = false
     res.focus = false
     res.text  = SWE.Texture.Text(parent.frs, str, SWE.Color.Black)
-    res.parent = parent
     res:SetMouseTracking(true)
 
     res.RenderWindow = function()

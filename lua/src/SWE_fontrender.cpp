@@ -20,8 +20,10 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include "SWE_rect.h"
 #include "SWE_tools.h"
 #include "SWE_fontrender.h"
+#include "SWE_unicodestring.h"
 
 int SWE_fontrender_create_psf(lua_State*);
 int SWE_fontrender_create_ttf(lua_State*);
@@ -151,11 +153,60 @@ int SWE_fontrender_symbol_advance(lua_State* L)
     return rescount;
 }
 
+int SWE_fontrender_string_size(lua_State* L)
+{
+    // params: swe_fontrender, string, bool
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
+    if(SWE_FontRender* frs = SWE_FontRender::get(ll, 1, __FUNCTION__))
+    {
+	std::string str = ll.toStringIndex(2);
+	bool direction = ll.toBooleanIndex(3);
+
+        Size res = frs->stringSize(str, direction);
+        SWE_Stack::size_create(ll, res.w, res.h);
+    }
+    else
+    {
+	ERROR("userdata empty");
+        ll.pushNil();
+    }
+
+    return rescount;
+}
+
+int SWE_fontrender_ucstring_size(lua_State* L)
+{
+    // params: swe_fontrender, string, bool
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
+    SWE_FontRender* frs = SWE_FontRender::get(ll, 1, __FUNCTION__);
+    SWE_UnicodeString* ustr = SWE_UnicodeString::get(ll, 2, __FUNCTION__);
+
+    if(frs && ustr)
+    {
+	bool direction = ll.toBooleanIndex(3);
+
+        Size res = frs->unicodeSize(*ustr, direction);
+        SWE_Stack::size_create(ll, res.w, res.h);
+    }
+    else
+    {
+	ERROR("userdata empty");
+        ll.pushNil();
+    }
+
+    return rescount;
+}
+
 int SWE_fontrender_split_stringwidth(lua_State* L)
 {
     // params: swe_fontrender, int width
-    // returned variable size
-    LuaState ll(L);
+    // returned table
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
 
     if(SWE_FontRender* frs = SWE_FontRender::get(ll, 1, __FUNCTION__))
     {
@@ -163,10 +214,16 @@ int SWE_fontrender_split_stringwidth(lua_State* L)
 	int width = ll.toIntegerIndex(3);
 	StringList list = frs->splitStringWidth(str, width);
 
+	ll.pushTable(list.size(), 0);
+	unsigned int seqindex = 1;
+    
 	for(auto & str : list)
+	{
 	    ll.pushString(str);
+    	    ll.setIndexTableIndex(seqindex++, -2);
+	}
 
-	return list.size();
+	return rescount;
     }
 
     ERROR("userdata empty");
@@ -177,6 +234,8 @@ const struct luaL_Reg SWE_fontrender_functions[] = {
     { "ToJson", SWE_fontrender_to_json },		      // [string], swe_fontrender
     { "SymbolAdvance", SWE_fontrender_symbol_advance },       // [int], swe_fontrender, symbol integer
     { "SplitStringWidth", SWE_fontrender_split_stringwidth }, // [list string], swe_fontrender, string, int width
+    { "StringSize", SWE_fontrender_string_size },             // [swe.size], swe_fontrender, string, bool
+    { "UnicodeStringSize", SWE_fontrender_ucstring_size },    // [swe.size], swe_fontrender, string, bool
     { NULL, NULL }
 };
 

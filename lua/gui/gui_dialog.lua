@@ -2,7 +2,7 @@
 
 function DialogInform(parent, frs, header, message)
 
-    local list = { frs:SplitStringWidth(message, parent.width) }
+    local list = frs:SplitStringWidth(message, parent.width)
     local height = (#list + 3) * frs.lineHeight
     local area = SWE.Window(0, (parent.height - height) / 2, parent.width, height, parent)
     area:SetModality(true)

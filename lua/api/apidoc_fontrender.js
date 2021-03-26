@@ -16,12 +16,11 @@ SWE.FontRender
     print(frs.font,frs.size)
 
     @apiExample ext table fields (read only)
-    | font    | string  |
-    | size    | number  |
-    | blended | number  |
-    | style   | number  |
-    | hinting | number  |
-
+    | font       | string |
+    | size       | number |
+    | blended    | number |
+    | style      | number |
+    | hinting    | number |
     | fixedWidth | number | for fixed font return SymbolAdvance(0x20)
     | lineHeight | number | skip line height
 */
@@ -35,16 +34,38 @@ SWE.FontRender.SymbolAdvance
     @apiParam {number}				symbol		symbol chars
     @apiSuccess (Return) {number}		result		advance value
 */
+SWE.FontRender.StringSize
+/**
+    @api {get render size} SWE.FontRender.StringSize(self,content,horizontal) SWE.FontRender.StringSize
+    @apiGroup SWE.FontRender
+    @apiName StringSize
+            
+    @apiParam {SWE.FontRender}			self		fontrender object
+    @apiParam {string}				content		string content
+    @apiParam {boolean}				horizontal	render is horizontal
+    @apiSuccess (Return) {SWE.Size}		result		render size
+*/
+SWE.FontRender.UnicodeStringSize
+/**
+    @api {get render size} SWE.FontRender.UnicodeStringSize(self,content,horizontal) SWE.FontRender.UnicodeStringSize
+    @apiGroup SWE.FontRender
+    @apiName UnicodeStringSize
+            
+    @apiParam {SWE.FontRender}			self		fontrender object
+    @apiParam {SWE.UnicodeString}		content		unicode content
+    @apiParam {boolean}				horizontal	render is horizontal
+    @apiSuccess (Return) {SWE.Size}		result		render size
+*/
 SWE.FontRender.SplitStringWidth
 /**
-    @api {list: split string width} SWE.FontRender.SplitStringWidth(self,content,width) SWE.FontRender.SplitStringWidth
+    @api {split string width} SWE.FontRender.SplitStringWidth(self,content,width) SWE.FontRender.SplitStringWidth
     @apiGroup SWE.FontRender
     @apiName SplitStringWidth
             
     @apiParam {SWE.FontRender}			self		fontrender object
     @apiParam {string}				content		string content
     @apiParam {number}				width		width
-    @apiSuccess (Return) {list}			result		string list result
+    @apiSuccess (Return) {table}		result		string list result
 */
 SWE.FontRender.ToJson
 /**

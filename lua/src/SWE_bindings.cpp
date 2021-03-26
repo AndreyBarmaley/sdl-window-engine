@@ -301,19 +301,23 @@ int SWE_get_version(lua_State* L)
 int SWE_display_videomodes(lua_State* L)
 {
     // params: none
-    LuaState ll(L);
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
 
     bool landscape = ll.isBooleanIndex(1) ? ll.toBooleanIndex(1) : true;
     auto modes = Display::hardwareVideoModes(landscape);
+    ll.pushTable(modes.size(), 0);
+    unsigned int seqindex = 1;
 
     for(auto & mode : modes)
     {
 	ll.pushTable();
 	ll.pushInteger(mode.w).setFieldTableIndex("width", -2);
 	ll.pushInteger(mode.h).setFieldTableIndex("height", -2);
+        ll.setIndexTableIndex(seqindex++, -2);
     }
 
-    return modes.size();
+    return rescount;
 }
 
 int SWE_loop(lua_State* L)
@@ -323,8 +327,8 @@ int SWE_loop(lua_State* L)
 
     if(auto win = SWE_Window::get(ll, 1, __FUNCTION__))
     {
-	int res = win->exec();
-	ll.pushInteger(res);
+	win->exec();
+	ll.pushInteger(win->resultCode());
     }
     else
     {

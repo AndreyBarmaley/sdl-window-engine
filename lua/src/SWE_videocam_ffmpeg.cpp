@@ -122,11 +122,14 @@ int ffmpeg_v4l2_channel_input(const std::string & dev, const std::string & chann
 #endif
 
 #ifndef FFMPEG_OLD_API
-std::string ffmpeg_err_string(int errnum)
+const char* ffmpeg_err_string(int errnum)
 {
-    char errstr[AV_ERROR_MAX_STRING_SIZE] = {0};
+    static char errstr[AV_ERROR_MAX_STRING_SIZE];
+
+    std::fill(errstr, errstr + AV_ERROR_MAX_STRING_SIZE, 0);
     av_make_error_string(errstr, AV_ERROR_MAX_STRING_SIZE, errnum);
-    return std::string(errstr);
+
+    return errstr;
 }
 
 /*

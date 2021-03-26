@@ -471,6 +471,9 @@ namespace SWE
 		ERROR("not value, index: " << std::distance(begin(), it) << ", value: \"" << val << "\"");
 
             val = String::replace(val, "\\\"", "\"");
+            val = String::replace(val, "\\n", "\n");
+            val = String::replace(val, "\\r", "\r");
+            val = String::replace(val, "\\t", "\t");
             val = String::replace(val, "\\\\", "\\");
 
             res = new JsonString(val);

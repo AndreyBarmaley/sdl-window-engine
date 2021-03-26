@@ -624,7 +624,7 @@ int SWE_window_set_result(lua_State* L)
 
     if(auto win = SWE_Window::get(ll, 1, __FUNCTION__))
     {
-	bool result = ll.toIntegerIndex(2);
+	int result = ll.toIntegerIndex(2);
 	win->setResultCode(result);
 
 	// userdata, bool, swe_window...
@@ -1544,7 +1544,13 @@ void SWE_Stack::window_create(LuaState & ll, const Point & pos, const Size & wsz
     ll.pushString("modality").pushBoolean(false).setTableIndex(-3);
     ll.pushString("keyhandle").pushBoolean(false).setTableIndex(-3);
     ll.pushString("hexid").pushString(hexid).setTableIndex(-3);
-    ll.pushString("parent").pushString(parid).setTableIndex(-3);
+
+    if(parent)
+    {
+	ll.pushString("parent");
+	SWE_Scene::window_pushtop(ll, *parent);
+	ll.setTableIndex(-3);
+    }
 
     // set functions
     ll.setFunctionsTableIndex(SWE_window_functions, -1);
@@ -1558,12 +1564,26 @@ int SWE_window_create(lua_State* L)
     const int rescount = 1;
     LuaStateDefine(ll, L, rescount);
 
-    // self, x, y, w, h, parent
-    int posx = ll.toIntegerIndex(2);
-    int posy = ll.toIntegerIndex(3);
-    int width = ll.toIntegerIndex(4);
-    int height = ll.toIntegerIndex(5);
+    int params = ll.stackSize();
+    Point winpos;
+    Size winsz;
     Window* parent = NULL;
+
+    // self, x, y, w, h, parent
+    if(5 <= params)
+    {
+	winpos.x = ll.toIntegerIndex(2);
+	winpos.y = ll.toIntegerIndex(3);
+	winsz.w = ll.toIntegerIndex(4);
+	winsz.h = ll.toIntegerIndex(5);
+    }
+    else
+    // self, {x, y}, {w, h}, parent
+    if(3 <= params)
+    {
+	winpos = SWE_Point::get(ll, 2, __FUNCTION__);
+	winsz = SWE_Size::get(ll, 3, __FUNCTION__);
+    }
 
     // get parent
     if(ll.isTopTable())
@@ -1572,7 +1592,7 @@ int SWE_window_create(lua_State* L)
     // set parent DisplayWindow
 	parent = DisplayScene::rootWindow();
 
-    SWE_Stack::window_create(ll, Point(posx, posy), Size(width, height), parent);
+    SWE_Stack::window_create(ll, winpos, winsz, parent);
     return rescount;
 }
 
@@ -1940,7 +1960,13 @@ int SWE_polygon_create(lua_State* L)
     ll.pushString("modality").pushBoolean(false).setTableIndex(-3);
     ll.pushString("keyhandle").pushBoolean(false).setTableIndex(-3);
     ll.pushString("hexid").pushString(hexid).setTableIndex(-3);
-    ll.pushString("parent").pushString(parid).setTableIndex(-3);
+
+    if(parent)
+    {
+	ll.pushString("parent");
+	SWE_Scene::window_pushtop(ll, *parent);
+	ll.setTableIndex(-3);
+    }
 
     // set functions
     ll.setFunctionsTableIndex(SWE_polygon_functions, -1);

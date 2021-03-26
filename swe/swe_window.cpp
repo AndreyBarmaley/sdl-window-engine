@@ -332,7 +332,8 @@ namespace SWE
     void Window::setVisible(bool f)
     {
     	// set for all childrens (if for parent applies)
-    	for(auto & child : DisplayScene::items())
+	// copy childs list: modify scene items order call, DisplayScene::moveTopLayer
+    	for(auto & child : DisplayScene::findChilds(*this))
     	    if(child->parent() == this) child->setVisible(f);
 
         if(checkState(FlagVisible) != f)

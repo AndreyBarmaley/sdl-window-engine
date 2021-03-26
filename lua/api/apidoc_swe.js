@@ -99,10 +99,10 @@ SWE.DisplayVideoModes
     @apiName DisplayVideoModes
 
     @apiParam {boolean}			landscape	landscape (default) or portrait modes
-    @apiSuccess (Return) {list}		result		modes list
+    @apiSuccess (Return) {table}	result		modes list
 
     @apiExample usage
-    local modes = { SWE.DisplayVideoModes() }
+    local modes = SWE.DisplayVideoModes(true)
     for i=1,#modes do
 	print("videomodes:", modes[i].width, modes[i].height)
     end

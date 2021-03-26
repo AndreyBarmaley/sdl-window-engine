@@ -286,6 +286,7 @@ SWE.Terminal
     | visible   | boolean | window is visible (defalut false)
     | modality  | boolean | window is modality (defalut false)
     | keyhangle | boolean | window is global key handle (defalut false)
+    | parent    | table   | SWE.Window object
 */
 
 SWE.Terminal.SetVisible

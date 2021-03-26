@@ -1,6 +1,6 @@
 SWE.Window
 /**
-    @api {window constructor} SWE.Window(posx,posy,width,height,parent) SWE.Window
+    @api {window constructor} SWE.Window(posx,posy,width,height,parent)SWE.Window(point,size,parent) SWE.Window
     @apiGroup SWE.Window
     @apiName Constructor
 
@@ -8,12 +8,15 @@ SWE.Window
     @apiParam {number}			posy		window position
     @apiParam {number}			width		window size
     @apiParam {number}			height		window size
+    @apiParam {SWE.Point}		point		window position
+    @apiParam {SWE.Size}		size		window size
     @apiParam {SWE.Window}		parent		parent object, (default display scene)
     @apiSuccess (Return) {SWE.Window}	result		window object
 
     @apiExample usage
     -- create window area(30,30,200,100) on display scene
     local win2 = SWE.Window(30,30,200,100)
+    local win3 = SWE.Window({10,10},{60,40}, win2)
 
     @apiExample ext table fields (read only)
     | posx      | number  | window position
@@ -23,6 +26,7 @@ SWE.Window
     | visible   | boolean | window is visible (defalut false)
     | modality  | boolean | window is modality (defalut false)
     | keyhangle | boolean | window is global key handle (defalut false)
+    | parent    | table   | SWE.Window object
 */
 SWE.Window.MarkDestroyed
 /**
@@ -344,7 +348,7 @@ SWE.Window.KeyPressEvent
     @api {window event: key event} SWE.Window.KeyPressEvent(keycode,keymod,scancode) SWE.Window.KeyPressEvent
     @apiGroup SWE.Window.Events
     @apiName KeyPressEvent
-    
+
     @apiParam {number}                          keycode		SWE.Key constant
     @apiParam {number}                          keymod		key mod SDL_Keymod
     @apiParam {number}                          scancode	key scancode
@@ -361,15 +365,17 @@ SWE.Window.KeyPressEvent
 */
 SWE.Window.KeyReleaseEvent
 /**
-    @api {window event: key event} SWE.Window.KeyReleaseEvent(keycode) SWE.Window.KeyReleaseEvent
+    @api {window event: key event} SWE.Window.KeyReleaseEvent(keycode,keymod,scancode) SWE.Window.KeyReleaseEvent
     @apiGroup SWE.Window.Events
     @apiName KeyReleaseEvent
     
     @apiParam {number}                          keycode		SWE.Key constant
+    @apiParam {number}                          keymod		key mod SDL_Keymod
+    @apiParam {number}                          scancode	key scancode
     @apiSuccess (Return) {boolean}		result		success if processing
 
     @apiExample usage
-    win.KeyReleaseEvent = function(k)
+    win.KeyReleaseEvent = function(k,m,s)
 	if k == SWE.Key.ESCAPE then
 	    win:SetVisible(false)
 	    print("hide window")
