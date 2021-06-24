@@ -59,6 +59,17 @@ typedef Uint64          u64;
 #define PATH_MAX	4096
 #endif
 
+#ifdef SWE_WITH_STD_MAP
+#include <unordered_map>
+#include <unordered_set>
+#define swe_unordered_map std::unordered_map
+#define swe_unordered_set std::unordered_set
+#else
+#include "flat_hash_map/unordered_map.hpp"
+#define swe_unordered_map ska::unordered_map
+#define swe_unordered_set ska::unordered_set
+#endif
+
 #if defined __SYMBIAN32__
 #undef PATH_MAX
 #define PATH_MAX FILENAME_MAX

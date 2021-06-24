@@ -21,7 +21,6 @@
  ***************************************************************************/
 
 #include <algorithm>
-#include <unordered_map>
 #include <iterator>
 
 #include "swe_display.h"
@@ -80,19 +79,19 @@ namespace SWE
     void CharProperty::setRender(const CharRender & v)
     {
         val &= ~(0x03 << 6);
-        if(v) val |= (v & 0x03) << 6;
+        if(v != RenderDefault) val |= (v & 0x03) << 6;
     }
 
     void CharProperty::setStyle(int v)
     {
         val &= ~(0x0f << 2);
-        if(v) val |= (v & 0x0f) << 2;
+        if(v != StyleDefault) val |= (v & 0x0f) << 2;
     }
         
     void CharProperty::setHinting(const CharHinting & v)
     {
         val &= ~(0x03);
-        if(v) val |= (v & 0x03);
+        if(v != HintingDefault) val |= (v & 0x03);
     }
 
     bool CharProperty::operator< (const CharProperty & cp) const
@@ -246,7 +245,7 @@ namespace SWE
         }
     };
 
-    std::unordered_map<CharsetID, Texture, HasherCID> fontsCache;
+    swe_unordered_map<CharsetID, Texture, HasherCID> fontsCache;
 }
 
 void SWE::FontsCache::clear(void)

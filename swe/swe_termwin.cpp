@@ -285,7 +285,7 @@ namespace SWE
 
     /* TermBase */
     TermBase::TermBase(const FontRender & font, Window* win)
-        : Window(win), fontRender(& font)
+        : Window(win), fontRender(& font), curalign(AlignLeft)
     {
         if(fontRender->size().isEmpty())
         {
@@ -297,7 +297,7 @@ namespace SWE
     }
 
     TermBase::TermBase(const Size & gfxsz, const FontRender & font, Window* win)
-        : Window(win), fontRender(& font)
+        : Window(win), fontRender(& font), curalign(AlignLeft)
     {
         if(fontRender->size().isEmpty())
         {
@@ -310,14 +310,14 @@ namespace SWE
     }
 
     TermBase::TermBase(const TermSize & tsz, TermBase & term)
-        : Window(& term), fontRender(term.frs())
+        : Window(& term), fontRender(term.frs()), curalign(AlignLeft)
     {
         setTermSize(tsz);
         *this << reset::defaults();
     }
 
     TermBase::TermBase(TermBase* term)
-        : Window(term), fontRender(term ? term->frs() : nullptr)
+        : Window(term), fontRender(term ? term->frs() : nullptr), curalign(AlignLeft)
     {
         *this << reset::defaults();
     }

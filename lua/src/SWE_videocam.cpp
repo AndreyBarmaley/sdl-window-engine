@@ -28,13 +28,13 @@ SWE_VideoCam::SWE_VideoCam(const JsonObject & params) : context(NULL)
 {
 #ifdef WITH_VIDEOCAM_FFMPEG
     context = new FFmpegContext();
-#endif
     if(context && ! context->init(params))
     {
 	context->quit();
 	delete context;
 	context = NULL;
     }
+#endif
 }
 
 SWE_VideoCam::~SWE_VideoCam()

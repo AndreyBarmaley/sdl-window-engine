@@ -20,7 +20,6 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <unordered_map>
 #include <string>
 
 #include "swe_streambuf.h"
@@ -46,7 +45,7 @@ namespace SWE
         {
             u32 count, offset_strings1, offset_strings2, hash_size, hash_offset;
             StreamBuf buf;
-            std::unordered_map<std::string, chunk> hash_offsets;
+            swe_unordered_map<std::string, chunk> hash_offsets;
             std::string encoding;
             std::string plural_forms;
             u32 nplurals;
@@ -177,7 +176,7 @@ namespace SWE
              };
 
         mofile*				current = nullptr;
-        std::unordered_map<std::string, mofile>	domains;
+        swe_unordered_map<std::string, mofile>	domains;
         int					locale = LOCALE_EN;
         char				context = 0;
 

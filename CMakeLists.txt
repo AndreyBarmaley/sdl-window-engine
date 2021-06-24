@@ -1,10 +1,11 @@
 cmake_minimum_required(VERSION 3.14)
 
-project(SDL_WINDOW_ENGINE VERSION 20210325.1)
+project(SDL_WINDOW_ENGINE VERSION 20210620.1)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -ggdb3 -O0 -Wall -Werror -Wno-sign-compare -fsigned-char -DSWE_DEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -Wall -Wno-sign-compare -fsigned-char")
 
@@ -21,6 +22,7 @@ option(SWE_DISABLE_TTF "disable library SDL_ttf" OFF)
 option(SWE_DISABLE_NETWORK "disable library SDL_net" ON)
 option(SWE_DISABLE_TERMGUI "disable build termwin_gui" ON)
 option(SWE_DEBUG_SCENE "scene debug hotkeys: (Shift+F8) - highlight windows regions, (Shift+F9) - dump scene to console, (Shift+F10) - dump scene to json" OFF)
+option(SWE_WITH_STD_MAP "usage std::unordered, (otherwise flat_hash_map version)" OFF)
 option(SWE_DEBUG_MESSAGES "DEBUG messages" ON)
 
 include(libswe.cmake)
@@ -34,6 +36,10 @@ set_target_properties(libswe PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT
 
 if(SWE_EXAMPLES)
     add_subdirectory(examples)
+endif()
+
+if(SWE_WITH_STD_MAP)
+    add_compile_options("-DSWE_WITH_STD_MAP")
 endif()
 
 if(SWE_WITH_LUA)

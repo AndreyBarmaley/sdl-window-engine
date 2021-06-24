@@ -356,8 +356,8 @@ bool SWE::Display::renderInit(const Size & newsz, bool accel)
     DEBUG("render: " << (accel ? "hardware" : "software"));
     DEBUG("display texture: " << String::pointer(displayTexture.toSDLTexture()));
 
-    if(! renderReset(displayTexture.toSDLTexture()))
-        return false;
+    //if(! renderReset(displayTexture.toSDLTexture()))
+    //    return false;
 
     renderReset(nullptr);
 
@@ -447,6 +447,7 @@ bool SWE::Display::renderReset(SDL_Texture* target)
     if(! _renderer)
         return false;
 
+/*
     SDL_RendererInfo info;
 
     if(0 != SDL_GetRendererInfo(_renderer, & info))
@@ -459,6 +460,24 @@ bool SWE::Display::renderReset(SDL_Texture* target)
     {
         ERROR("not target texture: " << String::pointer(target));
         return false;
+    }
+*/
+
+    if(target)
+    {   
+        int access;
+        
+        if(0 != SDL_QueryTexture(target, nullptr, & access, nullptr, nullptr))
+        {
+            ERROR("query texture: " << SDL_GetError());
+            return false;
+        }
+
+        if(access != SDL_TEXTUREACCESS_TARGET)
+        {
+            ERROR("not target texture: " << String::pointer(target));
+            return false;
+        }
     }
 
     if(0 != SDL_SetRenderTarget(_renderer, target))

@@ -6,11 +6,13 @@ local fullscreen = false
 SWE.SetDebug(true)
 
 local win = SWE.DisplayInit("LuaSWE example1", 640, 480, fullscreen)
-local area = SWE.Window(100, 100, 100, 50)
+local area = SWE.Window(100, 100, 100, 50, win)
 area.colors = { SWE.Color.Blue, SWE.Color.Red, SWE.Color.Green }
 area.bgcol = 1
 
 local frs = SWE.FontRender("terminus.ttf", 14, SWE.Font.RenderSolid)
+local poly = SWE.Polygon(320,240, 330,280, 370,290, 330,300, 320,340, 310,300, 270,290, 310,280, 320,240)
+poly.focused = false
 
 function win.RenderWindow()
     win:RenderClear(SWE.Color.Silver)
@@ -51,6 +53,29 @@ function area.RenderWindow()
     area:RenderClear(area.colors[area.bgcol])
     area:RenderRect(SWE.Color.Yellow, 0, 0, win.width, win.height)
     area:RenderText(frs, "Hello World!", SWE.Color.White, area.width / 2, area.height / 2, SWE.Align.Center, SWE.Align.Center)
+    return true
+end
+
+function poly.MouseFocusEvent(f)
+    poly.focused = f
+    SWE.DisplayDirty()
+end
+
+function poly.RenderWindow()
+    local points1 = poly:GetAreaPoints()
+    local fill = SWE.Color.Yellow
+    local bound = SWE.Color.Navy
+    if poly.focused then
+	fill = SWE.Color.Navy
+	bound = SWE.Color.Yellow
+    end
+    for i=1,#points1 do
+	poly:RenderPoint(fill, points1[i].posx, points1[i].posy)
+    end
+    local points2 = poly:GetBoundaryPoints()
+    for i=1,#points2 do
+	poly:RenderPoint(bound, points2[i].posx, points2[i].posy)
+    end
     return true
 end
 

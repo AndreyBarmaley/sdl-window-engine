@@ -98,10 +98,19 @@ struct PointComp
     }
 };
 
+/// \cond PointHasher
+struct PointHasher
+{
+    size_t operator() (const Point & pt) const
+    {
+        return std::hash<u32>()((pt.y << 16) | pt.x);
+    }
+};
+
 class SWE_Polygon : public SWE_Window
 {
 protected:
-    std::set<Point, PointComp> points;
+    swe_unordered_set<Point, PointHasher> areaPoints;
 
     void	fillPoints(const Polygon &);
     Rect	aroundArea(void) const;
@@ -113,7 +122,8 @@ public:
     void        renderClear(const Color &) override;
     bool        isAreaPoint(const Point &) const override;
 
-    Points	getPoints(void) const;
+    Points	getAreaPoints(void) const;
+    Points	getBoundaryPoints(void) const;
 
     void	includeRegion(const Points &);
     void	excludeRegion(const Points &);

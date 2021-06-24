@@ -1579,7 +1579,7 @@ int SWE_window_create(lua_State* L)
     }
     else
     // self, {x, y}, {w, h}, parent
-    if(3 <= params)
+    // if(3 <= params)
     {
 	winpos = SWE_Point::get(ll, 2, __FUNCTION__);
 	winsz = SWE_Size::get(ll, 3, __FUNCTION__);
@@ -1662,7 +1662,7 @@ int SWE_polygon_to_json(lua_State* L)
 
 	    std::ostringstream os;
     	    os << "{\"type\":\"swe.polygon\",\"window\":" << window << ",\"points\":" <<
-		JsonPack::points(poly->getPoints()).toString() << "}";
+		JsonPack::points(poly->getAreaPoints()).toString() << "}";
 
 	    ll.pushString(os.str());
 	}
@@ -1673,6 +1673,58 @@ int SWE_polygon_to_json(lua_State* L)
 	ll.pushNil();
     }
 
+    return rescount;
+}
+
+int SWE_polygon_points1(lua_State* L)
+{
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
+    if(auto poly = static_cast<SWE_Polygon*>(SWE_Polygon::get(ll, 1, __FUNCTION__)))
+    {
+	auto points = poly->getBoundaryPoints();
+	ll.pushTable(points.size(), 0);
+
+	for(size_t seqIndex = 0; seqIndex < points.size(); ++seqIndex)
+	{
+	    Point pt = points[seqIndex] - poly->position();
+	    SWE_Stack::point_create(ll, pt.x, pt.y);
+	    ll.setIndexTableIndex(seqIndex + 1, -2);
+	}
+    }
+    else
+    {
+        ERROR("userdata empty");
+        ll.pushNil();
+    }
+    
+    return rescount;
+}
+
+int SWE_polygon_points2(lua_State* L)
+{
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
+    if(auto poly = static_cast<SWE_Polygon*>(SWE_Polygon::get(ll, 1, __FUNCTION__)))
+    {
+	auto points = poly->getAreaPoints();
+	ll.pushTable(points.size(), 0);
+
+	for(size_t seqIndex = 0; seqIndex < points.size(); ++seqIndex)
+	{
+	    Point pt = points[seqIndex] - poly->position();
+	    SWE_Stack::point_create(ll, pt.x, pt.y);
+	    ll.setIndexTableIndex(seqIndex + 1, -2);
+	}
+    }
+    else
+    {
+        ERROR("userdata empty");
+        ll.pushNil();
+    }
+    
     return rescount;
 }
 
@@ -1714,6 +1766,8 @@ const struct luaL_Reg SWE_polygon_functions[] = {
     { "SystemTickEvent",   NULL },
     { "RenderWindow",      NULL },
     // polygon func
+    { "GetBoundaryPoints", SWE_polygon_points1 },	// [table points], table polygon
+    { "GetAreaPoints", SWE_polygon_points2 },		// [table points], table polygon
     { NULL, NULL }
 };
 
@@ -1744,23 +1798,15 @@ struct StatusPoint
     void setClosed(void) { val = StatusClosed; }
 };
 
-/// \cond PointHasher
-struct PointHasher
-{
-    size_t operator() (const Point & pt) const
-    {
-        return std::hash<u32>()((pt.y << 16) | pt.x);
-    }
-};
-
 void SWE_Polygon::fillPoints(const Polygon & poly)
 {
     const Rect & area = Window::area();
     Point pt = Point(area.x + area.w / 2, area.y + area.h / 2);
 
-    std::unordered_map<Point, StatusPoint, PointHasher> status;
-    for(auto it = poly.begin(); it != poly.end(); ++it)
-	status[*it].setClosed();
+    swe_unordered_map<Point, StatusPoint, PointHasher> status;
+
+    for(auto & pt : poly)
+	status[pt].setClosed();
 
     if(poly & pt)
     {
@@ -1829,13 +1875,13 @@ void SWE_Polygon::fillPoints(const Polygon & poly)
     }
 
     for(auto it = status.begin(); it != status.end(); ++it)
-	if(! (*it).second.checkOpen()) points.insert((*it).first - position());
+	if(! (*it).second.checkOpen()) areaPoints.insert((*it).first - position());
 }
 
 void SWE_Polygon::renderClear(const Color & col)
 {
-    for(auto it = points.begin(); it != points.end(); ++it)
-	renderPoint(col, *it);
+    for(auto & pt : areaPoints)
+	renderPoint(col, pt);
 }
 
 void SWE_Polygon::renderWindow(void)
@@ -1859,25 +1905,67 @@ void SWE_Polygon::renderWindow(void)
 
     if(! extrender && Engine::debugMode())
     {
-        for(auto it = points.begin(); it != points.end(); ++it)
-	    renderPoint(Color::Red, *it);
+        for(auto & pt : areaPoints)
+	    renderPoint(Color::Red, pt);
     }
 }
 
 bool SWE_Polygon::isAreaPoint(const Point & pos) const
 {
     if(Window::isAreaPoint(pos))
-	return points.end() != points.find(pos - position());
+	return areaPoints.end() != areaPoints.find(pos - position());
 
     return false;
 }
 
-Points SWE_Polygon::getPoints(void) const
+Points SWE_Polygon::getBoundaryPoints(void) const
+{
+    const Rect & rect = Window::area();
+    Points res;
+
+    for(auto & pt : areaPoints)
+    {
+        if(0 == pt.x || 0 == pt.y ||
+            rect.w - 1 == pt.x || rect.h - 1 == pt.y)
+        {
+	    res.push_back(pt + rect.toPoint());
+        }
+        else
+        {
+	    auto lf = pt - SWE::Point(1, 0);
+	    auto rt = pt + SWE::Point(1, 0);
+	    auto tp = pt - SWE::Point(0, 1);
+	    auto bt = pt + SWE::Point(0, 1);
+
+	    if(areaPoints.end() == areaPoints.find(lf))
+		res.push_back(lf + rect.toPoint());
+
+	    if(areaPoints.end() == areaPoints.find(tp))
+		res.push_back(tp + rect.toPoint());
+
+	    if(rect.w > rt.x)
+	    {
+		if(areaPoints.end() == areaPoints.find(rt))
+		    res.push_back(rt + rect.toPoint());
+	    }
+
+	    if(rect.h > bt.y)
+	    {
+		if(areaPoints.end() == areaPoints.find(bt))
+		    res.push_back(bt + rect.toPoint());
+	    }
+	}
+    }
+
+    return res;
+}
+
+Points SWE_Polygon::getAreaPoints(void) const
 {
     Points res;
 
-    for(auto it = points.begin(); it != points.end(); ++it)
-	res.push_back(*it + position());
+    for(auto & pt : areaPoints)
+	res.push_back(pt + position());
 
     return res;
 }
@@ -1887,10 +1975,10 @@ void SWE_Polygon::includeRegion(const Points & pts)
     Rect area1 = pts.around();
     Point offset = area1.toPoint() - position();
 
-    for(auto it = pts.begin(); it != pts.end(); ++it)
-	points.insert(*it + offset);
+    for(auto & pt : pts)
+	areaPoints.insert(pt + offset);
 
-    Rect area2 = getPoints().around();
+    Rect area2 = getAreaPoints().around();
 
     setSize(area2);
     setPosition(area2);
@@ -1901,10 +1989,10 @@ void SWE_Polygon::excludeRegion(const Points & pts)
     Rect area1 = pts.around();
     Point offset = area1.toPoint() - position();
 
-    for(auto it = pts.begin(); it != pts.end(); ++it)
-	points.erase(*it + offset);
+    for(auto & pt : pts)
+	areaPoints.erase(pt + offset);
 
-    Rect area2 = getPoints().around();
+    Rect area2 = getAreaPoints().around();
 
     setSize(area2);
     setPosition(area2);
@@ -1931,8 +2019,15 @@ int SWE_polygon_create(lua_State* L)
     for(int it = 2; it < params; it += 2)
     {
 	int px = ll.toIntegerIndex(it);
-	int py = ll.toIntegerIndex(it + 1);
-	points.push_back(Point(px, py));
+	if(it < params)
+	{
+	    int py = ll.toIntegerIndex(it + 1);
+	    points.emplace_back(px, py);
+	}
+	else
+	{
+	    ERROR("incorrect points size");
+	}
     }
 
     ll.pushTable();

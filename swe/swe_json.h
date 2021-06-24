@@ -26,7 +26,6 @@
 #ifdef SWE_WITH_JSON
 
 #include <utility>
-#include <unordered_map>
 #include <initializer_list>
 
 #include "swe_types.h"
@@ -325,7 +324,7 @@ namespace SWE
         bool			getBoolean(void) const override;
 
     protected:
-        std::unordered_map<std::string, JsonValuePtr> content;
+        swe_unordered_map<std::string, JsonValuePtr> content;
         friend class JsonContent;
 
         template<typename T>

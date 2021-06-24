@@ -341,9 +341,13 @@ int SWE_loop(lua_State* L)
 
 int SWE_dump(lua_State* L)
 {
-    // params: none
+    // params: stack values dump
+    const int rescount = 0;
+    LuaStateDefine(ll, L, rescount);
+
     LuaState(L).stackDump();
-    return 0;
+
+    return rescount;
 }
 
 int SWE_cursor_show(lua_State* L)
