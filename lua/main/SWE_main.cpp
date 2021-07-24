@@ -202,8 +202,6 @@ int main(int argc, char** argv)
 	// set SWE.getcwd
 	if(ll.pushTable("SWE").isTopTable())
 	{
-	    // check relative path for runefile
-	    std::string dir2 = Systems::concatePath(cwd, Systems::dirname(runfile));
 	    DEBUG("set SWE.getcwd: " << cwd);
 	    ll.pushString(cwd).setFieldTableIndex("getcwd", -2);
 

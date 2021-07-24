@@ -277,7 +277,8 @@ namespace SWE
 #if defined(__MINGW32CE__)
         return dirname2(String::replace(str, "\\", "/"));
 #elif defined(__MINGW32__)
-        return dirname2(String::escapeChar(str, '\\'));
+        // escape char '\\'
+        return dirname2(String::escaped(str));
 #endif
         return dirname2(str);
     }
@@ -537,7 +538,8 @@ namespace SWE
                 res = Systems::concatePath(Systems::environment("APPDATA"), prog);
 
 #if defined(__MINGW32__)
-        res = String::escapeChar(res, '\\');
+        // escape char '\\'
+        res = dirname2(String::escaped(str));
 #endif
         return res;
     }

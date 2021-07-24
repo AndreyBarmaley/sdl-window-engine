@@ -40,7 +40,7 @@ public:
 
 namespace SWE_Stack
 {
-    SWE_UnicodeString*	unicode_create(LuaState &);
+    SWE_UnicodeString*	u16string_create(LuaState &);
 }
 
 #endif

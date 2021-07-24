@@ -42,6 +42,7 @@
 #include "SWE_streamfile.h"
 #include "SWE_fontrender.h"
 #include "SWE_translation.h"
+#include "SWE_unicoderegex.h"
 #include "SWE_unicodestring.h"
 
 int SWE_window_init_mobile(lua_State* L)
@@ -1211,6 +1212,8 @@ extern "C" {
     SWE_VideoCam::registers(ll);
     // SWE.Translation
     SWE_Translation::registers(ll);
+    // SWE.UnicodeRegex
+    SWE_UnicodeRegex::registers(ll);
     // SWE.UnicodeString
     SWE_UnicodeString::registers(ll);
 

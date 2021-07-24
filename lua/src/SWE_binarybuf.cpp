@@ -745,8 +745,50 @@ int SWE_binarybuf_erase(lua_State* L)
     return rescount;
 }
 
+int SWE_binarybuf_find(lua_State* L)
+{
+    // params: table binarybuf, binarybuf, int pos
+                    
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
+    if(SWE_BinaryBuf* buf = SWE_BinaryBuf::get(ll, 1, __FUNCTION__))
+    {
+        int res = -1;
+        int params = ll.stackSize();
+
+        if(ll.isTableIndex(2))
+        {
+            if(SWE_BinaryBuf* buf2 = SWE_BinaryBuf::get(ll, 2, __FUNCTION__))
+            {
+                int pos = 2 < params ? ll.toIntegerIndex(3) : 0;
+
+                if(! buf2->empty())
+                {
+                    auto it = std::search(std::next(buf->begin(), pos), buf->end(), buf2->begin(), buf2->end());
+                    if(it != buf->end())
+                        res = std::distance(buf->begin(), it);
+                }
+            }
+            else
+            {
+                ERROR("table not found" << ": " << "swe.binarybuf");
+            }
+        }
+	ll.pushInteger(res);
+    }
+    else
+    {
+	ERROR("userdata empty");
+	ll.pushInteger(-1);
+    }
+
+    return rescount;
+}
+
 int SWE_binarybuf_compare(lua_State* L)
 {
+    // params: table binarybuf, binarybuf, int offset
     // params: table binarybuf, int offset, int byte, int byte ... int byte
     const int rescount = 1;
     LuaStateDefine(ll, L, rescount);
@@ -754,6 +796,28 @@ int SWE_binarybuf_compare(lua_State* L)
     int params = ll.stackSize();
     if(SWE_BinaryBuf* buf = SWE_BinaryBuf::get(ll, 1, __FUNCTION__))
     {
+        // variant 1
+        if(ll.isTableIndex(2))
+        {
+            bool res = false;
+
+            if(SWE_BinaryBuf* buf2 = SWE_BinaryBuf::get(ll, 2, __FUNCTION__))
+            {
+                int offset = 2 < params ? ll.toIntegerIndex(3) : 0;
+                if(! buf2->empty() &&
+                    std::equal(std::next(buf->begin(), offset), buf->end(), buf2->begin()))
+                    res = true;
+            }
+            else
+            {
+                ERROR("table not found" << ": " << "swe.binarybuf");
+            }
+
+	    ll.pushBoolean(res);
+            return rescount;
+        }
+
+        // variant 2
 	int offset = ll.toIntegerIndex(2);
 	if(0 <= offset && offset <= buf->size())
 	{
@@ -967,6 +1031,7 @@ const struct luaL_Reg SWE_binarybuf_functions[] = {
     { "Assign", SWE_binarybuf_assign },			// [void], table binarybuf, int size, int val
     { "Resize", SWE_binarybuf_resize },                 // [bool], table binarybuf, int size, int val
     { "Erase", SWE_binarybuf_erase },                   // [bool], table binarybuf, int pos, int count
+    { "Find", SWE_binarybuf_find },                     // [int], table binarybuf, binarybuf, int pos
     { NULL, NULL }
 };
 

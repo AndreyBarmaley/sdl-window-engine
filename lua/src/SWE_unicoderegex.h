@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2019 by SWE team <sdl.window.engine@gmail.com>          *
+ *   Copyright (C) 2021 by SWE team <sdl.window.engine@gmail.com>          *
  *                                                                         *
  *   Part of the SWE Lua:                                                  *
  *   https://github.com/AndreyBarmaley/SWE_lua                             *
@@ -20,23 +20,26 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef _SWE_LUA_GLOBAL_
-#define _SWE_LUA_GLOBAL_
+#ifndef _SWE_LUA_U16REGEX_
+#define _SWE_LUA_U16REGEX_
 
-#include "libswe.h"
-using namespace SWE;
+#include "SWE_global.h"
+#include "srell/srell.hpp"
 
-#define SWE_LUA_VERSION 20210723
-#define SWE_LUA_LICENSE "GPL3"
+struct lua_State;
 
-#define LuaUnused(val) ((void) val)
+class SWE_UnicodeRegex : public srell::u16regex
+{
+public:
+    SWE_UnicodeRegex() {}
 
-#ifdef LUA_STACK_DEBUG
- #define LuaStateDefine(ls,L,num) LuaStateDebug ls(L,__PRETTY_FUNCTION__,num)
- #define LuaStateValidator(ls,num) LuaStateDebug ls2(ls.L(),__PRETTY_FUNCTION__,num);LuaUnused(ls2)
-#else
- #define LuaStateDefine(ls,L,num) LuaState ls(L)
- #define LuaStateValidator(ls,num) ;
-#endif
+    static SWE_UnicodeRegex*    get(LuaState &, int tableIndex, const char* funcName);
+    static void		        registers(LuaState & ll);
+};
+
+namespace SWE_Stack
+{
+    SWE_UnicodeRegex*           u16regex_create(LuaState &);
+}
 
 #endif

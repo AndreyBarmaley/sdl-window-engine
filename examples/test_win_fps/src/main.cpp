@@ -72,7 +72,8 @@ public:
 	for(int it = 0; it < ncounts; ++it)
 	{
 	    auto pair = ColorRectWindow::rand(size());
-	    wins.emplace_back(new ColorRectWindow(pair.first, pair.second, this));
+	    auto ptr = new ColorRectWindow(pair.first, pair.second, this);
+	    wins.emplace_back(ptr);
 	}
     }
 
@@ -109,7 +110,8 @@ public:
     {
 	wins.pop_front();
 	auto pair = ColorRectWindow::rand(size());
-	wins.emplace_back(new ColorRectWindow(pair.first, pair.second, this));
+	auto ptr = new ColorRectWindow(pair.first, pair.second, this);
+	wins.emplace_back(ptr);
 
 	// max performance
 	// see SWE::DisplayScene::handleWhileVisible

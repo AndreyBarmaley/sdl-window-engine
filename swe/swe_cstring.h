@@ -78,7 +78,9 @@ namespace SWE
         std::string	strftime(const std::string &);
         std::string	strftime(const std::string &, const time_t &);
 
-        std::string	escapeChar(const std::string &, int ch);
+        std::string	escaped(const std::string &, bool quote = false);
+        std::string	unescaped(std::string);
+
         bool		compareInSensitive(const std::string &, const std::string &);
 
         std::string     replace(const std::string &, const char*, const std::string &);

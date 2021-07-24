@@ -22,10 +22,11 @@
 
 #ifdef SWE_WITH_JSON
 
-#include <sstream>
 #include <cctype>
-#include <algorithm>
+#include <iomanip>
+#include <sstream>
 #include <utility>
+#include <algorithm>
 
 #include "swe_systems.h"
 #include "swe_json_ext.h"
@@ -169,17 +170,9 @@ namespace SWE
         return getInteger();
     }
 
-    std::string JsonString::escapeChars(std::string str)
-    {
-        for(auto ch : { '"', '\\' })
-            str = String::escapeChar(str, ch);
-
-        return str;
-    }
-
     std::string JsonString::toString(void) const
     {
-        return StringFormat("\"%1\"").arg(escapeChars(content));
+        return String::escaped(content, true);
     }
 
     /* JsonValuePtr */
@@ -201,6 +194,11 @@ namespace SWE
     JsonValuePtr::JsonValuePtr(double v)
     {
 	reset(new JsonDouble(v));
+    }
+
+    JsonValuePtr::JsonValuePtr(const char* v)
+    {
+	reset(new JsonString(v));
     }
 
     JsonValuePtr::JsonValuePtr(const std::string & v)
@@ -406,12 +404,10 @@ namespace SWE
 
     	    while(counts-- && itval != end())
     	    {
-                if(!(*itkey).isKey()) ERROR("not key, index: " << std::distance(begin(), itkey) << ", key: \"" << stringToken(*itkey) << "\"");
+                if(!(*itkey).isKey())
+                    ERROR("not key, index: " << std::distance(begin(), itkey) << ", key: `" << stringToken(*itkey) << "'");
 
-                std::string key = stringToken(*itkey);
-        	key = String::replace(key, "\\\"", "\"");
-        	key = String::replace(key, "\\\\", "\\");
-
+                auto key = String::unescaped(stringToken(*itkey));
                 auto valp = getValue(itval, nullptr);
 
                 if(valp.first)
@@ -432,7 +428,7 @@ namespace SWE
         {
             const std::string & val = stringToken(tok);
 
-            if(!(*it).isValue()) ERROR("not value, index: " << std::distance(begin(), it) << ", value: \"" << val << "\"");
+            if(!(*it).isValue()) ERROR("not value, index: " << std::distance(begin(), it) << ", value: `" << val << "'");
 
             size_t dotpos = val.find(".");
             if(std::string::npos != dotpos)
@@ -468,15 +464,9 @@ namespace SWE
             std::string val = stringToken(tok);
 
             if(!(*it).isValue())
-		ERROR("not value, index: " << std::distance(begin(), it) << ", value: \"" << val << "\"");
+		ERROR("not value, index: " << std::distance(begin(), it) << ", value: `" << val << "'");
 
-            val = String::replace(val, "\\\"", "\"");
-            val = String::replace(val, "\\n", "\n");
-            val = String::replace(val, "\\r", "\r");
-            val = String::replace(val, "\\t", "\t");
-            val = String::replace(val, "\\\\", "\\");
-
-            res = new JsonString(val);
+            res = new JsonString(String::unescaped(val));
             skip = 1;
         }
 
@@ -692,8 +682,7 @@ namespace SWE
         {
             if((*it).second)
             {
-
-                os << "\"" << JsonString::escapeChars((*it).first) << "\": " << (*it).second->toString();
+                os << String::escaped((*it).first, true) << ": " << (*it).second->toString();
                 if(std::next(it) != content.end()) os << ", ";
             }
         }

@@ -159,7 +159,9 @@ namespace SWE
         std::string	popFieldTableIndex(const std::string &, int);
         std::string	popFieldTableIndex(const char*, int);
 
+        LuaState &	getTableIndex(int);
         LuaState &	setTableIndex(int);
+
         LuaState &	setMetaTableIndex(int);
         LuaState &	setFunctionsTableIndex(const luaL_Reg[], int);
 

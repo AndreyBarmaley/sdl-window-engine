@@ -42,18 +42,19 @@ int SWE_key_tochar(lua_State* L)
     // params: int key
     const int rescount = 1;
     LuaStateDefine(ll, L, rescount);
-    
+
     if(ll.isTopInteger())
     {
+        int params = ll.stackSize();
 	int sym = ll.toIntegerIndex(1);
-	int ch = KeySym(sym).keychar();
+	int mod = 1 < params ? ll.toIntegerIndex(2) : 0;
 
-	ll.pushString(std::string(1, ch));
+	ll.pushInteger(KeySym(sym, mod).keychar());
     }
     else
     {
         ERROR("integer not found");
-	ll.pushString(NULL);
+	ll.pushNil();
     }
 
     return rescount;
@@ -79,9 +80,83 @@ int SWE_key_tostring(lua_State* L)
     return rescount;
 }
 
+int SWE_key_ismod(lua_State* L, int val)
+{
+    // params: int key
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+    
+    if(ll.isTopInteger())
+    {
+	int mod = ll.getTopInteger();
+	ll.pushBoolean(mod & val);
+    }
+    else
+    {
+        ERROR("integer not found");
+	ll.pushBoolean(false);
+    }
+
+    return rescount;
+}
+
+int SWE_mod_lshift(lua_State* L)
+{
+    return SWE_key_ismod(L, KMOD_LSHIFT);
+}
+
+int SWE_mod_rshift(lua_State* L)
+{
+    return SWE_key_ismod(L, KMOD_RSHIFT);
+}
+
+int SWE_mod_shift(lua_State* L)
+{
+    return SWE_key_ismod(L, KMOD_SHIFT);
+}
+
+int SWE_mod_lctrl(lua_State* L)
+{
+    return SWE_key_ismod(L, KMOD_LCTRL);
+}
+
+int SWE_mod_rctrl(lua_State* L)
+{
+    return SWE_key_ismod(L, KMOD_RCTRL);
+}
+
+int SWE_mod_ctrl(lua_State* L)
+{
+    return SWE_key_ismod(L, KMOD_CTRL);
+}
+
+int SWE_mod_lalt(lua_State* L)
+{
+    return SWE_key_ismod(L, KMOD_LALT);
+}
+
+int SWE_mod_ralt(lua_State* L)
+{
+    return SWE_key_ismod(L, KMOD_RALT);
+}
+
+int SWE_mod_alt(lua_State* L)
+{
+    return SWE_key_ismod(L, KMOD_ALT);
+}
+
 const struct luaL_Reg SWE_keys_functions[] = {
-    { "ToChar", SWE_key_tochar },	// [int char], int key
-    { "ToString", SWE_key_tostring },	// [string name], int key
+    { "ToKeyChar", SWE_key_tochar },	  // [int char], int key, int mod
+    { "ToString", SWE_key_tostring },	  // [string name], int key
+    { "IsLeftShift", SWE_mod_lshift },    // [bool], int mod
+    { "IsRightShift", SWE_mod_rshift },   // [bool], int mod
+    { "IsShift", SWE_mod_shift },         // [bool], int mod
+    { "IsLeftCtrl", SWE_mod_lctrl },      // [bool], int mod
+    { "IsRightCtrl", SWE_mod_rctrl },     // [bool], int mod
+    { "IsCtrl", SWE_mod_ctrl },           // [bool], int mod
+    { "IsLeftAlt", SWE_mod_lalt },        // [bool], int mod
+    { "IsRightAlt", SWE_mod_ralt },       // [bool], int mod
+    { "IsAlt", SWE_mod_alt },             // [bool], int mod
     { NULL, NULL }
 };
 

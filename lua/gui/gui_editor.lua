@@ -3,6 +3,7 @@
 require 'gui_tools'
 require 'gui_button'
 require 'gui_action'
+require 'map_unicode'
 
 SWE.Action.EditorCursorPositionChanged	= 336001
 
@@ -44,6 +45,9 @@ local function GetObjectParent(str)
     for i=1,#t do
         parent = obj
         obj = obj[ t[i] ]
+        if obj == nil then
+            return obj,parent
+        end
     end
     return obj,parent
 end
@@ -87,7 +91,7 @@ local function UnicodeStringCharsOnly(ustr, char)
     return true
 end
 
-local function TermStyleColor(term, str, posx, length, skip, params)
+local function TermStyleColor(term, posx, length, skip, params)
     term:CursorMoveFirst()
     term:CursorMoveRight(posx - skip)
     if params.background ~= nil then
@@ -116,13 +120,7 @@ local function TermCheckSyntax(term, str, posx, length, skip, params)
     end
 end
 
-local function UnicodeStringFind(ustr, pattern, bs)
-    -- FIXME convert to ASCII string
-    local str = ustr:ToUtf8String()
-    return string.find(str, pattern, bs)
-end
-
-local function DrawLineColored(term, ustr, skip, vals)
+local function DrawLineColored(term, ustr, skip, rules)
     --
     term:CursorMoveFirst()
     if 0 < ustr.size and skip < ustr.size then
@@ -142,45 +140,48 @@ local function DrawLineColored(term, ustr, skip, vals)
 
     local iscomments = UnicodeStringIsComments(ustr, 255)
 
-    for i = 1, #vals do
-	local t = vals[i]
+    for i = 1, #rules do
+        local rule = rules[i]
+        -- find regex
+        if rule.regex ~= nil then
+            local tvals = rule.regex:FindAll(ustr)
+            if tvals ~= nil then
+                for p = 1, #tvals, 2 do
+                    local pos = tvals[p]
+                    local len = tvals[p+1]
+                    local ss = ustr:SubString(pos, len):ToUtf8String()
 
-	if t.pattern ~= nil then
-	    local bs = 1
-	    while bs ~= nil do
-		local fs, ls, ss = UnicodeStringFind(ustr, t.pattern, bs)
-		if ls ~= nil then
-		    if t.tokens == nil or #t.tokens == 0 or TableFindValue(t.tokens, ss) then
-			-- apply style pattern
-			TermStyleColor(term, ss, fs - 1, ls - fs + 1, skip, t)
-			-- check err syntax highlight
-			if not iscomments then
-			    TermCheckSyntax(term, ss, fs - 1, ls - fs + 1, skip, t)
-			end
-		    end
-		    bs = ls + 1
-		else
-		    bs = nil
-		end
-	    end
-	end
+		    if rule.tokens == nil or #rule.tokens == 0 or TableFindValue(rule.tokens, ss) then
+		        -- apply style pattern
+		        TermStyleColor(term, pos, len, skip, rule)
+		        -- check err syntax highlight
+		        if not iscomments then
+		            TermCheckSyntax(term, ss, pos, len, skip, rule)
+		        end
+                    end
+                end
+            end
+        end
     end
 
     return true
 end
 
-local function AreaHighLightCoords(term, termcol, termrow, pattern)
-    local bs = 1
-    while bs ~= nil do
-	local fs,ls,ss = UnicodeStringFind(term.content[termrow], pattern, bs)
-
-	if ls ~= nil then
+local function AreaHighLightCoords(term, termcol, termrow, regex)
+    local ustr = term.content[termrow]
+    local tvals = regex:FindAll(ustr)
+    if tvals ~= nil then
+        for p = 1, #tvals, 2 do
+            local pos = tvals[p]
+            local len = tvals[p+1]
+            local fs = pos + 1
+            local ls = pos + len
 	    -- focused word
 	    if fs <= termcol and termcol <= ls then
 		term.highlight.first = fs - term.skipcols
 		term.highlight.last = ls - term.skipcols
 		term.highlight.row = termrow - term.skiprows
-		term.highlight.word = ss
+		term.highlight.word = ustr:SubString(pos, len):ToUtf8String()
 		term.highlight.valid = true
 		-- fix border
 		if term.highlight.first < 1 then
@@ -191,11 +192,7 @@ local function AreaHighLightCoords(term, termcol, termrow, pattern)
 		end
 		return true
 	    end
-
-	    bs = ls + 1
-	else
-	    bs = nil
-	end
+        end
     end
     return false
 end
@@ -216,8 +213,8 @@ local function AreaFindHighLightWord(term,termcx,termcy)
 
 	for i = 1, #term.settings.highlighting do
 	    local t = term.settings.highlighting[i]
-	    if t.pattern ~= nil and t.focushighlight and
-		AreaHighLightCoords(term, textcol, textrow, t.pattern) then
+	    if t.regex ~= nil and t.focushighlight and
+		AreaHighLightCoords(term, textcol, textrow, t.regex) then
 		SWE.DisplayDirty()
 		return true
 	    end
@@ -366,6 +363,7 @@ local function AreaKeyReturn(area)
 	table.insert(area.content, textrow + 1, SWE.UnicodeString(""))
     end
     area.status.modify = true
+    area.save.disable = false
     area.cursorx = 1
     area.virtualx = area.cursorx + area.skipcols
     area.skipcols = 0
@@ -385,6 +383,7 @@ local function AreaKeyBackspace(area)
 	area.cursorx = area.cursorx - 1
 	area.virtualx = area.cursorx + area.skipcols
 	area.status.modify = true
+        area.save.disable = false
 	SWE.PushEvent(SWE.Action.EditorCursorPositionChanged, nil, area)
 	return true
     elseif AreaScrollLeft(area, 1) then
@@ -392,6 +391,7 @@ local function AreaKeyBackspace(area)
 	local textcol = area.cursorx + area.skipcols
 	area.content[textrow]:Erase(textcol - 1, 1)
 	area.status.modify = true
+        area.save.disable = false
 	SWE.DisplayDirty()
 	return true
     end
@@ -406,6 +406,7 @@ local function AreaKeyBackspace(area)
 	ustr:Insert(ustr.size, area.content[textrow2])
 	table.remove(area.content, textrow2)
 	area.status.modify = true
+        area.save.disable = false
 	SWE.PushEvent(SWE.Action.EditorCursorPositionChanged, nil, area)
 	return true
     elseif AreaScrollUp(area, 1) then
@@ -416,6 +417,7 @@ local function AreaKeyBackspace(area)
 	ustr:Insert(ustr.size, area.content[textrow2])
 	table.remove(area.content, textrow2)
 	area.status.modify = true
+        area.save.disable = false
 	SWE.DisplayDirty()
 	return true
     end
@@ -499,20 +501,21 @@ local function AreaKeyRight(area)
     return false
 end
 
-function AreaSetVisibleChar(area, key, mod)
+function AreaSetVisibleUnicodeChar(area, ch)
     local textrow = area.cursory + area.skiprows
     local textcol = area.cursorx + area.skipcols
     local ustr = area.content[textrow]
 
     if area.insmode then
-	ustr:Insert(textcol - 1, 1, key)
+	ustr:Insert(textcol - 1, 1, ch)
     else
-	ustr:SetChar(textcol - 1, key)
+	ustr:SetChar(textcol - 1, ch)
     end
 
     area.cursorx = area.cursorx + 1
     area.virtualx = area.cursorx + area.skipcols
     area.status.modify = true
+    area.save.disable = false
     SWE.DisplayDirty()
     return true
 end
@@ -528,7 +531,6 @@ local function AreaKeyTab(area)
 end
 
 function EditorInit(win, frs2, filename)
-
     local settings = nil
     frs = frs2
 
@@ -540,15 +542,25 @@ function EditorInit(win, frs2, filename)
         SWE.Debug("check config:", file)
         if buf:ReadFromFile(file) then
             settings = SWE.JsonParse(buf:ToString())
-	    if settings ~= nil then
-		settings.global = false
-	    end
         end
     end
 
     -- local global config
-    if settings == nil then
-	settings = SWE.JsonParse(SWE.BinaryBuf.ReadFromFile("editor.json"):ToString())
+    if true then
+        local global = SWE.JsonParse(SWE.BinaryBuf.ReadFromFile("editor.json"):ToString())
+        if global ~= nil and global.version > settings.version then
+            settings = global
+        end
+    end
+
+    -- init regex and tokens
+    if settings.highlighting ~= nil then
+        for i = 1, #settings.highlighting do
+            local t = settings.highlighting[i]
+            if t.pattern ~= nil then
+                t.regex = SWE.UnicodeRegex(t.pattern)
+            end
+        end
     end
 
     local termcols = win.cols --or ToInt(win.width / frs.fixedWidth)
@@ -573,19 +585,23 @@ function EditorInit(win, frs2, filename)
     area.colors = { back = SWE.Color.MidnightBlue, text = SWE.Color.Silver, highlight = SWE.Color.MediumBlue, syntaxerror = SWE.Color.FireBrick,
 	cursormarker = SWE.Color.LawnGreen, scrollmarker = SWE.Color.LawnGreen, spacemarker = SWE.Color.RoyalBlue }
 
-    area.keyb = TermLabelActionCreate("KEYB", frs, 1, area.rows - 1, area)
     area.close = TermLabelActionCreate("CLOSE", frs, area.cols - 8, area.rows - 1, area)
-
-    -- keyb event: mouse click
-    area.keyb.MouseClickEvent = function(px,py,pb,rx,ry,rb)
-	SWE.DisplayKeyboard(true)
-	return true
-    end
+    area.save = TermLabelActionCreate("SAVE", frs, area.cols - 15, area.rows - 1, area)
+    area.save.disable = true
 
     -- close event: mouse click
     area.close.MouseClickEvent = function(px,py,pb,rx,ry,rb)
 	area:SetVisible(false)
 	return true
+    end
+
+    if SWE.SystemMobileOs() ~= nil then
+        area.keyb = TermLabelActionCreate("KEYB", frs, 1, area.rows - 1, area)
+        -- keyb event: mouse click
+        area.keyb.MouseClickEvent = function(px,py,pb,rx,ry,rb)
+	    SWE.DisplayKeyboard(true)
+	    return true
+        end
     end
 
     -- load config colors
@@ -611,6 +627,7 @@ function EditorInit(win, frs2, filename)
 	    table.insert(area.content, SWE.UnicodeString())
 	    fd:close()
 	    area.status.modify = false
+            area.save.disable = true
 	    return true
 	end
 	return false
@@ -690,7 +707,7 @@ function EditorInit(win, frs2, filename)
 	    return true
         end
 
-	if SWE.Key.RETURN == key then	return AreaKeyReturn(area)
+	if SWE.Key.RETURN == key then	        return AreaKeyReturn(area)
 	elseif SWE.Key.BACKSPACE == key then	return AreaKeyBackspace(area)
 	elseif SWE.Key.HOME == key then		return AreaLineHome(area)
 	elseif SWE.Key.END == key then		return AreaGotoLineEnd(area)
@@ -703,11 +720,22 @@ function EditorInit(win, frs2, filename)
 	elseif SWE.Key.TAB == key then		return AreaKeyTab(area)
 	end
 
-	if 0x20 <= key and key < 0xFEFF then
-	    return AreaSetVisibleChar(area, key, mod)
-	end
+        -- print(string.format("key: 0x%x, mod: 0x%x", key, mod))
 
-	print(key, string.format("0x%x", mod))
+	if 0x20 <= key and key < 0xFF then
+	    return AreaSetVisibleUnicodeChar(area, SWE.Key.ToKeyChar(key, mod))
+        end
+
+        -- unicode chars?
+	if 0xFF < key and key < 0xFEFF then
+            if SWE.Key.IsShift(mod) then
+                local upper = SWE.UnicodeUpperCase[string.format("%04X", key)]
+                if upper ~= nil then
+                    key = upper
+                end
+            end
+            return AreaSetVisibleUnicodeChar(area, key)
+	end
 
 	return false
     end
@@ -727,10 +755,21 @@ function EditorInit(win, frs2, filename)
 	    AreaFindHighLightWord(area,area.cursorx,area.cursory)
 	    SWE.DisplayDirty()
 	end
-	return false
+        -- disable others
+	return true
     end
 
     area.WindowCloseEvent = function()
+        if area.settings.highlighting ~= nil then
+            -- remove regex
+            for i = 1, #area.settings.highlighting do
+                local t = area.settings.highlighting[i]
+                if t.pattern ~= nil then
+                    t.regex = nil
+                end
+            end
+        end
+
         local sharedir = SWE.SystemShareDirectories()
         if sharedir ~= nil then
             SWE.SystemMakeDirectory(sharedir)

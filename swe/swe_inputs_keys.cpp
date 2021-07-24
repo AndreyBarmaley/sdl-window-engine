@@ -606,6 +606,28 @@ namespace SWE
                 break;
         }
 
+        // skip warning
+        switch(keycode())
+        {
+            // left ctrl
+            case 0x400000e0:
+            // right ctrl
+            case 0x400000e4:
+            // left alt
+            case 0x400000e2:
+            // right alt
+            case 0x400000e6:
+            // left shift
+            case 0x400000e1:
+            // right shift
+            case 0x400000e5:
+            // capslock
+            case 0x40000000:
+                return 0;
+
+            default: break;
+        }
+
         FIXME("unknown keycode: " << String::hex(keycode()) << ", mod: " << String::hex(keymod().mod, 4));
         return 0;
     }

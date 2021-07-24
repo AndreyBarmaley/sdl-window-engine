@@ -124,8 +124,6 @@ namespace SWE
 
         bool			getBoolean(void) const override;
         std::string		toString(void) const override;
-
-        static std::string      escapeChars(std::string);
     };
 
     /* JsonDouble */
@@ -192,6 +190,7 @@ namespace SWE
 	JsonValuePtr(int);
 	JsonValuePtr(bool);
 	JsonValuePtr(double);
+	JsonValuePtr(const char*);
 	JsonValuePtr(const std::string &);
 	JsonValuePtr(const JsonArray &);
 	JsonValuePtr(const JsonObject &);

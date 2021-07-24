@@ -956,6 +956,16 @@ namespace SWE
         return *this;
     }
 
+    LuaState & LuaState::getTableIndex(int index)
+    {
+        if(lua_istable(ptr, index))
+            lua_gettable(ptr, index);
+        else
+            ERROR("table not found, index: " << index);
+
+        return *this;
+    }
+
     LuaState & LuaState::setTableIndex(int index)
     {
         if(lua_istable(ptr, index))

@@ -121,6 +121,68 @@ int SWE_unicodestring_setchar(lua_State* L)
     return rescount;
 }
 
+int SWE_unicodestring_find(lua_State* L)
+{
+    // params: table unicodestring, string val, int pos
+
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
+    if(SWE_UnicodeString* ustr = SWE_UnicodeString::get(ll, 1, __FUNCTION__))
+    {
+        int res = -1;
+        int params = ll.stackSize();
+
+        if(ll.isTableIndex(2))
+        {
+            if(SWE_UnicodeString* ustr2 = SWE_UnicodeString::get(ll, 2, __FUNCTION__))
+            {
+	        int pos = 2 < params ? ll.toIntegerIndex(3) : 0;
+                auto it = ustr->find(*ustr2, pos);
+                if(it != std::u16string::npos) res = it;
+            }
+            else
+            {
+		ERROR("table not found" << ": " << "swe.unicodestring");
+            }
+        }
+        else
+        {
+	    std::string val = ll.toStringIndex(2);
+
+	    int pos = 2 < params ? ll.toIntegerIndex(3) : 0;
+            if(pos < 0 || pos >= ustr->size()) pos = 0;
+
+            if(! val.empty())
+            {
+                auto it1 = std::next(ustr->begin(), pos);
+                while(it1 < ustr->end())
+                {
+                    auto it2 = val.begin();
+                    // find
+                    while(*it1 != *it2){ it1++; }
+                    // compare
+                    while(it2 != val.end() && *it1 == *it2){ it1++; it2++; }
+
+                    if(it2 == val.end())
+                    {
+                        res = std::distance(ustr->begin(), std::prev(it1, val.size()));
+                        break;
+                    }
+                }
+            }
+        }
+        ll.pushInteger(res);
+    }
+    else
+    {
+	ERROR("userdata empty");
+	ll.pushInteger(-1);
+    }
+
+    return rescount;
+}
+
 int SWE_unicodestring_getchar(lua_State* L)
 {
     // params: table unicodestring, int pos
@@ -245,7 +307,7 @@ int SWE_unicodestring_substring(lua_State* L)
 	    if(len <= 0 || pos + len > ustr->size())
 		len = ustr->size() - pos;
 
-	    SWE_UnicodeString* res = SWE_Stack::unicode_create(ll);
+	    SWE_UnicodeString* res = SWE_Stack::u16string_create(ll);
 	    res->assign(ustr->begin() + pos, ustr->begin() + pos + len);
 	    ll.pushString("size").pushInteger(res->size()).setTableIndex(-3);
 	}
@@ -460,7 +522,7 @@ int SWE_unicodestring_concat(lua_State* L)
 
     if(ustr1 && ustr2)
     {
-	SWE_UnicodeString* res = SWE_Stack::unicode_create(ll);
+	SWE_UnicodeString* res = SWE_Stack::u16string_create(ll);
 	res->resize(ustr1->size() + ustr2->size(), 0);
 
 	std::copy(ustr1->begin(), ustr1->end(), res->begin());
@@ -529,6 +591,7 @@ const struct luaL_Reg SWE_unicodestring_functions[] = {
     { "PushBack", SWE_unicodestring_pushback },		// [bool], table unicodestring, int char, int char .. int char
     { "SetChar", SWE_unicodestring_setchar },		// [bool], table unicodestring, int pos, int char, int char .. int char
     { "GetChar", SWE_unicodestring_getchar },		// [int char], table unicodestring, int pos
+    { "Find", SWE_unicodestring_find },                 // [int], table unicodestring, string, int pos
     { "Insert", SWE_unicodestring_insert },		// [bool], table unicodestring, int pos, (unicodestring), (int count, int char)
     { "SubString", SWE_unicodestring_substring },	// [table unicodestring], table unicodestring, int pos, int len
     { "ToUtf8String", SWE_unicodestring_to_cstring },   // [string], table unicodestring
@@ -553,7 +616,7 @@ void SWE_UnicodeString::registers(LuaState & ll)
     ll.setMetaTableIndex(-2).stackPop();
 }
 
-SWE_UnicodeString* SWE_Stack::unicode_create(LuaState & ll)
+SWE_UnicodeString* SWE_Stack::u16string_create(LuaState & ll)
 {
     LuaStateValidator(ll, 1);
 
@@ -597,7 +660,7 @@ int SWE_unicodestring_create(lua_State* L)
 
     // SWE.UnicodeString(self, string)
 
-    SWE_UnicodeString* ustr = SWE_Stack::unicode_create(ll);
+    SWE_UnicodeString* ustr = SWE_Stack::u16string_create(ll);
 
     // SWE_UnicodeString: length, fill value
     if(ll.isNumberIndex(2) && ll.isNumberIndex(3))

@@ -41,14 +41,67 @@ namespace SWE
 	return f ? "true" : "false";
     }
 
-    std::string String::escapeChar(const std::string & str, int ch)
+    std::string String::escaped(const std::string & str, bool quote)
     {
-        if(str.empty()) return str;
+        std::ostringstream os;
 
-        StringList list = String::split(str, ch);
-	if(str.back() == ch) list.emplace_back("");
+        // start quote
+        if(quote)
+            os << "\"";
 
-        return list.join(std::string(1, '\\').append(1, ch));
+        // variants: \\, \", \/, \t, \n, \r, \f, \b
+        for(auto & ch : str)
+        {
+            switch(ch)
+            {
+                case '\\': os << "\\\\"; break;
+                case '"':  os << "\\\""; break;
+                case '/':  os << "\\/"; break;
+                case '\t': os << "\\t"; break;
+                case '\n': os << "\\n"; break;
+                case '\r': os << "\\r"; break;
+                case '\f': os << "\\f"; break;
+                case '\b': os << "\\b"; break;
+                default: os << ch; break;
+            }
+        }
+
+        // end quote
+        if(quote)
+            os << "\"";
+
+        return os.str();
+    }
+
+    std::string String::unescaped(std::string str)
+    {
+        if(str.size() < 2)
+            return str;
+
+        // variants: \\, \", \/, \t, \n, \r, \f, \b
+        for(auto it = str.begin(); it != str.end(); ++it)
+        {
+            auto itn = std::next(it);
+            if(itn == str.end()) break;
+
+            if(*it == '\\')
+            {
+                switch(*itn)
+                {
+                    case '\\': str.erase(itn); break;
+                    case '"': str.erase(itn); *it = '"'; break;
+                    case '/': str.erase(itn); *it = '/'; break;
+                    case 't': str.erase(itn); *it = '\t'; break;
+                    case 'n': str.erase(itn); *it = '\n'; break;
+                    case 'r': str.erase(itn); *it = '\r'; break;
+                    case 'f': str.erase(itn); *it = '\f'; break;
+                    case 'b': str.erase(itn); *it = '\b'; break;
+                    default: break;
+                }
+            }
+        }
+
+        return str;
     }
 
     bool compareInSensChar(const char & c1, const char & c2)

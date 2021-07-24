@@ -69,7 +69,7 @@ set(LUA54_SRC
         party/lua54/src/linit.c)
 
 # project1 SWE bindings static
-project(SWE_bindings VERSION 20210620.1)
+project(SWE_bindings VERSION 20210723.1)
 
 add_library(SWE_bindings STATIC)
 add_subdirectory(src)
@@ -91,7 +91,7 @@ target_link_libraries(SWE_bindings libswe)
 
 # project2 SWE bindings shared for lua plugins
 if(SWE_FOR_LUA_PLUGIN)
-    project(SWE_plugin VERSION 20210620.1)
+    project(SWE_plugin VERSION 20210723.1)
 
     add_library(SWE_plugin SHARED)
     target_link_libraries(SWE_plugin SWE_bindings)
@@ -103,7 +103,7 @@ if(SWE_FOR_LUA_PLUGIN)
 endif()
 
 # project3 LuaSWE starter
-project(LuaSWE VERSION 20210620.1)
+project(LuaSWE VERSION 20210723.1)
 add_executable(LuaSWE main/SWE_main.cpp)
 
 # auto: support ffmpeg
