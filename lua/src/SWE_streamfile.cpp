@@ -458,7 +458,7 @@ int SWE_streamfile_create(lua_State* L)
     // set functions
     ll.setFunctionsTableIndex(SWE_streamfile_functions, -1);
 
-    DEBUG(String::pointer(ptr) << ": [" << String::pointer(*ptr) << "]");
+    DEBUGN(String::pointer(ptr) << ": [" << String::pointer(*ptr) << "]", 2);
 
     return rescount;
 }
@@ -473,7 +473,7 @@ int SWE_streamfile_destroy(lua_State* L)
         auto ptr = static_cast<SWE_StreamFile**>(ll.getTopUserData());
         if(ptr && *ptr)
         {
-            DEBUG(String::pointer(ptr) << ": [" << String::pointer(*ptr) << "]");
+    	    DEBUGN(String::pointer(ptr) << ": [" << String::pointer(*ptr) << "]", 2);
 
 	    delete *ptr;
             *ptr = NULL;

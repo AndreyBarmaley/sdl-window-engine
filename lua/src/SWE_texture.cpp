@@ -525,7 +525,7 @@ SWE_Texture* SWE_Stack::texture_create(LuaState & ll)
     // set functions
     ll.setFunctionsTableIndex(SWE_texture_functions, -1);
 
-    DEBUG(String::pointer(ptr) << ": [" << String::pointer(*ptr) << "]");
+    DEBUGN(String::pointer(ptr) << ": [" << String::pointer(*ptr) << "]", 2);
 
     // add values
     ll.pushString("__type").pushString("swe.texture").setTableIndex(-3);
@@ -584,7 +584,7 @@ int SWE_texture_create_rect(lua_State* L)
     // set functions
     ll.setFunctionsTableIndex(SWE_texture_functions, -1);
 
-    DEBUG(String::pointer(ptr) << ": [" << String::pointer(*ptr) << "]");
+    DEBUGN(String::pointer(ptr) << ": [" << String::pointer(*ptr) << "]", 2);
     return rescount;
 }
 
@@ -636,7 +636,8 @@ int SWE_texture_create_text(lua_State* L)
     // set functions
     ll.setFunctionsTableIndex(SWE_texture_functions, -1);
 
-    DEBUG(String::pointer(ptr) << ": [" << String::pointer(*ptr) << "]");
+    DEBUGN(String::pointer(ptr) << ": [" << String::pointer(*ptr) << "]", 2);
+
     return rescount;
 }
 
@@ -729,7 +730,8 @@ int SWE_texture_create_image(lua_State* L)
     // set functions
     ll.setFunctionsTableIndex(SWE_texture_functions, -1);
 
-    DEBUG(String::pointer(ptr) << ": [" << String::pointer(*ptr) << "]");
+    DEBUGN(String::pointer(ptr) << ": [" << String::pointer(*ptr) << "]", 2);
+
     return rescount;
 }
 
@@ -766,7 +768,7 @@ int SWE_texture_destroy(lua_State* L)
         auto ptr = static_cast<SWE_Texture**>(ll.getTopUserData());
         if(ptr && *ptr)
         {
-            DEBUG(String::pointer(ptr) << ": [" << String::pointer(*ptr) << "]");
+    	    DEBUGN(String::pointer(ptr) << ": [" << String::pointer(*ptr) << "]", 2);
 
             delete *ptr;
             *ptr = NULL;

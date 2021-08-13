@@ -250,16 +250,22 @@ bool SWE::Display::resizeWindow(const Size & newsz)
         bool accel = isRenderAccelerated();
         DEBUG("new sz: " << newsz.toString());
         FontRender::clearCache();
+	Size realsz;
+
 #ifdef SWE_SDL12
         _window = SDL_SetVideoMode(newsz.w, newsz.h, _window->format->BitsPerPixel, _window->flags);
+	realsz.w = _window->w;
+	realsz.h = _window->h;
 #else
         SDL_SetWindowSize(_window, newsz.w, newsz.h);
+	SDL_GetWindowSize(_window, &realsz.w, &realsz.h);
+        DEBUG("real resized: " << realsz.toString());
 #endif
 
-        if(renderInit(newsz, accel))
+        if(renderInit(realsz, accel))
         {
-            DisplayScene::displayResizeHandle(newsz);
             DisplayScene::textureInvalidHandle();
+            DisplayScene::displayResizeHandle(realsz);
             DisplayScene::setDirty(true);
             return true;
         }
@@ -967,10 +973,7 @@ bool SWE::Display::handleEvents(void)
                     DEBUG("resize: " << current.window.data1 << ", " << current.window.data2);
 
 		if(SDL_WINDOWEVENT_SIZE_CHANGED == current.window.event)
-                {
-                    DEBUG("size changed: " << current.window.data1 << ", " << current.window.data2);
                     resizeWindow(Size(current.window.data1, current.window.data2));
-                }
                 else
 		if(SDL_WINDOWEVENT_FOCUS_GAINED == current.window.event)
 		    DisplayScene::displayFocusHandle(true);
@@ -1622,16 +1625,20 @@ bool SWE::Display::isMaximizedWindow(void)
     Atom wmState = XInternAtom(wm.info.x11.display, "_NET_WM_STATE", False);
     Atom retType;
     int retFormat;
-    unsigned long nItems, bytesAfter;
-    unsigned char *properties = nullptr;
+    unsigned long nItems = 0;
+    unsigned long bytesAfter = 0;
+    unsigned char* properties = nullptr;
+    bool res = false;
 
-    auto status = XGetWindowProperty(wm.info.x11.display, wm.info.x11.wmwindow, wmState, 0, ~0L, False, XA_ATOM, &retType, &retFormat, &nItems, &bytesAfter, &properties);
-    if(status == Success)
+    auto status = XGetWindowProperty(wm.info.x11.display, wm.info.x11.wmwindow, wmState, 0, ~0L, False, XA_ATOM,
+                &retType, &retFormat, &nItems, &bytesAfter, &properties);
+
+    if(status == Success && properties)
     {
 	Atom maxVert = XInternAtom(wm.info.x11.display, "_NET_WM_STATE_MAXIMIZED_VERT", False);
 	Atom maxHorz = XInternAtom(wm.info.x11.display, "_NET_WM_STATE_MAXIMIZED_HORZ", False);
 
-        Atom *atoms = (Atom *) properties;
+        auto atoms = reinterpret_cast<Atom*>(properties);
         int maximized = 0;
 
 	for(unsigned int it = 0; it < nItems; ++it)
@@ -1643,19 +1650,86 @@ bool SWE::Display::isMaximizedWindow(void)
                 maximized |= 2;
 	}
 
-	XFree(properties);
-        return maximized == 3;
+        res = maximized == 3;
     }
+
+    if(properties)
+	XFree(properties);
+
+    return res;
 #else
     FIXME("SDL1.2 not supported maximized flag");
 #endif
 
 #else
     if(_window)
-        return SDL_WINDOW_MAXIMIZED & SDL_GetWindowFlags(_window);
+    {
+        if(SDL_WINDOW_MAXIMIZED & SDL_GetWindowFlags(_window))
+            return true;
+
+        return usableBounds().toSize() == device();
+    }
 #endif
 
     return false;
+}
+
+SWE::Rect SWE::Display::usableBounds(void)
+{
+#if SWE_SDL12
+#if defined(__LINUX__)
+    SDL_SysWMinfo wm;
+    SDL_VERSION(& wm.version);
+    SDL_GetWMInfo(& wm);
+
+    Atom workArea = XInternAtom(wm.info.x11.display, "_NET_WORKAREA",  False);
+    Atom retType;
+    int retFormat;
+    unsigned long nItems = 0;
+    unsigned long bytesAfter = 0;
+    unsigned char* properties = nullptr;
+
+    Window rootWindow = XRootWindow(wm.info.x11.display, 0);
+    Rect res = { 0, 0, 65535, 65535 };
+
+    auto status = XGetWindowProperty(wm.info.x11.display, rootWindow, workArea, 0, ~0L, False, XA_CARDINAL,
+                        &retType, &retFormat, &nItems, &bytesAfter, &properties);
+
+    if(status == Success && properties)
+    {
+        // _NET_WORKAREA, x, y, width, height CARDINAL[][4]/32
+        if(3 < nItems)
+        {
+            auto vals = reinterpret_cast<long*>(properties);
+            res.x = vals[0];
+            res.y = vals[1];
+            res.w = vals[2];
+            res.h = vals[3];
+        }
+
+    }
+
+    if(properties)
+	XFree(properties);
+
+    return res;
+#else
+    FIXME("SDL1.2 not supported max window size");
+#endif
+
+#else
+    if(_window)
+    {
+        SDL_Rect res;
+        if(0 == SDL_GetDisplayUsableBounds(0, & res))
+        {
+            return Rect(res);
+        }
+
+        ERROR("get info: " << SDL_GetError());
+    }
+#endif
+    return Rect(0, 0, 65535, 65535);
 }
 
 void SWE::Display::setForceWindowed(bool f)

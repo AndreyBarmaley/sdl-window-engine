@@ -37,7 +37,7 @@ SWE.UnicodeString.PushBack
     @apiParam {SWE.UnicodeString}     		self   		unicodestring raw data
     @apiParam {number}     			offset   	offset data
     @apiParam {number}     			value   	byte value (list)
-    @apiSuccess (Return) {boolean}    		result   	success
+    @apiSuccess (Return) {boolean}    		result   	true if success
 */
 SWE.UnicodeString.Insert
 /**
@@ -52,7 +52,7 @@ SWE.UnicodeString.Insert
     @apiParam {number}     			length   	length data
     @apiParam {number}     			count  		value counts
     @apiParam {number}     			value		byte value
-    @apiSuccess (Return) {boolean}    		result   	success
+    @apiSuccess (Return) {boolean}    		result   	true if success
 */
 SWE.UnicodeString.Resize
 /**
@@ -63,7 +63,7 @@ SWE.UnicodeString.Resize
     @apiParam {SWE.UnicodeString}     		self   		unicodestring raw data
     @apiParam {number}     			size  	 	new size
     @apiParam {number}     			value   	default value
-    @apiSuccess (Return) {SWE.UnicodeString}  	result   	bynarybuf raw data
+    @apiSuccess (Return) {SWE.UnicodeString}  	result   	return self
 */
 SWE.UnicodeString.Erase
 /**
@@ -74,7 +74,7 @@ SWE.UnicodeString.Erase
     @apiParam {SWE.UnicodeString}     		self   		unicodestring raw data
     @apiParam {number}     			pos 	 	position
     @apiParam {number}     			count   	count erase
-    @apiSuccess (Return) {SWE.UnicodeString}  	result   	bynarybuf raw data
+    @apiSuccess (Return) {SWE.UnicodeString}  	result   	return self
 */
 SWE.UnicodeString.Clear
 /**
@@ -93,7 +93,7 @@ SWE.UnicodeString.SetChar
     @apiParam {SWE.UnicodeString}               self            unicodestring raw data
     @apiParam {number}                          offset          offset data
     @apiParam {number}                          value           byte value (list)
-    @apiSuccess (Return) {boolean}              result          success
+    @apiSuccess (Return) {boolean}              result          true if success
 
     @apiExample usage
     local ucs = SWE.UnicodeString("123456")
@@ -119,6 +119,29 @@ SWE.UnicodeString.GetChar
     if byte1 == byte2 then
         print("equals")
     end
+*/
+SWE.UnicodeString.Find
+/**
+    @api {find string} SWE.UnicodeString.Find(self,str,offset)(self,ustr,offset) SWE.UnicodeString.Find
+    @apiGroup SWE.UnicodeString
+    @apiName Find
+    
+    @apiParam {SWE.UnicodeString}               self            unicodestring raw data
+    @apiParam {number}                          str             string value
+    @apiParam {SWE.UnicodeString}               ustr            unicodestring value
+    @apiParam {number}                          offset          offset data
+    @apiSuccess (Return) {number}               result          found position or -1
+*/
+SWE.UnicodeString.SubString
+/**
+    @api {get sub string} SWE.UnicodeString.SubString(self,offset,len) SWE.UnicodeString.SubString
+    @apiGroup SWE.UnicodeString
+    @apiName SubString
+    
+    @apiParam {SWE.UnicodeString}     		self   		unicodestring raw data
+    @apiParam {number}     			offset   	offset
+    @apiParam {number}     			len             length
+    @apiSuccess (Return) {SWE.UnicodeString}	result   	unicode substring
 */
 SWE.UnicodeString.ToJson
 /**

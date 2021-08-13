@@ -645,10 +645,10 @@ SWE_UnicodeString* SWE_Stack::u16string_create(LuaState & ll)
     // set functions
     ll.setFunctionsTableIndex(SWE_unicodestring_functions, -1);
 
-    DEBUG(String::pointer(ptr) << ": [" << String::pointer(*ptr) << "]");
-
     ll.pushString("__type").pushString("swe.unicodestring").setTableIndex(-3);
     ll.pushString("size").pushInteger((*ptr)->size()).setTableIndex(-3);
+
+    DEBUGN(String::pointer(ptr) << ": [" << String::pointer(*ptr) << "]", 2);
 
     return *ptr;
 }
@@ -706,7 +706,7 @@ int SWE_unicodestring_destroy(lua_State* L)
         auto ptr = static_cast<SWE_UnicodeString**>(ll.getTopUserData());
         if(ptr && *ptr)
         {
-            DEBUG(String::pointer(ptr) << ": [" << String::pointer(*ptr) << "]");
+	    DEBUGN(String::pointer(ptr) << ": [" << String::pointer(*ptr) << "]", 2);
 
             delete *ptr;
             *ptr = NULL;

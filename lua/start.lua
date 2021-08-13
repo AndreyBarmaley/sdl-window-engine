@@ -21,17 +21,7 @@ local function ReadCommanderConfig()
         SWE.Debug("check config:", file)
 	local buf = SWE.BinaryBuf.ReadFromFile(file)
         if buf ~= nil then
-            local cfg = SWE.JsonParse(buf:ToString())
-            if cfg then
-		local fs = SWE.SystemFileStat(cfg.cwd)
-		if fs == nil or not fs.isdir then
-		    cfg.cwd = SWE.SystemCurrentDirectory()
-		end
-		if tonumber(cfg.fsz) <= 0 then
-		    cfg.fsz = 14
-		end
-                return cfg.cwd, cfg.fsz
-            end
+            return SWE.JsonParse(buf:ToString())
         end
     end
 
@@ -45,7 +35,7 @@ local function ReadCommanderConfig()
     if dw > 0 then
         fsz = ToInt(dw / 320 * 12)
     end
-    return cwd,fsz
+    return { cwd=cwd, fsz=fsz, width=640, height=480 }
 end
 
 local function SaveCommanderConfig(win, frs)
@@ -55,8 +45,8 @@ local function SaveCommanderConfig(win, frs)
     	    SWE.SystemMakeDirectory(sharedir)
     	    local config = SWE.SystemConcatePath(sharedir, "commander.json")
     	    -- json format
-    	    local buf = SWE.BinaryBuf("{" .. "\"fsz\":" .. frs.size .. ",\"cwd\":" .. "\"" .. win.cmd.cwd .. "\"}")
-    	    buf:SaveToFile(config)
+	    local t = { fsz=frs.size, cwd=win.cmd.cwd, width=win.width, height=win.height }
+	    SWE.BinaryBuf(SWE.TableToJson(t)):SaveToFile(config)
     	    SWE.Debug("save config:", config)
     	end
     end
@@ -131,12 +121,18 @@ local function CommanderInit(win, frs, cwd)
         end
     end
 
-    term.bed.MouseClickEvent = function(px,py,pb,rx,ry,rb)
+    term.FileEdit = function(self)
 	local stat = SWE.SystemFileStat(term.result)
 	if stat and not stat.isdir then
+            term:SetVisible(false)
     	    local editor = EditorInit(term, term.frs, term.result)
     	    SWE.MainLoop(editor)
+            term:SetVisible(true)
 	end
+    end
+
+    term.bed.MouseClickEvent = function(px,py,pb,rx,ry,rb)
+        term:FileEdit()
 	return true
     end
 
@@ -152,6 +148,28 @@ local function CommanderInit(win, frs, cwd)
         local fsz = frs.size + 2
         SWE.PushEvent(SWE.Action.FontChanged, fsz, win)
 	return true
+    end
+
+    term.TerminalResizeEvent = function()
+        if term.parent ~= nil then
+            local cols = ToInt(term.parent.width / term.frs.fixedWidth)
+            local rows = ToInt(term.parent.height / term.frs.lineHeight)
+
+	    if cols * term.frs.fixedWidth > term.parent.width then
+		cols = cols - 1
+	    end
+    	    if rows * term.frs.lineHeight > term.parent.height then
+		rows = rows - 1
+	    end
+
+            term:SetTermSize(cols,rows)
+	    
+            term.bzo:SetPosition(1 * term.frs.fixedWidth, (rows - 1) * term.frs.lineHeight)
+            term.bzi:SetPosition((cols - 5) * term.frs.fixedWidth, (rows - 1) * term.frs.lineHeight)
+            term.bed:SetPosition(6 * term.frs.fixedWidth, (rows - 1) * term.frs.lineHeight)
+
+	    SWE.DisplayDirty()
+        end
     end
 
     term.LocalUserEvent = function(self, event, obj)
@@ -174,19 +192,44 @@ local function CommanderInit(win, frs, cwd)
         return false
     end
 
+    term.LocalKeyPressEvent = function(self, key, mod, scancode)
+	if key == SWE.Key.F4 then
+            term:FileEdit()
+            return true
+        end
+        return false
+    end
+
     return term
 end
 
-local frs = {}
-local win = {}
-
 while true do
-    local cwd,fsz = ReadCommanderConfig()
+    local frs = {}
+    local win = {}
+    local cfg = ReadCommanderConfig()
+
+    if cfg.cwd ~= nil then
+	local fs = SWE.SystemFileStat(cfg.cwd)
+	if fs == nil or not fs.isdir then
+    	    cfg.cwd = SWE.SystemCurrentDirectory()
+	end
+    else
+        cfg.cwd = SWE.SystemCurrentDirectory()
+    end
+    if cfg.fsz == nil or tonumber(cfg.fsz) <= 0 then
+        cfg.fsz = 14
+    end
+    if cfg.width == nil then
+	cfg.width = 640
+    end
+    if cfg.height == nil then
+	cfg.height = 480
+    end
 
     if SWE.SystemMobileOs() ~= nil then
         win = SWE.DisplayInit("Lua SWE: Commander", false)
     else
-        win = SWE.DisplayInit("Lua SWE: Commander", 640, 480, false)
+        win = SWE.DisplayInit({ title="Lua SWE: Commander", width=cfg.width, height=cfg.height, resized=true })
     end
 
     if not win then
@@ -194,8 +237,8 @@ while true do
         os.exit(-1)
     end
 
-    if frs == nil or frs.font == nil or frs.size ~= fsz then
-	frs = SWE.FontRender("terminus.ttf", fsz, SWE.Font.RenderSolid)
+    if frs == nil or frs.font == nil or frs.size ~= tonumber(cfg.fsz) then
+	frs = SWE.FontRender("terminus.ttf", tonumber(cfg.fsz), SWE.Font.RenderSolid)
     end
 
     win.RenderWindow = function()
@@ -210,7 +253,7 @@ while true do
 		win.cmd:SetVisible(false)
 		-- font changed result
 		win.cmd.result = 0x123456
-		cwd = win.cmd.cwd
+		cfg.cwd = win.cmd.cwd
 	    end
 	    return true
 	end
@@ -222,7 +265,7 @@ while true do
     end
 
     win.TextureInvalidEvent = function()
-	print("Invalid texture event!")
+	-- print("Invalid texture event!")
     end
 
     win.DisplayResizeEvent = function(w,h)
@@ -230,8 +273,8 @@ while true do
         SWE.DisplayDirty()
     end
 
-    SWE.Debug("run commander")
-    win.cmd = CommanderInit(win, frs, cwd)
+    SWE.Debug("-- run commander")
+    win.cmd = CommanderInit(win, frs, cfg.cwd)
 
     -- fixed position
     if win.width ~= win.cmd.width or win.height ~= win.cmd.height then
@@ -253,12 +296,12 @@ while true do
 
 	win.cmd:SetVisible(false)
 	SWE.Scene.Remove(win.cmd)
+	SaveCommanderConfig(win, frs)
 	win.cmd = nil
 
-        SWE.Debug("dofile", start)
+        SWE.Debug("-- run script:", start)
 	-- fixed running directory: scan resource
 	SWE.runfile = start
-
         -- run script
         local res, err = pcall(dofile, start)
 

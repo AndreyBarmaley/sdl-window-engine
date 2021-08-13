@@ -69,7 +69,7 @@ set(LUA54_SRC
         party/lua54/src/linit.c)
 
 # project1 SWE bindings static
-project(SWE_bindings VERSION 20210723.1)
+project(SWE_bindings VERSION 20210810.1)
 
 add_library(SWE_bindings STATIC)
 add_subdirectory(src)
@@ -91,7 +91,7 @@ target_link_libraries(SWE_bindings libswe)
 
 # project2 SWE bindings shared for lua plugins
 if(SWE_FOR_LUA_PLUGIN)
-    project(SWE_plugin VERSION 20210723.1)
+    project(SWE_plugin VERSION 20210810.1)
 
     add_library(SWE_plugin SHARED)
     target_link_libraries(SWE_plugin SWE_bindings)
@@ -103,20 +103,20 @@ if(SWE_FOR_LUA_PLUGIN)
 endif()
 
 # project3 LuaSWE starter
-project(LuaSWE VERSION 20210723.1)
+project(LuaSWE VERSION 20210810.1)
 add_executable(LuaSWE main/SWE_main.cpp)
 
-# auto: support ffmpeg
-pkg_check_modules(FFMPEG QUIET libavdevice libavformat libavcodec libswscale libavutil)
-if(${FFMPEG_FOUND})
-    if(NOT SWE_SDL12)
+if(NOT SWE_SDL12)
+    # auto: support ffmpeg
+    pkg_check_modules(FFMPEG QUIET libavdevice libavformat libavcodec libswscale libavutil)
+    if(${FFMPEG_FOUND})
         target_compile_options(LuaSWE PUBLIC -DWITH_VIDEOCAM_FFMPEG ${FFMPEG_CFLAGS})
         target_link_libraries(LuaSWE avdevice avformat avcodec swscale avutil)
     else()
-        message("ffmpeg need SDL2 skipped..")
+        message("skipping ffmpeg support, not found: libavdevice, libavformat, libavcodec, libswscale, or libavutil")
     endif()
 else()
-    message("skipping ffmpeg support, not found: libavdevice, libavformat, libavcodec, libswscale, or libavutil")
+    message("ffmpeg need SDL2 skipped..")
 endif()
 
 # auto: support fireware

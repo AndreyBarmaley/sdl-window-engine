@@ -229,17 +229,62 @@ local function AreaFindHighLightWord(term,termcx,termcy)
     return false
 end
 
+local function AreaGotoLineEnd(area)
+    local textrow = area.cursory + area.skiprows
+    local textcol = area.cursorx + area.skipcols
+    local ustr = area.content[textrow]
+    if ustr ~= nil then
+	if area.cols - 3 < ustr.size then
+	    area.skipcols = ustr.size - area.cols + 3
+	    area.cursorx = area.cols - 2
+	else
+	    area.skipcols = 0
+	    area.cursorx = ustr.size + 1
+	end
+	area.virtualx = area.cursorx + area.skipcols
+	SWE.PushEvent(SWE.Action.EditorCursorPositionChanged, nil, area)
+	return true
+    end
+    return false
+end
+
+local function AreaVirtualLineEnd(area)
+    local textrow = area.cursory + area.skiprows
+    local textcol = area.cursorx + area.skipcols
+    local ustr = area.content[textrow]
+    if ustr ~= nil then
+	if ustr.size < area.virtualx then
+	    area.skipcols = 0
+	    area.cursorx = ustr.size + 1
+	else
+	    area.skipcols = 0
+	    area.cursorx = area.virtualx
+	end
+	if area.cursorx > area.cols - 2 then
+	    area.skipcols = area.cursorx - area.cols + 2
+	    area.cursorx = area.cols - 2
+	end
+	SWE.PushEvent(SWE.Action.EditorCursorPositionChanged, nil, area)
+        return true
+    end
+    return false
+end
+
 local function AreaScrollUp(area, skip)
     if 0 < area.skiprows then
 	area.skiprows = area.skiprows - skip
 	if 0 > area.skiprows then
 	    area.skiprows = 0
 	end
-	SWE.PushEvent(SWE.Action.EditorCursorPositionChanged, nil, area)
+	if not AreaVirtualLineEnd(area) then
+	    SWE.PushEvent(SWE.Action.EditorCursorPositionChanged, nil, area)
+	end
 	return true
     elseif 1 < area.cursory then
 	area.cursory = 1
-	SWE.PushEvent(SWE.Action.EditorCursorPositionChanged, nil, area)
+	if not AreaVirtualLineEnd(area) then
+	    SWE.PushEvent(SWE.Action.EditorCursorPositionChanged, nil, area)
+	end
 	return true
     end
     return false
@@ -251,15 +296,21 @@ local function AreaScrollDown(area, skip)
 	if area.skiprows + area.rows - 2 > #area.content then
 	    area.skiprows = #area.content - area.rows + 2
 	end
-	SWE.PushEvent(SWE.Action.EditorCursorPositionChanged, nil, area)
+	if not AreaVirtualLineEnd(area) then
+	    SWE.PushEvent(SWE.Action.EditorCursorPositionChanged, nil, area)
+	end
 	return true
     elseif area.rows - 2 > #area.content then
 	area.cursory = #area.content
-	SWE.PushEvent(SWE.Action.EditorCursorPositionChanged, nil, area)
+	if not AreaVirtualLineEnd(area) then
+	    SWE.PushEvent(SWE.Action.EditorCursorPositionChanged, nil, area)
+	end
 	return true
     elseif area.cursory < area.rows - 2 then
 	area.cursory = area.rows - 2
-	SWE.PushEvent(SWE.Action.EditorCursorPositionChanged, nil, area)
+	if not AreaVirtualLineEnd(area) then
+	    SWE.PushEvent(SWE.Action.EditorCursorPositionChanged, nil, area)
+	end
 	return true
     end
     return false
@@ -306,47 +357,6 @@ local function AreaLineHome(area)
 	area.virtualx = area.cursorx + area.skipcols
 	SWE.PushEvent(SWE.Action.EditorCursorPositionChanged, nil, area)
 	return true
-    end
-    return false
-end
-
-local function AreaGotoLineEnd(area)
-    local textrow = area.cursory + area.skiprows
-    local textcol = area.cursorx + area.skipcols
-    local ustr = area.content[textrow]
-    if ustr ~= nil then
-	if area.cols - 3 < ustr.size then
-	    area.skipcols = ustr.size - area.cols + 3
-	    area.cursorx = area.cols - 2
-	else
-	    area.skipcols = 0
-	    area.cursorx = ustr.size + 1
-	end
-	area.virtualx = area.cursorx + area.skipcols
-	SWE.PushEvent(SWE.Action.EditorCursorPositionChanged, nil, area)
-	return true
-    end
-    return false
-end
-
-local function AreaVirtualLineEnd(area)
-    local textrow = area.cursory + area.skiprows
-    local textcol = area.cursorx + area.skipcols
-    local ustr = area.content[textrow]
-    if ustr ~= nil then
-	if ustr.size < area.virtualx then
-	    area.skipcols = 0
-	    area.cursorx = ustr.size + 1
-	else
-	    area.skipcols = 0
-	    area.cursorx = area.virtualx
-	end
-	if area.cursorx > area.cols - 2 then
-	    area.skipcols = area.cursorx - area.cols + 2
-	    area.cursorx = area.cols - 2
-	end
-	SWE.PushEvent(SWE.Action.EditorCursorPositionChanged, nil, area)
-        return true
     end
     return false
 end
@@ -526,7 +536,7 @@ local function AreaKeyTab(area)
 	tabs = 4
     end
     for i = 1,tabs do
-	AreaSetVisibleChar(area, 0x20)
+	AreaSetVisibleUnicodeChar(area, 0x20)
     end
 end
 
@@ -548,7 +558,7 @@ function EditorInit(win, frs2, filename)
     -- local global config
     if true then
         local global = SWE.JsonParse(SWE.BinaryBuf.ReadFromFile("editor.json"):ToString())
-        if global ~= nil and global.version > settings.version then
+        if settings == nil or (global ~= nil and global.version > settings.version) then
             settings = global
         end
     end
@@ -585,10 +595,16 @@ function EditorInit(win, frs2, filename)
     area.colors = { back = SWE.Color.MidnightBlue, text = SWE.Color.Silver, highlight = SWE.Color.MediumBlue, syntaxerror = SWE.Color.FireBrick,
 	cursormarker = SWE.Color.LawnGreen, scrollmarker = SWE.Color.LawnGreen, spacemarker = SWE.Color.RoyalBlue }
 
-    area.close = TermLabelActionCreate("CLOSE", frs, area.cols - 8, area.rows - 1, area)
+    -- save button
     area.save = TermLabelActionCreate("SAVE", frs, area.cols - 15, area.rows - 1, area)
     area.save.disable = true
+    -- save event: mouse click
+    area.save.MouseClickEvent = function(px,py,pb,rx,ry,rb)
+	return area:SaveFile()
+    end
 
+    -- close button
+    area.close = TermLabelActionCreate("CLOSE", frs, area.cols - 8, area.rows - 1, area)
     -- close event: mouse click
     area.close.MouseClickEvent = function(px,py,pb,rx,ry,rb)
 	area:SetVisible(false)
@@ -611,6 +627,19 @@ function EditorInit(win, frs2, filename)
 		area.colors[k] = SWE.Color[ area.settings.colors[k] ]
 	    end
 	end
+    end
+
+    area.SaveFile = function(area)
+        -- move area.filename to .bak
+        local fd = io.open("write.tmp", "w")
+	if fd ~= nil then
+            for i = 1, #area.content do
+                fd:write(area.content[i]:ToUtf8String(), "\n")
+            end
+	    fd:close()
+            return true
+        end
+        return false
     end
 
     area.LoadFile = function(area, filename)
@@ -720,6 +749,11 @@ function EditorInit(win, frs2, filename)
 	elseif SWE.Key.TAB == key then		return AreaKeyTab(area)
 	end
 
+	if SWE.Key.F2 == key then
+            area:SaveFile()
+            return true
+	end
+
         -- print(string.format("key: 0x%x, mod: 0x%x", key, mod))
 
 	if 0x20 <= key and key < 0xFF then
@@ -737,7 +771,8 @@ function EditorInit(win, frs2, filename)
             return AreaSetVisibleUnicodeChar(area, key)
 	end
 
-	return false
+        -- disable others
+	return true
     end
 
     -- window event: system user

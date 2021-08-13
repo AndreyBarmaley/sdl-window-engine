@@ -26,7 +26,7 @@
 #include "libswe.h"
 using namespace SWE;
 
-#define SWE_LUA_VERSION 20210723
+#define SWE_LUA_VERSION 20210810
 #define SWE_LUA_LICENSE "GPL3"
 
 #define LuaUnused(val) ((void) val)

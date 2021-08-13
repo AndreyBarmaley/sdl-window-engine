@@ -335,15 +335,34 @@ SWE.Terminal.SetPosition
     @apiParam {number}                  posx            window position
     @apiParam {number}                  posy            window position
 */
+SWE.Terminal.SetTermPos
+/**
+    @api {terminal set pos} SWE.Terminal.SetTermPos(self,cols,rows) SWE.Terminal.SetTermPos
+    @apiGroup SWE.Terminal
+    @apiName SetTermPos
+
+    @apiParam {SWE.Terminal}            self            terminal object
+    @apiParam {number}                  cols            terminal col
+    @apiParam {number}                  rows            terminal row
+*/
 SWE.Terminal.SetTermSize
 /**
-    @api {terminal set size} SWE.Terminal.SetTermSize(self,cols,rows) SWE.Terminal.SetSize
+    @api {terminal set size} SWE.Terminal.SetTermSize(self,cols,rows) SWE.Terminal.SetTermSize
     @apiGroup SWE.Terminal
-    @apiName SetSize
+    @apiName SetTermSize
 
     @apiParam {SWE.Terminal}            self            terminal object
     @apiParam {number}                  cols            terminal size
     @apiParam {number}                  rows            terminal size
+*/
+SWE.Terminal.SetTermFont
+/**
+    @api {terminal set font} SWE.Terminal.SetTermFont(self,font) SWE.Terminal.SetTermFont
+    @apiGroup SWE.Terminal
+    @apiName SetTermFont
+
+    @apiParam {SWE.Terminal}            self            terminal object
+    @apiParam {SWE.FontRender}          font            fontrender object
 */
 SWE.Terminal.RenderTexture
 /**
@@ -395,6 +414,62 @@ SWE.Terminal.TextureInvalidEvent
     ...
     win.TextureInvalidEvent = function()
 	win.tx1 = SWE.Texture.Text(frs, text, SWE.Color.Red)
+    end
+*/
+SWE.Terminal.TextInputEvent
+/**
+    @api {terminal event: text input} SWE.Terminal.TextInputEvent(text) SWE.Terminal.TextInputEvent
+    @apiGroup SWE.Terminal.Events
+    @apiName TextInputEvent
+    
+    @apiExample usage
+    win.TextInputEvent = function(text)
+        print("text input:", text)
+        return true
+    end
+*/
+SWE.Terminal.DisplayFocusEvent
+/**
+    @api {terminal event: display focus gain} SWE.Terminal.DisplayFocusEvent(gain) SWE.Terminal.DisplayFocusEvent
+    @apiGroup SWE.Terminal.Events
+    @apiName DisplayFocusEvent
+    
+    @apiExample usage
+    win.DisplayFocusEvent = function(gain)
+        print("display focus:", gain)
+    end
+*/
+SWE.Terminal.WindowVisibleEvent
+/**
+    @api {terminal event: window visible changed} SWE.Terminal.WindowVisibleEvent(visible) SWE.Terminal.WindowVisibleEvent
+    @apiGroup SWE.Terminal.Events
+    @apiName WindowVisibleEvent
+    
+    @apiExample usage
+    win.WindowVisibleEvent = function(visible)
+        print("win visible:", visible)
+    end
+*/
+SWE.Terminal.WindowResizeEvent
+/**
+    @api {terminal event: window resize} SWE.Terminal.WindowResizeEvent(width, height) SWE.Terminal.WindowResizeEvent
+    @apiGroup SWE.Terminal.Events
+    @apiName WindowResizeEvent
+    
+    @apiExample usage
+    win.WindowResizeEvent = function(width, height)
+        print("win resized:", width, height)
+    end
+*/
+SWE.Terminal.WindowMoveEvent
+/**
+    @api {terminal event: window move} SWE.Terminal.WindowMoveEvent(posx, posy) SWE.Terminal.WindowMoveEvent
+    @apiGroup SWE.Terminal.Events
+    @apiName WindowMoveEvent
+    
+    @apiExample usage
+    win.WindowMoveEvent = function(posx, posy)
+        print("win moved:", posx, posy)
     end
 */
 SWE.Terminal.WindowCreateEvent
@@ -656,6 +731,14 @@ SWE.Terminal.TerminalDefaultProperty
     @apiName TerminalDefaultProperty
     
     @apiSuccess (Return) {list}			result		default property, (render, style, hinting), see SWE.Property
+*/
+SWE.Terminal.TerminalMinimalSize
+/**
+    @api {terminal min size} SWE.Terminal.TerminalMinimalSize() SWE.Terminal.TerminalMinimalSize
+    @apiGroup SWE.Terminal.Virtual
+    @apiName TerminalMinimalSize
+    
+    @apiSuccess (Return) {SWE.Size}		result		minimal terminal size
 */
 
 

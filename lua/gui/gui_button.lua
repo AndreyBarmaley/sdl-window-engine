@@ -73,7 +73,7 @@ function TermLabelActionCreate(str, frs, tpx, tpy, parent, fgcol, bgcol)
     term.brcol2 = parent.colors.back or SWE.Color.Black
     term.focus = false
     term.disable = false
-    term:SetPosition(tpx * frs.fixedWidth, tpy * frs.lineHeight)
+    term:SetTermPos(tpx,tpy)
 
     term.MouseFocusEvent = function(f)
 	if not term.disable then

@@ -62,7 +62,7 @@ class sherwood_v10_table : private EntryAlloc, private Hasher, private Equal, pr
 public:
 
     using value_type = T;
-    using size_type = size_t;
+    using size_type = uint64_t;
     using difference_type = std::ptrdiff_t;
     using hasher = ArgumentHash;
     using key_equal = ArgumentEqual;
@@ -327,7 +327,7 @@ public:
 
     iterator find(const FindKey & key)
     {
-        size_t index = hash_policy.index_for_hash(hash_object(key), num_slots_minus_one);
+        uint64_t index = hash_policy.index_for_hash(hash_object(key), num_slots_minus_one);
         EntryPointer * bucket = entries + ptrdiff_t(index);
         for (EntryPointer it = *bucket; it; it = it->next)
         {
@@ -340,7 +340,7 @@ public:
     {
         return const_cast<sherwood_v10_table *>(this)->find(key);
     }
-    size_t count(const FindKey & key) const
+    uint64_t count(const FindKey & key) const
     {
         return find(key) == end() ? 0 : 1;
     }
@@ -364,7 +364,7 @@ public:
     template<typename Key, typename... Args>
     std::pair<iterator, bool> emplace(Key && key, Args &&... args)
     {
-        size_t index = hash_policy.index_for_hash(hash_object(key), num_slots_minus_one);
+        uint64_t index = hash_policy.index_for_hash(hash_object(key), num_slots_minus_one);
         EntryPointer * bucket = entries + ptrdiff_t(index);
         for (EntryPointer it = *bucket; it; it = it->next)
         {
@@ -409,9 +409,9 @@ public:
         insert(il.begin(), il.end());
     }
 
-    void rehash(size_t num_buckets)
+    void rehash(uint64_t num_buckets)
     {
-        num_buckets = std::max(num_buckets, static_cast<size_t>(std::ceil(num_elements / static_cast<double>(_max_load_factor))));
+        num_buckets = std::max(num_buckets, static_cast<uint64_t>(std::ceil(num_elements / static_cast<double>(_max_load_factor))));
         if (num_buckets == 0)
         {
             reset_to_empty_state();
@@ -437,7 +437,7 @@ public:
             for (EntryPointer e = *it; e;)
             {
                 EntryPointer next = e->next;
-                size_t index = hash_policy.index_for_hash(hash_object(e->value), num_slots_minus_one);
+                uint64_t index = hash_policy.index_for_hash(hash_object(e->value), num_slots_minus_one);
                 EntryPointer & new_slot = entries[index];
                 e->next = new_slot;
                 new_slot = e;
@@ -447,11 +447,11 @@ public:
         BucketAllocatorTraits::deallocate(*this, new_buckets - 1, num_buckets + 2);
     }
 
-    void reserve(size_t num_elements)
+    void reserve(uint64_t num_elements)
     {
         if (!num_elements)
             return;
-        num_elements = static_cast<size_t>(std::ceil(num_elements / static_cast<double>(_max_load_factor)));
+        num_elements = static_cast<uint64_t>(std::ceil(num_elements / static_cast<double>(_max_load_factor)));
         if (num_elements > bucket_count())
             rehash(num_elements);
     }
@@ -495,7 +495,7 @@ public:
         return { *previous, bucket };
     }
 
-    size_t erase(const FindKey & key)
+    uint64_t erase(const FindKey & key)
     {
         auto found = find(key);
         if (found == end())
@@ -537,15 +537,15 @@ public:
             swap(static_cast<BucketAllocator &>(*this), static_cast<BucketAllocator &>(other));
     }
 
-    size_t size() const
+    uint64_t size() const
     {
         return num_elements;
     }
-    size_t max_size() const
+    uint64_t max_size() const
     {
         return (AllocatorTraits::max_size(*this)) / sizeof(Entry);
     }
-    size_t bucket_count() const
+    uint64_t bucket_count() const
     {
         return num_slots_minus_one + 1;
     }
@@ -553,13 +553,13 @@ public:
     {
         return (AllocatorTraits::max_size(*this) - 1) / sizeof(Entry);
     }
-    size_t bucket(const FindKey & key) const
+    uint64_t bucket(const FindKey & key) const
     {
         return hash_policy.template index_for_hash<0>(hash_object(key), num_slots_minus_one);
     }
     float load_factor() const
     {
-        size_t buckets = bucket_count();
+        uint64_t buckets = bucket_count();
         if (buckets)
             return static_cast<float>(num_elements) / bucket_count();
         else
@@ -581,10 +581,10 @@ public:
 
 private:
     EntryPointer * entries = Entry::empty_pointer();
-    size_t num_slots_minus_one = 0;
+    uint64_t num_slots_minus_one = 0;
     typename HashPolicySelector<ArgumentHash>::type hash_policy;
     float _max_load_factor = 1.0f;
-    size_t num_elements = 0;
+    uint64_t num_elements = 0;
 
     void rehash_for_other_container(const sherwood_v10_table & other)
     {
@@ -639,7 +639,7 @@ private:
 
     void grow()
     {
-        rehash(std::max(size_t(4), 2 * bucket_count()));
+        rehash(std::max(uint64_t(4), 2 * bucket_count()));
     }
 
     void deallocate_data()
@@ -659,12 +659,12 @@ private:
     }
 
     template<typename U>
-    size_t hash_object(const U & key)
+    uint64_t hash_object(const U & key)
     {
         return static_cast<Hasher &>(*this)(key);
     }
     template<typename U>
-    size_t hash_object(const U & key) const
+    uint64_t hash_object(const U & key) const
     {
         return static_cast<const Hasher &>(*this)(key);
     }
@@ -814,7 +814,7 @@ class unordered_set
             T,
             T,
             H,
-            detailv10::functor_storage<size_t, H>,
+            detailv10::functor_storage<uint64_t, H>,
             E,
             detailv10::functor_storage<bool, E>,
             A,
@@ -827,7 +827,7 @@ class unordered_set
         T,
         T,
         H,
-        detailv10::functor_storage<size_t, H>,
+        detailv10::functor_storage<uint64_t, H>,
         E,
         detailv10::functor_storage<bool, E>,
         A,

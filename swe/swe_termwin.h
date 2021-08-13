@@ -527,7 +527,6 @@ namespace SWE
 	    TermBase &		operator=(const TermBase &) = delete;
 
     protected:
-        const FontRender*	fontRender;
         set::padding		padding;
         TermPos			curpos;
         TermRect		termrt;
@@ -595,11 +594,11 @@ namespace SWE
 	virtual FBColors	defaultColors(void) const;
 
     public:
-        TermBase(const FontRender &, Window*);
-        TermBase(const Size & gfxsz, const FontRender &, Window*);
+        TermBase(Window*);
+        TermBase(const Size & gfxsz, Window*);
         TermBase(const TermSize &, TermBase &);
 
-        void			setFontRender(const FontRender &);
+        void            	setPosition(const Point &) override;
         void            	setSize(const Size &) override;
         virtual void		setTermSize(const TermSize &);
 	void			setTermPos(const TermPos &);
@@ -613,6 +612,9 @@ namespace SWE
         virtual void		setCharset(int ch, const ColorIndex & fg = Color::Transparent, const ColorIndex & bg = Color::Transparent, const CharProperty* prop = nullptr) = 0;
         virtual void		renderFlush(void) = 0;
 
+	/// @result текуший рендер шрифтов окна
+        virtual const FontRender* frs(void) const = 0;
+
 	/// @result количество столбцов в терминале
         size_t                  cols(void) const;
 	/// @result количество строк в терминале
@@ -623,9 +625,6 @@ namespace SWE
 
 	/// @result размер терминала в символах
         const TermSize & 	termSize(void) const;
-
-	/// @result текуший рендер шрифтов окна
-        const FontRender* 	frs(void) const;
 
 	/// @brief coordinate transformer: symbol TermPos to graphics Point (parent relative)
         Point			sym2gfx(const TermPos &) const;
@@ -760,9 +759,10 @@ namespace SWE
     protected:
         std::vector<TermCharset> chars;
 	TickTrigger		tickBlink;
+        const FontRender*	fontRender;
 
     protected:
-        TermWindow(TermBase* term) : TermBase(term) {}
+        TermWindow(TermBase* term) : TermBase(term), fontRender(term->frs()) {}
 
 	bool			blinkShow(void) const;
 	void			setBlinkShow(bool);
@@ -790,10 +790,12 @@ namespace SWE
         const TermCharset*	charset(const TermPos &) const;
         const TermCharset*	charset(void) const;
         void			setCharset(int ch, const ColorIndex & fg = Color::Transparent, const ColorIndex & bg = Color::Transparent, const CharProperty* prop = nullptr) override;
+        const FontRender* 	frs(void) const override;
 
         void			setTermSize(const TermSize &) override;
         void			renderFlush(void) override;
 
+        void			setFontRender(const FontRender &);
         void			renderSymbol(int symx, int symy);
 	const char*     	className(void) const override { return "SWE::TermWindow"; }
 #ifdef SWE_WITH_JSON

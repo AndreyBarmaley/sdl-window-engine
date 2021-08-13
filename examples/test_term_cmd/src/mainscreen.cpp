@@ -162,7 +162,7 @@ UnicodeString ShrinkFileName(const std::string & name, int smax)
 }
 
 /* TermPanel */
-TermPanel::TermPanel(TermWindow & term) : TermBase(& term), cursorPos(0), skipList(0), focus(false)
+TermPanel::TermPanel(TermWindow* term) : TermBase(term), cursorPos(0), skipList(0), focus(false)
 {
     resetState(FlagModality);
     setState(FlagKeyHandle);
@@ -202,14 +202,16 @@ void TermPanel::readCurrentDirectory(const std::string & path)
 void TermPanel::renderWindow(void)
 {
     const ColorIndex defBackground = Color::Navy;
+    const LineType lineType = LineThin;
 
     *this << reset::defaults() <<
 	fill::defaults(Color::Silver, defBackground);
 
     // rect
-    *this << cursor::set(0, 0) << draw::rect(0, 0, cols(), rows(), LineThin);
+    *this << cursor::set(0, 0) << draw::rect(0, 0, cols(), rows(), lineType);
+
     // vertical line
-    *this << cursor::set(rightArea.posx() - 1, 1) << draw::vline(leftArea.rows(), acs::vline(LineThin));
+    *this << cursor::set(rightArea.posx() - 1, 1) << draw::vline(leftArea.rows(), acs::vline(lineType));
 
     auto it = filesList.begin();
     std::advance(it, skipList);
@@ -255,7 +257,7 @@ void TermPanel::renderWindow(void)
     // file info area
     *this << set::colors(Color::Silver, defBackground) <<
 	cursor::set(0, leftArea.rows() + 1) << 
-	acs::ltee(LineThin) << draw::hline(cols() - 2, acs::hline(LineThin)) << acs::rtee(LineThin);
+	acs::ltee(lineType) << draw::hline(cols() - 2, acs::hline(lineType)) << acs::rtee(lineType);
 
     it = filesList.begin();
     std::advance(it, cursorPos);
@@ -341,6 +343,12 @@ void TermPanel::renderFlush(void)
             for(int px = 0; px < cols(); ++px)
                 term->renderSymbol(tp.posx() + px, tp.posy() + py);
     }
+}
+
+const FontRender* TermPanel::frs(void) const
+{
+    auto term = dynamic_cast<const TermWindow*>(parent());
+    return term ? term->frs() : & systemFont();
 }
 
 bool TermPanel::keyPressReturn(void)
@@ -525,7 +533,7 @@ void TermPanel::windowResizeEvent(const Size & sz)
 
 /* MainScreen */
 MainScreen::MainScreen(const std::string & title, int fsz)
-    : FontRenderInit(title, minimalTerminalSize(), fsz), fontsz(fsz), leftPanel(*this), rightPanel(*this)
+    : FontRenderInit(title, minimalTerminalSize(), fsz), fontsz(fsz), leftPanel(this), rightPanel(this)
 {
     setFontRender(FontRenderInit::frt);
 
@@ -650,7 +658,8 @@ SWE::FBColors MainScreen::defaultColors(void) const
 
 void MainScreen::terminalResizeEvent(void)
 {
-	panelsPositions();
+    panelsPositions();
+    setDirty(true);
 }
 
 void MainScreen::renderPresentEvent(u32 ms)

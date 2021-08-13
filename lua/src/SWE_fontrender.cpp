@@ -267,7 +267,7 @@ SWE_FontRender* SWE_Stack::fontrender_create(LuaState & ll, const FontRender* fr
     if(frs == & systemFont())
         DEBUG("used system font: FontAltC8x16");
 
-    DEBUG(String::pointer(ptr) << ": [" << String::pointer(*ptr) << "]" << ", " << "fontId: " << String::hex((*ptr)->id().value(), 4));
+    DEBUGN(String::pointer(ptr) << ": [" << String::pointer(*ptr) << "]" << ", " << "fontId: " << String::hex((*ptr)->id().value(), 4), 2);
 
     ll.pushString("__type").pushString("swe.fontrender").setTableIndex(-3);
     ll.pushString("font").pushString(font).setTableIndex(-3);
@@ -407,7 +407,7 @@ int SWE_fontrender_destroy(lua_State* L)
         auto ptr = static_cast<SWE_FontRender**>(ll.getTopUserData());
         if(ptr && *ptr)
         {
-            DEBUG(String::pointer(ptr) << ": [" << String::pointer(*ptr) << "]");
+	    DEBUGN(String::pointer(ptr) << ": [" << String::pointer(*ptr) << "]", 2);
 
 	    if((FontRender*) *ptr != (FontRender*) & systemFont())
 	    {

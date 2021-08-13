@@ -29,11 +29,9 @@
 
 namespace SWE
 {
-
     namespace Engine
     {
-	bool		engineDebug = false;
-
+	int		engineDebug = 0;
         void		quit(void);
     }
 
@@ -169,12 +167,12 @@ int SWE::Engine::version(void)
     return SWE_VERSION;
 }
 
-void SWE::Engine::setDebugMode(bool f)
+void SWE::Engine::setDebugMode(int f)
 {
     engineDebug = f;
 }
 
-bool SWE::Engine::debugMode(void)
+int SWE::Engine::debugMode(void)
 {
     return engineDebug;
 }

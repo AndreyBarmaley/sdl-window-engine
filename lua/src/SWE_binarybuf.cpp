@@ -1077,7 +1077,7 @@ SWE_BinaryBuf* SWE_Stack::binarybuf_create(LuaState & ll)
     // set functions
     ll.setFunctionsTableIndex(SWE_binarybuf_functions, -1);
 
-    DEBUG(String::pointer(ptr) << ": [" << String::pointer(*ptr) << "]");
+    DEBUGN(String::pointer(ptr) << ": [" << String::pointer(*ptr) << "]", 2);
 
     ll.pushString("__type").pushString("swe.binarybuf").setTableIndex(-3);
     ll.pushString("size").pushInteger((*ptr)->size()).setTableIndex(-3);
@@ -1132,7 +1132,7 @@ int SWE_binarybuf_destroy(lua_State* L)
         auto ptr = static_cast<SWE_BinaryBuf**>(ll.getTopUserData());
         if(ptr && *ptr)
         {
-            DEBUG(String::pointer(ptr) << ": [" << String::pointer(*ptr) << "]");
+    	    DEBUGN(String::pointer(ptr) << ": [" << String::pointer(*ptr) << "]", 2);
 
             delete *ptr;
             *ptr = NULL;

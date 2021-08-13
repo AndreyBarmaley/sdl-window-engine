@@ -539,7 +539,7 @@ namespace SWE
 
 #if defined(__MINGW32__)
         // escape char '\\'
-        res = dirname2(String::escaped(str));
+        res = dirname2(String::escaped(res));
 #endif
         return res;
     }

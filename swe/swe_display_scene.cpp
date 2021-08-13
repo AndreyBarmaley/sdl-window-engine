@@ -340,7 +340,7 @@ void SWE::DisplayScene::sceneDestroy(void)
     sceneItems.clear();
 }
 
-/// @details рендер всех видимых объектов на сцене, неоходимость отрисовки задается через метод DisplayScene::setDirty, генерирует событие Window::renderPresentEvent на каждый объект Window
+/// @details рендер всех видимых объектов на сцене, необходимость отрисовки задается через метод DisplayScene::setDirty, генерирует событие Window::renderPresentEvent на каждый объект Window
 void SWE::DisplayScene::sceneRedraw(bool force)
 {
     if(isDirty() || force)

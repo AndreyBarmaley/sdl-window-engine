@@ -92,14 +92,15 @@ protected:
     void		windowResizeEvent(const Size &) override;
 
 public:
-    TermPanel(TermWindow &);
+    TermPanel(TermWindow*);
 
     void		renderWindow(void) override;
 
     void		setFocus(bool f) { focus = f; }
     bool		isFocused(void) const { return focus; }
     void                setCharset(int ch, const ColorIndex & fg = Color::Transparent, const ColorIndex & bg = Color::Transparent, const CharProperty* prop = nullptr) override;
-    void		renderFlush(void);
+    void		renderFlush(void) override;
+    const FontRender*   frs(void) const override;
 };
 
 class MainScreen : protected FontRenderInit, public FullTerminal

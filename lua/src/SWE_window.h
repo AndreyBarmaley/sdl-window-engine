@@ -29,8 +29,12 @@
 struct lua_State;
 
 void SWE_window_create_event(LuaState &, Window &);
-void SWE_texture_invalid_event(LuaState &, Window &);
+void SWE_window_move_event(LuaState &, Window &, const Point &);
+void SWE_window_resize_event(LuaState &, Window &, const Size &);
+void SWE_window_visible_event(LuaState &, Window &, bool f);
+void SWE_display_focus_event(LuaState &, Window &, bool f);
 void SWE_display_resize_event(LuaState &, Window &, const Size &);
+void SWE_texture_invalid_event(LuaState &, Window &);
 bool SWE_mouse_press_event(LuaState &, Window &, const ButtonEvent &);
 bool SWE_mouse_release_event(LuaState &, Window &, const ButtonEvent &);
 bool SWE_mouse_motion_event(LuaState &, Window &, const Point &, u32);
@@ -42,6 +46,7 @@ bool SWE_key_press_event(LuaState &, Window &, const KeySym &);
 bool SWE_key_release_event(LuaState &, Window &, const KeySym &);
 bool SWE_scroll_up_event(LuaState &, Window &);
 bool SWE_scroll_down_event(LuaState &, Window &);
+bool SWE_text_input_event(LuaState &, Window &, const std::string &);
 bool SWE_system_user_event(LuaState &, Window &, int, void*);
 void SWE_system_tick_event(LuaState &, Window &, u32);
 void SWE_system_render_event(LuaState &, Window &, u32);
@@ -62,8 +67,12 @@ protected:
     LuaState	ll;
 
     void	windowCreateEvent(void) override { SWE_window_create_event(ll, *this); }
+    void	windowMoveEvent(const Point & pt) override { SWE_window_move_event(ll, *this, pt); }
+    void	windowResizeEvent(const Size & sz) override { SWE_window_resize_event(ll, *this, sz); }
+    void	windowVisibleEvent(bool f) override { SWE_window_visible_event(ll, *this, f); }
     void	textureInvalidEvent(void) override { SWE_texture_invalid_event(ll, *this); }
     void	displayResizeEvent(const Size & sz) override { SWE_display_resize_event(ll, *this, sz); }
+    void	displayFocusEvent(bool f) override { SWE_display_focus_event(ll, *this, f); }
     bool	mousePressEvent(const ButtonEvent & be) override { return SWE_mouse_press_event(ll, *this, be); }
     bool	mouseReleaseEvent(const ButtonEvent & be) override { return SWE_mouse_release_event(ll, *this, be); }
     bool	mouseMotionEvent(const Point & pos, u32 buttons) override { return SWE_mouse_motion_event(ll, *this, pos, buttons); }
@@ -77,6 +86,7 @@ protected:
     bool        scrollDownEvent(void) override { return SWE_scroll_down_event(ll, *this); }
     bool        userEvent(int code, void* data) override { return SWE_system_user_event(ll, *this, code, data); }
     void        tickEvent(u32 ms) override { SWE_system_tick_event(ll, *this, ms); }
+    bool	textInputEvent(const std::string & text) override { return SWE_text_input_event(ll, *this, text); }
     void        renderPresentEvent(u32 ms) override { SWE_system_render_event(ll, *this, ms); }
 
 public:

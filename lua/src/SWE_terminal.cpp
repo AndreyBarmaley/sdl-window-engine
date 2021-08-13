@@ -178,8 +178,11 @@ void SWE_terminal_resize_event(LuaState & ll, TermWindow & term)
 
     if(SWE_Scene::window_pushtop(ll, term))
     {
-        ll.pushString("cols").pushInteger(term.cols()).setTableIndex(-1);
-        ll.pushString("rows").pushInteger(term.rows()).setTableIndex(-1);
+        // update fields: size, cols, rows fields
+        ll.pushInteger(term.width()).setFieldTableIndex("width", -2);
+        ll.pushInteger(term.height()).setFieldTableIndex("height", -2);
+        ll.pushInteger(term.cols()).setFieldTableIndex("cols", -2);
+        ll.pushInteger(term.rows()).setFieldTableIndex("rows", -2);
 
         if(ll.getFieldTableIndex("TerminalResizeEvent", -1, false).isTopFunction())
         {
@@ -200,8 +203,9 @@ void SWE_font_resize_event(LuaState & ll, TermWindow & term)
 
     if(SWE_Scene::window_pushtop(ll, term))
     {
-        ll.pushString("cols").pushInteger(term.cols()).setTableIndex(-1);
-        ll.pushString("rows").pushInteger(term.rows()).setTableIndex(-1);
+        // update fields: cols, rows field
+        ll.pushInteger(term.cols()).setFieldTableIndex("cols", -2);
+        ll.pushInteger(term.rows()).setFieldTableIndex("rows", -2);
 
         if(ll.getFieldTableIndex("FontResizeEvent", -1, false).isTopFunction())
         {
@@ -214,6 +218,33 @@ void SWE_font_resize_event(LuaState & ll, TermWindow & term)
 
         ll.stackPop();
     }
+}
+
+int SWE_terminal_set_termpos(lua_State* L)
+{
+    const int rescount = 0;
+    LuaStateDefine(ll, L, rescount);
+
+    // params: swe_terminal, cols, rows
+
+    if(auto term = SWE_Terminal::get(ll, 1, __FUNCTION__))
+    {
+	int cols = ll.toIntegerIndex(2);
+	int rows = ll.toIntegerIndex(3);
+
+	term->setTermPos(TermPos(cols, rows));
+
+	// update fields: position
+	auto & pos = term->position();
+	ll.pushInteger(pos.x).setFieldTableIndex("posx", 1);
+	ll.pushInteger(pos.y).setFieldTableIndex("posy", 1);
+    }
+    else
+    {
+	ERROR("userdata empty");
+    }
+
+    return rescount;
 }
 
 int SWE_terminal_set_termsize(lua_State* L)
@@ -230,9 +261,38 @@ int SWE_terminal_set_termsize(lua_State* L)
 
 	term->setTermSize(TermSize(cols, rows));
 
-	// userdata, posy, posx, swe_terminal...
+	// update fields: cols, rows, size
 	ll.pushInteger(cols).setFieldTableIndex("cols", 1);
 	ll.pushInteger(rows).setFieldTableIndex("rows", 1);
+	ll.pushInteger(term->width()).setFieldTableIndex("width", 1);
+	ll.pushInteger(term->height()).setFieldTableIndex("height", 1);
+    }
+    else
+    {
+	ERROR("userdata empty");
+    }
+
+    return rescount;
+}
+
+int SWE_terminal_set_font(lua_State* L)
+{
+    const int rescount = 0;
+    LuaStateDefine(ll, L, rescount);
+
+    // params: swe_terminal, swe_fontrender
+
+    auto term = SWE_Terminal::get(ll, 1, __FUNCTION__);
+    auto frs = SWE_FontRender::get(ll, 2, __FUNCTION__);
+
+    if(term && frs)
+    {
+        term->setFontRender(*frs);
+        term->fontResizeHandle();
+
+        // update fields: cols, rows, size
+	ll.pushInteger(term->cols()).setFieldTableIndex("cols", 1);
+	ll.pushInteger(term->rows()).setFieldTableIndex("rows", 1);
 	ll.pushInteger(term->width()).setFieldTableIndex("width", 1);
 	ll.pushInteger(term->height()).setFieldTableIndex("height", 1);
     }
@@ -1448,17 +1508,40 @@ int SWE_terminal_charset_info(lua_State* L)
     return rescount;
 }
 
+int SWE_terminal_get_position(lua_State* L)
+{
+    const int rescount = 2;
+    LuaStateDefine(ll, L, rescount);
+
+    // params: swe_terminal
+
+    if(auto term = SWE_Terminal::get(ll, 1, __FUNCTION__))
+    {
+	auto & pos = term->position();
+	ll.pushInteger(pos.x).pushInteger(pos.y);
+    }
+    else
+    {
+	ERROR("userdata empty");
+	ll.pushNil().pushNil();
+    }
+
+    return rescount;
+}
+
 const struct luaL_Reg SWE_terminal_functions[] = {
     { "MarkDestroyed",  SWE_window_set_destroyed },    // [void], table terminal
     { "SetVisible",     SWE_window_set_visible },      // [void], table terminal, bool flag
     { "SetResultCode",  SWE_window_set_result },       // [void], table terminal, int code
     { "SetModality",    SWE_window_set_modality },     // [void], table terminal, int code
     { "SetKeyHandle",   SWE_window_set_keyhandle },    // [void], table terminal, int code
-    { "SetPosition",    SWE_window_set_position },     // [void], table window. point pos
+    { "SetPosition",    SWE_window_set_position },     // [void], table terminal, point pos
     { "RenderTexture",  SWE_window_render_texture },   // [void]. table terminal, table texture, rect, rect
     { "PointInArea",	SWE_window_point_inarea },     // [bool], table terminal, int, int
-    { "SetTermSize",    SWE_terminal_set_termsize },     // [void], table window. int cols, int rows
-    { "ToJson",		SWE_terminal_to_json },          // [string], table terminal
+    { "SetTermPos",     SWE_terminal_set_termpos },    // [void], table terminal, int cols, int rows
+    { "SetTermSize",    SWE_terminal_set_termsize },   // [void], table terminal, int cols, int rows
+    { "SetFont",        SWE_terminal_set_font },       // [void], table terminal, swe.fontrender
+    { "ToJson",		SWE_terminal_to_json },        // [string], table terminal
     // 
     { "FillFGColor",	SWE_terminal_fill_fgcolor },	// [swe_terminal], table terminal, color, cols, rows
     { "FillBGColor",	SWE_terminal_fill_bgcolor },	// [swe_terminal], table terminal, color, cols, rows
@@ -1568,7 +1651,8 @@ void SWE_Stack::terminal_create(LuaState & ll, const FontRender & frs, int cols,
     // set functions
     ll.setFunctionsTableIndex(SWE_terminal_functions, -1);
 
-    DEBUG(String::pointer(ptr) << ": [" << String::pointer(*ptr) << "]");
+    DEBUGN(String::pointer(ptr) << ": [" << String::pointer(*ptr) << "]", 2);
+
     SWE_Scene::window_add(ll, hexid, ! parent);
 }
 

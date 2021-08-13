@@ -198,6 +198,8 @@ void MainScreen::renderWindow(void)
     *this  << "     " << set::blink() << set::colors(Color::Yellow, Color::MidnightBlue) <<
 	"(Window allow resize, Mouse scroll up/scroll down: changed font size)" << reset::colors() << reset::blink() << set::rn();
 
+    // 
+    *this << cursor::set(cols() - 1, rows() - 1) << "@";
     // flush
     *this << set::flush();
 }

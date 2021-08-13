@@ -40,8 +40,14 @@ class SWE_Terminal : public TermWindow
 protected:
     mutable LuaState ll;
 
+    friend      int SWE_terminal_set_font(lua_State*);
+
     // from SWE::Window
     void        windowCreateEvent(void) override { SWE_window_create_event(ll, *this); }
+    void        windowMoveEvent(const Point & pt) override { SWE_window_move_event(ll, *this, pt); }
+    void        windowResizeEvent(const Size & sz) override { SWE_window_resize_event(ll, *this, sz); }
+    void        windowVisibleEvent(bool f) override { SWE_window_visible_event(ll, *this, f); }
+    void        displayFocusEvent(bool f) override { SWE_display_focus_event(ll, *this, f); }
     void        textureInvalidEvent(void) override { SWE_texture_invalid_event(ll, *this); }
     bool        mousePressEvent(const ButtonEvent & be) override { return SWE_mouse_press_event(ll, *this, be); }
     bool        mouseReleaseEvent(const ButtonEvent & be) override { return SWE_mouse_release_event(ll, *this, be); }
@@ -56,6 +62,8 @@ protected:
     bool        scrollDownEvent(void) override { return SWE_scroll_down_event(ll, *this); }
     bool        userEvent(int code, void* data) override { return SWE_system_user_event(ll, *this, code, data); }
     void        tickEvent(u32 ms) override { TermWindow::tickEvent(ms); SWE_system_tick_event(ll, *this, ms); }
+    bool        textInputEvent(const std::string & text) override { return SWE_text_input_event(ll, *this, text); }
+    void        renderPresentEvent(u32 ms) override { SWE_system_render_event(ll, *this, ms); }
     // from SWE::TermWindow
     void        terminalResizeEvent(void) override { SWE_terminal_resize_event(ll, *this); }
     void        fontResizeEvent(void) override { SWE_font_resize_event(ll, *this); }

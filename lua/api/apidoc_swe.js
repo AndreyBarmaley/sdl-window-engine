@@ -9,7 +9,7 @@ SWE.DisplayInit
     @apiParam {number}			height		display size
     @apiParam {boolean}			fullscreen	fullscreen mode, (default false)
     @apiParam {boolean}			landscape	init landscape of portrait mode (mobile os)
-    @apiParam {table}                   params          params: { "title":string, "window":size, "render":size, "fullscreen":bool, "accel":bool, "resized":bool }
+    @apiParam {table}                   params          params: { "title":string, "width":int, "height":int, "window":size, "render":size, "fullscreen":bool, "accel":bool, "resized":bool }
     @apiSuccess (Return) {SWE.Window}	result		window object
 
     @apiExample usage
@@ -18,15 +18,17 @@ SWE.DisplayInit
 
     local result = SWE.MainLoop(win)
 
-    @apiExample usage
+    -- mobile mode (fullscreen and rotation preffered)
     local landscape = false
-    local win = SWE.DisplayInit("SWE init: Portrait modes",landscape)
+    local win = SWE.DisplayInit("SWE Window",landscape)
     print(win.width,win.height)
 
+    -- extend mode
+    local win = SWE.DisplayInit({title="SWE Window", window={640, 480}, fullscreen=false, accel=true, resized=true })
 */
 SWE.TerminalInit
 /**
-    @api {create display terminal object} SWE.TerminalInit(title,frs,cols,rows) SWE.TerminalInit
+    @api {create display terminal object} SWE.TerminalInit(title,frs,cols,rows)(table) SWE.TerminalInit
     @apiGroup SWE
     @apiName TerminalInit
 
@@ -34,6 +36,7 @@ SWE.TerminalInit
     @apiParam {table}                   frs             font render, (SWE.FontRender object)
     @apiParam {number}                  cols            terminal size
     @apiParam {number}                  rows            terminal size
+    @apiParam {table}                   params          params: { "title":string, "cols":int, "rows":int, "fontrender":swe_fontrender, "fullscreen":bool, "accel":bool, "resized":bool }
     @apiSuccess (Return) {SWE.Terminal} result          terminal object
 
     @apiExample usage

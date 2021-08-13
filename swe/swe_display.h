@@ -42,7 +42,12 @@ namespace SWE
         bool		init(const std::string &, const Size & win, const Size & render, bool fullscreen, bool accel, bool resized);
         bool		resize(const Size &);
 
+        /// @brief функция возвращает размер window
         const Size &	device(void);
+        /// @brief функция возвращает максимально возможный регион для window
+        Rect            usableBounds(void);
+
+        /// @brief функция возвращает размер render
         const Size &	size(void);
 
         void            setForceWindowed(bool);

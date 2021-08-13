@@ -410,16 +410,15 @@ function FileBrowserInit(win, frs, path, params)
     local rows = params.rows or ToInt(win.height / frs.lineHeight)
 
     local term = SWE.Terminal(frs, cols, rows, win)
+    term:SetModality(true)
 
-    SWE.Debug("create terminal: " .. tostring(cols) .. "x" .. tostring(rows),
+    SWE.Debug("create terminal: " .. tostring(term.cols) .. "x" .. tostring(term.rows),
 		"window: (" .. tostring(term.width) .. "x" .. tostring(term.height) .. ")",
 		"font size: (" .. tostring(frs.size) .. "," .. tostring(frs.fixedWidth) .. "x" .. tostring(frs.lineHeight) .. ")")
 
-    term:SetModality(true)
-
+    term.frs = frs
     term.colors = { back = SWE.Color.MidnightBlue, text = SWE.Color.Silver, highlight = SWE.Color.MediumBlue, syntaxerror = SWE.Color.FireBrick,
         cursormarker = SWE.Color.LawnGreen, scrollmarker = SWE.Color.LawnGreen, spacemarker = SWE.Color.RoyalBlue }
-    term.frs = frs
     term.include = params.include
     term.exclude = params.exclude
     term.button1 = TermLabelActionCreate("SELECT", term.frs, 3, term.rows - 1, term, SWE.Color.White)
@@ -462,7 +461,7 @@ function FileBrowserInit(win, frs, path, params)
 
     term.RenderWindow = function()
         term:CursorPosition(0, 0):FillColors(term.colors.text, term.colors.back, term.cols, term.rows)
-        term:CursorPosition(0, 0):FillProperty(frs.blended, frs.style, frs.hinting, term.cols, term.rows)
+        term:CursorPosition(0, 0):FillProperty(term.frs.blended, term.frs.style, term.frs.hinting, term.cols, term.rows)
         term:CursorPosition(0, 0):FillCharset(0, term.cols, term.rows)
         term:CursorPosition(0, 0):DrawRect(term.cols, term.rows, SWE.Line.Thin)
     	term:CursorPosition(0, 1)
@@ -496,13 +495,19 @@ function FileBrowserInit(win, frs, path, params)
         return true
     end
 
-    term.DisplayResizeEvent = function(w,h)
-        local cols = ToInt(w / term.frs.fixedWidth)
-        local rows = ToInt(h / term.frs.lineHeight)
-        term:SetTermSize(cols,rows)
-        if w ~= term.width or h ~= term.height then
-            term:SetPosition((w - term.width)/2, (h - term.height)/2)
-        end
+    term.TerminalResizeEvent = function()
+	if term.parent ~= nil then
+	    local cols = ToInt(term.parent.width / term.frs.fixedWidth)
+	    local rows = ToInt(term.parent.height / term.frs.lineHeight)
+	    term:SetTermSize(cols,rows)
+	    if term.button1 ~= nil then
+		term.button1:SetTermPos(3, term.rows - 1)
+	    end
+	    if term.button2 ~= nil then
+		term.button2:SetTermPos(term.cols - 10, term.rows - 1)
+	    end
+	    SWE.DisplayDirty()
+	end
     end
 
     term.MouseClickEvent = function(px,py,pb,rx,ry,rb)
@@ -520,6 +525,10 @@ function FileBrowserInit(win, frs, path, params)
 	    SWE.PushEvent(SWE.Action.ItemSelected, term.items[term.skipitems + term.selitem], term)
 	end
 	return true
+    end
+
+    term.LocalKeyPressEvent = function(self, key, mod, scancode)
+        return false
     end
 
     term.KeyPressEvent = function(key,mod,scancode)
@@ -543,7 +552,7 @@ function FileBrowserInit(win, frs, path, params)
 	    return true
         end
 
-	return false
+        return term:LocalKeyPressEvent(key, mod, scancode)
     end
 
     term.LocalUserEvent = function(self, event, obj)

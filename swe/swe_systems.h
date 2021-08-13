@@ -90,7 +90,7 @@ namespace SWE
 
     namespace Engine
     {
-        bool	debugMode(void);
+        int	debugMode(void);
     }
 
     std::string shortPrettyName(const std::string &);
@@ -156,7 +156,7 @@ namespace SWE
   #define VERBOSE(x) { PRETTY("[VERBOSE]", x); }
   #define ERROR(x)   { PRETTY("[ERROR]", x); }
   #define FIXME(x)   { PRETTY("[FIXME]", x); }
-  #define DEBUG(x)   { if(SWE::Engine::debugMode()) PRETTY("[DEBUG]", x); }
+  #define DEBUGN(x,n){ if(n <= SWE::Engine::debugMode()) PRETTY("[DEBUG]", x); }
  #else
   // colored console
   #define PRETTY3(x, y, c) COUT(SWE::String::time() << ": " << x << "\t\x1B[35m" << SWE::shortPrettyName(__PRETTY_FUNCTION__) << ": " << c << y << "\033[0m")
@@ -165,6 +165,7 @@ namespace SWE
   #define ERROR(x)   { PRETTY3("\x1B[93m[ERROR]", x, "\x1B[93m"); }
   #define FIXME(x)   { PRETTY("\x1B[32m[FIXME]", x); }
   #define DEBUG(x)   { if(SWE::Engine::debugMode()) PRETTY("\x1B[34m[DEBUG]", x); }
+  #define DEBUGN(x,n){ if(n <= SWE::Engine::debugMode()) PRETTY("\x1B[34m[DEBUG]", x); }
  #endif
 #else
  #define PRETTY(x, y) COUT(SWE::String::time() << ": " << x << "\t" << SWE::shortPrettyName(__PRETTY_FUNCTION__) << ": " << y)
@@ -172,6 +173,7 @@ namespace SWE
  #define ERROR(x)   { PRETTY("[ERROR]", x); }
  #define FIXME(x)   { PRETTY("[FIXME]", x); }
  #define DEBUG(x)   {}
+ #define DEBUGN(x)  {}
 #endif
 
 

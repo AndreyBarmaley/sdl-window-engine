@@ -321,6 +321,62 @@ SWE.Window.TextureInvalidEvent
 	win.tx1 = SWE.Texture.Text(frs, text, SWE.Color.Red)
     end
 */
+SWE.Window.TextInputEvent
+/**
+    @api {window event: text input} SWE.Window.TextInputEvent(text) SWE.Window.TextInputEvent
+    @apiGroup SWE.Window.Events
+    @apiName TextInputEvent
+    
+    @apiExample usage
+    win.TextInputEvent = function(text)
+	print("text input:", text)
+	return true
+    end
+*/
+SWE.Window.DisplayFocusEvent
+/**
+    @api {window event: display focus gain} SWE.Window.DisplayFocusEvent(gain) SWE.Window.DisplayFocusEvent
+    @apiGroup SWE.Window.Events
+    @apiName DisplayFocusEvent
+    
+    @apiExample usage
+    win.DisplayFocusEvent = function(gain)
+	print("display focus:", gain)
+    end
+*/
+SWE.Window.WindowVisibleEvent
+/**
+    @api {window event: window visible changed} SWE.Window.WindowVisibleEvent(visible) SWE.Window.WindowVisibleEvent
+    @apiGroup SWE.Window.Events
+    @apiName WindowVisibleEvent
+    
+    @apiExample usage
+    win.WindowVisibleEvent = function(visible)
+	print("win visible:", visible)
+    end
+*/
+SWE.Window.WindowResizeEvent
+/**
+    @api {window event: window resize} SWE.Window.WindowResizeEvent(width, height) SWE.Window.WindowResizeEvent
+    @apiGroup SWE.Window.Events
+    @apiName WindowResizeEvent
+    
+    @apiExample usage
+    win.WindowResizeEvent = function(width, height)
+	print("win resized:", width, height)
+    end
+*/
+SWE.Window.WindowMoveEvent
+/**
+    @api {window event: window move} SWE.Window.WindowMoveEvent(posx, posy) SWE.Window.WindowMoveEvent
+    @apiGroup SWE.Window.Events
+    @apiName WindowMoveEvent
+    
+    @apiExample usage
+    win.WindowMoveEvent = function(posx, posy)
+	print("win moved:", posx, posy)
+    end
+*/
 SWE.Window.WindowCreateEvent
 /**
     @api {window event: single event constructor} SWE.Window.WindowCreateEvent() SWE.Window.WindowCreateEvent

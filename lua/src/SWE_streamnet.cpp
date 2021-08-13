@@ -645,7 +645,7 @@ SWE_StreamNet* SWE_Stack::streamnet_create(LuaState & ll)
     // set functions
     ll.setFunctionsTableIndex(SWE_streamnet_functions, -1);
 
-    DEBUG(String::pointer(ptr) << ": [" << String::pointer(*ptr) << "]");
+    DEBUGN(String::pointer(ptr) << ": [" << String::pointer(*ptr) << "]", 2);
 
     // add values
     ll.pushString("__type").pushString("swe.streamnet").setTableIndex(-3);
@@ -694,7 +694,7 @@ int SWE_streamnet_destroy(lua_State* L)
         auto ptr = static_cast<SWE_StreamNet**>(ll.getTopUserData());
         if(ptr && *ptr)
         {
-            DEBUG(String::pointer(ptr) << ": [" << String::pointer(*ptr) << "]");
+    	    DEBUGN(String::pointer(ptr) << ": [" << String::pointer(*ptr) << "]", 2);
 
 	    delete *ptr;
             *ptr = NULL;

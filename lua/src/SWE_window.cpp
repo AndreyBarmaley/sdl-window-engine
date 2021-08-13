@@ -247,6 +247,111 @@ void SWE_window_create_event(LuaState & ll, Window & win)
     }
 }
 
+bool SWE_text_input_event(LuaState & ll, Window & win, const std::string & str)
+{
+    LuaStateValidator(ll, 0);
+
+    if(SWE_Scene::window_pushtop(ll, win))
+    {
+	if(ll.getFieldTableIndex("TextInputEvent", -1, false).isTopFunction())
+	{
+	    ll.pushString(str);
+	    bool res = ll.callFunction(1, 1).getTopBoolean();
+	    // remove boolean, table
+	    ll.stackPop(2);
+	    return res;
+	}
+	else
+	{
+	    ll.stackPop();
+	}
+
+	ll.stackPop();
+    }
+
+    return false;
+}
+
+void SWE_display_focus_event(LuaState & ll, Window & win, bool f)
+{
+    LuaStateValidator(ll, 0);
+
+    if(SWE_Scene::window_pushtop(ll, win))
+    {
+	if(ll.getFieldTableIndex("DisplayFocusEvent", -1, false).isTopFunction())
+	{
+	    ll.pushBoolean(f);
+	    ll.callFunction(1, 0);
+	}
+	else
+	{
+	    ll.stackPop();
+	}
+
+	ll.stackPop();
+    }
+}
+
+void SWE_window_visible_event(LuaState & ll, Window & win, bool f)
+{
+    LuaStateValidator(ll, 0);
+
+    if(SWE_Scene::window_pushtop(ll, win))
+    {
+	if(ll.getFieldTableIndex("WindowVisibleEvent", -1, false).isTopFunction())
+	{
+	    ll.pushBoolean(f);
+	    ll.callFunction(1, 0);
+	}
+	else
+	{
+	    ll.stackPop();
+	}
+
+	ll.stackPop();
+    }
+}
+
+void SWE_window_resize_event(LuaState & ll, Window & win, const Size & sz)
+{
+    LuaStateValidator(ll, 0);
+
+    if(SWE_Scene::window_pushtop(ll, win))
+    {
+	if(ll.getFieldTableIndex("WindowResizeEvent", -1, false).isTopFunction())
+	{
+	    ll.pushInteger(sz.w).pushInteger(sz.h);
+	    ll.callFunction(2, 0);
+	}
+	else
+	{
+	    ll.stackPop();
+	}
+
+	ll.stackPop();
+    }
+}
+
+void SWE_window_move_event(LuaState & ll, Window & win, const Point & pos)
+{
+    LuaStateValidator(ll, 0);
+
+    if(SWE_Scene::window_pushtop(ll, win))
+    {
+	if(ll.getFieldTableIndex("WindowMoveEvent", -1, false).isTopFunction())
+	{
+	    ll.pushInteger(pos.x).pushInteger(pos.y);
+	    ll.callFunction(2, 0);
+	}
+	else
+	{
+	    ll.stackPop();
+	}
+
+	ll.stackPop();
+    }
+}
+
 void SWE_texture_invalid_event(LuaState & ll, Window & win)
 {
     LuaStateValidator(ll, 0);
@@ -272,8 +377,9 @@ void SWE_display_resize_event(LuaState & ll, Window & win, const Size & winsz)
 
     if(SWE_Scene::window_pushtop(ll, win))
     {
-        ll.pushString("width").pushInteger(win.width()).setTableIndex(-1);
-        ll.pushString("height").pushInteger(win.height()).setTableIndex(-1);
+        // fix size fields
+        ll.pushInteger(win.width()).setFieldTableIndex("width", -2);
+        ll.pushInteger(win.height()).setFieldTableIndex("height", -2);
 
 	if(ll.getFieldTableIndex("DisplayResizeEvent", -1, false).isTopFunction())
 	{
@@ -405,7 +511,7 @@ bool SWE_system_user_event(LuaState & ll, Window & win, int code, void* data)
 		{
 		    int objRef = reinterpret_cast<intptr_t>(data);
 		    luaL_unref(ll.L(), LUA_REGISTRYINDEX, objRef);
-		    DEBUG("object unref: " << String::hex(objRef));
+		    DEBUGN("object unref: " << String::hex(objRef), 2);
 		}
 
 		// remove function, table
@@ -578,8 +684,9 @@ int SWE_window_set_position(lua_State* L)
 	win->setPosition(Point(posx, posy));
 
 	// userdata, posy, posx, swe_window...
-	ll.pushInteger(posx).setFieldTableIndex("posx", 1);
-	ll.pushInteger(posy).setFieldTableIndex("posy", 1);
+	const auto & pos = win->position();
+	ll.pushInteger(pos.x).setFieldTableIndex("posx", 1);
+	ll.pushInteger(pos.y).setFieldTableIndex("posy", 1);
     }
     else
     {
@@ -1369,13 +1476,13 @@ bool SWE_Scene::window_add(LuaState & ll, const std::string & label, bool isroot
 		// remove old display from SWE.Scene.Window
 		std::string hexid = ll.popFieldTableIndex("hexid", -1);
 		ll.pushNil().setFieldTableIndex(hexid, -4);
-		DEBUG("display ref: " << "remove");
+		DEBUGN("display ref: " << "remove", 2);
 	    }
 	    ll.stackPop();
 
 	    // set swe_window to SWE.Scene.display
 	    ll.pushValueIndex(-3).setFieldTableIndex("display", -2);
-	    DEBUG("display ref: " << "set" << ": " << label);
+	    DEBUGN("display ref: " << "set" << ": " << label, 2);
 
 	    // clean old display references
 	    ll.garbageCollect();
@@ -1391,7 +1498,7 @@ bool SWE_Scene::window_add(LuaState & ll, const std::string & label, bool isroot
     // remove SWE.Scene.Windows
     ll.stackPop();
 
-    DEBUG("add window" << ": " << label << (isroot ? " (display)" : ""));
+    DEBUGN("add window" << ": " << label << (isroot ? " (display)" : ""), 2);
     return true;
 }
 
@@ -1411,7 +1518,7 @@ void SWE_Scene::clean(LuaState & ll, bool saveDisplay)
 
 	    // pop value
 	    ll.stackPop();
-	    DEBUG("window id: " << hexid);
+	    DEBUGN("window id: " << hexid, 2);
 
 	    // stack: ..., SWE.Scene.Window, key,
 	    ll.pushNil().setFieldTableIndex(hexid, -3);
@@ -1422,7 +1529,7 @@ void SWE_Scene::clean(LuaState & ll, bool saveDisplay)
 	    // remove SWE.Scene.display
 	    if(! saveDisplay)
 	    {
-		DEBUG("display ref: " << "remove");
+		DEBUGN("display ref: " << "remove", 2);
 		// remove old display from SWE.Scene
 		ll.pushNil().setFieldTableIndex("display", -2);
 	    }
@@ -1438,7 +1545,7 @@ void SWE_Scene::clean(LuaState & ll, bool saveDisplay)
 			// add SWE.Scene.Window hexid
 			std::string hexid = String::hex(win->id());
 			ll.setFieldTableIndex(hexid, -3);
-			DEBUG("display ref: " << "set" << ": " << hexid);
+			DEBUGN("display ref: " << "set" << ": " << hexid, 2);
 		    }
 		    else
 		    {
@@ -1555,7 +1662,8 @@ void SWE_Stack::window_create(LuaState & ll, const Point & pos, const Size & wsz
     // set functions
     ll.setFunctionsTableIndex(SWE_window_functions, -1);
 
-    DEBUG(String::pointer(ptr) << ": [" << (*ptr)->toString() << "]");
+    DEBUGN(String::pointer(ptr) << ": [" << (*ptr)->toString() << "]", 2);
+
     SWE_Scene::window_add(ll, hexid, ! parent);
 }
 
@@ -1623,7 +1731,7 @@ int SWE_window_destroy(lua_State* L)
 		ll.stackPop();
 	    }
 
-	    DEBUG(String::pointer(ptr) << ": [" << String::pointer(*ptr) << "]");
+	    DEBUGN(String::pointer(ptr) << ": [" << String::pointer(*ptr) << "]", 2);
 	    // SWE.Scene.Windows mode: weak value
 	    // auto remove SWE_Scene::window_remove(ll, *ptr);
 
@@ -2066,7 +2174,8 @@ int SWE_polygon_create(lua_State* L)
     // set functions
     ll.setFunctionsTableIndex(SWE_polygon_functions, -1);
 
-    DEBUG(String::pointer(ptr) << ": [" << String::pointer(*ptr) << "]");
+    DEBUGN(String::pointer(ptr) << ": [" << String::pointer(*ptr) << "]", 2);
+
     SWE_Scene::window_add(ll,  hexid, !parent);
 
     return rescount;

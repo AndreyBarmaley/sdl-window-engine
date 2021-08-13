@@ -67,7 +67,7 @@ SWE.BinaryBuf.Base64Encode
     @apiName Base64Encode
     
     @apiParam {SWE.BinaryBuf}     		inputbuf   	binarybuf raw data
-    @apiSuccess (Return) {string}    		result   	base64 data
+    @apiSuccess (Return) {string}    		result   	base64 string
 */
 SWE.BinaryBuf.ReadFromFile
 /**
@@ -104,7 +104,7 @@ SWE.BinaryBuf.SaveToFile
     @apiParam {SWE.BinaryBuf}     		self  		binarybuf raw data
     @apiParam {string}     			filename   	filename
     @apiParam {number}     			offset   	offset read (default 0, endpos: -1)
-    @apiSuccess (Return) {boolean}    		result   	write success
+    @apiSuccess (Return) {boolean}    		result   	true if success
 */
 SWE.BinaryBuf.GetCRC32b
 /**
@@ -149,7 +149,7 @@ SWE.BinaryBuf.PushBack
     @apiParam {SWE.BinaryBuf}     		self   		binarybuf raw data
     @apiParam {number}     			offset   	offset data
     @apiParam {number}     			value   	byte value (list)
-    @apiSuccess (Return) {boolean}    		result   	success
+    @apiSuccess (Return) {boolean}    		result   	true if success
 */
 SWE.BinaryBuf.SetByte
 /**
@@ -160,7 +160,7 @@ SWE.BinaryBuf.SetByte
     @apiParam {SWE.BinaryBuf}     		self   		binarybuf raw data
     @apiParam {number}     			offset   	offset data
     @apiParam {number}     			value   	byte value (list)
-    @apiSuccess (Return) {boolean}    		result   	success
+    @apiSuccess (Return) {boolean}    		result   	true if success
 
     @apiExample usage
     local buf = SWE.BinaryBuf("0123456789")
@@ -178,7 +178,7 @@ SWE.BinaryBuf.SetBytes
     @apiParam {SWE.BinaryBuf}     		inputbuf   	binarybuf input data
     @apiParam {number}     			offset   	offset data
     @apiParam {number}     			length   	length data
-    @apiSuccess (Return) {boolean}    		result   	success
+    @apiSuccess (Return) {boolean}    		result   	true if success
 */
 SWE.BinaryBuf.Insert
 /**
@@ -193,7 +193,7 @@ SWE.BinaryBuf.Insert
     @apiParam {number}     			length   	length data
     @apiParam {number}     			count  		value counts
     @apiParam {number}     			value		byte value
-    @apiSuccess (Return) {boolean}    		result   	success
+    @apiSuccess (Return) {boolean}    		result   	true if success
 */
 SWE.BinaryBuf.GetByte
 /**
@@ -225,7 +225,7 @@ SWE.BinaryBuf.GetBytes
     @apiParam {SWE.BinaryBuf}     		self   		binarybuf raw data
     @apiParam {number}     			offset   	offset data
     @apiParam {number}     			length   	length data
-    @apiSuccess (Return) {SWE.BinaryBuf}  	result   	bynarybuf raw data
+    @apiSuccess (Return) {SWE.BinaryBuf}  	result   	return binarybuf
 */
 SWE.BinaryBuf.Resize
 /**
@@ -236,7 +236,7 @@ SWE.BinaryBuf.Resize
     @apiParam {SWE.BinaryBuf}     		self   		binarybuf raw data
     @apiParam {number}     			size  	 	new size
     @apiParam {number}     			value   	default value
-    @apiSuccess (Return) {SWE.BinaryBuf}  	result   	bynarybuf raw data
+    @apiSuccess (Return) {SWE.BinaryBuf}  	result   	return self
 */
 SWE.BinaryBuf.Assign
 /**
@@ -247,7 +247,7 @@ SWE.BinaryBuf.Assign
     @apiParam {SWE.BinaryBuf}     		self   		binarybuf raw data
     @apiParam {number}     			size  	 	new size
     @apiParam {number}     			value   	assign content
-    @apiSuccess (Return) {SWE.BinaryBuf}  	result   	bynarybuf raw data
+    @apiSuccess (Return) {SWE.BinaryBuf}  	result   	return self
 */
 SWE.BinaryBuf.Erase
 /**
@@ -258,7 +258,7 @@ SWE.BinaryBuf.Erase
     @apiParam {SWE.BinaryBuf}     		self   		binarybuf raw data
     @apiParam {number}     			pos 	 	position
     @apiParam {number}     			count   	count erase
-    @apiSuccess (Return) {SWE.BinaryBuf}  	result   	bynarybuf raw data
+    @apiSuccess (Return) {SWE.BinaryBuf}  	result   	return self
 */
 SWE.BinaryBuf.Clear
 /**
@@ -270,12 +270,24 @@ SWE.BinaryBuf.Clear
 */
 SWE.BinaryBuf.CompareBytes
 /**
-    @api {compare bytes} SWE.BinaryBuf.CompareBytes(self,offset,value...value) SWE.BinaryBuf.CompareBytes
+    @api {compare bytes} SWE.BinaryBuf.CompareBytes(self,offset,value...value)(self,buf,offset) SWE.BinaryBuf.CompareBytes
     @apiGroup SWE.BinaryBuf
     @apiName CompareBytes
     
     @apiParam {SWE.BinaryBuf}     		self   		binarybuf raw data
     @apiParam {number}     			offset   	offset data
+    @apiParam {SWE.BinaryBuf} 			buf   	        binarybuf raw data
     @apiParam {number}     			value   	byte value (list)
-    @apiSuccess (Return) {boolean}    		result   	success
+    @apiSuccess (Return) {boolean}    		result   	true if success
+*/
+SWE.BinaryBuf.Find
+/**
+    @api {find string} SWE.BinaryBuf.Find(self,buf,offset) SWE.BinaryBuf.Find
+    @apiGroup SWE.BinaryBuf
+    @apiName Find
+
+    @apiParam {SWE.BinaryBuf}                   self            binarybuf raw data
+    @apiParam {SWE.BinaryBuf}                   buf             binarybuf value
+    @apiParam {number}                          offset          offset data
+    @apiSuccess (Return) {number}               result          found position or -1
 */

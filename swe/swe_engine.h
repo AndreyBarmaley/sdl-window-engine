@@ -23,7 +23,7 @@
 #ifndef _SWE_ENGINE_
 #define _SWE_ENGINE_
 
-#define SWE_VERSION 20210723
+#define SWE_VERSION 20210810
 
 /// @brief пространство SWE
 namespace SWE
@@ -32,8 +32,8 @@ namespace SWE
     namespace Engine
     {
         bool		init(bool debug = true);
-        bool		debugMode(void);
-        void		setDebugMode(bool);
+        int		debugMode(void);
+        void		setDebugMode(int);
         int	        version(void);
         void		quit(void);
 

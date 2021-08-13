@@ -151,19 +151,101 @@ SWE.Key.EnumConstant
 */
 SWE.Key.ToString
 /**
-        @api {get color string} SWE.Key.ToString(key) SWE.Key.ToString
+        @api {get key string} SWE.Key.ToString(key) SWE.Key.ToString
         @apiGroup SWE.Key
         @apiName ToString
 
         @apiParam {number}              key            key enum
         @apiSuccess (Return) {string}   name           key name
 */
-SWE.Key.ToChar
+SWE.Key.ToKeyChar
 /**
-        @api {get color string} SWE.Key.ToString(key) SWE.Key.ToChar
+        @api {get key char} SWE.Key.ToKeyChar(key,mod) SWE.Key.ToKeyChar
         @apiGroup SWE.Key
-        @apiName ToChar
+        @apiName ToKeyChar
 
         @apiParam {number}              key           key enum
-        @apiSuccess (Return) {number}   char          key charset
+        @apiParam {number}              mod           key modifiers
+        @apiSuccess (Return) {number}   result        key charset
+*/
+SWE.Key.IsLeftShift
+/**
+        @api {is left shift} SWE.Key.IsLeftShift(mod) SWE.Key.IsLeftShift
+        @apiGroup SWE.Key
+        @apiName IsLeftShift
+
+        @apiParam {number}              mod           key modifiers
+        @apiSuccess (Return) {boolean}  result        true if success
+*/
+SWE.Key.IsRightShift
+/**
+        @api {is right shift} SWE.Key.IsRightShift(mod) SWE.Key.IsRightShift
+        @apiGroup SWE.Key
+        @apiName IsRightShift
+
+        @apiParam {number}              mod           key modifiers
+        @apiSuccess (Return) {boolean}  result        true if success
+*/
+SWE.Key.IsShift
+/**
+        @api {is any shift} SWE.Key.IsShifted(mod) SWE.Key.IsShifted
+        @apiGroup SWE.Key
+        @apiName IsShifted
+
+        @apiParam {number}              mod           key modifiers
+        @apiSuccess (Return) {boolean}  result        true if success
+*/
+SWE.Key.IsLeftCtrl
+/**
+        @api {is left ctrl} SWE.Key.IsLeftCtrl(mod) SWE.Key.IsLeftCtrl
+        @apiGroup SWE.Key
+        @apiName IsLeftCtrl
+
+        @apiParam {number}              mod           key modifiers
+        @apiSuccess (Return) {boolean}  result        true if success
+*/
+SWE.Key.IsRightCtrl
+/**
+        @api {is right ctrl} SWE.Key.IsRightCtrl(mod) SWE.Key.IsRightCtrl
+        @apiGroup SWE.Key
+        @apiName IsRightCtrl
+
+        @apiParam {number}              mod           key modifiers
+        @apiSuccess (Return) {boolean}  result        true if success
+*/
+SWE.Key.IsCtrl
+/**
+        @api {is any ctrl} SWE.Key.IsCtrl(mod) SWE.Key.IsCtrl
+        @apiGroup SWE.Key
+        @apiName IsCtrl
+
+        @apiParam {number}              mod           key modifiers
+        @apiSuccess (Return) {boolean}  result        true if success
+*/
+SWE.Key.IsLeftAlt
+/**
+        @api {is left alt} SWE.Key.IsLeftAlt(mod) SWE.Key.IsLeftAlt
+        @apiGroup SWE.Key
+        @apiName IsLeftAlt
+
+        @apiParam {number}              mod           key modifiers
+        @apiSuccess (Return) {boolean}  result        true if success
+*/
+SWE.Key.IsRightAlt
+/**
+        @api {is right alt} SWE.Key.IsRightAlt(mod) SWE.Key.IsRightAlt
+        @apiGroup SWE.Key
+        @apiName IsRightAlt
+
+        @apiParam {number}              mod           key modifiers
+        @apiSuccess (Return) {boolean}  result        true if success
+*/
+SWE.Key.IsAlt
+/**
+        @api {is any alt} SWE.Key.IsAlt(mod) SWE.Key.IsAlt
+        @apiGroup SWE.Key
+        @apiName IsAlt
+
+        @apiParam {number}              mod           key modifiers
+        @apiSuccess (Return) {boolean}  result        true if success
 */

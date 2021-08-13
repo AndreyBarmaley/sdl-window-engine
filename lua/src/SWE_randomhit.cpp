@@ -179,8 +179,7 @@ int SWE_randomhit_create(lua_State* L)
     // set functions
     ll.setFunctionsTableIndex(SWE_randomhit_functions, -1);
 
-
-    DEBUG(String::pointer(ptr) << ": [" << String::pointer(*ptr) << "]");
+    DEBUGN(String::pointer(ptr) << ": [" << String::pointer(*ptr) << "]", 2);
 
     return rescount;
 }
@@ -195,7 +194,7 @@ int SWE_randomhit_destroy(lua_State* L)
         auto ptr = static_cast<SWE_RandomHit**>(ll.getTopUserData());
         if(ptr && *ptr)
         {
-            DEBUG(String::pointer(ptr) << ": [" << String::pointer(*ptr) << "]");
+    	    DEBUGN(String::pointer(ptr) << ": [" << String::pointer(*ptr) << "]", 2);
 
 	    delete *ptr;
             *ptr = NULL;

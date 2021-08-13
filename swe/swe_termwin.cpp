@@ -46,7 +46,7 @@ namespace SWE
                 break;
         }
 
-        return 179;
+        return '|';
     }
 
     int acs::hline(const LineType & type)
@@ -66,7 +66,7 @@ namespace SWE
                 break;
         }
 
-        return 196;
+        return '-';
     }
 
     int acs::ulcorner(const LineType & type)
@@ -86,7 +86,7 @@ namespace SWE
                 break;
         }
 
-        return 218;
+        return '+';
     }
 
     int acs::urcorner(const LineType & type)
@@ -106,7 +106,7 @@ namespace SWE
                 break;
         }
 
-        return 191;
+        return '+';
     }
 
     int acs::llcorner(const LineType & type)
@@ -126,7 +126,7 @@ namespace SWE
                 break;
         }
 
-        return 192;
+        return '+';
     }
 
     int acs::lrcorner(const LineType & type)
@@ -146,7 +146,7 @@ namespace SWE
                 break;
         }
 
-        return 217;
+        return '+';
     }
 
     int acs::ltee(const LineType & type)
@@ -166,7 +166,7 @@ namespace SWE
                 break;
         }
 
-        return 195;
+        return '|';
     }
 
     int acs::rtee(const LineType & type)
@@ -186,7 +186,7 @@ namespace SWE
                 break;
         }
 
-        return 180;
+        return '|';
     }
 
     int acs::ttee(const LineType & type)
@@ -206,7 +206,7 @@ namespace SWE
                 break;
         }
 
-        return 194;
+        return '-';
     }
 
     int acs::btee(const LineType & type)
@@ -226,7 +226,7 @@ namespace SWE
                 break;
         }
 
-        return 193;
+        return '-';
     }
 
     int acs::plus(const LineType & type)
@@ -246,7 +246,7 @@ namespace SWE
                 break;
         }
 
-        return 197;
+        return '+';
     }
 
     /* CharState */
@@ -284,40 +284,26 @@ namespace SWE
     }
 
     /* TermBase */
-    TermBase::TermBase(const FontRender & font, Window* win)
-        : Window(win), fontRender(& font), curalign(AlignLeft)
+    TermBase::TermBase(Window* win)
+        : Window(win), curalign(AlignLeft)
     {
-        if(fontRender->size().isEmpty())
-        {
-            fontRender = & systemFont();
-            ERROR("font size empty" << ", " << "used system font");
-        }
-
         *this << reset::defaults();
     }
 
-    TermBase::TermBase(const Size & gfxsz, const FontRender & font, Window* win)
-        : Window(win), fontRender(& font), curalign(AlignLeft)
+    TermBase::TermBase(const Size & gfxsz, Window* win)
+        : Window(win), curalign(AlignLeft)
     {
-        if(fontRender->size().isEmpty())
-        {
-            fontRender = & systemFont();
-            ERROR("font size empty" << ", " << "used system font");
-        }
-
-        setTermSize(gfx2sym(gfxsz));
         *this << reset::defaults();
     }
 
     TermBase::TermBase(const TermSize & tsz, TermBase & term)
-        : Window(& term), fontRender(term.frs()), curalign(AlignLeft)
+        : Window(& term), curalign(AlignLeft)
     {
-        setTermSize(tsz);
         *this << reset::defaults();
     }
 
     TermBase::TermBase(TermBase* term)
-        : Window(term), fontRender(term ? term->frs() : nullptr), curalign(AlignLeft)
+        : Window(term), curalign(AlignLeft)
     {
         *this << reset::defaults();
     }
@@ -341,15 +327,34 @@ namespace SWE
 
         if(term)
         {
-            setPosition(term->sym2gfx(tp));
+            Window::setPosition(term->sym2gfx(tp));
         }
         else
-        if(win)
         {
-            setPosition(sym2gfx(tp));
+            Window::setPosition(tp.toPoint() * frs()->size());
         }
 
         termrt.setPos(tp.posx(), tp.posy());
+    }
+
+    void TermBase::setPosition(const Point & pt)
+    {
+        auto win = parent();
+        auto term = dynamic_cast<TermBase*>(win);
+
+        if(term)
+        {
+	    // relative coordinates
+            Window::setPosition(pt);
+	    auto tp = term->gfx2sym(pt);
+    	    termrt.setPos(tp.posx(), tp.posy());
+        }
+        else
+        {
+            Window::setPosition(pt);
+	    auto tp = TermPos(pt / frs()->size());
+    	    termrt.setPos(tp.posx(), tp.posy());
+        }
     }
 
     void TermBase::setTermSize(const TermSize & tsz)
@@ -401,11 +406,6 @@ namespace SWE
     const TermSize & TermBase::termSize(void) const
     {
         return termrt;
-    }
-
-    const FontRender* TermBase::frs(void) const
-    {
-        return fontRender;
     }
 
     void TermBase::setFGColor(const ColorIndex & col)
@@ -499,18 +499,6 @@ namespace SWE
         return padding;
     }
 
-    void TermBase::setFontRender(const FontRender & frs)
-    {
-        if(frs.size().isEmpty())
-        {
-            ERROR("font size empty");
-        }
-        else
-        {
-            fontRender = & frs;
-            setSize(0 == rows() && 0 == cols() ? Display::size() : sym2gfx(termSize()));
-        }
-    }
 
     bool TermBase::lineWrap(void) const
     {
@@ -519,27 +507,27 @@ namespace SWE
 
     Point TermBase::sym2gfx(const TermPos & sym) const /* coordinate from current win */
     {
-        return position() + sym.toPoint() * fontRender->size();
+        return position() + sym.toPoint() * frs()->size();
     }
 
     TermPos TermBase::gfx2sym(const Point & gfx) const /* coordinate from current win */
     {
-        return TermPos((gfx - position()) / fontRender->size());
+        return TermPos((gfx - position()) / frs()->size());
     }
 
     Size TermBase::sym2gfx(const TermSize & sym) const
     {
-        return sym.toSize() * fontRender->size();
+        return sym.toSize() * frs()->size();
     }
 
     TermSize TermBase::gfx2sym(const Size & gfx) const
     {
-        Size res = gfx / fontRender->size();
+        Size res = gfx / frs()->size();
 
         // fix float values
-        if(res.w * fontRender->size().w < gfx.w) res.w += 1;
+        if(res.w * frs()->size().w < gfx.w) res.w += 1;
 
-        if(res.h * fontRender->size().h < gfx.h) res.h += 1;
+        if(res.h * frs()->size().h < gfx.h) res.h += 1;
 
         return TermSize(res);
     }
@@ -560,7 +548,7 @@ namespace SWE
 
     LineType TermBase::systemLine(const LineType & line) const
     {
-        return fontRender == & systemFont() ? LineType::LineAscii : line;
+        return frs() == & systemFont() ? LineType::LineAscii : line;
     }
 
     void TermBase::renderWindow(void)
@@ -657,10 +645,12 @@ namespace SWE
 
     TermBase & TermBase::operator<< (const draw::rect & st)
     {
-        return *this << cursor::set(st.posx(), st.posy()) << acs::ulcorner(systemLine(st.line)) << draw::hline(st.cols() - 2, acs::hline(systemLine(st.line))) << acs::urcorner(systemLine(st.line)) <<
-               cursor::set(st.posx(), st.posy() + 1) << draw::vline(st.rows() - 2, acs::vline(systemLine(st.line))) <<
-               cursor::set(st.posx() + st.cols() - 1, st.posy() + 1) << draw::vline(st.rows() - 2, acs::vline(systemLine(st.line))) <<
-               cursor::set(st.posx(), st.posy() + st.rows() - 1) << acs::llcorner(systemLine(st.line)) << draw::hline(st.cols() - 2, acs::hline(systemLine(st.line))) << acs::lrcorner(systemLine(st.line));
+        return *this << cursor::set(st.posx(), st.posy()) << acs::ulcorner(systemLine(st.line)) << draw::hline(st.cols() - 2, acs::hline(systemLine(st.line))) <<
+		acs::urcorner(systemLine(st.line)) <<
+                cursor::set(st.posx(), st.posy() + 1) << draw::vline(st.rows() - 2, acs::vline(systemLine(st.line))) <<
+                cursor::set(st.posx() + st.cols() - 1, st.posy() + 1) << draw::vline(st.rows() - 2, acs::vline(systemLine(st.line))) <<
+                cursor::set(st.posx(), st.posy() + st.rows() - 1) << acs::llcorner(systemLine(st.line)) << draw::hline(st.cols() - 2, acs::hline(systemLine(st.line))) <<
+		acs::lrcorner(systemLine(st.line));
     }
 
     TermBase & TermBase::operator<< (int ch)
@@ -1050,7 +1040,7 @@ namespace SWE
 #endif
 
     /* TermWindow */
-    TermWindow::TermWindow(const FontRender & frs, Window* win) : TermBase(frs, win)
+    TermWindow::TermWindow(const FontRender & frs, Window* win) : TermBase(win), fontRender(& frs)
     {
         *this << reset::defaults();
 
@@ -1063,16 +1053,18 @@ namespace SWE
         }
     }
 
-    TermWindow::TermWindow(const Size & gfxsz, const FontRender & frs, Window* win) : TermBase(gfxsz, frs, win)
+    TermWindow::TermWindow(const Size & gfxsz, const FontRender & frs, Window* win) : TermBase(gfxsz, win), fontRender(& frs)
     {
+        TermBase::setTermSize(gfx2sym(gfxsz));
         chars.resize(rows() * cols(), TermCharset(UnicodeColor(0x20, defaultColors()), CharProperty()));
         *this << reset::defaults();
 	setBlinkShow(true);
         setVisible(true);
     }
 
-    TermWindow::TermWindow(const TermSize & tsz, TermBase & term) : TermBase(tsz, term)
+    TermWindow::TermWindow(const TermSize & tsz, TermBase & term) : TermBase(tsz, term), fontRender(term.frs())
     {
+        TermBase::setTermSize(tsz);
         chars.resize(rows() * cols(), TermCharset(UnicodeColor(0x20, defaultColors()), CharProperty()));
         *this << reset::defaults();
 	setBlinkShow(true);
@@ -1089,24 +1081,45 @@ namespace SWE
 	setState(FlagInformed, f);
     }
 
+    const FontRender* TermWindow::frs(void) const
+    {
+        return fontRender;
+    }
+
+    void TermWindow::setFontRender(const FontRender & frs)
+    {
+        if(frs.size().isEmpty())
+        {
+            ERROR("font size empty");
+        }
+        else
+        {
+            fontRender = & frs;
+            setSize(0 == rows() && 0 == cols() ? Display::size() : sym2gfx(termSize()));
+        }
+    }
+
     void TermWindow::tickEvent(u32 ms)
     {
-	if(! blinkShow())
-	{
-	    // hide delay
-	    if(tickBlink.check(ms, 300))
+        if(std::any_of(chars.begin(), chars.end(), [](auto & tc){ return tc.blinked(); } ))
+        {
+	    if(! blinkShow())
 	    {
-		setBlinkShow(true);
-		renderWindow();
+	        // hide delay
+	        if(tickBlink.check(ms, 300))
+	        {
+		    setBlinkShow(true);
+		    renderWindow();
+	        }
 	    }
-	}
-	else
-	// show delay
-	if(tickBlink.check(ms, 700))
-	{
-	    setBlinkShow(false);
-	    renderWindow();
-	}
+	    else
+	    // show delay
+	    if(tickBlink.check(ms, 700))
+	    {
+	        setBlinkShow(false);
+	        renderWindow();
+	    }
+        }
     }
 
     void TermWindow::displayResizeEvent(const Size & winsz)
@@ -1151,7 +1164,9 @@ namespace SWE
 
     void TermWindow::fontResizeHandle(void)
     {
-        if(Display::isMaximizedWindow())
+        auto maxsz = Display::usableBounds();
+
+        if(Display::isMaximizedWindow() || maxsz.w <= width() || maxsz.h <= height())
         {
             // recalc new cols, rows
             setTermSize(gfx2sym(size()));

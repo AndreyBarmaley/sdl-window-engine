@@ -141,6 +141,8 @@ int SWE_window_init_extend(lua_State* L)
     bool fullscreen = false;
     bool accel = false;
     bool resized = false;
+    int width = 0;
+    int height = 0;
 
     // iterate table
     ll.pushNil();
@@ -165,10 +167,22 @@ int SWE_window_init_extend(lua_State* L)
         else
         if(key == "resized")
             resized = ll.toBooleanIndex(-1);
+        else
+        if(key == "width")
+            width = ll.toIntegerIndex(-1);
+        else
+        if(key == "height")
+            height = ll.toIntegerIndex(-1);
 
         // pop value
         ll.stackPop();
     }
+
+    if(winsz.isEmpty())
+	winsz = Size(width, height);
+
+    if(rendersz.isEmpty())
+	rendersz = winsz;
 
     SWE_Scene::clean(ll, false);
     DEBUG("display init: " << winsz.toString());
@@ -192,7 +206,7 @@ int SWE_window_init(lua_State* L)
 
     // simple params: string title, int width, int height, bool fullscreen
     // mobile params: string title, bool landscape
-    // extend params: table { "title":string, "window":size, "render":size, "fullscreen":bool, "accel":bool, "resized":bool }
+    // extend params: table { "title":string, "width":int, "height":int, "window":size, "render":size, "fullscreen":bool, "accel":bool, "resized":bool }
 
     // check force windowed params
     ll.pushTable("SWE");
@@ -211,8 +225,78 @@ int SWE_window_init(lua_State* L)
     return SWE_window_init_simple(L);
 }
 
+int SWE_terminal_init_extend(lua_State* L)
+{
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
 
-int SWE_terminal_init(lua_State* L)
+    std::string title;
+    Size winsz, rendersz;
+    bool fullscreen = false;
+    bool accel = false;
+    bool resized = false;
+    int cols = 0;
+    int rows = 0;
+    SWE_FontRender* frs = nullptr;
+
+    // iterate table
+    ll.pushNil();
+    while(ll.nextTableIndex(-2))
+    {
+        std::string key = ll.toStringIndex(-2);
+
+        if(key == "title")
+            title = ll.toStringIndex(-1);
+        else
+        if(key == "fullscreen")
+            fullscreen = ll.toBooleanIndex(-1);
+        else
+        if(key == "accel")
+            accel = ll.toBooleanIndex(-1);
+        else
+        if(key == "resized")
+            resized = ll.toBooleanIndex(-1);
+        else
+        if(key == "cols")
+            cols = ll.toIntegerIndex(-1);
+        else
+        if(key == "rows")
+            rows = ll.toIntegerIndex(-1);
+        else
+        if(key == "fontrender")
+	    frs = SWE_FontRender::get(ll, -1, __FUNCTION__);
+
+        // pop value
+        ll.stackPop();
+    }
+
+    if(frs)
+    {
+	auto winsz = frs->size() * Size(cols, rows);
+
+	SWE_Scene::clean(ll, false);
+	DEBUG("display init: " << winsz.toString());
+
+	if(Display::init(title, winsz, winsz, fullscreen, accel, resized))
+	{
+	    SWE_Stack::terminal_create(ll, *frs, cols, rows, NULL);
+	}
+	else
+	{
+	    ERROR("display init failed");
+	    ll.pushNil();
+	}
+    }
+    else
+    {
+	ERROR("terminal init failed");
+	ll.pushNil();
+    }
+
+    return rescount;
+}
+
+int SWE_terminal_init_simple(lua_State* L)
 {
     // params: string title, table swe_fontrender, int cols, int rows
     const int rescount = 1;
@@ -242,6 +326,19 @@ int SWE_terminal_init(lua_State* L)
     }
 
     return rescount;
+}
+
+int SWE_terminal_init(lua_State* L)
+{
+    LuaState ll(L);
+
+    // simple params: string title, table swe_fontrender, int cols, int rows
+    // extend params: table { "title":string, "cols":int, "rows":int, "fontrender":swe_fontrender, "fullscreen":bool, "accel":bool, "resized":bool }
+
+    if(ll.isTopTable())
+	return SWE_terminal_init_extend(L);
+
+    return SWE_terminal_init_simple(L);
 }
 
 int SWE_quit(lua_State* L)
@@ -974,7 +1071,7 @@ int SWE_push_event(lua_State* L)
 	ll.pushValueIndex(2);
 	int objRef = luaL_ref(ll.L(), LUA_REGISTRYINDEX);
 	data = reinterpret_cast<void*>(objRef);
-	DEBUG("create ref object: " << String::hex(objRef));
+	DEBUGN("create ref object: " << String::hex(objRef), 2);
     }
 
     DisplayScene::pushEvent(dst, code, data);
@@ -994,7 +1091,11 @@ int SWE_set_debug(lua_State* L)
     // params: bool
     LuaState ll(L);
 
-    Engine::setDebugMode(ll.toBooleanIndex(1));
+    if(ll.isBooleanIndex(1))
+	Engine::setDebugMode(ll.toBooleanIndex(1));
+    else
+	Engine::setDebugMode(ll.toIntegerIndex(1));
+
     return 0;
 }
 

@@ -292,10 +292,9 @@ SWE_UnicodeRegex* SWE_Stack::u16regex_create(LuaState & ll)
 
     // set functions
     ll.setFunctionsTableIndex(SWE_unicoderegex_functions, -1);
-
-    DEBUG(String::pointer(ptr) << ": [" << String::pointer(*ptr) << "]");
-
     ll.pushString("__type").pushString("swe.unicoderegex").setTableIndex(-3);
+
+    DEBUGN(String::pointer(ptr) << ": [" << String::pointer(*ptr) << "]", 2);
 
     return *ptr;
 }
@@ -348,7 +347,7 @@ int SWE_unicoderegex_destroy(lua_State* L)
         auto ptr = static_cast<SWE_UnicodeRegex**>(ll.getTopUserData());
         if(ptr && *ptr)
         {
-            DEBUG(String::pointer(ptr) << ": [" << String::pointer(*ptr) << "]");
+    	    DEBUGN(String::pointer(ptr) << ": [" << String::pointer(*ptr) << "]", 2);
 
             delete *ptr;
             *ptr = NULL;
