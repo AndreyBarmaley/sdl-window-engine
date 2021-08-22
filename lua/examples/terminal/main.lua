@@ -59,7 +59,7 @@ end
 -- -- if used members type(SWE.Texture), then it is necessary recreate it here
 -- end
 
-term.TerminalResizeEvent = function()
+term.TerminalResizeEvent = function(cols,rows)
     print("terminal resized",term.cols,term.rows)
     -- change child object position
 end

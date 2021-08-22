@@ -1689,7 +1689,7 @@ SWE::Rect SWE::Display::usableBounds(void)
     unsigned long bytesAfter = 0;
     unsigned char* properties = nullptr;
 
-    Window rootWindow = XRootWindow(wm.info.x11.display, 0);
+    auto rootWindow = XRootWindow(wm.info.x11.display, 0);
     Rect res = { 0, 0, 65535, 65535 };
 
     auto status = XGetWindowProperty(wm.info.x11.display, rootWindow, workArea, 0, ~0L, False, XA_CARDINAL,

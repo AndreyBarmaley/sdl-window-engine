@@ -91,7 +91,7 @@ local function UnicodeStringCharsOnly(ustr, char)
     return true
 end
 
-local function TermStyleColor(term, posx, length, skip, params)
+local function TermStyleColor(term, str, posx, length, skip, params)
     term:CursorMoveFirst()
     term:CursorMoveRight(posx - skip)
     if params.background ~= nil then
@@ -101,6 +101,12 @@ local function TermStyleColor(term, posx, length, skip, params)
     if params.color ~= nil then
 	term:FillFGColor(SWE.Color[params.color], length)
 	term:CursorMoveLeft(length)
+    else
+	if params.colored then
+	    local col = SWE.Color[str]
+	    term:FillFGColor(col, length)
+	    term:CursorMoveLeft(length)
+	end
     end
     local style = ConvertStyle(params.style)
     if style ~= 0 then
@@ -153,7 +159,7 @@ local function DrawLineColored(term, ustr, skip, rules)
 
 		    if rule.tokens == nil or #rule.tokens == 0 or TableFindValue(rule.tokens, ss) then
 		        -- apply style pattern
-		        TermStyleColor(term, pos, len, skip, rule)
+		        TermStyleColor(term, ss, pos, len, skip, rule)
 		        -- check err syntax highlight
 		        if not iscomments then
 		            TermCheckSyntax(term, ss, pos, len, skip, rule)
@@ -596,7 +602,8 @@ function EditorInit(win, frs2, filename)
 	cursormarker = SWE.Color.LawnGreen, scrollmarker = SWE.Color.LawnGreen, spacemarker = SWE.Color.RoyalBlue }
 
     -- save button
-    area.save = TermLabelActionCreate("SAVE", frs, area.cols - 15, area.rows - 1, area)
+    area.save = TermLabelActionCreate("SAVE", frs, area)
+    area.save:SetTermPos(area, area.cols - 15, area.rows - 1)
     area.save.disable = true
     -- save event: mouse click
     area.save.MouseClickEvent = function(px,py,pb,rx,ry,rb)
@@ -604,7 +611,8 @@ function EditorInit(win, frs2, filename)
     end
 
     -- close button
-    area.close = TermLabelActionCreate("CLOSE", frs, area.cols - 8, area.rows - 1, area)
+    area.close = TermLabelActionCreate("CLOSE", frs, area)
+    area.close:SetTermPos(area, area.cols - 8, area.rows - 1)
     -- close event: mouse click
     area.close.MouseClickEvent = function(px,py,pb,rx,ry,rb)
 	area:SetVisible(false)
@@ -612,7 +620,8 @@ function EditorInit(win, frs2, filename)
     end
 
     if SWE.SystemMobileOs() ~= nil then
-        area.keyb = TermLabelActionCreate("KEYB", frs, 1, area.rows - 1, area)
+        area.keyb = TermLabelActionCreate("KEYB", frs, area)
+        area.keyb:SetTermPos(area, 1, area.rows - 1)
         -- keyb event: mouse click
         area.keyb.MouseClickEvent = function(px,py,pb,rx,ry,rb)
 	    SWE.DisplayKeyboard(true)
@@ -640,6 +649,14 @@ function EditorInit(win, frs2, filename)
             return true
         end
         return false
+    end
+
+    area.TerminalResizeEvent = function()
+    	area.save:SetTermPos(area, area.cols - 15, area.rows - 1)
+	area.close:SetTermPos(area, area.cols - 8, area.rows - 1)
+        if area.keyb ~= nil then
+	    area.keyb:SetTermPos(area, 1, area.rows - 1)
+    	end
     end
 
     area.LoadFile = function(area, filename)

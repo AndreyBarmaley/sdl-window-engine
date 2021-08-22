@@ -197,7 +197,7 @@ void SWE_terminal_resize_event(LuaState & ll, TermWindow & term)
     }
 }
 
-void SWE_font_resize_event(LuaState & ll, TermWindow & term)
+void SWE_font_changed_event(LuaState & ll, TermWindow & term)
 {
     LuaStateValidator(ll, 0);
 
@@ -207,7 +207,7 @@ void SWE_font_resize_event(LuaState & ll, TermWindow & term)
         ll.pushInteger(term.cols()).setFieldTableIndex("cols", -2);
         ll.pushInteger(term.rows()).setFieldTableIndex("rows", -2);
 
-        if(ll.getFieldTableIndex("FontResizeEvent", -1, false).isTopFunction())
+        if(ll.getFieldTableIndex("FontChanghedEvent", -1, false).isTopFunction())
         {
             ll.callFunction(0, 0);
         }
@@ -225,17 +225,19 @@ int SWE_terminal_set_termpos(lua_State* L)
     const int rescount = 0;
     LuaStateDefine(ll, L, rescount);
 
-    // params: swe_terminal, cols, rows
+    // params: swe_terminal, swe_terminal, cols, rows
 
-    if(auto term = SWE_Terminal::get(ll, 1, __FUNCTION__))
+    auto term1 = SWE_Terminal::get(ll, 1, __FUNCTION__);
+    auto term2 = SWE_Terminal::get(ll, 2, __FUNCTION__);
+    if(term1 && term2)
     {
-	int cols = ll.toIntegerIndex(2);
-	int rows = ll.toIntegerIndex(3);
+	int cols = ll.toIntegerIndex(3);
+	int rows = ll.toIntegerIndex(4);
 
-	term->setTermPos(TermPos(cols, rows));
+	term1->setTermPos(*term2, TermPos(cols, rows));
 
 	// update fields: position
-	auto & pos = term->position();
+	auto & pos = term1->position();
 	ll.pushInteger(pos.x).setFieldTableIndex("posx", 1);
 	ll.pushInteger(pos.y).setFieldTableIndex("posy", 1);
     }
@@ -288,7 +290,7 @@ int SWE_terminal_set_font(lua_State* L)
     if(term && frs)
     {
         term->setFontRender(*frs);
-        term->fontResizeHandle();
+        term->fontChangedHandle();
 
         // update fields: cols, rows, size
 	ll.pushInteger(term->cols()).setFieldTableIndex("cols", 1);
@@ -1538,7 +1540,7 @@ const struct luaL_Reg SWE_terminal_functions[] = {
     { "SetPosition",    SWE_window_set_position },     // [void], table terminal, point pos
     { "RenderTexture",  SWE_window_render_texture },   // [void]. table terminal, table texture, rect, rect
     { "PointInArea",	SWE_window_point_inarea },     // [bool], table terminal, int, int
-    { "SetTermPos",     SWE_terminal_set_termpos },    // [void], table terminal, int cols, int rows
+    { "SetTermPos",     SWE_terminal_set_termpos },    // [void], table terminal, table terminal, int cols, int rows
     { "SetTermSize",    SWE_terminal_set_termsize },   // [void], table terminal, int cols, int rows
     { "SetFont",        SWE_terminal_set_font },       // [void], table terminal, swe.fontrender
     { "ToJson",		SWE_terminal_to_json },        // [string], table terminal

@@ -29,6 +29,8 @@ int SWE_color_index(lua_State* L)
     LuaStateDefine(ll, L, rescount);
 
     auto name = ll.getTopString();
+    if(0 == name.compare(0, 10, "SWE.Color."))
+	name = name.substr(10);
 
     ARGB argb(name);
     ll.getFieldTableIndex(Color(argb).toString(), 1);

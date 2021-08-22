@@ -1,6 +1,6 @@
 {
     "global":  true,
-    "version": 20210723,
+    "version": 20210816,
     "colors": {
 	"text": "silver",
 	"back": "midnightblue",
@@ -54,6 +54,15 @@
 		"focushighlight": true,
 		"color":  "lightsteelblue",
 		"pattern": "SWE\\.[\\w\\.]+",
+		"style": [ "italic" ],
+		"tokens": []
+	    },
+	    {
+		"description": "SWE colors",
+		"checkobject": true,
+		"focushighlight": true,
+		"colored":  true,
+		"pattern": "SWE\\.Color\\.[\\w\\.]+",
 		"style": [ "italic" ],
 		"tokens": []
 	    },

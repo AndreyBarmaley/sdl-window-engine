@@ -120,7 +120,7 @@ protected:
     SWE::FBColors       defaultColors(void) const override;
     SWE::TermSize       minimalTerminalSize(void) const override;
     void                terminalResizeEvent(void) override;
-
+    void                fontChangedEvent(void) override;
 
     bool                setFontSize(int, const TermSize &);
     void		panelsPositions(void);

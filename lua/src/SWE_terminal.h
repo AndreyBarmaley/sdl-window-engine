@@ -29,7 +29,7 @@ struct lua_State;
 struct SWE_FontRender;
 
 void            SWE_terminal_resize_event(LuaState &, TermWindow &);
-void            SWE_font_resize_event(LuaState &, TermWindow &);
+void            SWE_font_changed_event(LuaState &, TermWindow &);
 
 FBColors	SWE_terminal_default_colors(LuaState &, const TermWindow &);
 CharProperty    SWE_terminal_default_property(LuaState &, const TermWindow &);
@@ -66,7 +66,7 @@ protected:
     void        renderPresentEvent(u32 ms) override { SWE_system_render_event(ll, *this, ms); }
     // from SWE::TermWindow
     void        terminalResizeEvent(void) override { SWE_terminal_resize_event(ll, *this); }
-    void        fontResizeEvent(void) override { SWE_font_resize_event(ll, *this); }
+    void        fontChangedEvent(void) override { SWE_font_changed_event(ll, *this); }
     TermSize    minimalTerminalSize(void) const override { return SWE_terminal_minimal_size(ll, *this); }
     CharProperty defaultProperty(void) const override { return SWE_terminal_default_property(ll, *this); }
     FBColors	defaultColors(void) const override { return SWE_terminal_default_colors(ll, *this); }

@@ -95,6 +95,15 @@ SWE.DisplaySize
     local w,h,fullscreen = SWE.DisplaySize();
     print("display size:", w, h, fullscreen)
 */
+SWE.DisplayResize
+/**
+    @api {display resize} SWE.DisplayResize(width,height) SWE.DisplayResize
+    @apiGroup SWE
+    @apiName DisplayResize
+
+    @apiParam {number}			width		new widht size
+    @apiParam {number}			height		new height size
+*/
 SWE.DisplayVideoModes
 /**
     @api {get display mode list} SWE.DisplayVideoModes(landscape) SWE.DisplayVideoModes

@@ -529,7 +529,7 @@ namespace SWE
     protected:
         set::padding		padding;
         TermPos			curpos;
-        TermRect		termrt;
+        TermSize		termsz;
 	AlignType		curalign;
         FBColors		curcols;
 	CharProperty		curprop;
@@ -592,16 +592,16 @@ namespace SWE
 
 	virtual CharProperty    defaultProperty(void) const;
 	virtual FBColors	defaultColors(void) const;
+        virtual void            terminalResizeEvent(void) {}
 
     public:
         TermBase(Window*);
         TermBase(const Size & gfxsz, Window*);
         TermBase(const TermSize &, TermBase &);
 
-        void            	setPosition(const Point &) override;
         void            	setSize(const Size &) override;
         virtual void		setTermSize(const TermSize &);
-	void			setTermPos(const TermPos &);
+	void			setTermPos(const TermBase &, const TermPos &);
 
         // @protected
         void			setCursorPos(const TermPos &);
@@ -621,7 +621,7 @@ namespace SWE
         size_t                  rows(void) const;
 
 	/// @result позиция терминала в символах (относительно parent)
-        const TermPos &         termPos(void) const;
+        TermPos                 termPos(const TermBase &) const;
 
 	/// @result размер терминала в символах
         const TermSize & 	termSize(void) const;
@@ -770,13 +770,12 @@ namespace SWE
         int			index(const TermPos &) const;
         int			index(void) const;
 
-        void                    fontResizeHandle(void);
+        void                    fontChangedHandle(void);
 
         void                    displayResizeEvent(const Size &) final;
         void			tickEvent(u32 ms) override;
 
-        virtual void            terminalResizeEvent(void) {}
-        virtual void            fontResizeEvent(void) {};
+        virtual void            fontChangedEvent(void) {};
         virtual TermSize        minimalTerminalSize(void) const { return TermSize(80, 25); }
 
         FBColors                defaultColors(void) const override;

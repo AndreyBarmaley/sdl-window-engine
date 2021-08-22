@@ -51,6 +51,8 @@ protected:
     SWE::CharProperty	        defaultProperty(void) const override;
     SWE::FBColors		defaultColors(void) const override;
     SWE::TermSize      		minimalTerminalSize(void) const override;
+    void			terminalResizeEvent(void) override;
+    void			fontChangedEvent(void) override;
 
     void			setButtonsPosition(void);
     bool                        setFontSize(int, const SWE::TermSize &);

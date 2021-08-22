@@ -64,7 +64,7 @@ function TextButtonCreate(posx, posy, text, frs, parent)
     return btn
 end
 
-function TermLabelActionCreate(str, frs, tpx, tpy, parent, fgcol, bgcol)
+function TermLabelActionCreate(str, frs, parent, fgcol, bgcol)
     local term = SWE.Terminal(frs, string.len(str) + 2, 1, parent)
     term.label = str
     term.fgcol = fgcol or SWE.Color.Yellow
@@ -73,7 +73,6 @@ function TermLabelActionCreate(str, frs, tpx, tpy, parent, fgcol, bgcol)
     term.brcol2 = parent.colors.back or SWE.Color.Black
     term.focus = false
     term.disable = false
-    term:SetTermPos(tpx,tpy)
 
     term.MouseFocusEvent = function(f)
 	if not term.disable then

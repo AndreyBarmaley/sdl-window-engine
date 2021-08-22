@@ -337,11 +337,12 @@ SWE.Terminal.SetPosition
 */
 SWE.Terminal.SetTermPos
 /**
-    @api {terminal set pos} SWE.Terminal.SetTermPos(self,cols,rows) SWE.Terminal.SetTermPos
+    @api {terminal set pos} SWE.Terminal.SetTermPos(self,term,cols,rows) SWE.Terminal.SetTermPos
     @apiGroup SWE.Terminal
     @apiName SetTermPos
 
     @apiParam {SWE.Terminal}            self            terminal object
+    @apiParam {SWE.Terminal}            term            terminal object
     @apiParam {number}                  cols            terminal col
     @apiParam {number}                  rows            terminal row
 */
@@ -696,24 +697,27 @@ SWE.Terminal.RenderWindow
 */
 SWE.Terminal.TerminalResizeEvent
 /**
-    @api {terminal event: resize terminal window} SWE.Terminal.TerminalResizeEvent() SWE.Terminal.TerminalResizeEvent
+    @api {terminal event: resize terminal} SWE.Terminal.TerminalResizeEvent(cols, rows) SWE.Terminal.TerminalResizeEvent
     @apiGroup SWE.Terminal.Events
     @apiName TerminalResizeEvent
+
+    @apiParam {number}                          cols		terminal columns
+    @apiParam {number}				rows		terminal rows
     
     @apiExample usage
     term.TerminalResizeEvent = function()
         print("term resized")
     end
 */
-SWE.Terminal.FontResizeEvent
+SWE.Terminal.FontChangedEvent
 /**
-    @api {terminal event: resize terminal font} SWE.Terminal.FontResizeEvent() SWE.Terminal.FontResizeEvent
+    @api {terminal event: font changed} SWE.Terminal.FontChangedEvent() SWE.Terminal.FontChangedEvent
     @apiGroup SWE.Terminal.Events
-    @apiName FontResizeEvent
+    @apiName FontChangedEvent
     
     @apiExample usage
-    term.FontResizeEvent = function()
-        print("font resized")
+    term.FontChangedEvent = function()
+        print("font changed")
     end
 */
 SWE.Terminal.TerminalDefaultColors

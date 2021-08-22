@@ -418,6 +418,30 @@ int SWE_display_videomodes(lua_State* L)
     return rescount;
 }
 
+int SWE_display_resize(lua_State* L)
+{
+    // params: int width, int height
+    const int rescount = 1;
+    LuaStateDefine(ll, L, rescount);
+
+    int params = ll.stackSize();
+    int width = 1 < params ? ll.toIntegerIndex(1) : 0;
+    int height = 1 < params ? ll.toIntegerIndex(2) : 0;
+
+    if(0 < width && 0 < height)
+    {
+	bool res = Display::resize(Size(width, height));
+	ll.pushBoolean(res);
+    }
+    else
+    {
+	ERROR("incorrect params");
+	ll.pushBoolean(false);
+    }
+
+    return rescount;
+}
+
 int SWE_loop(lua_State* L)
 {
     // params: swe_window
@@ -1216,6 +1240,7 @@ const struct luaL_Reg SWE_functions[] = {
     { "DisplayDirty", SWE_display_dirty }, 			// [void], void
     { "DisplayVideoModes", SWE_display_videomodes }, 		// [string list], void
     { "DisplaySize", SWE_display_size }, 			// [int list], void
+    { "DisplayResize", SWE_display_resize }, 			// [bool], int width, int height
     { "DisplayKeyboard", SWE_display_keyboard }, 		// [void], bool show
     { "DisplayHandleEvents", SWE_display_handleevents }, 	// [void], int interval
     { "RenderScreenshot", SWE_render_screenshot }, 		// [bool], string filename

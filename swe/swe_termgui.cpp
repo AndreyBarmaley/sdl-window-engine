@@ -112,7 +112,7 @@ namespace SWE
             setState(FlagKeyHandle);
             setAction(action);
             setLabel(str);
-            setTermPos(pos);
+            setTermPos(term, pos);
             setVisible(true);
         }
 

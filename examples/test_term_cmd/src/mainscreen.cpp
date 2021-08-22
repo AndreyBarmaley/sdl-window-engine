@@ -309,11 +309,11 @@ void TermPanel::renderWindow(void)
 
 void TermPanel::setCharset(int ch, const ColorIndex & fg, const ColorIndex & bg, const CharProperty* prop)
 {
-    if(auto term = dynamic_cast<TermWindow*>(parent()))
+    if(auto term = static_cast<TermWindow*>(parent()))
     {
         const TermPos savePos = term->cursor();
         const TermPos & cur = cursor();
-        term->setCursorPos(termPos() + cur);
+        term->setCursorPos(termPos(*term) + cur);
         ColorIndex fgcol = ! fgColor().isTransparent() ? fgColor() : fg;
         ColorIndex bgcol = ! bgColor().isTransparent() ? bgColor() : bg;
 
@@ -335,9 +335,9 @@ void TermPanel::setCharset(int ch, const ColorIndex & fg, const ColorIndex & bg,
 
 void TermPanel::renderFlush(void)
 {
-    if(auto term = dynamic_cast<TermWindow*>(parent()))
+    if(auto term = static_cast<TermWindow*>(parent()))
     {
-	const TermPos & tp = termPos();
+	const TermPos & tp = termPos(*term);
 
         for(int py = 0; py < rows(); ++py)
             for(int px = 0; px < cols(); ++px)
@@ -347,7 +347,7 @@ void TermPanel::renderFlush(void)
 
 const FontRender* TermPanel::frs(void) const
 {
-    auto term = dynamic_cast<const TermWindow*>(parent());
+    auto term = static_cast<const TermWindow*>(parent());
     return term ? term->frs() : & systemFont();
 }
 
@@ -553,7 +553,7 @@ bool MainScreen::setFontSize(int fsz, const TermSize & termsz)
     frt.load(ttf, fsz, RenderSolid);
     if(frt.isValid())
     {
-        fontResizeHandle();
+        fontChangedHandle();
         return true;
     }
     return false;
@@ -563,8 +563,8 @@ void MainScreen::panelsPositions(void)
 {
     int panw = cols() / 2;
 
-    leftPanel.setTermPos(TermPos(0, 0));
-    rightPanel.setTermPos(TermPos(panw, 0));
+    leftPanel.setTermPos(*this, TermPos(0, 0));
+    rightPanel.setTermPos(*this, TermPos(panw, 0));
 
     leftPanel.setTermSize(TermSize(panw, rows()));
     rightPanel.setTermSize(TermSize(panw, rows()));
@@ -659,7 +659,10 @@ SWE::FBColors MainScreen::defaultColors(void) const
 void MainScreen::terminalResizeEvent(void)
 {
     panelsPositions();
-    setDirty(true);
+}
+
+void MainScreen::fontChangedEvent(void)
+{
 }
 
 void MainScreen::renderPresentEvent(u32 ms)

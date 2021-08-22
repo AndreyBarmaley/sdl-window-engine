@@ -320,46 +320,15 @@ namespace SWE
         return term ? term->defaultColors() : FBColors(fgColor(), bgColor());
     }
 
-    void TermBase::setTermPos(const TermPos & tp)
+    void TermBase::setTermPos(const TermBase & term, const TermPos & tp)
     {
-        auto win = parent();
-        auto term = dynamic_cast<TermBase*>(win);
-
-        if(term)
-        {
-            Window::setPosition(term->sym2gfx(tp));
-        }
-        else
-        {
-            Window::setPosition(tp.toPoint() * frs()->size());
-        }
-
-        termrt.setPos(tp.posx(), tp.posy());
-    }
-
-    void TermBase::setPosition(const Point & pt)
-    {
-        auto win = parent();
-        auto term = dynamic_cast<TermBase*>(win);
-
-        if(term)
-        {
-	    // relative coordinates
-            Window::setPosition(pt);
-	    auto tp = term->gfx2sym(pt);
-    	    termrt.setPos(tp.posx(), tp.posy());
-        }
-        else
-        {
-            Window::setPosition(pt);
-	    auto tp = TermPos(pt / frs()->size());
-    	    termrt.setPos(tp.posx(), tp.posy());
-        }
+        setPosition(tp.toPoint() * term.frs()->size());
     }
 
     void TermBase::setTermSize(const TermSize & tsz)
     {
-        termrt.setSize(tsz.cols(), tsz.rows());
+        termsz.setSize(tsz.cols(), tsz.rows());
+	terminalResizeEvent();
 
         if(Display::isMaximizedWindow() && parent() == nullptr && size() == Display::size())
             return;
@@ -398,14 +367,15 @@ namespace SWE
         return termSize().rows();
     }
 
-    const TermPos & TermBase::termPos(void) const
+    TermPos TermBase::termPos(const TermBase & term) const
     {
-        return termrt;
+        auto diff = position() - term.position();
+        return TermPos(diff / term.frs()->size());
     }
 
     const TermSize & TermBase::termSize(void) const
     {
-        return termrt;
+        return termsz;
     }
 
     void TermBase::setFGColor(const ColorIndex & col)
@@ -1017,7 +987,6 @@ namespace SWE
         JsonObject res = Window::toJson();
         res.addArray("curpos", JsonPack::point(curpos.toPoint()));
         res.addArray("termsz", JsonPack::size(termSize().toSize()));
-        res.addArray("termpos", JsonPack::point(termPos().toPoint()));
         res.addObject("curcols", JsonPack::fbColors(colors()));
         res.addInteger("align", align());
 
@@ -1124,72 +1093,50 @@ namespace SWE
 
     void TermWindow::displayResizeEvent(const Size & winsz)
     {
-        TermSize termsz1 = gfx2sym(winsz);
-        TermSize termsz2 = minimalTerminalSize();
+	// only root win
+	if(! parent())
+	{
+    	    TermSize termsz1 = gfx2sym(winsz);
+	    TermSize termsz2 = minimalTerminalSize();
 
-        // fix minsize
-        if(termsz1.cols() < termsz2.cols() ||
+    	    // fix minsize
+    	    if(termsz1.cols() < termsz2.cols() ||
                 termsz1.rows() < termsz2.rows())
-        {
-            // repeate display resize
-            Display::resize(sym2gfx(termsz2));
-        }
-        else
-        {
-            auto strongwinsz = termsz1.toSize() * frs()->size();
-            if(strongwinsz != winsz)
-            {
-                // repeate display resize
-                Display::resize(strongwinsz);
-            }
-            else
-            {
-                // cols and rows changed, maybe invisible positions
-                if(parent())
-                {
-                    setTermSize(termSize());
-                    setTermPos(termPos());
-                }
-                else
-                {
-                    DEBUG("resized, cols: " << cols() << ", rows: " << rows());
-                    setSize(winsz);
-                }
-
-                terminalResizeEvent();
-                renderWindow();
-            }
-        }
+    	    {
+        	// repeate display resize
+        	Display::resize(sym2gfx(termsz2));
+    	    }
+    	    else
+    	    {
+		// newsz incr to chars
+        	auto strongwinsz = termsz1.toSize() * frs()->size();
+        	if(strongwinsz != winsz)
+        	{
+            	    // repeate display resize
+            	    Display::resize(strongwinsz);
+        	}
+        	else
+        	{
+		    // displayResize move to terminalResize
+		    setTermSize(termsz1);
+        	    renderWindow();
+        	}
+    	    }
+	}
     }
 
-    void TermWindow::fontResizeHandle(void)
+    void TermWindow::fontChangedHandle(void)
     {
+        fontChangedEvent();
         auto maxsz = Display::usableBounds();
 
+	// the size is limited, changes the content
         if(Display::isMaximizedWindow() || maxsz.w <= width() || maxsz.h <= height())
         {
-            // recalc new cols, rows
-            setTermSize(gfx2sym(size()));
+	    TermSize termSz = gfx2sym(size());
 
-            if(! parent())
-            {
-                DEBUG("resized, cols: " << cols() << ", rows: " << rows());
-            }
-
-            fontResizeEvent();
-            terminalResizeEvent();
-
-            // childs event
-            for(auto & child : DisplayScene::items())
-                if(child->parent() == this)
-            {
-                auto term = dynamic_cast<TermWindow*>(child);
-                if(term)
-                {
-                    term->fontResizeEvent();
-                    term->terminalResizeEvent();
-                }
-            }
+            DEBUG("resized, cols: " << cols() << ", rows: " << rows());
+    	    setTermSize(termSz);
 
             renderWindow();
         }

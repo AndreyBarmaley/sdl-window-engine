@@ -371,16 +371,16 @@ local function TermCreateHeader(term)
 	term.header:SetVisible(false)
     end
 
-    term.header = TermLabelActionCreate(hdr, term.frs, (term.cols - string.len(hdr)) / 2 - 1, 0, term, SWE.Color.Yellow, SWE.Color.DarkSlateGray)
+    term.header = TermLabelActionCreate(hdr, term.frs, term, SWE.Color.Yellow, SWE.Color.DarkSlateGray)
+    term.header:SetTermPos(term, (term.cols - string.len(hdr)) / 2 - 1, 0)
 
-    term.header.MouseClickEvent = 
-	function(px,py,pb,rx,ry,rb)
-	    local cwd = DialogSelectCwd(term.header.posx + term.frs.fixedWidth, term.header.posy, term.header.width - term.frs.fixedWidth * 2, term.frs, term.cwd, term)
-	    if cwd ~= term.cwd then
-		SWE.PushEvent(SWE.Action.ChangeValue, cwd, term)
-	    end
-	    return true
+    term.header.MouseClickEvent = function(px,py,pb,rx,ry,rb)
+	local cwd = DialogSelectCwd(term.header.posx + term.frs.fixedWidth, term.header.posy, term.header.width - term.frs.fixedWidth * 2, term.frs, term.cwd, term)
+	if cwd ~= term.cwd then
+	    SWE.PushEvent(SWE.Action.ChangeValue, cwd, term)
 	end
+	return true
+    end
 end
 
 local function TermFillItems(term, path)
@@ -421,9 +421,11 @@ function FileBrowserInit(win, frs, path, params)
         cursormarker = SWE.Color.LawnGreen, scrollmarker = SWE.Color.LawnGreen, spacemarker = SWE.Color.RoyalBlue }
     term.include = params.include
     term.exclude = params.exclude
-    term.button1 = TermLabelActionCreate("SELECT", term.frs, 3, term.rows - 1, term, SWE.Color.White)
+    term.button1 = TermLabelActionCreate("SELECT", term.frs, term, SWE.Color.White)
+    term.button1:SetTermPos(term, 3, term.rows - 1)
     term.button1.disable = true
-    term.button2 = TermLabelActionCreate("CANCEL", term.frs, term.cols - 10, term.rows - 1, term, SWE.Color.White)
+    term.button2 = TermLabelActionCreate("CANCEL", term.frs, term, SWE.Color.White)
+    term.button2:SetTermPos(term, term.cols - 10, term.rows - 1)
     TermFillItems(term, path)
 
     term.button1.MouseClickEvent = function(px,py,pb,rx,ry,rb)
@@ -496,18 +498,14 @@ function FileBrowserInit(win, frs, path, params)
     end
 
     term.TerminalResizeEvent = function()
-	if term.parent ~= nil then
-	    local cols = ToInt(term.parent.width / term.frs.fixedWidth)
-	    local rows = ToInt(term.parent.height / term.frs.lineHeight)
-	    term:SetTermSize(cols,rows)
-	    if term.button1 ~= nil then
-		term.button1:SetTermPos(3, term.rows - 1)
-	    end
-	    if term.button2 ~= nil then
-		term.button2:SetTermPos(term.cols - 10, term.rows - 1)
-	    end
-	    SWE.DisplayDirty()
+	if term.button1 ~= nil then
+	    term.button1:SetTermPos(term, 3, term.rows - 1)
 	end
+	if term.button2 ~= nil then
+	    term.button2:SetTermPos(term, term.cols - 10, term.rows - 1)
+	end
+	TermFillItems(term, term.cwd)
+	SWE.DisplayDirty()
     end
 
     term.MouseClickEvent = function(px,py,pb,rx,ry,rb)
@@ -560,7 +558,6 @@ function FileBrowserInit(win, frs, path, params)
     end
 
     term.SystemUserEvent = function(event,obj)
-
         if event == SWE.Action.ItemSelected then
 	    if term.button1 then
 		term.button1.disable = obj.isdir

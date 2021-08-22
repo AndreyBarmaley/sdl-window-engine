@@ -74,7 +74,7 @@ bool MainScreen::setFontSize(int fsz, const TermSize & termsz)
 
     if(frt.isValid())
     {
-        fontResizeHandle();
+        fontChangedHandle();
         return true;
     }
     return false;
@@ -89,10 +89,24 @@ void MainScreen::setButtonsPosition(void)
     {
         if(ptr)
         {
-            ptr->setTermPos(pos);
+            ptr->setTermPos(*this, pos);
             ptr->setVisible(true);
             pos += TermSize(ptr->cols() + 1, 0);
         }
+    }
+}
+
+void MainScreen::terminalResizeEvent(void)
+{
+    setButtonsPosition();
+}
+
+void MainScreen::fontChangedEvent(void)
+{
+    for(auto & ptr : buttons)
+    {
+	if(ptr)
+	    ptr->setSize(sym2gfx(ptr->termSize()));
     }
 }
 
