@@ -432,7 +432,7 @@ namespace SWE
         }
     };
 
-    Timer::Timer(const SDL_TimerID & id) : ptr(new SDL_TimerID(id))
+    Timer::Timer(const SDL_TimerID & id) : ptr(new SDL_TimerID{id})
     {
     }
 

@@ -413,7 +413,7 @@ namespace SWE
     {
     }
 
-    UnicodeList::UnicodeList(const StringList & v)
+    UnicodeList::UnicodeList(const std::list<std::string> & v)
     {
         assign(v.begin(), v.end());
     }
@@ -504,7 +504,7 @@ namespace SWE
         return append(us);
     }
 
-    UnicodeList & UnicodeList::operator<< (const StringList & sl)
+    UnicodeList & UnicodeList::operator<< (const std::list<std::string> & sl)
     {
         return append(sl);
     }
@@ -514,7 +514,7 @@ namespace SWE
         return append(ul);
     }
 
-    UnicodeList & UnicodeList::append(const StringList & list)
+    UnicodeList & UnicodeList::append(const std::list<std::string> & list)
     {
         insert(end(), list.begin(), list.end());
         return *this;

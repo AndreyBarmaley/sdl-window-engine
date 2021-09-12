@@ -91,7 +91,7 @@ $(function() {
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Открытые члены</h2></td></tr>
 <tr class="memitem:a0bccfcf8de6d9dbbf0937a6f07221524"><td class="memItemLeft" align="right" valign="top"><a id="a0bccfcf8de6d9dbbf0937a6f07221524"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>FullTerminal</b> (const <a class="el" href="classSWE_1_1FontRender.html">FontRender</a> &amp;<a class="el" href="classSWE_1_1TermBase.html#a29837c143f07eba369745893c59ecb45">frs</a>)</td></tr>
+&#160;</td><td class="memItemRight" valign="bottom"><b>FullTerminal</b> (const <a class="el" href="classSWE_1_1FontRender.html">FontRender</a> &amp;<a class="el" href="classSWE_1_1TermWindow.html#aeb1ddee54fb9f17084ad3ea43fc57dda">frs</a>)</td></tr>
 <tr class="separator:a0bccfcf8de6d9dbbf0937a6f07221524"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a09d8c52fd32b42d542a47e5cf1da87ca"><td class="memItemLeft" align="right" valign="top"><a id="a09d8c52fd32b42d542a47e5cf1da87ca"></a>
 const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSWE_1_1FullTerminal.html#a09d8c52fd32b42d542a47e5cf1da87ca">className</a> (void) const override</td></tr>
@@ -99,10 +99,10 @@ const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" hr
 <tr class="separator:a09d8c52fd32b42d542a47e5cf1da87ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classSWE_1_1TermWindow"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_classSWE_1_1TermWindow')"><img src="closed.png" alt="-"/>&#160;Открытые члены унаследованные от <a class="el" href="classSWE_1_1TermWindow.html">SWE::TermWindow</a></td></tr>
 <tr class="memitem:acd33aa708fafa4d828710601418cc0f2 inherit pub_methods_classSWE_1_1TermWindow"><td class="memItemLeft" align="right" valign="top"><a id="acd33aa708fafa4d828710601418cc0f2"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>TermWindow</b> (const <a class="el" href="classSWE_1_1FontRender.html">FontRender</a> &amp;<a class="el" href="classSWE_1_1TermBase.html#a29837c143f07eba369745893c59ecb45">frs</a>, <a class="el" href="classSWE_1_1Window.html">Window</a> *win)</td></tr>
+&#160;</td><td class="memItemRight" valign="bottom"><b>TermWindow</b> (const <a class="el" href="classSWE_1_1FontRender.html">FontRender</a> &amp;<a class="el" href="classSWE_1_1TermWindow.html#aeb1ddee54fb9f17084ad3ea43fc57dda">frs</a>, <a class="el" href="classSWE_1_1Window.html">Window</a> *win)</td></tr>
 <tr class="separator:acd33aa708fafa4d828710601418cc0f2 inherit pub_methods_classSWE_1_1TermWindow"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7ee1d81ed238ba48b9f79434af7a41e4 inherit pub_methods_classSWE_1_1TermWindow"><td class="memItemLeft" align="right" valign="top"><a id="a7ee1d81ed238ba48b9f79434af7a41e4"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>TermWindow</b> (const <a class="el" href="structSWE_1_1Size.html">Size</a> &amp;gfxsz, const <a class="el" href="classSWE_1_1FontRender.html">FontRender</a> &amp;<a class="el" href="classSWE_1_1TermBase.html#a29837c143f07eba369745893c59ecb45">frs</a>, <a class="el" href="classSWE_1_1Window.html">Window</a> *win)</td></tr>
+&#160;</td><td class="memItemRight" valign="bottom"><b>TermWindow</b> (const <a class="el" href="structSWE_1_1Size.html">Size</a> &amp;gfxsz, const <a class="el" href="classSWE_1_1FontRender.html">FontRender</a> &amp;<a class="el" href="classSWE_1_1TermWindow.html#aeb1ddee54fb9f17084ad3ea43fc57dda">frs</a>, <a class="el" href="classSWE_1_1Window.html">Window</a> *win)</td></tr>
 <tr class="separator:a7ee1d81ed238ba48b9f79434af7a41e4 inherit pub_methods_classSWE_1_1TermWindow"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa79de68792d38ad5ac55697470dd9c1f inherit pub_methods_classSWE_1_1TermWindow"><td class="memItemLeft" align="right" valign="top"><a id="aa79de68792d38ad5ac55697470dd9c1f"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>TermWindow</b> (const <a class="el" href="structSWE_1_1TermSize.html">TermSize</a> &amp;tsz, <a class="el" href="classSWE_1_1TermBase.html">TermBase</a> &amp;term)</td></tr>
@@ -116,12 +116,17 @@ const <a class="el" href="classSWE_1_1TermCharset.html">TermCharset</a> *&#160;<
 <tr class="memitem:a6d3252fadda46e7cbb08ec7aa21c8a3f inherit pub_methods_classSWE_1_1TermWindow"><td class="memItemLeft" align="right" valign="top"><a id="a6d3252fadda46e7cbb08ec7aa21c8a3f"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>setCharset</b> (int ch, const <a class="el" href="classSWE_1_1ColorIndex.html">ColorIndex</a> &amp;fg=Color::Transparent, const <a class="el" href="classSWE_1_1ColorIndex.html">ColorIndex</a> &amp;bg=Color::Transparent, const <a class="el" href="structSWE_1_1CharProperty.html">CharProperty</a> *prop=nullptr) override</td></tr>
 <tr class="separator:a6d3252fadda46e7cbb08ec7aa21c8a3f inherit pub_methods_classSWE_1_1TermWindow"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeb1ddee54fb9f17084ad3ea43fc57dda inherit pub_methods_classSWE_1_1TermWindow"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="classSWE_1_1FontRender.html">FontRender</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSWE_1_1TermWindow.html#aeb1ddee54fb9f17084ad3ea43fc57dda">frs</a> (void) const override</td></tr>
+<tr class="separator:aeb1ddee54fb9f17084ad3ea43fc57dda inherit pub_methods_classSWE_1_1TermWindow"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a72ae8d127e6e39df7bb1f347f71e5908 inherit pub_methods_classSWE_1_1TermWindow"><td class="memItemLeft" align="right" valign="top"><a id="a72ae8d127e6e39df7bb1f347f71e5908"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>setTermSize</b> (const <a class="el" href="structSWE_1_1TermSize.html">TermSize</a> &amp;) override</td></tr>
 <tr class="separator:a72ae8d127e6e39df7bb1f347f71e5908 inherit pub_methods_classSWE_1_1TermWindow"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4922b38834c2088af753f09ee6cf2bc3 inherit pub_methods_classSWE_1_1TermWindow"><td class="memItemLeft" align="right" valign="top"><a id="a4922b38834c2088af753f09ee6cf2bc3"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>renderFlush</b> (void) override</td></tr>
 <tr class="separator:a4922b38834c2088af753f09ee6cf2bc3 inherit pub_methods_classSWE_1_1TermWindow"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:accf3672e5e82cec37cbd8e2f05a2dd4c inherit pub_methods_classSWE_1_1TermWindow"><td class="memItemLeft" align="right" valign="top"><a id="accf3672e5e82cec37cbd8e2f05a2dd4c"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>setFontRender</b> (const <a class="el" href="classSWE_1_1FontRender.html">FontRender</a> &amp;)</td></tr>
+<tr class="separator:accf3672e5e82cec37cbd8e2f05a2dd4c inherit pub_methods_classSWE_1_1TermWindow"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac59241c9e6d267b02da13005ef385e1f inherit pub_methods_classSWE_1_1TermWindow"><td class="memItemLeft" align="right" valign="top"><a id="ac59241c9e6d267b02da13005ef385e1f"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>renderSymbol</b> (int symx, int symy)</td></tr>
 <tr class="separator:ac59241c9e6d267b02da13005ef385e1f inherit pub_methods_classSWE_1_1TermWindow"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -129,24 +134,21 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>renderSymbol</b> (int
 void&#160;</td><td class="memItemRight" valign="bottom"><b>dumpState</b> (void) const</td></tr>
 <tr class="separator:ae326b74b1f244e701c49b96edc785762 inherit pub_methods_classSWE_1_1TermWindow"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classSWE_1_1TermBase"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_classSWE_1_1TermBase')"><img src="closed.png" alt="-"/>&#160;Открытые члены унаследованные от <a class="el" href="classSWE_1_1TermBase.html">SWE::TermBase</a></td></tr>
-<tr class="memitem:a1b1603cb3b17c931c08db0aca9818d24 inherit pub_methods_classSWE_1_1TermBase"><td class="memItemLeft" align="right" valign="top"><a id="a1b1603cb3b17c931c08db0aca9818d24"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>TermBase</b> (const <a class="el" href="classSWE_1_1FontRender.html">FontRender</a> &amp;, <a class="el" href="classSWE_1_1Window.html">Window</a> *)</td></tr>
-<tr class="separator:a1b1603cb3b17c931c08db0aca9818d24 inherit pub_methods_classSWE_1_1TermBase"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aef4847edf78e015a12362c1cd7057cb7 inherit pub_methods_classSWE_1_1TermBase"><td class="memItemLeft" align="right" valign="top"><a id="aef4847edf78e015a12362c1cd7057cb7"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>TermBase</b> (const <a class="el" href="structSWE_1_1Size.html">Size</a> &amp;gfxsz, const <a class="el" href="classSWE_1_1FontRender.html">FontRender</a> &amp;, <a class="el" href="classSWE_1_1Window.html">Window</a> *)</td></tr>
-<tr class="separator:aef4847edf78e015a12362c1cd7057cb7 inherit pub_methods_classSWE_1_1TermBase"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab2a2b60cd99c5dc8292618d2cfc16190 inherit pub_methods_classSWE_1_1TermBase"><td class="memItemLeft" align="right" valign="top"><a id="ab2a2b60cd99c5dc8292618d2cfc16190"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>TermBase</b> (<a class="el" href="classSWE_1_1Window.html">Window</a> *)</td></tr>
+<tr class="separator:ab2a2b60cd99c5dc8292618d2cfc16190 inherit pub_methods_classSWE_1_1TermBase"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad9ea02bec4a0620866cc0e221e894b8b inherit pub_methods_classSWE_1_1TermBase"><td class="memItemLeft" align="right" valign="top"><a id="ad9ea02bec4a0620866cc0e221e894b8b"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>TermBase</b> (const <a class="el" href="structSWE_1_1Size.html">Size</a> &amp;gfxsz, <a class="el" href="classSWE_1_1Window.html">Window</a> *)</td></tr>
+<tr class="separator:ad9ea02bec4a0620866cc0e221e894b8b inherit pub_methods_classSWE_1_1TermBase"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a56768a6fb9ae72555ad4e3282e61198d inherit pub_methods_classSWE_1_1TermBase"><td class="memItemLeft" align="right" valign="top"><a id="a56768a6fb9ae72555ad4e3282e61198d"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>TermBase</b> (const <a class="el" href="structSWE_1_1TermSize.html">TermSize</a> &amp;, <a class="el" href="classSWE_1_1TermBase.html">TermBase</a> &amp;)</td></tr>
 <tr class="separator:a56768a6fb9ae72555ad4e3282e61198d inherit pub_methods_classSWE_1_1TermBase"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1338feb60b49b6e2085e667bc4602c0f inherit pub_methods_classSWE_1_1TermBase"><td class="memItemLeft" align="right" valign="top"><a id="a1338feb60b49b6e2085e667bc4602c0f"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>setFontRender</b> (const <a class="el" href="classSWE_1_1FontRender.html">FontRender</a> &amp;)</td></tr>
-<tr class="separator:a1338feb60b49b6e2085e667bc4602c0f inherit pub_methods_classSWE_1_1TermBase"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa788fcc90b07aba214a12830c6ad563c inherit pub_methods_classSWE_1_1TermBase"><td class="memItemLeft" align="right" valign="top"><a id="aa788fcc90b07aba214a12830c6ad563c"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>setSize</b> (const <a class="el" href="structSWE_1_1Size.html">Size</a> &amp;) override</td></tr>
 <tr class="separator:aa788fcc90b07aba214a12830c6ad563c inherit pub_methods_classSWE_1_1TermBase"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a23e534a34f1a41549cdaa9f265b34e54 inherit pub_methods_classSWE_1_1TermBase"><td class="memItemLeft" align="right" valign="top"><a id="a23e534a34f1a41549cdaa9f265b34e54"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>setTermPos</b> (const <a class="el" href="structSWE_1_1TermPos.html">TermPos</a> &amp;)</td></tr>
-<tr class="separator:a23e534a34f1a41549cdaa9f265b34e54 inherit pub_methods_classSWE_1_1TermBase"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9f3e88904c402c0356525e9fd8de1026 inherit pub_methods_classSWE_1_1TermBase"><td class="memItemLeft" align="right" valign="top"><a id="a9f3e88904c402c0356525e9fd8de1026"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>setTermPos</b> (const <a class="el" href="classSWE_1_1TermBase.html">TermBase</a> &amp;, const <a class="el" href="structSWE_1_1TermPos.html">TermPos</a> &amp;)</td></tr>
+<tr class="separator:a9f3e88904c402c0356525e9fd8de1026 inherit pub_methods_classSWE_1_1TermBase"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a29004718863389e6cf9e1c0f84948c9a inherit pub_methods_classSWE_1_1TermBase"><td class="memItemLeft" align="right" valign="top"><a id="a29004718863389e6cf9e1c0f84948c9a"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>setCursorPos</b> (const <a class="el" href="structSWE_1_1TermPos.html">TermPos</a> &amp;)</td></tr>
 <tr class="separator:a29004718863389e6cf9e1c0f84948c9a inherit pub_methods_classSWE_1_1TermBase"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -160,12 +162,10 @@ const <a class="el" href="structSWE_1_1TermPos.html">TermPos</a> &amp;&#160;</td
 <tr class="separator:a2db89f765aae77128daf8b1bbc1ed2ac inherit pub_methods_classSWE_1_1TermBase"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a89aed2532e60653bb3d434dc61d5e5bf inherit pub_methods_classSWE_1_1TermBase"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSWE_1_1TermBase.html#a89aed2532e60653bb3d434dc61d5e5bf">rows</a> (void) const</td></tr>
 <tr class="separator:a89aed2532e60653bb3d434dc61d5e5bf inherit pub_methods_classSWE_1_1TermBase"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab3b302e3a34b337ed917c9539bac6e0d inherit pub_methods_classSWE_1_1TermBase"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="structSWE_1_1TermPos.html">TermPos</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSWE_1_1TermBase.html#ab3b302e3a34b337ed917c9539bac6e0d">termPos</a> (void) const</td></tr>
-<tr class="separator:ab3b302e3a34b337ed917c9539bac6e0d inherit pub_methods_classSWE_1_1TermBase"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7aab1c093470d0c3b536b531e9e1e2a9 inherit pub_methods_classSWE_1_1TermBase"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structSWE_1_1TermPos.html">TermPos</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSWE_1_1TermBase.html#a7aab1c093470d0c3b536b531e9e1e2a9">termPos</a> (const <a class="el" href="classSWE_1_1TermBase.html">TermBase</a> &amp;) const</td></tr>
+<tr class="separator:a7aab1c093470d0c3b536b531e9e1e2a9 inherit pub_methods_classSWE_1_1TermBase"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a487600020f339257285cade3cd35891b inherit pub_methods_classSWE_1_1TermBase"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="structSWE_1_1TermSize.html">TermSize</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSWE_1_1TermBase.html#a487600020f339257285cade3cd35891b">termSize</a> (void) const</td></tr>
 <tr class="separator:a487600020f339257285cade3cd35891b inherit pub_methods_classSWE_1_1TermBase"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a29837c143f07eba369745893c59ecb45 inherit pub_methods_classSWE_1_1TermBase"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="classSWE_1_1FontRender.html">FontRender</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSWE_1_1TermBase.html#a29837c143f07eba369745893c59ecb45">frs</a> (void) const</td></tr>
-<tr class="separator:a29837c143f07eba369745893c59ecb45 inherit pub_methods_classSWE_1_1TermBase"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4903a20351d0ed64910ef9203da2699a inherit pub_methods_classSWE_1_1TermBase"><td class="memItemLeft" align="right" valign="top"><a id="a4903a20351d0ed64910ef9203da2699a"></a>
 <a class="el" href="structSWE_1_1Point.html">Point</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSWE_1_1TermBase.html#a4903a20351d0ed64910ef9203da2699a">sym2gfx</a> (const <a class="el" href="structSWE_1_1TermPos.html">TermPos</a> &amp;) const</td></tr>
 <tr class="memdesc:a4903a20351d0ed64910ef9203da2699a inherit pub_methods_classSWE_1_1TermBase"><td class="mdescLeft">&#160;</td><td class="mdescRight">coordinate transformer: symbol <a class="el" href="structSWE_1_1TermPos.html" title="класс двухмерной позиции в терминале ">TermPos</a> to graphics <a class="el" href="structSWE_1_1Point.html" title="класс точки с двумя координатами ">Point</a> (parent relative) <br /></td></tr>
@@ -416,6 +416,9 @@ int&#160;</td><td class="memItemRight" valign="bottom"><b>resultCode</b> (void) 
 <tr class="memitem:a677ae01546d41ed8bc6da6362f1f31a8 inherit pub_methods_classSWE_1_1Window"><td class="memItemLeft" align="right" valign="top"><a id="a677ae01546d41ed8bc6da6362f1f31a8"></a>
 <a class="el" href="structSWE_1_1Rect.html">Rect</a>&#160;</td><td class="memItemRight" valign="bottom"><b>rect</b> (void) const</td></tr>
 <tr class="separator:a677ae01546d41ed8bc6da6362f1f31a8 inherit pub_methods_classSWE_1_1Window"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adc7bd18c0328b96cedcd59338a52be4f inherit pub_methods_classSWE_1_1Window"><td class="memItemLeft" align="right" valign="top"><a id="adc7bd18c0328b96cedcd59338a52be4f"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>setState</b> (size_t, bool f)</td></tr>
+<tr class="separator:adc7bd18c0328b96cedcd59338a52be4f inherit pub_methods_classSWE_1_1Window"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aece795c24dc187d9388c3829bfb23332 inherit pub_methods_classSWE_1_1Window"><td class="memItemLeft" align="right" valign="top"><a id="aece795c24dc187d9388c3829bfb23332"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>setDirty</b> (bool)</td></tr>
 <tr class="separator:aece795c24dc187d9388c3829bfb23332 inherit pub_methods_classSWE_1_1Window"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -529,21 +532,18 @@ int&#160;</td><td class="memItemRight" valign="bottom"><b>index</b> (const <a cl
 <tr class="memitem:a17a3d2046767c4ba44361cf14940ec69 inherit pro_methods_classSWE_1_1TermWindow"><td class="memItemLeft" align="right" valign="top"><a id="a17a3d2046767c4ba44361cf14940ec69"></a>
 int&#160;</td><td class="memItemRight" valign="bottom"><b>index</b> (void) const</td></tr>
 <tr class="separator:a17a3d2046767c4ba44361cf14940ec69 inherit pro_methods_classSWE_1_1TermWindow"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa783bfae894ef959fef91692644f15d1 inherit pro_methods_classSWE_1_1TermWindow"><td class="memItemLeft" align="right" valign="top"><a id="aa783bfae894ef959fef91692644f15d1"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>fontResizeHandle</b> (void)</td></tr>
-<tr class="separator:aa783bfae894ef959fef91692644f15d1 inherit pro_methods_classSWE_1_1TermWindow"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a75caf57ad7119d108ec37502b6820545 inherit pro_methods_classSWE_1_1TermWindow"><td class="memItemLeft" align="right" valign="top"><a id="a75caf57ad7119d108ec37502b6820545"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>fontChangedHandle</b> (void)</td></tr>
+<tr class="separator:a75caf57ad7119d108ec37502b6820545 inherit pro_methods_classSWE_1_1TermWindow"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a808a02c2e9af07827d22b669aa13e410 inherit pro_methods_classSWE_1_1TermWindow"><td class="memItemLeft" align="right" valign="top"><a id="a808a02c2e9af07827d22b669aa13e410"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>displayResizeEvent</b> (const <a class="el" href="structSWE_1_1Size.html">Size</a> &amp;) final</td></tr>
 <tr class="separator:a808a02c2e9af07827d22b669aa13e410 inherit pro_methods_classSWE_1_1TermWindow"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae3b65e9577a43b04afd6b5fca7116bf0 inherit pro_methods_classSWE_1_1TermWindow"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classSWE_1_1TermWindow.html#ae3b65e9577a43b04afd6b5fca7116bf0">tickEvent</a> (u32 ms) override</td></tr>
 <tr class="memdesc:ae3b65e9577a43b04afd6b5fca7116bf0 inherit pro_methods_classSWE_1_1TermWindow"><td class="mdescLeft">&#160;</td><td class="mdescRight">метод получатель, вызывается один раз за каждую итерацию главного цикла сцены <a class="el" href="classSWE_1_1DisplayScene.html">DisplayScene</a>, но перед отрисовкой всей сцены  <a href="classSWE_1_1TermWindow.html#ae3b65e9577a43b04afd6b5fca7116bf0">Подробнее...</a><br /></td></tr>
 <tr class="separator:ae3b65e9577a43b04afd6b5fca7116bf0 inherit pro_methods_classSWE_1_1TermWindow"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af9e57e87daf3f56138066dab7e8c7aa2 inherit pro_methods_classSWE_1_1TermWindow"><td class="memItemLeft" align="right" valign="top"><a id="af9e57e87daf3f56138066dab7e8c7aa2"></a>
-virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>terminalResizeEvent</b> (void)</td></tr>
-<tr class="separator:af9e57e87daf3f56138066dab7e8c7aa2 inherit pro_methods_classSWE_1_1TermWindow"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae32de163b138e543d5af3dc7583edc00 inherit pro_methods_classSWE_1_1TermWindow"><td class="memItemLeft" align="right" valign="top"><a id="ae32de163b138e543d5af3dc7583edc00"></a>
-virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>fontResizeEvent</b> (void)</td></tr>
-<tr class="separator:ae32de163b138e543d5af3dc7583edc00 inherit pro_methods_classSWE_1_1TermWindow"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a58915469d7f844cba98d4674dedbf69e inherit pro_methods_classSWE_1_1TermWindow"><td class="memItemLeft" align="right" valign="top"><a id="a58915469d7f844cba98d4674dedbf69e"></a>
+virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>fontChangedEvent</b> (void)</td></tr>
+<tr class="separator:a58915469d7f844cba98d4674dedbf69e inherit pro_methods_classSWE_1_1TermWindow"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac3bf01452190ee380668119f4d2b1165 inherit pro_methods_classSWE_1_1TermWindow"><td class="memItemLeft" align="right" valign="top"><a id="ac3bf01452190ee380668119f4d2b1165"></a>
 virtual <a class="el" href="structSWE_1_1TermSize.html">TermSize</a>&#160;</td><td class="memItemRight" valign="bottom"><b>minimalTerminalSize</b> (void) const</td></tr>
 <tr class="separator:ac3bf01452190ee380668119f4d2b1165 inherit pro_methods_classSWE_1_1TermWindow"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -617,6 +617,9 @@ const <a class="el" href="structSWE_1_1set_1_1padding.html">set::padding</a> &am
 <tr class="memitem:a9ad2a8082a921a161607da0b8332a703 inherit pro_methods_classSWE_1_1TermBase"><td class="memItemLeft" align="right" valign="top"><a id="a9ad2a8082a921a161607da0b8332a703"></a>
 virtual <a class="el" href="structSWE_1_1CharProperty.html">CharProperty</a>&#160;</td><td class="memItemRight" valign="bottom"><b>defaultProperty</b> (void) const</td></tr>
 <tr class="separator:a9ad2a8082a921a161607da0b8332a703 inherit pro_methods_classSWE_1_1TermBase"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aedc3bdfca8de5c74fa93c6149805d007 inherit pro_methods_classSWE_1_1TermBase"><td class="memItemLeft" align="right" valign="top"><a id="aedc3bdfca8de5c74fa93c6149805d007"></a>
+virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>terminalResizeEvent</b> (void)</td></tr>
+<tr class="separator:aedc3bdfca8de5c74fa93c6149805d007 inherit pro_methods_classSWE_1_1TermBase"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pro_methods_classSWE_1_1Window"><td colspan="2" onclick="javascript:toggleInherit('pro_methods_classSWE_1_1Window')"><img src="closed.png" alt="-"/>&#160;Защищенные члены унаследованные от <a class="el" href="classSWE_1_1Window.html">SWE::Window</a></td></tr>
 <tr class="memitem:a982119ec08895640285252689490ad04 inherit pro_methods_classSWE_1_1Window"><td class="memItemLeft" align="right" valign="top"><a id="a982119ec08895640285252689490ad04"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>destroy</b> (void)</td></tr>
@@ -696,9 +699,6 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>checkState</b> (size_
 <tr class="memitem:a71e8dedef08c5985ab157f935faae103 inherit pro_methods_classSWE_1_1Window"><td class="memItemLeft" align="right" valign="top"><a id="a71e8dedef08c5985ab157f935faae103"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>setState</b> (size_t)</td></tr>
 <tr class="separator:a71e8dedef08c5985ab157f935faae103 inherit pro_methods_classSWE_1_1Window"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adc7bd18c0328b96cedcd59338a52be4f inherit pro_methods_classSWE_1_1Window"><td class="memItemLeft" align="right" valign="top"><a id="adc7bd18c0328b96cedcd59338a52be4f"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>setState</b> (size_t, bool f)</td></tr>
-<tr class="separator:adc7bd18c0328b96cedcd59338a52be4f inherit pro_methods_classSWE_1_1Window"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3a18a401884786013f6adb553fd72b8d inherit pro_methods_classSWE_1_1Window"><td class="memItemLeft" align="right" valign="top"><a id="a3a18a401884786013f6adb553fd72b8d"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>resetState</b> (size_t)</td></tr>
 <tr class="separator:a3a18a401884786013f6adb553fd72b8d inherit pro_methods_classSWE_1_1Window"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -733,19 +733,19 @@ std::vector&lt; <a class="el" href="classSWE_1_1TermCharset.html">TermCharset</a
 <tr class="memitem:a05cd40f00da41c32f7d01b67f02b05a8 inherit pro_attribs_classSWE_1_1TermWindow"><td class="memItemLeft" align="right" valign="top"><a id="a05cd40f00da41c32f7d01b67f02b05a8"></a>
 <a class="el" href="structSWE_1_1TickTrigger.html">TickTrigger</a>&#160;</td><td class="memItemRight" valign="bottom"><b>tickBlink</b></td></tr>
 <tr class="separator:a05cd40f00da41c32f7d01b67f02b05a8 inherit pro_attribs_classSWE_1_1TermWindow"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="inherit_header pro_attribs_classSWE_1_1TermBase"><td colspan="2" onclick="javascript:toggleInherit('pro_attribs_classSWE_1_1TermBase')"><img src="closed.png" alt="-"/>&#160;Защищенные данные унаследованные от <a class="el" href="classSWE_1_1TermBase.html">SWE::TermBase</a></td></tr>
-<tr class="memitem:a365f9b14fa4f29df4b455e56310c9c52 inherit pro_attribs_classSWE_1_1TermBase"><td class="memItemLeft" align="right" valign="top"><a id="a365f9b14fa4f29df4b455e56310c9c52"></a>
+<tr class="memitem:a16062fcebfc5e751e853fc5fb7d18c01 inherit pro_attribs_classSWE_1_1TermWindow"><td class="memItemLeft" align="right" valign="top"><a id="a16062fcebfc5e751e853fc5fb7d18c01"></a>
 const <a class="el" href="classSWE_1_1FontRender.html">FontRender</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>fontRender</b></td></tr>
-<tr class="separator:a365f9b14fa4f29df4b455e56310c9c52 inherit pro_attribs_classSWE_1_1TermBase"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="separator:a16062fcebfc5e751e853fc5fb7d18c01 inherit pro_attribs_classSWE_1_1TermWindow"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="inherit_header pro_attribs_classSWE_1_1TermBase"><td colspan="2" onclick="javascript:toggleInherit('pro_attribs_classSWE_1_1TermBase')"><img src="closed.png" alt="-"/>&#160;Защищенные данные унаследованные от <a class="el" href="classSWE_1_1TermBase.html">SWE::TermBase</a></td></tr>
 <tr class="memitem:ac29ab70923f245eca98de2e3f6f4852a inherit pro_attribs_classSWE_1_1TermBase"><td class="memItemLeft" align="right" valign="top"><a id="ac29ab70923f245eca98de2e3f6f4852a"></a>
 <a class="el" href="structSWE_1_1set_1_1padding.html">set::padding</a>&#160;</td><td class="memItemRight" valign="bottom"><b>padding</b></td></tr>
 <tr class="separator:ac29ab70923f245eca98de2e3f6f4852a inherit pro_attribs_classSWE_1_1TermBase"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a14b168d7460d3e42186c1e8fa8ff40a8 inherit pro_attribs_classSWE_1_1TermBase"><td class="memItemLeft" align="right" valign="top"><a id="a14b168d7460d3e42186c1e8fa8ff40a8"></a>
 <a class="el" href="structSWE_1_1TermPos.html">TermPos</a>&#160;</td><td class="memItemRight" valign="bottom"><b>curpos</b></td></tr>
 <tr class="separator:a14b168d7460d3e42186c1e8fa8ff40a8 inherit pro_attribs_classSWE_1_1TermBase"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a102fb8d4ccb8c9f24b22338e29d717a0 inherit pro_attribs_classSWE_1_1TermBase"><td class="memItemLeft" align="right" valign="top"><a id="a102fb8d4ccb8c9f24b22338e29d717a0"></a>
-<a class="el" href="structSWE_1_1TermRect.html">TermRect</a>&#160;</td><td class="memItemRight" valign="bottom"><b>termrt</b></td></tr>
-<tr class="separator:a102fb8d4ccb8c9f24b22338e29d717a0 inherit pro_attribs_classSWE_1_1TermBase"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a29edff8a87255a834462c4b273423338 inherit pro_attribs_classSWE_1_1TermBase"><td class="memItemLeft" align="right" valign="top"><a id="a29edff8a87255a834462c4b273423338"></a>
+<a class="el" href="structSWE_1_1TermSize.html">TermSize</a>&#160;</td><td class="memItemRight" valign="bottom"><b>termsz</b></td></tr>
+<tr class="separator:a29edff8a87255a834462c4b273423338 inherit pro_attribs_classSWE_1_1TermBase"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad80f5093ea93eec4f9730ee5eaee48bc inherit pro_attribs_classSWE_1_1TermBase"><td class="memItemLeft" align="right" valign="top"><a id="ad80f5093ea93eec4f9730ee5eaee48bc"></a>
 <a class="el" href="namespaceSWE.html#a83d9aa7ee2aacf0121caf55e501d730c">AlignType</a>&#160;</td><td class="memItemRight" valign="bottom"><b>curalign</b></td></tr>
 <tr class="separator:ad80f5093ea93eec4f9730ee5eaee48bc inherit pro_attribs_classSWE_1_1TermBase"><td class="memSeparator" colspan="2">&#160;</td></tr>

@@ -14,6 +14,6 @@ var searchData=
   ['fontrenderpsf',['FontRenderPSF',['../classSWE_1_1FontRenderPSF.html',1,'SWE']]],
   ['fontrenderttf',['FontRenderTTF',['../classSWE_1_1FontRenderTTF.html',1,'SWE']]],
   ['fontscache',['FontsCache',['../classSWE_1_1FontsCache.html',1,'SWE']]],
-  ['frs',['frs',['../classSWE_1_1TermBase.html#a29837c143f07eba369745893c59ecb45',1,'SWE::TermBase']]],
+  ['frs',['frs',['../classSWE_1_1TermBase.html#a355b264287a9da0cb47b164f93f53cc8',1,'SWE::TermBase::frs()'],['../classSWE_1_1TermWindow.html#aeb1ddee54fb9f17084ad3ea43fc57dda',1,'SWE::TermWindow::frs()']]],
   ['fullterminal',['FullTerminal',['../classSWE_1_1FullTerminal.html',1,'SWE']]]
 ];
