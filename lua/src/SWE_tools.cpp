@@ -231,7 +231,7 @@ int SWE_Tools::pushJsonArray(LuaState & ll, const JsonArray* ja)
     LuaStateValidator(ll, 1);
 
     ll.pushTable();
-    for(int ii = 0; ii < ja->count(); ++ii)
+    for(int ii = 0; ii < ja->size(); ++ii)
     {
 	ll.pushInteger(ii + 1);
 	int offset = pushJsonValue(ll, ja->getValue(ii));

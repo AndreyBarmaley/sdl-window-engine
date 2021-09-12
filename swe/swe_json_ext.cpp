@@ -54,7 +54,7 @@ namespace SWE
 
     const JsonArray & operator>> (const JsonArray & ja, Point & st)
     {
-        if(1 < ja.count())
+        if(1 < ja.size())
         {
             st.x = ja.getInteger(0);
             st.y = ja.getInteger(1);
@@ -65,12 +65,12 @@ namespace SWE
 
     const JsonArray & operator>> (const JsonArray & ja, ZPoint & st)
     {
-        if(1 < ja.count())
+        if(1 < ja.size())
         {
             st.x = ja.getInteger(0);
             st.y = ja.getInteger(1);
 
-            if(2 < ja.count())
+            if(2 < ja.size())
                 st.y = ja.getInteger(2);
         }
 
@@ -79,7 +79,7 @@ namespace SWE
 
     const JsonArray & operator>> (const JsonArray & ja, Size & st)
     {
-        if(1 < ja.count())
+        if(1 < ja.size())
         {
             st.w = ja.getInteger(0);
             st.h = ja.getInteger(1);
@@ -90,7 +90,7 @@ namespace SWE
 
     const JsonArray & operator>> (const JsonArray & ja, Rect & st)
     {
-        if(3 < ja.count())
+        if(3 < ja.size())
         {
             st.x = ja.getInteger(0);
             st.y = ja.getInteger(1);
@@ -306,9 +306,9 @@ namespace SWE
     Points JsonUnpack::points(const JsonArray & ja)
     {
         Points st;
-        st.resize(ja.count());
+        st.resize(ja.size());
 
-        for(int index = 0; index < ja.count(); ++index)
+        for(int index = 0; index < ja.size(); ++index)
         {
             auto ar = ja.getArray(index);
 
@@ -321,9 +321,9 @@ namespace SWE
     Rects JsonUnpack::rects(const JsonArray & ja)
     {
         Rects st;
-        st.resize(ja.count());
+        st.resize(ja.size());
 
-        for(int index = 0; index < ja.count(); ++index)
+        for(int index = 0; index < ja.size(); ++index)
         {
             auto ar = ja.getArray(index);
 

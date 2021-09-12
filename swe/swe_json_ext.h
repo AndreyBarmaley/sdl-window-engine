@@ -26,11 +26,14 @@
 #ifdef SWE_WITH_JSON
 
 #include "swe_json.h"
+#include "swe_colors.h"
+#include "swe_cunicode_color.h"
+#include "swe_cstring.h"
+#include "swe_rect.h"
 
 /// @brief пространство SWE
 namespace SWE
 {
-
     const JsonValue & operator>> (const JsonValue &, Point &);
     const JsonValue & operator>> (const JsonValue &, ZPoint &);
     const JsonValue & operator>> (const JsonValue &, Size &);
