@@ -103,7 +103,7 @@ namespace SWE
 
 #ifdef SWE_DLOPEN
         void*		openLib(const std::string &);
-        void		closeLib(void*);
+        bool		closeLib(void*);
         void*		procAddressLib(void*, const std::string &);
         const char* 	suffixLib(void);
 #endif

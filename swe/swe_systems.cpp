@@ -705,16 +705,26 @@ namespace SWE
 #if defined(__WIN32__) || defined(__WIN64__)
         return LoadLibrary(file.c_str());
 #else
-        return dlopen(file.c_str(), RTLD_LAZY);
+        auto res = dlopen(file.c_str(), RTLD_LAZY);
+        if(! res)
+	{
+	    ERROR("dlopen: " << dlerror());
+	}
+	return res;
 #endif
     }
 
-    void Systems::closeLib(void* lib)
+    bool Systems::closeLib(void* lib)
     {
 #if defined(__WIN32__) || defined(__WIN64__)
-        FreeLibrary((HINSTANCE) lib);
+        return 0 != FreeLibrary((HINSTANCE) lib);
 #else
-        dlclose(lib);
+        if(dlclose(lib))
+	{
+	    ERROR("dlclose: " << dlerror());
+	    return false;
+	}
+	return true;
 #endif
     }
 

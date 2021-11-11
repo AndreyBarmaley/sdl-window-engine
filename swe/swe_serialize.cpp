@@ -360,11 +360,13 @@ rep:
     {
         if(rw)
         {
-            size_t pos = SDL_RWtell(rw);
-            SDL_RWseek(rw, 0, RW_SEEK_SET);
-            size_t len = SDL_RWseek(rw, 0, SEEK_END);
-            SDL_RWseek(rw, pos, RW_SEEK_SET);
-            return len;
+            auto pos = SDL_RWtell(rw);
+	    if(0 <= pos)
+	    {
+		auto res = 0 <= SDL_RWseek(rw, 0, SEEK_END) ? SDL_RWtell(rw) : 0;
+        	SDL_RWseek(rw, pos, RW_SEEK_SET);
+        	return res;
+	    }
         }
 
         return 0;
@@ -374,10 +376,13 @@ rep:
     {
         if(rw)
         {
-            size_t pos = SDL_RWtell(rw);
-            size_t len = SDL_RWseek(rw, 0, RW_SEEK_END);
-            SDL_RWseek(rw, pos, RW_SEEK_SET);
-            return len - pos;
+            auto pos = SDL_RWtell(rw);
+	    if(0 <= pos)
+            {
+		auto len = SDL_RWseek(rw, 0, RW_SEEK_END);
+		SDL_RWseek(rw, pos, RW_SEEK_SET);
+        	return len - pos;
+	    }
         }
 
         return 0;
@@ -385,16 +390,18 @@ rep:
 
     size_t StreamRWops::tell(void) const
     {
-        return rw ? SDL_RWtell(rw) : 0;
+	auto pos = SDL_RWtell(rw);
+        return rw && 0 < pos ? pos : 0;
     }
 
     int StreamRWops::get8(void) const
     {
         u8 res = 0;
 
-        if(rw) SDL_RWread(rw, & res, 1, 1);
+        if(rw && 1 == SDL_RWread(rw, & res, 1, 1))
+    	    return res;
 
-        return res;
+    	return -1;
     }
 
     int StreamRWops::getBE16(void) const
@@ -440,7 +447,7 @@ rep:
 
     bool StreamRWops::put8(char val)
     {
-        return rw ? SDL_RWwrite(rw, & val, 1, 1) : false;
+        return rw && 1 == SDL_RWwrite(rw, & val, 1, 1);
     }
 
     bool StreamRWops::putBE16(u16 val)

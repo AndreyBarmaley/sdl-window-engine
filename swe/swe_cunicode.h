@@ -110,7 +110,7 @@ namespace SWE
     {
     public:
         UnicodeList();
-        UnicodeList(const StringList &);
+        UnicodeList(const std::list<std::string> &);
         UnicodeList(const std::list<UnicodeString> &);
 	UnicodeList(const std::initializer_list<const char*> &);
         UnicodeList(const UnicodeList &);
@@ -129,11 +129,11 @@ namespace SWE
         UnicodeString   join(const UnicodeString &) const;
 
         UnicodeList &	append(const UnicodeString &);
-        UnicodeList &	append(const StringList &);
+        UnicodeList &	append(const std::list<std::string> &);
         UnicodeList &	append(const UnicodeList &);
 
         UnicodeList &	operator<< (const UnicodeString &);
-        UnicodeList &	operator<< (const StringList &);
+        UnicodeList &	operator<< (const std::list<std::string> &);
         UnicodeList &	operator<< (const UnicodeList &);
 
         StringList	toStringList(void) const;

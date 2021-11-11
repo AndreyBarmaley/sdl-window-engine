@@ -20,25 +20,27 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef _SWE_JSONWRAPPER_
-#define _SWE_JSONWRAPPER_
+#ifndef _SWE_JSON_WRAPPER_
+#define _SWE_JSON_WRAPPER_
 
 #ifdef SWE_WITH_JSON
 
+#include <any>
+#include <list>
+#include <vector>
+#include <memory>
 #include <utility>
+#include <typeindex>
 #include <initializer_list>
 
-#include "swe_types.h"
-#include "swe_colors.h"
-#include "swe_cunicode_color.h"
-#include "swe_cstring.h"
-#include "swe_rect.h"
 #include "jsmn/jsmn.h"
+#include "swe_types.h"
 
-/// @brief пространство SWE
+#define JSON_WRAPPER_VERSION 20210912
+
+/// @brief SWE namespace
 namespace SWE
 {
-
     class JsmnToken : protected jsmntok_t
     {
     public:
@@ -64,28 +66,27 @@ namespace SWE
     class JsonObject;
     class JsonArray;
 
-    /* JsonValue */
+    /// @brief: base json value interace
     class JsonValue
     {
     public:
         JsonValue() {}
         virtual ~JsonValue() {}
 
-        virtual JsonType	getType(void) const { return JsonType::Null; }
-        virtual std::string	toString(void) const { return "null"; }
+        virtual JsonType        getType(void) const = 0;
+        virtual std::string     toString(void) const = 0;
+        virtual int             getInteger(void) const = 0;
+        virtual std::string     getString(void) const = 0;
+        virtual double          getDouble(void) const = 0;
+        virtual bool            getBoolean(void) const = 0;
 
-        bool			isNull(void) const { return getType() == JsonType::Null; }
-        bool			isBoolean(void) const { return getType() == JsonType::Boolean; }
-        bool			isInteger(void) const { return getType() == JsonType::Integer; }
-        bool			isDouble(void) const { return getType() == JsonType::Double; }
-        bool			isString(void) const { return getType() == JsonType::String; }
-        bool			isObject(void) const { return getType() == JsonType::Object; }
-        bool			isArray(void) const { return getType() == JsonType::Array; }
-
-        virtual int		getInteger(void) const { return 0; }
-        virtual std::string	getString(void) const { return ""; }
-        virtual double		getDouble(void) const { return 0; }
-        virtual bool		getBoolean(void) const { return false; }
+        bool                    isNull(void) const;
+        bool                    isBoolean(void) const;
+        bool                    isInteger(void) const;
+        bool                    isDouble(void) const;
+        bool                    isString(void) const;
+        bool                    isObject(void) const;
+        bool                    isArray(void) const;
     };
 
     const JsonValue & operator>> (const JsonValue &, int &);
@@ -99,118 +100,125 @@ namespace SWE
         return jv >> val.first >> val.second;
     }
 
-    /* JsonPrimitive */
+    /// @brief: base json null
+    class JsonNull : public JsonValue
+    {
+    public:
+        JsonType                getType(void) const override;
+        std::string             toString(void) const override;
+        int                     getInteger(void) const override;
+        std::string             getString(void) const override;
+        double                  getDouble(void) const override;
+        bool                    getBoolean(void) const override;
+    };
+
+    /// @brief: json primitive interface
     class JsonPrimitive : public JsonValue
     {
-    public:
-        JsonPrimitive() {}
-        virtual ~JsonPrimitive() {}
+    protected:
+        std::any                value;
 
-        std::string		toString(void) const { return getString(); }
+    public:
+        JsonPrimitive(const bool & v) : value(v) {}
+        JsonPrimitive(const int & v) : value(v) {}
+        JsonPrimitive(const double & v) : value(v) {}
+        JsonPrimitive(const std::string & v) : value(v) {}
+
+        std::string             toString(void) const override;
     };
 
-    /* JsonString */
+    /// @brief: json string
     class JsonString : public JsonPrimitive
     {
-        std::string		content;
-
     public:
-        JsonString(const std::string & val) : content(val) {}
+        JsonString(const std::string & val) : JsonPrimitive(val) {}
 
-        JsonType		getType(void) const override { return JsonType::String; }
-        int			getInteger(void) const override { return String::toInt(content); }
-        std::string		getString(void) const override { return content; }
-        double			getDouble(void) const override { return String::toDouble(content); }
-
-        bool			getBoolean(void) const override;
-        std::string		toString(void) const override;
+        JsonType		getType(void) const override;
+        std::string             toString(void) const override;
+        int                     getInteger(void) const override;
+        std::string             getString(void) const override;
+        double                  getDouble(void) const override;
+        bool                    getBoolean(void) const override;
     };
 
-    /* JsonDouble */
+    /// @brief: json double
     class JsonDouble : public JsonPrimitive
     {
-        double			content;
-        int			prec;
-
     public:
-        JsonDouble(const double & val, int prc = 8) : content(val), prec(prc) {}
+        JsonDouble(const double & val) : JsonPrimitive(val) {}
 
-        int			getInteger(void) const override { return content; }
-        std::string		getString(void)  const override { return String::number(content, prec); }
-        double			getDouble(void) const override { return content; }
-        bool			getBoolean(void) const override { return content; }
-        JsonType		getType(void) const override { return JsonType::Double; }
+        JsonType		getType(void) const override;
+        int                     getInteger(void) const override;
+        std::string             getString(void) const override;
+        double                  getDouble(void) const override;
+        bool                    getBoolean(void) const override;
     };
 
-    /* JsonInteger */
+    /// @brief: json integer
     class JsonInteger : public JsonPrimitive
     {
-        int			content;
-
     public:
-        JsonInteger(const int & val) : content(val) {}
+        JsonInteger(const int & val) : JsonPrimitive(val) {}
 
-        int			getInteger(void) const override { return content; }
-        std::string		getString(void)  const override { return String::number(content); }
-        double			getDouble(void)  const override { return content; }
-        bool			getBoolean(void) const override{ return content; }
-        JsonType		getType(void) const override { return JsonType::Integer; }
+        JsonType		getType(void) const override;
+        int                     getInteger(void) const override;
+        std::string             getString(void) const override;
+        double                  getDouble(void) const override;
+        bool                    getBoolean(void) const override;
     };
 
-    /* JsonBoolean */
+    /// @brief: json integer
     class JsonBoolean : public JsonPrimitive
     {
-        bool		content;
-
     public:
-        JsonBoolean(const bool & val) : content(val) {}
+        JsonBoolean(const bool & val) : JsonPrimitive(val) {}
 
-        int			getInteger(void) const override { return content; }
-        std::string		getString(void)  const override { return String::Bool(content); }
-        double			getDouble(void)  const override { return static_cast<int>(content); }
-        bool			getBoolean(void) const override { return content; }
-        JsonType		getType(void) const override { return JsonType::Boolean; }
+        JsonType		getType(void) const override;
+        int                     getInteger(void) const override;
+        std::string             getString(void) const override;
+        double                  getDouble(void) const override;
+        bool                    getBoolean(void) const override;
     };
 
-    /* JsonContainer */
+    /// @brief: json container interface
     class JsonContainer : public JsonValue
     {
     public:
         JsonContainer() {}
 
         virtual bool		isValid(void) const { return false; }
-        virtual int		count(void) const = 0;
+        virtual size_t		size(void) const = 0;
         virtual void		clear(void) = 0;
     };
 
-    /* JsonValuePtr */
+    /// @brief: JsonValue pointer
     struct JsonValuePtr : std::unique_ptr<JsonValue>
     {
-	JsonValuePtr();
-	JsonValuePtr(int);
-	JsonValuePtr(bool);
-	JsonValuePtr(double);
-	JsonValuePtr(const char*);
-	JsonValuePtr(const std::string &);
-	JsonValuePtr(const JsonArray &);
-	JsonValuePtr(const JsonObject &);
-	JsonValuePtr(JsonValue*);
-	JsonValuePtr(const JsonValuePtr &);
-	JsonValuePtr(JsonValuePtr &&) noexcept;
+        JsonValuePtr();
+        JsonValuePtr(int);
+        JsonValuePtr(bool);
+        JsonValuePtr(double);
+        JsonValuePtr(const std::string &);
+        JsonValuePtr(const JsonArray &);
+        JsonValuePtr(const JsonObject &);
+        JsonValuePtr(JsonValue*);
+        JsonValuePtr(const JsonValuePtr &);
+        JsonValuePtr(JsonValuePtr &&) noexcept;
 
-        JsonValuePtr &		operator=(const JsonValuePtr &);
-        JsonValuePtr &		operator=(JsonValuePtr &&) noexcept;
+        JsonValuePtr &          operator=(const JsonValuePtr &);
+        JsonValuePtr &          operator=(JsonValuePtr &&) noexcept;
 
-	void			assign(const JsonValuePtr &);
+        void			assign(const JsonValuePtr &);
     };
 
-    /* JsonArray */
+    /// @brief json array
     class JsonArray : public JsonContainer
     {
-        int			getInteger(void) const override { return 0; }
-        std::string		getString(void) const override { return ""; }
-        double			getDouble(void) const override { return 0; }
-        bool			getBoolean(void) const override { return false; }
+    private:
+        int                     getInteger(void) const override;
+        std::string             getString(void) const override;
+        double                  getDouble(void) const override;
+        bool                    getBoolean(void) const override;
 
     protected:
         std::vector<JsonValuePtr> content;
@@ -223,15 +231,15 @@ namespace SWE
 
         template<typename T>
         JsonArray(const std::initializer_list<T> & list)
-	{
-	    content.reserve(list.size());
-    	    for(auto & val : list) content.emplace_back(val);
-	}
+        {
+            content.reserve(list.size());
+            for(auto & val : list) content.emplace_back(val);
+        }
 
-        JsonArray &		operator=(const JsonArray &);
-        JsonArray &		operator=(JsonArray && ja) noexcept;
+        JsonArray &	        operator=(const JsonArray &);
+        JsonArray &	        operator=(JsonArray && ja) noexcept;
 
-        int			count(void) const override;
+        size_t			size(void) const override;
         void			clear(void) override;
         JsonType		getType(void) const override;
 
@@ -262,12 +270,15 @@ namespace SWE
         {
             std::vector<T> res;
             res.reserve(content.size());
+
             for(auto & ptr : content)
             {
-            	res.push_back(T());
-		if(ptr.get())
-            	    *ptr.get() >> res.back();
+                res.push_back(T());
+
+                if(ptr.get())
+                    *ptr.get() >> res.back();
             }
+
             return res;
         }
 
@@ -275,12 +286,15 @@ namespace SWE
         std::list<T> toStdList(void) const
         {
             std::list<T> res;
+
             for(auto & ptr : content)
             {
                 res.push_back(T());
-		if(ptr.get())
-            	    *ptr.get() >> res.back();
+
+                if(ptr.get())
+                    *ptr.get() >> res.back();
             }
+
             return res;
         }
 
@@ -290,9 +304,11 @@ namespace SWE
             for(auto & ptr : content)
             {
                 v.push_back(T());
-		if(ptr.get())
-            	    *ptr.get() >> v.back();
+
+                if(ptr.get())
+                    *ptr.get() >> v.back();
             }
+
             return *this;
         }
 
@@ -302,9 +318,11 @@ namespace SWE
             for(auto & ptr : content)
             {
                 v.push_back(T());
-		if(ptr.get())
-            	    *ptr.get() >> v.back();
+
+                if(ptr.get())
+                    *ptr.get() >> v.back();
             }
+
             return *this;
         }
     };
@@ -314,9 +332,10 @@ namespace SWE
     JsonArray & operator<< (JsonArray &, const double &);
     JsonArray & operator<< (JsonArray &, const bool &);
 
-    /* JsonObject */
+    /// @brief json object
     class JsonObject : public JsonContainer
     {
+    private:
         int			getInteger(void) const override;
         std::string		getString(void) const override;
         double			getDouble(void) const override;
@@ -327,31 +346,32 @@ namespace SWE
         friend class JsonContent;
 
         template<typename T>
-	void addValue(const std::string & key, const T & val)
-	{
-    	    auto it = content.find(key);
-    	    if(it != content.end())
-        	(*it).second = JsonValuePtr(val);
-    	    else
-        	content.emplace(key, JsonValuePtr(val));
-	}
+        void addValue(const std::string & key, const T & val)
+        {
+            auto it = content.find(key);
+
+            if(it != content.end())
+                (*it).second = JsonValuePtr(val);
+            else
+                content.emplace(key, JsonValuePtr(val));
+        }
 
     public:
         JsonObject() {}
         JsonObject(const JsonObject &);
         JsonObject(JsonObject && jo) noexcept;
 
-        JsonObject &		operator=(const JsonObject &);
-        JsonObject &		operator=(JsonObject && jo) noexcept;
+        JsonObject &	        operator=(const JsonObject &);
+        JsonObject &	        operator=(JsonObject && jo) noexcept;
 
-        int			count(void) const override;
+        size_t			size(void) const override;
         void			clear(void) override;
         JsonType		getType(void) const override;
         bool			isValid(void) const override;
 
         std::string		toString(void) const override;
         bool			hasKey(const std::string &) const;
-        StringList		keys(void) const;
+        std::list<std::string>	keys(void) const;
 
         const JsonValue*	getValue(const std::string &) const;
         const JsonObject*	getObject(const std::string &) const;
@@ -381,11 +401,6 @@ namespace SWE
         void			addObject(const std::string &, const JsonObject &);
         void                    join(const JsonObject &);
 
-        StringList getStringList(const std::string & key) const
-        {
-            return getStdList<std::string>(key);
-        }
-
         template<typename T>
         std::vector<T> getStdVector(const std::string & key) const
         {
@@ -401,7 +416,7 @@ namespace SWE
         }
     };
 
-    /* JsonContent */
+    /// @brief json content base class
     class JsonContent : protected std::vector<JsmnToken>
     {
         std::string		content;
@@ -410,7 +425,7 @@ namespace SWE
         std::string		stringToken(const JsmnToken &) const;
         jsmntok_t*		toJsmnTok(void);
         std::pair<JsonValue*, int>
-    				getValue(const const_iterator &, JsonContainer* cont) const;
+        getValue(const const_iterator &, JsonContainer* cont) const;
 
     public:
         JsonContent() {}
@@ -428,20 +443,20 @@ namespace SWE
         bool			isValid(void) const;
     };
 
-    /* JsonContentString */
+    /// @brief json content string
     class JsonContentString : public JsonContent
     {
     public:
         JsonContentString(const std::string &);
     };
 
-    /* JsonContentFile */
+    /// @brief json content file
     class JsonContentFile : public JsonContent
     {
     public:
         JsonContentFile(const std::string &);
     };
+}
 
-} // SWE
-#endif
-#endif
+#endif // SWE_WITH_JSON
+#endif // _SWE_JSON_WRAPPER_
