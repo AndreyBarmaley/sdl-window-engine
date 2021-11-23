@@ -584,7 +584,16 @@ namespace SWE
 #ifdef SWE_SDL12
             return 0 == IMG_SavePNG(file.c_str(), ptr, 7);
 #else
-            return 0 == IMG_SavePNG(ptr, file.c_str());
+	    auto type = String::toLower(file.substr(file.size() - 3));
+	    if(type == "png")
+        	return 0 == IMG_SavePNG(ptr, file.c_str());
+	    else
+	    if(type == "jpg")
+        	return 0 == IMG_SaveJPG(ptr, file.c_str(), 9);
+	    else
+	    {
+		ERROR("unknown image format: " << type);
+	    }
 #endif
 #endif
         }

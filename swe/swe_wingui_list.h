@@ -72,6 +72,7 @@ namespace SWE
         bool			userEvent(int, void*) override;
 
 	virtual int		itemSpacer(void) const { return 0; }
+	void			setSkipItems(int skip);
 
     public:
         ListWidget(bool vertical, Window*);
@@ -99,11 +100,14 @@ namespace SWE
 	int			rowTop(void) const;
 
 	void			scrollToItem(const ListWidgetItem*);
+	void			setActiveItem(ListWidgetItem*);
 	void			setCurrentItem(ListWidgetItem*);
 	void 			setCurrentRow(int row);
 	void			sortItems(void);
 
 	ListWidgetItem*		takeItem(int row);
+	ListWidgetItem*		frontItem(void);
+	ListWidgetItem*		backItem(void);
 	virtual int		visibleItems(void) const;
 	virtual int		scrollItems(void) const;
 	virtual Rect		listArea(void) const;

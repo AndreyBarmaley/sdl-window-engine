@@ -258,6 +258,25 @@ namespace SWE
 	}
     }
 
+    void ListWidget::setActiveItem(ListWidgetItem* item)
+    {
+        setCurrentItem(item);
+	auto index = row(item);
+	auto visible = visibleItems();
+
+	if(0 <= index && (index < skipItems || index > skipItems + visible))
+        {
+	    setSkipItems(index + visible < count() ? index : count() - visible);
+    	    if(skipItems < 0) skipItems = 0;
+	    signalEmit(Signal::ListWidgetScrolled);
+	}
+    }
+
+    void ListWidget::setSkipItems(int skip)
+    {
+	skipItems = skip;
+    }
+
     void ListWidget::setCurrentRow(int row)
     {
 	setCurrentItem(item(row));
@@ -267,6 +286,16 @@ namespace SWE
     {
 	std::sort(listItems.begin(), listItems.end(),
 	    [](const ListWidgetItem* a, const ListWidgetItem* b){ return *a < *b; });
+    }
+
+    ListWidgetItem* ListWidget::frontItem(void)
+    {
+	return listItems.size() ? listItems.front() : nullptr;
+    }
+
+    ListWidgetItem* ListWidget::backItem(void)
+    {
+	return listItems.size() ? listItems.back() : nullptr;
     }
 
     ListWidgetItem* ListWidget::takeItem(int row)

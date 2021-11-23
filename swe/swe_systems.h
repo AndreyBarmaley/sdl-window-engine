@@ -108,7 +108,7 @@ namespace SWE
         const char* 	suffixLib(void);
 #endif
 
-        bool		makeDirectory(const std::string &);
+        bool		makeDirectory(const std::string &, int mode = 0);
         std::string	concatePath(const std::string &, const std::string &);
         std::string	concatePath(const std::string &, const std::string &, const std::string &);
         std::string	concatePath(const StringList &);

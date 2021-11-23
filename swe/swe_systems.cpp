@@ -187,7 +187,7 @@ namespace SWE
         return SDL_getenv(name);
     }
 
-    bool Systems::makeDirectory(const std::string & path)
+    bool Systems::makeDirectory(const std::string & path, int mode)
     {
         if(Systems::isDirectory(path))
             return true;
@@ -208,7 +208,12 @@ namespace SWE
 #endif
 
         if(ret != 0)
-            ERROR("errno: " << ret);
+	{
+            ERROR("mkdir error");
+	}
+	else
+	if(mode)
+	    chmod(path.c_str(), mode);
 
         return ret == 0;
     }
