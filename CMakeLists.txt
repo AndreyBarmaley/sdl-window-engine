@@ -24,11 +24,17 @@ option(SWE_DISABLE_TERMGUI "disable build termwin_gui" ON)
 option(SWE_DEBUG_SCENE "scene debug hotkeys: (Shift+F8) - highlight windows regions, (Shift+F9) - dump scene to console, (Shift+F10) - dump scene to json" OFF)
 option(SWE_WITH_STD_MAP "usage std::unordered, (otherwise flat_hash_map version)" OFF)
 option(SWE_DEBUG_MESSAGES "DEBUG messages" ON)
+option(SWE_SHARED "shared lib" OFF)
 
 include(libswe.cmake)
 include_directories(.)
 
-add_library(libswe STATIC)
+if(SWE_SHARED)
+    add_library(libswe SHARED)
+else()
+    add_library(libswe STATIC)
+endif()
+
 add_subdirectory(swe)
 
 set_target_properties(libswe PROPERTIES PREFIX "")
