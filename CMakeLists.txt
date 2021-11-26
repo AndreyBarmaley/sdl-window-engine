@@ -39,6 +39,7 @@ add_subdirectory(swe)
 
 set_target_properties(libswe PROPERTIES PREFIX "")
 set_target_properties(libswe PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+set_target_properties(libswe PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
 if(SWE_EXAMPLES)
     add_subdirectory(examples)
