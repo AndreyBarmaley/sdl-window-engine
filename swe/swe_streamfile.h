@@ -82,16 +82,18 @@ namespace SWE
         int		getLE32(void) const override;
         s64		getBE64(void) const override;
         s64		getLE64(void) const override;
-        BinaryBuf	get(size_t = 0 /* all data */) const override;
 
-        void		put8(char) override;
+        BinaryBuf	get(size_t = 0 /* all data */) const override;
+        bool            get(void*, size_t) const override;
+
+        void		put8(u8) override;
         void		putBE64(u64) override;
         void		putLE64(u64) override;
         void		putBE32(u32) override;
         void		putLE32(u32) override;
         void		putBE16(u16) override;
         void		putLE16(u16) override;
-        void		put(const char*, size_t) override;
+        bool		put(const void*, size_t) override;
     };
 
 } // SWE

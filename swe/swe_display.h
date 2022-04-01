@@ -101,6 +101,8 @@ namespace SWE
         Texture         renderText(const FontRender &, const UnicodeString &, const Color &, const Color & = Color::transparent());
         Texture         renderText(const FontRender &, const UCString &);
 
+        u32             defaultPixelFormat(void);
+
 	Surface		createSurface(const Texture &);
         Texture		createTexture(const Texture &, int flip = FlipNone);
         Texture		createTexture(const Texture &, const Rect &);

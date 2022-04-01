@@ -88,7 +88,7 @@ namespace SWE
 
     const StreamBase & StreamBase::operator>> (char & v) const
     {
-        v = get8();
+        get(& v, sizeof(v));
         return *this;
     }
 
@@ -207,7 +207,7 @@ namespace SWE
 
     StreamBase & StreamBase::operator<< (const char & v)
     {
-        put8(v);
+        put(& v, sizeof(char));
         return *this;
     }
 
@@ -434,18 +434,30 @@ rep:
         return rw ? SDL_ReadLE64(rw) : 0;
     }
 
+    bool StreamRWops::get(void* buf, size_t sz) const
+    {
+        if(rw && buf && sz)
+        {
+            size_t last2 = last();
+            size_t res = SDL_RWread(rw, buf, 1, sz);
+            if(res == sz)
+                return true;
+            if(res != last2)
+                ERROR(SDL_GetError());
+        }
+
+        return false;
+    }
+
     BinaryBuf StreamRWops::get(size_t sz) const
     {
-        if(sz == 0) sz = last();
-
-        BinaryBuf buf(sz);
-
-        if(rw) SDL_RWread(rw, buf.data(), buf.size(), 1);
+        BinaryBuf buf(sz ? sz : last());
+        get(buf.data(), buf.size());
 
         return buf;
     }
 
-    bool StreamRWops::put8(char val)
+    bool StreamRWops::put8(u8 val)
     {
         return rw && 1 == SDL_RWwrite(rw, & val, 1, 1);
     }
@@ -480,8 +492,18 @@ rep:
         return rw ? SDL_WriteLE64(rw, val) : false;
     }
 
-    bool StreamRWops::put(const char* data, size_t size)
+    bool StreamRWops::put(const void* buf, size_t sz)
     {
-        return rw ? SDL_RWwrite(rw, data, size, 1) : false;
+        if(rw && buf && sz)
+        {
+            size_t tell2 = tell();
+            size_t res = SDL_RWwrite(rw, buf, 1, sz);
+            if(res == sz)
+                return true;
+            if(res != tell2)
+                ERROR(SDL_GetError());
+        }
+
+        return false;
     }
 }

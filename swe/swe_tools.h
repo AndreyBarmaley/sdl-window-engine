@@ -24,12 +24,14 @@
 #define _SWE_TOOLS_
 
 #include <list>
+#include <bitset>
 #include <vector>
 #include <memory>
+#include <sstream>
+#include <iomanip>
+#include <numeric>
 #include <iterator>
 #include <algorithm>
-#include <bitset>
-#include <numeric>
 
 #include "swe_types.h"
 #include "swe_binarybuf.h"
@@ -91,6 +93,20 @@ namespace SWE
             return res;
         }
 
+        template<typename Int>
+        std::string buffer2HexString(const Int* data, size_t length, size_t width = 8, const std::string & sep = ",", bool prefix = true)
+        {
+            std::ostringstream os;
+            for(size_t it = 0; it != length; ++it)
+            {
+                if(prefix)
+                    os << "0x";
+                os << std::setw(width) << std::setfill('0') << std::uppercase << std::hex << static_cast<int>(data[it]);
+                if(sep.size() && it + 1 != length) os << sep;
+            }
+
+            return os.str();
+        }
 
 	/* RandQueue */
         template<typename T>

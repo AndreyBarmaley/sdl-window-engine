@@ -183,23 +183,8 @@ namespace SWE
 
     bool StreamNetwork::ready(u32 timeout) const
     {
-        const size_t chunk = 10;
-
-        if(0 < timeout)
-        {
-            for(size_t it = 0; it < timeout; it += chunk)
-            {
-                bool res = sd && sdset && 0 < SDLNet_CheckSockets(sdset, 1) && 0 < SDLNet_SocketReady(sd);
-
-                if(res) return true;
-
-                Tools::delay(chunk);
-            }
-        }
-        else
-            return sd && sdset && 0 < SDLNet_CheckSockets(sdset, 1) && 0 < SDLNet_SocketReady(sd);
-
-        return false;
+        return sd && sdset &&
+            0 < SDLNet_CheckSockets(sdset, timeout) && 0 < SDLNet_SocketReady(sd);
     }
 
     bool StreamNetwork::connect(const std::string & name, int port)
@@ -317,93 +302,96 @@ namespace SWE
         return res;
     }
 
-    int StreamNetwork::recv(char* buf, int len) const
+    bool StreamNetwork::get(void* buf, size_t len) const
     {
-        int total = 0;
-
-        if(sd && buf && 0 < len)
+        if(sd && buf)
         {
-            int rcv;
-            int bufsz = len;
-
-            while((rcv = SDLNet_TCP_Recv(sd, buf, bufsz)) > 0 && rcv <= bufsz)
+            size_t total = 0;
+            while(total < len)
             {
-                buf   += rcv;
-                bufsz -= rcv;
-                total += rcv;
-            }
+                auto ptr = reinterpret_cast<u8*>(buf);
+                int rcv = SDLNet_TCP_Recv(sd, ptr + total, len - total);
 
-            if(total != len) setfail(true);
+                if(0 >= rcv)
+                {
+                    setfail(true);
+                    ERROR(SDLNet_GetError());
+                    return false;
+                }
+
+                total += rcv;
+
+                if(total < len)
+                    SDL_Delay(1);
+            }
+            return true;
         }
 
-        return total;
+        return false;
     }
 
-    int StreamNetwork::send(const char* buf, int len)
+    bool StreamNetwork::put(const void* buf, size_t len)
     {
-        int snd = 0;
-
-        if(sd && buf && 0 < len)
+        if(sd && buf)
         {
-            snd = SDLNet_TCP_Send(sd, buf, len);
+            int res = SDLNet_TCP_Send(sd, buf, len);
+            if(res == len)
+                return true;
 
-            if(snd != len) setfail(true);
+            setfail(true);
+            ERROR(SDLNet_GetError());
         }
 
-        return snd;
+        return false;
     }
 
     int StreamNetwork::get8(void) const
     {
-        if(sd)
-        {
-            u8 ch = 0;
-
-            if(1 != SDLNet_TCP_Recv(sd, & ch, 1))
-                setfail(true);
-
-            return ch;
-        }
-
-        return 0;
+        u8 v = 0;
+        get(& v, sizeof(v));
+        return v;
     }
 
     int StreamNetwork::getBE16(void) const
     {
-        return (get8() << 8) | get8();
+        u16 v = 0;
+        get(& v, sizeof(v));
+        return SDL_SwapBE16(v);
     }
 
     int StreamNetwork::getLE16(void) const
     {
-        return get8() | (get8() << 8);
+        u16 v = 0;
+        get(& v, sizeof(v));
+        return SDL_SwapLE16(v);
     }
 
     int StreamNetwork::getBE32(void) const
     {
-        int hh = getBE16();
-        int ll = getBE16();
-        return (hh << 16) | ll;
+        u32 v = 0;
+        get(& v, sizeof(v));
+        return SDL_SwapBE32(v);
     }
 
     int StreamNetwork::getLE32(void) const
     {
-        int ll = getLE16();
-        int hh = getLE16();
-        return (hh << 16) | ll;
+        u32 v = 0;
+        get(& v, sizeof(v));
+        return SDL_SwapLE32(v);
     }
 
     s64 StreamNetwork::getBE64(void) const
     {
-        s64 hh = getBE32();
-        s64 ll = getBE32();
-        return (hh << 32) | ll;
+        s64 v = 0;
+        get(& v, sizeof(v));
+        return SDL_SwapBE64(v);
     }
 
     s64 StreamNetwork::getLE64(void) const
     {
-        s64 ll = getBE32();
-        s64 hh = getBE32();
-        return (hh << 32) | ll;
+        s64 v = 0;
+        get(& v, sizeof(v));
+        return SDL_SwapLE64(v);
     }
 
     BinaryBuf StreamNetwork::get(size_t sz) const
@@ -412,77 +400,65 @@ namespace SWE
 
         if(sz)
         {
-            res.resize(sz);
-            int rcv = recv(reinterpret_cast<char*>(res.data()), res.size());
-            res.resize(rcv);
+            res.resize(sz, 0);
+            get(res.data(), res.size());
         }
         else
         {
-            while(ready())
+            res.reserve(1024);
+
+            // no data, wait 10 ms
+            while(ready(10))
             {
-                const size_t packet = 1024;
-                size_t bufsz = res.size();
-                res.resize(bufsz + packet);
-                int rcv = recv(reinterpret_cast<char*>(res.data() + bufsz), packet);
-
-                if(rcv < packet)
-                    res.resize(0 < rcv ? bufsz + rcv : bufsz);
-
-                if(fail()) break;
+                u8 v = 0;
+                if(! get(& v, sizeof(v)))
+                    break;
+                res.push_back(v);
             }
         }
 
         return res;
     }
 
-    void StreamNetwork::put8(char ch)
+    void StreamNetwork::put8(u8 v)
     {
-        if(sd)
-        {
-            if(1 != SDLNet_TCP_Send(sd, & ch, 1))
-                setfail(true);
-        }
+        put(& v, sizeof(v));
     }
 
     void StreamNetwork::putBE16(u16 v)
     {
-        put8(v >> 8);
-        put8(v);
+        v = SDL_SwapBE16(v);
+        put(& v, sizeof(v));
     }
 
     void StreamNetwork::putLE16(u16 v)
     {
-        put8(v);
-        put8(v >> 8);
+        v = SDL_SwapLE16(v);
+        put(& v, sizeof(v));
     }
 
     void StreamNetwork::putBE32(u32 v)
     {
-        putBE16(v >> 16);
-        putBE16(v & 0xFFFF);
+        v = SDL_SwapBE32(v);
+        put(& v, sizeof(v));
     }
 
     void StreamNetwork::putLE32(u32 v)
     {
-        putLE16(v & 0xFFFF);
-        putLE16(v >> 16);
+        v = SDL_SwapLE32(v);
+        put(& v, sizeof(v));
     }
 
     void StreamNetwork::putBE64(u64 v)
     {
-        putBE32(v >> 32);
-        putBE32(v & 0xFFFFFFFF);
+        v = SDL_SwapBE64(v);
+        put(& v, sizeof(v));
     }
 
     void StreamNetwork::putLE64(u64 v)
     {
-        putLE32(v & 0xFFFFFFFF);
-        putLE32(v >> 32);
-    }
-
-    void StreamNetwork::put(const char* data, size_t sz)
-    {
-        send(data, sz);
+        v = SDL_SwapLE64(v);
+        put(& v, sizeof(v));
     }
 }
 #endif

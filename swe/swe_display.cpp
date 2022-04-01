@@ -57,6 +57,8 @@ namespace SWE
 #ifdef SWE_SDL12
         SDL_Surface*	_window = nullptr;
 #else
+        const u32 defPixelFormat = SDL_PIXELFORMAT_ARGB8888;
+
         SDL_Renderer*   _renderer = nullptr;
         SDL_Window*     _window = nullptr;
         SDL_SpinLock	renderLock = 0;
@@ -347,7 +349,7 @@ bool SWE::Display::renderInit(const Size & newsz, bool accel)
     // default: alpha blending enabled
     SDL_SetRenderDrawBlendMode(_renderer, SDL_BLENDMODE_BLEND);
     // set displayTexture
-    displayTexture = Texture(SDL_CreateTexture(_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, rendersz.w, rendersz.h));
+    displayTexture = Texture(SDL_CreateTexture(_renderer, defPixelFormat, SDL_TEXTUREACCESS_TARGET, rendersz.w, rendersz.h));
 #endif
 
     if(! displayTexture.isValid())
@@ -886,7 +888,7 @@ SWE::Texture SWE::Display::createTexture(const Size & sz, bool alpha)
     return Texture(Surface(sz, alpha));
 #else
     SDL_AtomicLock(& renderLock);
-    auto ptr = SDL_CreateTexture(_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, sz.w, sz.h);
+    auto ptr = SDL_CreateTexture(_renderer, defPixelFormat, SDL_TEXTUREACCESS_TARGET, sz.w, sz.h);
     SDL_AtomicUnlock(& renderLock);
     Texture res(ptr);
     renderClear(Color::Transparent, res);
@@ -914,6 +916,15 @@ SWE::Texture & SWE::Display::texture(void)
     return displayTexture;
 }
 
+u32 SWE::Display::defaultPixelFormat(void)
+{
+#ifdef SWE_SDL12
+    return 0;
+#else
+    return defPixelFormat;
+#endif
+}
+
 SWE::Surface SWE::Display::createSurface(const Texture & tx)
 {
 #ifdef SWE_SDL12
@@ -926,9 +937,13 @@ SWE::Surface SWE::Display::createSurface(const Texture & tx)
     if(renderReset(tx2.toSDLTexture()))
     {
         SDL_Rect srt = tx2.rect().toSDLRect();
-        sf = SDL_CreateRGBSurface(0, srt.w, srt.h, 32, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000);
+        u32 rmask, gmask, bmask, amask;
+        int bpp;
 
-        if(! sf || 0 != SDL_RenderReadPixels(_renderer, & srt, SDL_PIXELFORMAT_ARGB8888, sf->pixels, sf->pitch))
+        SDL_PixelFormatEnumToMasks(defPixelFormat, &bpp, &rmask, &gmask, &bmask, &amask);
+        sf = SDL_CreateRGBSurface(0, srt.w, srt.h, bpp, rmask, gmask, bmask, amask);
+
+        if(! sf || 0 != SDL_RenderReadPixels(_renderer, & srt, defPixelFormat, sf->pixels, sf->pitch))
             ERROR(SDL_GetError());
     }
     else

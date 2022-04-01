@@ -303,6 +303,41 @@ namespace SWE
         return Color(def);
     }
 
+    FBColors JsonUnpack::fbColors(const JsonObject & jo, const std::string & key, const FBColors & def)
+    {
+        auto jv = jo.getValue(key);
+	if(jv)
+	{
+	    if(jv->isObject())
+	    {
+		auto jo2 = static_cast<const JsonObject*>(jv);
+		auto fg = Color(jo2->getString("fg", "black")).toColorIndex();
+		auto bg = Color(jo2->getString("bg", "transparent")).toColorIndex();
+		return FBColors(fg, bg);
+	    }
+
+	    if(jv->isArray())
+	    {
+		auto ja = static_cast<const JsonArray*>(jv);
+		auto fg = 0 < ja->size() ? Color(ja->getString(0)).toColorIndex() : SWE::Color::Black;
+		auto bg = 1 < ja->size() ? Color(ja->getString(1)).toColorIndex() : SWE::Color::Transparent;
+		return FBColors(fg, bg);
+	    }
+
+	    return FBColors(Color(jo.getString(key)).toColorIndex());
+	}
+
+	return def;
+    }
+
+    UnicodeColor JsonUnpack::unicodeColor(const JsonObject & jo, const std::string & key, const UnicodeColor & def)
+    {
+        if(jo.hasKey(key))
+	    return UnicodeColor(jo.getInteger("symbol"), JsonUnpack::fbColors(jo, "colors"));
+
+	return def;
+    }
+
     Points JsonUnpack::points(const JsonArray & ja)
     {
         Points st;

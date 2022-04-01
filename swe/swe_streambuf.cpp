@@ -31,7 +31,7 @@ namespace SWE
     {
         if(! sr.isValid())
         {
-            ERROR("StreamRWops error: " << SDL_GetError());
+            ERROR(SDL_GetError());
             setfail(true);
         }
     }
@@ -40,7 +40,7 @@ namespace SWE
     {
         if(! sr.isValid())
         {
-            ERROR("StreamRWops error: " << SDL_GetError());
+            ERROR(SDL_GetError());
             setfail(true);
         }
     }
@@ -55,7 +55,7 @@ namespace SWE
 
             if(! sr.isValid())
             {
-                ERROR("StreamRWops error: " << SDL_GetError());
+                ERROR(SDL_GetError());
                 setfail(true);
             }
         }
@@ -163,15 +163,21 @@ namespace SWE
         return sr.get8();
     }
 
+    bool StreamBufRO::get(void* buf, size_t size) const
+    {
+        if(sr.get(buf, size))
+            return true;
+
+        setfail(true);
+        return false;
+    }
+
     BinaryBuf StreamBufRO::get(size_t size) const
     {
-        if(0 < size && sr.last() < size)
-        {
-            size = sr.last();
-            setfail(true);
-        }
+        BinaryBuf buf(size ? size : sr.last());
+        get(buf.data(), buf.size());
 
-        return sr.get(size ? size : sr.last());
+        return buf;
     }
 
     /* StreamBufRW */
@@ -208,7 +214,7 @@ namespace SWE
 
         if(! sw.isValid())
         {
-            ERROR("StreamRWops error: " << SDL_GetError());
+            ERROR(SDL_GetError());
             setfail(true);
         }
     }
@@ -234,7 +240,7 @@ namespace SWE
 
             if(! sr.isValid() || ! sw.isValid())
             {
-                ERROR("StreamRWops error: " << SDL_GetError());
+                ERROR(SDL_GetError());
                 setfail(true);
             }
         }
@@ -262,7 +268,7 @@ namespace SWE
         }
         else
         {
-            ERROR("StreamRWops error: " << SDL_GetError());
+            ERROR(SDL_GetError());
             setfail(true);
             return false;
         }
@@ -354,7 +360,7 @@ namespace SWE
         }
     }
 
-    void StreamBufRW::put8(char val)
+    void StreamBufRW::put8(u8 val)
     {
         if(sw.last() > 0 || resize(buf.size() + 1))
         {
@@ -363,16 +369,19 @@ namespace SWE
         }
     }
 
-    void StreamBufRW::put(const char* data, size_t size)
+    bool StreamBufRW::put(const void* data, size_t size)
     {
         if(0 < size)
         {
             if(sw.last() > size - 1 || resize(buf.size() + size))
             {
-                if(! sw.put(data, size))
-                    setfail(true);
+                if(sw.put(data, size))
+                    return true;
+                setfail(true);
             }
         }
+
+        return false;
     }
 
     bool ZStreamBuf::read(const std::string & fn, size_t offset)
@@ -405,7 +414,7 @@ namespace SWE
         sf.putBE32(size());
         sf.putBE32(zip.size());
 	sf.putBE32(0);
-        sf.put(reinterpret_cast<const char*>(zip.data()), zip.size());
+        sf.put(zip.data(), zip.size());
         return ! sf.fail();
     }
 }

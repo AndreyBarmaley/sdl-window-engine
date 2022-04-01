@@ -105,7 +105,7 @@ namespace SWE
     {
         StreamBuf sb;
         BinaryBuf buf = get(sz);
-        sb.put(reinterpret_cast<const char*>(buf.data()), buf.size());
+        sb.put(buf.data(), buf.size());
         return sb;
     }
 
@@ -188,13 +188,19 @@ namespace SWE
 
     BinaryBuf StreamFile::get(size_t size) const
     {
-        if(0 < size && rw.last() < size)
-        {
-            size = rw.last();
-            setfail(true);
-        }
+        BinaryBuf buf(size ? size : rw.last());
+        get(buf.data(), buf.size());
 
-        return rw.get(size ? size : rw.last());
+        return buf;
+    }
+
+    bool StreamFile::get(void* buf, size_t size) const
+    {
+        if(rw.get(buf, size))
+            return true;
+
+        setfail(true);
+        return false;
     }
 
     void StreamFile::putBE16(u16 val)
@@ -233,18 +239,20 @@ namespace SWE
             setfail(true);
     }
 
-    void StreamFile::put8(char val)
+    void StreamFile::put8(u8 val)
     {
         if(! rw.put8(val))
             setfail(true);
     }
 
-    void StreamFile::put(const char* data, size_t size)
+    bool StreamFile::put(const void* data, size_t size)
     {
         if(0 < size)
         {
-            if(! rw.put(data, size))
-                setfail(true);
+            if(rw.put(data, size))
+                return true;
+            setfail(true);
         }
+        return false;
     }
 }

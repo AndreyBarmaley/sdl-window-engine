@@ -71,8 +71,9 @@ namespace SWE
         virtual void	putBE16(u16) = 0;
         virtual void	putLE16(u16) = 0;
 
-        virtual BinaryBuf	get(size_t = 0 /* all data */) const = 0;
-        virtual void		put(const char*, size_t) = 0;
+        virtual BinaryBuf get(size_t = 0 /* all data */) const = 0;
+        virtual bool	get(void*, size_t) const = 0;
+        virtual bool	put(const void*, size_t) = 0;
 
         bool		wait(const std::string &);
 
@@ -81,7 +82,7 @@ namespace SWE
         int		get32(void) const;
         s64		get64(void) const;
 
-        virtual void	put8(char) = 0;
+        virtual void	put8(u8) = 0;
         void		put16(u16);
         void		put32(u32);
         void		put64(u64);
@@ -254,16 +255,17 @@ namespace SWE
         int             getLE32(void) const;
         s64             getBE64(void) const;
         s64             getLE64(void) const;
+        bool		get(void*, size_t) const;
         BinaryBuf       get(size_t = 0 /* all data */) const;
 
-        bool		put8(char);
+        bool		put8(u8);
         bool		putBE16(u16);
         bool		putLE16(u16);
         bool		putBE32(u32);
         bool		putLE32(u32);
         bool		putBE64(u64);
         bool		putLE64(u64);
-        bool		put(const char*, size_t);
+        bool		put(const void*, size_t);
     };
 
 } // SWE

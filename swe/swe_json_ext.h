@@ -99,6 +99,9 @@ namespace SWE
         Size	size(const JsonObject &, const std::string & = "size", const Size & def = Size());
         Rect	rect(const JsonObject &, const std::string & = "rect", const Rect & def = Rect());
         Color	color(const JsonObject &, const std::string & = "color", const Color::color_t & def = Color::Transparent);
+
+        FBColors fbColors(const JsonObject &, const std::string & = "colors", const FBColors & def = FBColors());
+	UnicodeColor unicodeColor(const JsonObject &, const std::string & = "uc", const UnicodeColor & def = UnicodeColor());
     }
 
 } // SWE

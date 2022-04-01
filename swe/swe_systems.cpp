@@ -196,7 +196,7 @@ namespace SWE
 
         // make recursive
         if(! Systems::isDirectory(root))
-            makeDirectory(root);
+            makeDirectory(root, mode);
 
         int ret = 0;
 #if defined(__SYMBIAN32__)
@@ -204,6 +204,7 @@ namespace SWE
 #elif defined(__WIN32__)
         ret = mkdir(path.c_str());
 #else
+        // S_IRWXU: 0700
         ret = mkdir(path.c_str(), S_IRWXU);
 #endif
 

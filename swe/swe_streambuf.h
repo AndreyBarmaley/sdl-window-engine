@@ -38,8 +38,8 @@ namespace SWE
         void		putBE16(u16) override {}
         void 		putLE16(u16) override {}
 
-        void		put(const char*, size_t) override {}
-        void		put8(char) override {}
+        bool		put(const void*, size_t) override { return false; }
+        void		put8(u8) override {}
 
         StreamBufRO(const StreamBufRO &) {}
         StreamBufRO & operator=(const StreamBufRO &) { return *this; }
@@ -72,6 +72,7 @@ namespace SWE
         s64         	getLE64(void) const override;
 
         int         	get8(void) const override;
+        bool            get(void*, size_t) const override;
         BinaryBuf   	get(size_t = 0 /* all data */) const override;
     };
 
@@ -114,8 +115,8 @@ namespace SWE
         void		putBE16(u16) override;
         void 		putLE16(u16) override;
 
-        void		put(const char*, size_t) override;
-        void		put8(char) override;
+        bool	        put(const void*, size_t) override;
+        void		put8(u8) override;
     };
 
     class StreamBuf : public StreamBufRW

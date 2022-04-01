@@ -114,23 +114,7 @@ namespace SWE
 
     std::string BinaryBuf::toHexString(const std::string & sep, bool prefix) const
     {
-        if(size())
-        {
-            StringList list;
-            std::ostringstream os;
-
-	    std::transform(begin(), end(), std::back_inserter(list),
-		[&](int val)
-		{
-		    os.str(prefix ? "0x" : "");
-            	    os << std::setw(2) << std::setfill('0') << std::uppercase << std::hex << val;
-		    return os.str();
-		});
-
-            return list.join(sep);
-        }
-
-        return "";
+        return Tools::buffer2HexString<u8>(data(), size(), 2, sep, prefix);
     }
 
     BinaryBuf & BinaryBuf::append(const BinaryBuf & v)

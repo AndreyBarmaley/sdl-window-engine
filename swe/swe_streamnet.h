@@ -35,15 +35,14 @@ namespace SWE
         StreamNetwork(const StreamNetwork &) {}
         StreamNetwork &	operator= (const StreamNetwork &) { return *this; }
 
-        size_t          	tell(void) const override { return 0; }
-        bool            	skip(size_t len) const override { return false; }
+        size_t          tell(void) const override { return 0; }
+        bool            skip(size_t len) const override { return false; }
 
     protected:
-        TCPsocket		sd;
-        SDLNet_SocketSet	sdset;
+        TCPsocket	 sd;
+        SDLNet_SocketSet sdset;
 
-        int			recv(char*, int) const;
-        int			send(const char*, int);
+        bool		recv(void*, size_t) const;
 
     public:
         StreamNetwork();
@@ -54,17 +53,17 @@ namespace SWE
         StreamNetwork(StreamNetwork &&) noexcept;
         StreamNetwork &	operator=(StreamNetwork &&) noexcept;
 
-        static StringList   	localAddresses(void);
-        static std::pair<std::string, int>
-    				peerAddress(TCPsocket);
-        TCPsocket		accept(void);
+        static StringList localAddresses(void);
+        static std::pair<std::string, int> peerAddress(TCPsocket);
+
+        TCPsocket	accept(void);
 
         bool		isValid(void) const { return sd; }
         bool		open(TCPsocket);
         bool		connect(const std::string &, int);
         bool		listen(int port);
         void		close(void);
-        bool		ready(u32 timeout = 100 /* ms */) const;
+        bool		ready(u32 timeout = 10 /* ms */) const;
 
         int		get8(void) const override;
         int		getBE16(void) const override;
@@ -73,16 +72,18 @@ namespace SWE
         int		getLE32(void) const override;
         s64		getBE64(void) const override;
         s64		getLE64(void) const override;
-        BinaryBuf	get(size_t = 0 /* all data */) const override;
 
-        void		put8(char) override;
+        BinaryBuf	get(size_t = 0 /* all data */) const override;
+        bool            get(void*, size_t) const override;
+
+        void		put8(u8) override;
         void		putBE64(u64) override;
         void		putLE64(u64) override;
         void		putBE32(u32) override;
         void		putLE32(u32) override;
         void		putBE16(u16) override;
         void		putLE16(u16) override;
-        void		put(const char*, size_t) override;
+        bool		put(const void*, size_t) override;
     };
 
 } // SWE

@@ -705,15 +705,16 @@ int SWE_system_delay(lua_State* L)
 
 int SWE_system_mkdir(lua_State* L)
 {
-    // params: string directory
+    // params: string directory, int mode
     LuaState ll(L);
 
     if(ll.isTopString())
     {
-	std::string name = ll.getTopString();
+	std::string name = ll.toStringIndex(1);
+        int mode = 1 < ll.stackSize() ? ll.toIntegerIndex(2) : 0;
 
 	if(! Systems::isDirectory(name))
-	    Systems::makeDirectory(name);
+	    Systems::makeDirectory(name, mode);
 
 	ll.pushBoolean(Systems::isDirectory(name));
     }

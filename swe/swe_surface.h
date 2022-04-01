@@ -77,6 +77,8 @@ namespace SWE
         Surface(const Surface &);
         Surface(const std::string &);
         Surface(const BinaryBuf &);
+
+        Surface(Surface &&) noexcept;
         virtual ~Surface();
 
         Surface &	operator= (const Surface &);
@@ -131,6 +133,17 @@ namespace SWE
 	const char*	className(void) const override { return "SWE::Surface"; }
 #ifdef SWE_WITH_JSON
         JsonObject      toJson(void) const override;
+#endif
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+        static u32      defRMask(void){ return 0xff000000; }
+        static u32      defGMask(void){ return 0x00ff0000; }
+        static u32      defBMask(void){ return 0x0000ff00; }
+        static u32      defAMask(void){ return 0x000000ff; }
+#else
+        static u32      defRMask(void){ return 0x000000ff; }
+        static u32      defGMask(void){ return 0x0000ff00; }
+        static u32      defBMask(void){ return 0x00ff0000; }
+        static u32      defAMask(void){ return 0xff000000; }
 #endif
     };
 

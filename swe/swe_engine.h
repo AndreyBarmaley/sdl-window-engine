@@ -23,7 +23,7 @@
 #ifndef _SWE_ENGINE_
 #define _SWE_ENGINE_
 
-#define SWE_VERSION 20211121
+#define SWE_VERSION 20220315
 
 /// @brief пространство SWE
 namespace SWE

@@ -58,11 +58,7 @@ namespace SWE
 #else
         int flag = 0;
 #endif
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-        ptr = SDL_CreateRGBSurface(flag, sz.w, sz.h, 32, 0xff000000, 0x00ff0000, 0x0000ff00, (alpha ? 0x000000ff : 0));
-#else
-        ptr = SDL_CreateRGBSurface(flag, sz.w, sz.h, 32, 0x000000ff, 0x0000ff00, 0x00ff0000, (alpha ? 0xff000000 : 0));
-#endif
+        ptr = SDL_CreateRGBSurface(flag, sz.w, sz.h, 32, defRMask(), defGMask(), defBMask(), (alpha ? defAMask() : 0));
 
         if(ptr)
         {
@@ -120,6 +116,11 @@ namespace SWE
         reset();
     }
 
+    Surface::Surface(Surface && sf) noexcept
+    {
+        ptr = sf.ptr;
+    }
+
     Surface & Surface::operator= (const Surface & other)
     {
         setSurface(other);
@@ -128,12 +129,15 @@ namespace SWE
 
     void Surface::setSurface(const Surface & other)
     {
-        reset();
-
-        if(other.ptr)
+        if(ptr != other.ptr)
         {
-            ptr = other.ptr;
-            ptr->refcount += 1;
+            reset();
+
+            if(other.ptr)
+            {
+                ptr = other.ptr;
+                ptr->refcount += 1;
+            }
         }
     }
 
@@ -589,7 +593,7 @@ namespace SWE
         	return 0 == IMG_SavePNG(ptr, file.c_str());
 	    else
 	    if(type == "jpg")
-        	return 0 == IMG_SaveJPG(ptr, file.c_str(), 9);
+        	return 0 == IMG_SaveJPG(ptr, file.c_str(), 90);
 	    else
 	    {
 		ERROR("unknown image format: " << type);
