@@ -2,8 +2,8 @@ make build options:
 SWE_SDL12 - SDL1.2 support
 SWE_WITH_JSON - add json format
 SWE_WITH_LUA - add lua support
+SWE_EXAMPLES - build examples
 SWE_DLOPEN - add load shared libs support, with -ldl
-SWE_WITH_XML - add tinyxml2 support
 SWE_DISABLE_NETWORK - disable SDL_net
 SWE_DISABLE_AUDIO - disable SDL_mixer (mp3, ogg support disabled)
 SWE_DISABLE_IMAGE - disable SDL_image (load tif, jpg, png disabled)

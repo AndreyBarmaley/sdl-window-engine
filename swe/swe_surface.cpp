@@ -32,36 +32,52 @@
  #include "./savepng/IMG_savepng.h"
  #endif
 #else
- #include "./rotozoom2/SDL2_rotozoom.h"
+ #ifdef SWE_BUILTIN_ROOTOZOOM2
+  #include "./rotozoom2/SDL2_rotozoom.h"
+ #else
+  #include "SDL2_rotozoom.h"
+ #endif
 #endif
 
 #ifdef SWE_WITH_JSON
 #include "swe_json_ext.h"
 #endif
-
 namespace SWE
 {
-    Surface::Surface() : ptr(nullptr)
+    void skipDeleter(SDL_Surface* sf)
     {
     }
 
-    Surface::Surface(SDL_Surface* sf) : ptr(sf)
+    Surface::Surface(SDL_Surface* sf) : ptr{nullptr, SDL_FreeSurface}
     {
-        if(! ptr)
+        if(sf)
+        {
+#ifdef SWE_SDL12
+            if(sf == SDL_GetVideoSurface())
+                ptr.reset(sf, skipDeleter);
+            else
+                ptr.reset(sf, SDL_FreeSurface);
+#else
+            ptr.reset(sf, SDL_FreeSurface);
+#endif
+        }
+        else
             ERROR(SDL_GetError());
     }
 
-    Surface::Surface(const Size & sz, bool alpha) : ptr(nullptr)
+    Surface::Surface(const Size & sz, bool alpha)
     {
 #ifdef SWE_SDL12
         int flag = SDL_SWSURFACE;
 #else
         int flag = 0;
 #endif
-        ptr = SDL_CreateRGBSurface(flag, sz.w, sz.h, 32, defRMask(), defGMask(), defBMask(), (alpha ? defAMask() : 0));
+        auto sf = SDL_CreateRGBSurface(flag, sz.w, sz.h, 32, defRMask(), defGMask(), defBMask(), (alpha ? defAMask() : 0));
 
-        if(ptr)
+        if(sf)
         {
+            ptr.reset(sf, SDL_FreeSurface);
+
             if(amask())
             {
                 fill(rect(), Color::transparent());
@@ -77,24 +93,20 @@ namespace SWE
             ERROR(SDL_GetError());
     }
 
-    Surface::Surface(const Surface & other) : ptr(nullptr)
-    {
-        setSurface(other);
-    }
-
-    Surface::Surface(const std::string & file) : ptr(nullptr)
+    Surface::Surface(const std::string & file) : ptr{nullptr, SDL_FreeSurface}
     {
 #ifdef SWE_DISABLE_IMAGE
-        ptr = SDL_LoadBMP(file.c_str());
+        auto sf = SDL_LoadBMP(file.c_str());
 #else
-        ptr = IMG_Load(file.c_str());
+        auto sf = IMG_Load(file.c_str());
 #endif
-
-        if(! ptr)
+        if(sf)
+            ptr.reset(sf, SDL_FreeSurface);
+        else
             ERROR(SDL_GetError());
     }
 
-    Surface::Surface(const BinaryBuf & raw) : ptr(nullptr)
+    Surface::Surface(const BinaryBuf & raw) : ptr{nullptr, SDL_FreeSurface}
     {
         SDL_RWops* rw = SDL_RWFromConstMem(raw.data(), raw.size());
 
@@ -102,43 +114,20 @@ namespace SWE
             ERROR(SDL_GetError());
 
 #ifdef SWE_DISABLE_IMAGE
-        ptr = SDL_LoadBMP_RW(rw, 1);
+        auto sf = SDL_LoadBMP_RW(rw, 1);
 #else
-        ptr = IMG_Load_RW(rw, 1);
+        auto sf = IMG_Load_RW(rw, 1);
 #endif
 
-        if(! ptr)
+        if(sf)
+            ptr.reset(sf, SDL_FreeSurface);
+        else
             ERROR(SDL_GetError());
-    }
-
-    Surface::~Surface()
-    {
-        reset();
-    }
-
-    Surface::Surface(Surface && sf) noexcept
-    {
-        ptr = sf.ptr;
-    }
-
-    Surface & Surface::operator= (const Surface & other)
-    {
-        setSurface(other);
-        return *this;
     }
 
     void Surface::setSurface(const Surface & other)
     {
-        if(ptr != other.ptr)
-        {
-            reset();
-
-            if(other.ptr)
-            {
-                ptr = other.ptr;
-                ptr->refcount += 1;
-            }
-        }
+        ptr = other.ptr;
     }
 
     Surface Surface::copy(const Surface & sf1, const Rect & rt)
@@ -150,12 +139,12 @@ namespace SWE
 
     Surface Surface::scale(const Surface & sf1, const Size & sz)
     {
-	return Surface(zoomSurface(sf1.ptr, sz.w / static_cast<double>(sf1.width()), sz.h / static_cast<double>(sf1.height()), 0));
+	return Surface(zoomSurface(sf1.ptr.get(), sz.w / static_cast<double>(sf1.width()), sz.h / static_cast<double>(sf1.height()), 0));
     }
 
     Surface Surface::copy(const Surface & sf1, int flip)
     {
-        Surface sf2 = Surface(SDL_ConvertSurface(sf1.ptr, sf1.ptr->format, sf1.ptr->flags));
+        Surface sf2(SDL_ConvertSurface(sf1.ptr.get(), sf1.ptr->format, sf1.ptr->flags));
 
     	if((flip & FlipVertical) && (flip & FlipHorizontal))
 	{
@@ -178,19 +167,19 @@ namespace SWE
 
 	if(flip & Rotate90Degrees)
 	{
-	    Surface tmp(rotateSurface90Degrees(sf2.ptr, 1));
+	    Surface tmp(rotateSurface90Degrees(sf2.ptr.get(), 1));
 	    sf2.swap(tmp);
 	}
 	else
 	if(flip & Rotate180Degrees)
 	{
-	    Surface tmp(rotateSurface90Degrees(sf2.ptr, 2));
+	    Surface tmp(rotateSurface90Degrees(sf2.ptr.get(), 2));
 	    sf2.swap(tmp);
 	}
 	else
 	if(flip & Rotate270Degrees)
 	{
-	    Surface tmp(rotateSurface90Degrees(sf2.ptr, 3));
+	    Surface tmp(rotateSurface90Degrees(sf2.ptr.get(), 3));
 	    sf2.swap(tmp);
 	}
 
@@ -199,7 +188,7 @@ namespace SWE
 
     Surface Surface::renderGrayScale(const Surface & sf)
     {
-	Surface res = Surface(SDL_ConvertSurface(sf.ptr, sf.ptr->format, sf.ptr->flags));
+	Surface res(SDL_ConvertSurface(sf.ptr.get(), sf.ptr->format, sf.ptr->flags));
 	u32 colkey = sf.amask() ? 0 : sf.mapRGB(sf.colorKey());
 	u32 pixel = 0;
 
@@ -220,7 +209,7 @@ namespace SWE
 
     Surface Surface::renderSepia(const Surface & sf)
     {
-	Surface res = Surface(SDL_ConvertSurface(sf.ptr, sf.ptr->format, sf.ptr->flags));
+	Surface res(SDL_ConvertSurface(sf.ptr.get(), sf.ptr->format, sf.ptr->flags));
 	u32 colkey = sf.amask() ? 0 : sf.mapRGB(sf.colorKey());
 	u32 pixel = 0;
 
@@ -252,25 +241,7 @@ namespace SWE
 
     void Surface::reset(void)
     {
-        if(ptr)
-        {
-            if(1 < ptr->refcount)
-            {
-                --ptr->refcount;
-                ptr = nullptr;
-            }
-            else
-            {
-#ifdef SWE_SDL12
-                if(ptr != SDL_GetVideoSurface())
-                    SDL_FreeSurface(ptr);
-
-#else
-                SDL_FreeSurface(ptr);
-#endif
-                ptr = nullptr;
-            }
-        }
+        ptr.reset();
     }
 
 #ifdef SWE_SDL12
@@ -278,21 +249,20 @@ namespace SWE
     {
 	if(ptr)
 	{
-    	    SDL_Surface* sf = amask() ? SDL_DisplayFormatAlpha(ptr) : SDL_DisplayFormat(ptr);
-	    reset();
-	    ptr = sf;
+    	    SDL_Surface* sf = amask() ? SDL_DisplayFormatAlpha(ptr.get()) : SDL_DisplayFormat(ptr.get());
+	    ptr.reset(sf, SDL_FreeSurface);
 	}
     }
 #endif
 
     bool Surface::isValid(void) const
     {
-        return ptr;
+        return ptr.get();
     }
 
     SDL_Surface* Surface::toSDLSurface(void) const
     {
-        return ptr;
+        return ptr.get();
     }
 
     bool Surface::operator== (const Surface & sf) const
@@ -379,7 +349,7 @@ namespace SWE
 #ifdef SWE_SDL12
             res = ptr->format->alpha;
 #else
-            if(0 != SDL_GetSurfaceAlphaMod(ptr, & res))
+            if(0 != SDL_GetSurfaceAlphaMod(ptr.get(), & res))
                 ERROR(SDL_GetError());
 #endif
         }
@@ -397,7 +367,7 @@ namespace SWE
             if(ptr->flags & SDL_SRCCOLORKEY)
                 key = ptr->format->colorkey;
 #else
-            if(0 != SDL_GetColorKey(ptr, &key))
+            if(0 != SDL_GetColorKey(ptr.get(), &key))
                 ERROR(SDL_GetError());
 #endif
         }
@@ -410,9 +380,9 @@ namespace SWE
         if(ptr)
         {
 #ifdef SWE_SDL12
-            SDL_SetColorKey(ptr, SDL_SRCCOLORKEY, mapRGB(col));
+            SDL_SetColorKey(ptr.get(), SDL_SRCCOLORKEY, mapRGB(col));
 #else
-            SDL_SetColorKey(ptr, SDL_TRUE, mapRGB(col));
+            SDL_SetColorKey(ptr.get(), SDL_TRUE, mapRGB(col));
 #endif
         }
     }
@@ -422,14 +392,12 @@ namespace SWE
         if(ptr)
         {
 #ifdef SWE_SDL12
-            if(0 != SDL_SetAlpha(ptr, (0 < val ? SDL_SRCALPHA : 0), val))
+            if(0 != SDL_SetAlpha(ptr.get(), (0 < val ? SDL_SRCALPHA : 0), val))
                 ERROR(SDL_GetError());
 
 #else
-
-            if(0 != SDL_SetSurfaceAlphaMod(ptr, val))
+            if(0 != SDL_SetSurfaceAlphaMod(ptr.get(), val))
                 ERROR(SDL_GetError());
-
 #endif
         }
     }
@@ -483,7 +451,7 @@ namespace SWE
         {
             if(0 <= dpt.x && dpt.x < ptr->w && 0 <= dpt.y && dpt.y < ptr->h)
             {
-                SDL_LockSurface(ptr);
+                SDL_LockSurface(ptr.get());
 		switch(ptr->format->BytesPerPixel)
 		{
 		    case 1: draw1(dpt, pixel); break;
@@ -492,7 +460,7 @@ namespace SWE
 		    case 4: draw4(dpt, pixel); break;
 		    default: break;
 		}
-                SDL_UnlockSurface(ptr);
+                SDL_UnlockSurface(ptr.get());
             }
             else
                 ERROR("out of range: " << "pos: " << dpt.toString() << ", " << "size: " << size().toString());
@@ -537,7 +505,7 @@ namespace SWE
         {
             if(0 <= dpt.x && dpt.x < ptr->w && 0 <= dpt.y && dpt.y < ptr->h)
             {
-                SDL_LockSurface(ptr);
+                SDL_LockSurface(ptr.get());
 		switch(ptr->format->BytesPerPixel)
 		{
 		    case 1: res = pixel1(dpt); break;
@@ -546,7 +514,7 @@ namespace SWE
 		    case 4: res = pixel4(dpt); break;
 		    default: break;
 		}
-                SDL_UnlockSurface(ptr);
+                SDL_UnlockSurface(ptr.get());
             }
             else
                 ERROR("out of range: " << "pos: " << dpt.toString() << ", " << "size: " << size().toString());
@@ -561,7 +529,7 @@ namespace SWE
         {
             SDL_Rect dstRect = drt.toSDLRect();
 
-            if(0 > SDL_FillRect(ptr, & dstRect, mapRGB(col)))
+            if(0 > SDL_FillRect(ptr.get(), & dstRect, mapRGB(col)))
                 ERROR(SDL_GetError());
         }
     }
@@ -573,7 +541,7 @@ namespace SWE
             SDL_Rect srcRect = srt.toSDLRect();
             SDL_Rect dstRect = drt.toSDLRect();
 
-            if(0 > SDL_BlitSurface(ptr, & srcRect, dsf.ptr, & dstRect))
+            if(0 > SDL_BlitSurface(ptr.get(), & srcRect, dsf.ptr.get(), & dstRect))
                 ERROR(SDL_GetError());
         }
     }
@@ -583,17 +551,17 @@ namespace SWE
         if(ptr)
         {
 #ifdef SWE_DISABLE_IMAGE
-            return 0 == SDL_SaveBMP(ptr, file.c_str());
+            return 0 == SDL_SaveBMP(ptr.get(), file.c_str());
 #else
 #ifdef SWE_SDL12
-            return 0 == IMG_SavePNG(file.c_str(), ptr, 7);
+            return 0 == IMG_SavePNG(file.c_str(), ptr.get(), 7);
 #else
 	    auto type = String::toLower(file.substr(file.size() - 3));
 	    if(type == "png")
-        	return 0 == IMG_SavePNG(ptr, file.c_str());
+        	return 0 == IMG_SavePNG(ptr.get(), file.c_str());
 	    else
 	    if(type == "jpg")
-        	return 0 == IMG_SaveJPG(ptr, file.c_str(), 90);
+        	return 0 == IMG_SaveJPG(ptr.get(), file.c_str(), 90);
 	    else
 	    {
 		ERROR("unknown image format: " << type);
@@ -618,7 +586,7 @@ namespace SWE
                "amask" << "(" << String::hex(amask()) << "), " <<
                "flags" << "(" << String::hex(flags()) << "), " <<
                "colorKey" << "(" << colorKey().toString() << "), " <<
-    	       "refCount" << "(" << (ptr ? ptr->refcount : 0) << ")";
+    	       "refCount" << "(" << ptr.use_count() << ")";
         }
 	else
 	    os << "invalid";
@@ -644,7 +612,7 @@ namespace SWE
         res.addString("amask", String::hex(amask()));
         res.addInteger("flags", flags());
         res.addString("colorKey", colorKey().toString());
-        res.addInteger("refCount", ptr ? ptr->refcount : 0);
+        res.addInteger("refCount", ptr.use_count());
         return res;
     }
 #endif

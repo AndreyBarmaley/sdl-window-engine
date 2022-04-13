@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.14)
 
-project(SDL_WINDOW_ENGINE VERSION 20211121.1)
+project(SDL_WINDOW_ENGINE VERSION 20220401.1)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
@@ -25,21 +25,22 @@ option(SWE_DEBUG_SCENE "scene debug hotkeys: (Shift+F8) - highlight windows regi
 option(SWE_WITH_STD_MAP "usage std::unordered, (otherwise flat_hash_map version)" OFF)
 option(SWE_DEBUG_MESSAGES "DEBUG messages" ON)
 option(SWE_SHARED "shared lib" OFF)
+option(SWE_LOG_COLORED "color stdout log" ON)
+option(SWE_BUILTIN_ROOTOZOOM2 "built in rotozoom2 (SDL2_gfx)" ON)
 
 include(libswe.cmake)
 include_directories(.)
 
 if(SWE_SHARED)
     add_library(libswe SHARED)
+    set_target_properties(libswe PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 else()
     add_library(libswe STATIC)
+    set_target_properties(libswe PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 endif()
 
 add_subdirectory(swe)
-
 set_target_properties(libswe PROPERTIES PREFIX "")
-set_target_properties(libswe PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
-set_target_properties(libswe PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
 if(SWE_EXAMPLES)
     add_subdirectory(examples)
@@ -47,6 +48,10 @@ endif()
 
 if(SWE_WITH_STD_MAP)
     add_compile_options("-DSWE_WITH_STD_MAP")
+endif()
+
+if(SWE_LOG_COLORED)
+    add_compile_options("-DSWE_LOG_COLORED")
 endif()
 
 if(SWE_WITH_LUA)

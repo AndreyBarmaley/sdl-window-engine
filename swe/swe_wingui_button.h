@@ -140,7 +140,7 @@ namespace SWE
         TextureButton(Window* win) : WindowButton(win) {}
         TextureButton(const Size & sz, Window* win) : WindowButton(sz, win) {}
         TextureButton(const Point & pos, const Size & sz, Window* win) : WindowButton(pos, sz, win) {}
-        TextureButton(const Point &, const Texture &, const Texture &, int action, Window*);
+        TextureButton(const Point &, const Texture & release, const Texture & press, int action, Window*);
 
         void			setSprites(const Texture & release, const Texture & press);
 

@@ -23,9 +23,9 @@
 #ifndef _SWE_SYSTEM_
 #define _SWE_SYSTEM_
 
-#include <ostream>
 #include <string>
 #include <vector>
+#include <sstream>
 #include <utility>
 
 #if defined(__MINGW32CE__)
@@ -43,14 +43,13 @@ namespace SWE
     class LogWrapper
     {
     protected:
-        static std::ostream* os;
-        static std::string   id;
+        std::ostringstream os;
 
     public:
-        LogWrapper();
+        LogWrapper(){}
         ~LogWrapper();
 
-        static	void init(const std::string &, const char* = nullptr);
+        static void init(const std::string &, const char* = nullptr);
 
 /*
         template<typename Value>
@@ -74,16 +73,10 @@ namespace SWE
         }
 */
 
-        LogWrapper & endl(void)
-        {
-            if(os) *os << std::endl;
-            return *this;
-        }
-
         template<typename Value>
         LogWrapper & operator<< (const Value & val)
         {
-            if(os) *os << val;
+            os << val;
             return *this;
         }
     };

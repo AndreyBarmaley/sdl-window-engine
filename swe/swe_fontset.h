@@ -218,7 +218,7 @@ namespace SWE
         Size			char2Size(int ch) const;
 
     public:
-        FontRenderTTF() {}
+        FontRenderTTF() : ptr{nullptr, TTF_CloseFont} {}
         FontRenderTTF(const std::string &, size_t fsz, const CharRender & = RenderSolid, int style = StyleNormal, const CharHinting & = HintingNormal);
         FontRenderTTF(const BinaryBuf &, size_t fsz, const CharRender & = RenderSolid, int style = StyleNormal, const CharHinting & = HintingNormal);
         ~FontRenderTTF();

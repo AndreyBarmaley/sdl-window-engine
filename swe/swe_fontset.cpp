@@ -385,11 +385,13 @@ void SWE::FontRender::renderString(const std::string & str, const Color & col, c
 
 #ifndef SWE_DISABLE_TTF
 SWE::FontRenderTTF::FontRenderTTF(const std::string & fn, size_t fsz, const CharRender & blend, int style, const CharHinting & hinting)
+    : ptr{nullptr, TTF_CloseFont}
 {
     open(fn, fsz, blend, style, hinting);
 }
 
 SWE::FontRenderTTF::FontRenderTTF(const BinaryBuf & buf, size_t fsz, const CharRender & blend, int style, const CharHinting & hinting)
+    : ptr{nullptr, TTF_CloseFont}
 {
     load(buf, fsz, blend, style, hinting);
 }
@@ -414,7 +416,7 @@ bool SWE::FontRenderTTF::load(const BinaryBuf & raw, size_t fsz, const CharRende
     {
         if(TTF_Font* ttf = TTF_OpenFontRW(rw, 1, fsz))
         {
-            ptr = std::shared_ptr<TTF_Font>(ttf, TTF_CloseFont);
+            ptr.reset(ttf, TTF_CloseFont);
             fid = FontID(raw.crc16b(), fsz, CharProperty(blend, style, hinting));
             FontRender::fontSize = Size(symbolAdvance(0x20), lineSkipHeight());
 	    auto prop = fid.property();
@@ -434,7 +436,7 @@ bool SWE::FontRenderTTF::open(const std::string & fn, size_t fsz, const CharRend
 
     if(TTF_Font* ttf = TTF_OpenFont(fn.c_str(), fsz))
     {
-        ptr = std::shared_ptr<TTF_Font>(ttf, TTF_CloseFont);
+        ptr.reset(ttf, TTF_CloseFont);
         fid = FontID(Tools::crc16b(fn.c_str()), fsz, CharProperty(blend, style, hinting));
         FontRender::fontSize = Size(symbolAdvance(0x20), lineSkipHeight());
 	auto prop = fid.property();
@@ -632,10 +634,10 @@ SWE::Surface SWE::FontRenderTTF::renderString(const std::string & str, const Col
             break;
         }
 
-        if(sf != nullptr)
+        if(sf)
             return Surface(sf);
-        else
-            ERROR(SDL_GetError());
+
+        ERROR(SDL_GetError());
     }
 
     return Surface();
@@ -670,10 +672,10 @@ SWE::Surface SWE::FontRenderTTF::renderUnicode(const UnicodeString & ustr, const
                 break;
         }
 
-        if(sf != nullptr)
+        if(sf)
             return Surface(sf);
-        else
-            ERROR(SDL_GetError());
+
+        ERROR(SDL_GetError());
     }
 
     return Surface();
@@ -689,7 +691,6 @@ SWE::Surface SWE::FontRenderTTF::renderCharset(int ch, const Color & col, const 
         buf[0] = ch;
         SDL_Surface* sf = nullptr;
         CharProperty cp = fid.property();
-
 
         TTF_SetFontStyle(ttf, StyleDefault == style ? cp.style() : style);
 #ifndef SWE_SDL12
@@ -710,10 +711,10 @@ SWE::Surface SWE::FontRenderTTF::renderCharset(int ch, const Color & col, const 
                 break;
         }
 
-        if(sf != nullptr)
+        if(sf)
             return Surface(sf);
-        else
-            ERROR(SDL_GetError());
+
+        ERROR(SDL_GetError());
     }
 
     return Surface(FontRender::fontSize);
@@ -734,7 +735,6 @@ int SWE::FontRenderPSF::lineSkipHeight(void) const
 {
     return size().h;
 }
-
 
 int SWE::FontRenderPSF::symbolAdvance(int sym) const
 {

@@ -57,6 +57,7 @@ if(SWE_SDL12)
     else()
         pkg_search_module(SDLNET REQUIRED SDL_net>=1.2)
     endif()
+
     # link X11, see SWE::Display::isMaximizedWindow
     link_libraries(X11)
 
@@ -94,6 +95,10 @@ else()
         pkg_search_module(SDLNET REQUIRED SDL2_net>=2.0.1)
     endif()
 
+    if(NOT SWE_BUILTIN_ROOTOZOOM2)
+        pkg_search_module(SDLGFX REQUIRED SDL2_gfx>=1.0.1)
+    endif()
+
     add_compile_options(${SDL2_CFLAGS})
     add_link_options(${SDL2_LDFLAGS})
     link_libraries(${SDL2_LIBRARIES})
@@ -122,6 +127,14 @@ if(NOT SWE_DISABLE_NETWORK)
     add_compile_options(${SDLNET_CFLAGS})
     add_link_options(${SDLNET_LDFLAGS})
     link_libraries(${SDLNET_LIBRARIES})
+endif()
+
+if(NOT SWE_BUILTIN_ROOTOZOOM2)
+    add_compile_options(${SDLGFX_CFLAGS})
+    add_link_options(${SDLGFX_LDFLAGS})
+    link_libraries(${SDLGFX_LIBRARIES})
+else()
+    add_compile_options("-DSWE_BUILTIN_ROOTOZOOM2")
 endif()
 
 if(SWE_DISABLE_TERMGUI)

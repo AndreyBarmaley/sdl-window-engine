@@ -1715,13 +1715,12 @@ SWE::Rect SWE::Display::usableBounds(void)
         // _NET_WORKAREA, x, y, width, height CARDINAL[][4]/32
         if(3 < nItems)
         {
-            auto vals = reinterpret_cast<long*>(properties);
+            auto vals = reinterpret_cast<uint32_t*>(properties);
             res.x = vals[0];
             res.y = vals[1];
             res.w = vals[2];
             res.h = vals[3];
         }
-
     }
 
     if(properties)

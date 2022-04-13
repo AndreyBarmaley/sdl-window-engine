@@ -68,20 +68,17 @@ namespace SWE
 	void		draw4(const Point &, u32 pixel);
 
     protected:
-        SDL_Surface*	ptr;
+        std::shared_ptr<SDL_Surface> ptr;
 
     public:
-        Surface();
+        Surface() = default;
+        Surface(const Surface &) = default;
+        Surface &	operator= (const Surface &) = default;
+
         Surface(SDL_Surface*);
         Surface(const Size &, bool alpha = true);
-        Surface(const Surface &);
         Surface(const std::string &);
         Surface(const BinaryBuf &);
-
-        Surface(Surface &&) noexcept;
-        virtual ~Surface();
-
-        Surface &	operator= (const Surface &);
 
         static Surface	copy(const Surface &, int flip = FlipNone);
         static Surface	copy(const Surface &, const Rect &);
@@ -147,18 +144,7 @@ namespace SWE
 #endif
     };
 
-    class SurfaceRef : public Surface
-    {
-    public:
-	SurfaceRef(SDL_Surface* sf)
-	{
-    	    if(sf) sf->refcount++;
-    	    ptr = sf;
-	}
-    };
-
     const char* blendModeString(int);
-    //struct SDLTexture;
 
 #ifdef SWE_SDL12
     class Texture : public Surface
@@ -170,13 +156,9 @@ namespace SWE
         std::shared_ptr<SDL_Texture> ptr;
 #endif
     public:
-        Texture() {}
-
-#ifdef SWE_SDL12
+        Texture();
         Texture(const Surface &);
-#endif
         Texture(SDL_Texture*);
-	virtual ~Texture() {}
 
 #ifndef SWE_SDL12
         Texture(const Texture &) = default;

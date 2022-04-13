@@ -77,7 +77,6 @@ namespace std
 
 namespace SWE
 {
-
     std::string SEPARATOR(void)
     {
 #if defined(__SYMBIAN32__)
@@ -90,84 +89,60 @@ namespace SWE
         return "/";
     }
 
-    std::ostream* LogWrapper::os = nullptr;
-    std::string   LogWrapper::id;
-    std::mutex    mtexcl;
+    std::string   logId;
+    std::mutex    logLock;
 
 #if defined(__SYMBIAN32__)
     LogWrapper::init(const std::string & app, const char* arg0) {}
-    LogWrapper::LogWrapper() {}
     LogWrapper::~LogWrapper() {}
 #elif defined(ANDROID)
 #include <android/log.h>
-    namespace
-    {
-        static std::ostringstream oslog;
-    }
-
     void LogWrapper::init(const std::string & app, const char* arg0)
     {
-        id = app;
-    }
-
-    LogWrapper::LogWrapper()
-    {
-        mtexcl.lock();
-        oslog.str("");
-        os = & oslog;
+        logId = app;
     }
 
     LogWrapper::~LogWrapper()
     {
-        __android_log_print(ANDROID_LOG_INFO, id.c_str(), "%s", oslog.str().c_str());
-        mtexcl.unlock();
+        std::lock_guard<std::mutex> lock(logLock);
+        __android_log_print(ANDROID_LOG_INFO, logId.c_str(), "%s", os.str().c_str());
     }
 #elif defined(__MINGW32__)
     namespace
     {
-        static std::ofstream osfile;
+        static std::ofstream logFle;
     }
 
     void LogWrapper::init(const std::string & app, const char* arg0)
     {
-        id = arg0 ?
+        logId = arg0 ?
              Systems::concatePath(Systems::dirname(arg0), app).append(".txt") :
              std::string(app).append(".txt");
-        osfile.open(id.c_str(), std::fstream::app);
+        logFile.open(logId.c_str(), std::fstream::app);
 
-        if(! osfile.is_open())
-            std::cerr << "error open file: " << id << std::endl;
-    }
-
-    LogWrapper::LogWrapper()
-    {
-        mtexcl.lock();
-        if(osfile.is_open())
-            os = & osfile;
-        else
-            os = & std::clog;
+        if(! logFile.is_open())
+            std::cerr << "error open file: " << logId << std::endl;
     }
 
     LogWrapper::~LogWrapper()
     {
-        if(os) os->flush();
-        mtexcl.unlock();
+        std::lock_guard<std::mutex> lock(logLock);
+
+        if(osfile.is_open())
+            osfile << os.str();
+        else
+            std::clog << os.str();
     }
 #else
     void LogWrapper::init(const std::string & app, const char* arg0)
     {
-        id = app;
-    }
-
-    LogWrapper::LogWrapper()
-    {
-        mtexcl.lock();
-        os = & std::clog;
+        logId = app;
     }
 
     LogWrapper::~LogWrapper()
     {
-        mtexcl.unlock();
+        std::lock_guard<std::mutex> lock(logLock);
+        std::clog << os.str();
     }
 #endif
 
@@ -192,11 +167,15 @@ namespace SWE
         if(Systems::isDirectory(path))
             return true;
 
+        if(path.empty() || path == "." || path == ".." || path == "/")
+            return true;
+
         std::string root = Systems::dirname(path);
 
         // make recursive
-        if(! Systems::isDirectory(root))
-            makeDirectory(root, mode);
+        if(! Systems::isDirectory(root) &&
+            ! makeDirectory(root, mode))
+            return false;
 
         int ret = 0;
 #if defined(__SYMBIAN32__)
@@ -208,9 +187,12 @@ namespace SWE
         ret = mkdir(path.c_str(), S_IRWXU);
 #endif
 
+        if(ret == EEXIST)
+            return true;
+
         if(ret != 0)
 	{
-            ERROR("mkdir error");
+            ERROR("mkdir failed, error: " << ret << ", dir: " << path);
 	}
 	else
 	if(mode)
@@ -348,6 +330,9 @@ namespace SWE
 
     bool Systems::isDirectory(const std::string & name, bool writable)
     {
+        if(name.empty())
+            return false;
+
 #if defined(__MINGW32__)
 
         if(name.back() == ':')

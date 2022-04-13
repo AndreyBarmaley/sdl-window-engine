@@ -56,6 +56,10 @@ namespace SWE
     }
 
 #ifdef SWE_SDL12
+    Texture::Texture()
+    {
+    }
+
     Texture::Texture(const Surface & sf) : Surface(sf)
     {
 	convertToDisplayFormat();
@@ -65,9 +69,18 @@ namespace SWE
     {
 	convertToDisplayFormat();
     }
-
 #else
-    Texture::Texture(SDL_Texture* tx) : ptr(std::shared_ptr<SDL_Texture>(tx, SDL_DestroyTexture))
+    Texture::Texture() : ptr{nullptr, SDL_DestroyTexture}
+    {
+    }
+
+    Texture::Texture(const Surface & sf) : ptr{nullptr, SDL_DestroyTexture}
+    {
+        auto tx = Display::createTexture(sf);
+        std::swap(ptr, tx.ptr);
+    }
+
+    Texture::Texture(SDL_Texture* tx) : ptr{tx, SDL_DestroyTexture}
     {
         if(! tx)
             ERROR(SDL_GetError());
