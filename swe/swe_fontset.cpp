@@ -418,10 +418,12 @@ bool SWE::FontRenderTTF::load(const BinaryBuf & raw, size_t fsz, const CharRende
         {
             ptr.reset(ttf, TTF_CloseFont);
             fid = FontID(raw.crc16b(), fsz, CharProperty(blend, style, hinting));
+#ifdef SWE_DEBUG_MESSAGES
             FontRender::fontSize = Size(symbolAdvance(0x20), lineSkipHeight());
 	    auto prop = fid.property();
 	    DEBUG("binary" << SWE::StringFormat(", id: %1, size: %2, render: %3, style: %4, hinting: %5").
 			    arg(String::hex(fid.id(), 4)).arg(fid.size()).arg(prop.render()).arg(prop.style()).arg(prop.hinting()));
+#endif
             return true;
         }
     }
@@ -438,10 +440,12 @@ bool SWE::FontRenderTTF::open(const std::string & fn, size_t fsz, const CharRend
     {
         ptr.reset(ttf, TTF_CloseFont);
         fid = FontID(Tools::crc16b(fn.c_str()), fsz, CharProperty(blend, style, hinting));
+#ifdef SWE_DEBUG_MESSAGES
         FontRender::fontSize = Size(symbolAdvance(0x20), lineSkipHeight());
 	auto prop = fid.property();
 	    DEBUG("binary" << SWE::StringFormat(", id: %1, size: %2, render: %3, style: %4, hinting: %5").
 			    arg(String::hex(fid.id(), 4)).arg(fid.size()).arg(prop.render()).arg(prop.style()).arg(prop.hinting()));
+#endif
         return true;
     }
 

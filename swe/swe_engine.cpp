@@ -157,6 +157,8 @@ bool SWE::Engine::init(bool debug)
 
 #ifdef SWE_SDL12
     SDL_EnableKeyRepeat(400, 75);
+#else
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
 #endif
 
     return true;

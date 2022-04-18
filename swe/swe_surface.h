@@ -82,7 +82,7 @@ namespace SWE
 
         static Surface	copy(const Surface &, int flip = FlipNone);
         static Surface	copy(const Surface &, const Rect &);
-	static Surface	scale(const Surface &, const Size &);
+	static Surface	scale(const Surface &, const Size &, bool smooth = false);
 
         bool		isValid(void) const;
         SDL_Surface*	toSDLSurface(void) const;
@@ -102,8 +102,12 @@ namespace SWE
         Size		size(void) const;
         Rect		rect(void) const;
         int		alphaMod(void) const;
+        u32		rmask(void) const;
+        u32		gmask(void) const;
+        u32		bmask(void) const;
         u32		amask(void) const;
         int		flags(void) const;
+        int             depth(void) const;
         Color		colorKey(void) const;
         u32		pixel(const Point &) const;
 
@@ -165,7 +169,7 @@ namespace SWE
         Texture &	operator=(const Texture &) = default;
 #endif
 
-	static Texture	scale(const Texture &, const Size &);
+	static Texture	scale(const Texture &, const Size &, bool smooth = false);
         static Texture	copy(const Texture &, const Rect &);
         static Texture	copy(const Texture &, int flip = FlipNone);
 

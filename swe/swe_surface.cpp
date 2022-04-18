@@ -130,21 +130,42 @@ namespace SWE
         ptr = other.ptr;
     }
 
-    Surface Surface::copy(const Surface & sf1, const Rect & rt)
+    Surface Surface::copy(const Surface & sf, const Rect & rt)
     {
-	Surface sf2(rt.toSize(), false);
-	sf1.blit(rt, sf2.rect(), sf2);
-	return sf2;
+        SDL_Surface* sf2 = nullptr;
+
+        if(sf.rect() == rt)
+        {
+            sf2 = SDL_ConvertSurface(sf.ptr.get(), sf.ptr->format, 0);
+        }
+        else
+        {
+            auto sf1 = sf.toSDLSurface();
+            sf2 = SDL_CreateRGBSurface(sf.flags(), rt.w, rt.h, sf.depth(),
+                        sf.rmask(), sf.gmask(), sf.bmask(), sf.amask());
+            if(sf2)
+            {
+                SDL_Rect srt = rt.toSDLRect();
+            
+                if(0 > SDL_BlitSurface(sf1, & srt, sf2, nullptr))
+                    ERROR(SDL_GetError());
+            }
+        }
+
+        return Surface(sf2);
     }
 
-    Surface Surface::scale(const Surface & sf1, const Size & sz)
+    Surface Surface::scale(const Surface & sf1, const Size & sz, bool smooth)
     {
-	return Surface(zoomSurface(sf1.ptr.get(), sz.w / static_cast<double>(sf1.width()), sz.h / static_cast<double>(sf1.height()), 0));
+        auto ratioWidth = sz.w / static_cast<double>(sf1.width());
+        auto ratioHeight = sz.h / static_cast<double>(sf1.height());
+        auto sf = zoomSurface(sf1.ptr.get(), ratioWidth, ratioHeight, smooth);
+	return Surface(sf);
     }
 
     Surface Surface::copy(const Surface & sf1, int flip)
     {
-        Surface sf2(SDL_ConvertSurface(sf1.ptr.get(), sf1.ptr->format, sf1.ptr->flags));
+        Surface sf2(SDL_ConvertSurface(sf1.ptr.get(), sf1.ptr->format, 0));
 
     	if((flip & FlipVertical) && (flip & FlipHorizontal))
 	{
@@ -330,10 +351,31 @@ namespace SWE
         return ptr ? ptr->flags : 0;
     }
 
+    int Surface::depth(void) const
+    {
+        return ptr ? ptr->format->BitsPerPixel : 0;
+    }
+
+    u32 Surface::rmask(void) const
+    {
+        return ptr ? ptr->format->Rmask : 0;
+    }
+
+    u32 Surface::gmask(void) const
+    {
+        return ptr ? ptr->format->Gmask : 0;
+    }
+
+    u32 Surface::bmask(void) const
+    {
+        return ptr ? ptr->format->Bmask : 0;
+    }
+
     u32 Surface::amask(void) const
     {
         return ptr ? ptr->format->Amask : 0;
     }
+
 
     void Surface::clear(const Color & col)
     {

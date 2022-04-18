@@ -28,6 +28,7 @@
 #include <sstream>
 #include <algorithm>
 #include <iterator>
+#include <mutex>
 #include <list>
 
 #ifdef SWE_SDL12
@@ -61,9 +62,8 @@ namespace SWE
 
         SDL_Renderer*   _renderer = nullptr;
         SDL_Window*     _window = nullptr;
-        SDL_SpinLock	renderLock = 0;
 #endif
-
+        std::recursive_mutex renderLock;
         Texture		displayTexture;
 
         ButtonsEvent	mouseButtons[6]; /* FingerTap, ButtonLeft, ButtonRight, ButtonMiddle, ButtonX1, ButtonX2 */
@@ -339,11 +339,13 @@ bool SWE::Display::renderInit(const Size & newsz, bool accel)
     // render info
     if(1)
     {
+#ifdef SWE_DEBUG_MESSAGES
         SDL_Rect port;
         SDL_RenderGetViewport(_renderer, &port);
         DEBUG("viewport: " << Rect(port).toString());
         const char* hint = SDL_GetHint(SDL_HINT_ORIENTATIONS);
         DEBUG("orientation hint: " << (hint ? hint : "empty"));
+#endif
     }
 
     // default: alpha blending enabled
@@ -500,32 +502,16 @@ bool SWE::Display::renderReset(SDL_Texture* target)
 
 void SWE::Display::renderClear(const Color & cl, Texture & dtx)
 {
-#ifdef SWE_SDL12
     renderColor(cl, dtx, dtx.rect());
-#else
-    SDL_AtomicLock(& renderLock);
-    if(renderReset(dtx.toSDLTexture()))
-    {
-    	if(0 == SDL_SetRenderDrawColor(_renderer, cl.r(), cl.g(), cl.b(), cl.a()))
-    	{
-    	    if(0 != SDL_RenderClear(_renderer))
-            	ERROR(SDL_GetError());
-    	}
-    	else
-    	    ERROR(SDL_GetError());
-    }
-    else
-    	FIXME(String::pointer(dtx.toSDLTexture()));
-    SDL_AtomicUnlock(& renderLock);
-#endif
 }
 
 void SWE::Display::renderColor(const Color & cl, Texture & dtx, const Rect & drt)
 {
+    const std::lock_guard<std::recursive_mutex> lock(renderLock);
+
 #ifdef SWE_SDL12
     boxRGBA(dtx.toSDLSurface(), drt.x, drt.y, drt.x + drt.w - 1, drt.y + drt.h - 1, cl.r(), cl.g(), cl.b(), cl.a());
 #else
-    SDL_AtomicLock(& renderLock);
     if(renderReset(dtx.toSDLTexture()))
     {
     	if(0 == SDL_SetRenderDrawColor(_renderer, cl.r(), cl.g(), cl.b(), cl.a()))
@@ -540,7 +526,6 @@ void SWE::Display::renderColor(const Color & cl, Texture & dtx, const Rect & drt
     }
     else
     	FIXME(String::pointer(dtx.toSDLTexture()));
-    SDL_AtomicUnlock(& renderLock);
 #endif
 }
 
@@ -560,11 +545,11 @@ SWE::Texture SWE::Display::renderRect(const Color & col, const Color & fill, con
 
 void SWE::Display::renderRect(const Color & cl, Texture & dtx, const Rect & drt)
 {
+    const std::lock_guard<std::recursive_mutex> lock(renderLock);
+
 #ifdef SWE_SDL12
     rectangleRGBA(dtx.toSDLSurface(), drt.x, drt.y, drt.x + drt.w - 1, drt.y + drt.h - 1, cl.r(), cl.g(), cl.b(), cl.a());
 #else
-
-    SDL_AtomicLock(& renderLock);
     if(renderReset(dtx.toSDLTexture()))
     {
         if(0 == SDL_SetRenderDrawColor(_renderer, cl.r(), cl.g(), cl.b(), cl.a()))
@@ -583,8 +568,6 @@ void SWE::Display::renderRect(const Color & cl, Texture & dtx, const Rect & drt)
     }
     else
         FIXME(String::pointer(dtx.toSDLTexture()));
-    SDL_AtomicUnlock(& renderLock);
-
 #endif
 }
 
@@ -605,12 +588,12 @@ void SWE::Display::renderPolygon(const Color & cl, Texture & dtx, const Points &
 
 void SWE::Display::renderLine(const Color & cl, Texture & dtx, const Point & pt1, const Point & pt2)
 {
+    const std::lock_guard<std::recursive_mutex> lock(renderLock);
+
 #ifdef SWE_SDL12
     lineRGBA(dtx.toSDLSurface(), pt1.x, pt1.y, pt2.x, pt2.y, cl.r(), cl.g(), cl.b(), cl.a());
 
 #else
-
-    SDL_AtomicLock(& renderLock);
     if(renderReset(dtx.toSDLTexture()))
     {
         if(0 == SDL_SetRenderDrawColor(_renderer, cl.r(), cl.g(), cl.b(), cl.a()))
@@ -623,18 +606,16 @@ void SWE::Display::renderLine(const Color & cl, Texture & dtx, const Point & pt1
     }
     else
         FIXME(String::pointer(dtx.toSDLTexture()));
-    SDL_AtomicUnlock(& renderLock);
-
 #endif
 }
 
 void SWE::Display::renderPoint(const Color & cl, Texture & dtx, const Point & pt)
 {
+    const std::lock_guard<std::recursive_mutex> lock(renderLock);
+
 #ifdef SWE_SDL12
     pixelRGBA(dtx.toSDLSurface(), pt.x, pt.y, cl.r(), cl.g(), cl.b(), cl.a());
 #else
-
-    SDL_AtomicLock(& renderLock);
     if(renderReset(dtx.toSDLTexture()))
     {
         if(0 == SDL_SetRenderDrawColor(_renderer, cl.r(), cl.g(), cl.b(), cl.a()))
@@ -647,8 +628,6 @@ void SWE::Display::renderPoint(const Color & cl, Texture & dtx, const Point & pt
     }
     else
         FIXME(String::pointer(dtx.toSDLTexture()));
-    SDL_AtomicUnlock(& renderLock);
-
 #endif
 }
 
@@ -679,6 +658,8 @@ void SWE::Display::renderCursor(const Texture & tx)
 
 void SWE::Display::renderCopyEx(const Texture & stx, const Rect & srt, Texture & dtx, const Rect & drt, int flip)
 {
+    const std::lock_guard<std::recursive_mutex> lock(renderLock);
+
 #ifdef SWE_SDL12
     if(srt.toSize() != drt.toSize())
     {
@@ -709,7 +690,6 @@ void SWE::Display::renderCopyEx(const Texture & stx, const Rect & srt, Texture &
 #else
     const SDL_Rect srcrt = srt.toSDLRect();
     const SDL_Rect dstrt = drt.toSDLRect();
-    SDL_AtomicLock(& renderLock);
 
     if(renderReset(dtx.toSDLTexture()))
     {
@@ -735,8 +715,6 @@ void SWE::Display::renderCopyEx(const Texture & stx, const Rect & srt, Texture &
     }
     else
         FIXME(String::pointer(dtx.toSDLTexture()));
-
-    SDL_AtomicUnlock(& renderLock);
 #endif
 }
 
@@ -757,32 +735,24 @@ void SWE::Display::renderSurface(const Surface & sf, const Rect & srt, Texture &
 
 void SWE::Display::renderPresent(void)
 {
-#ifdef SWE_SDL12
+    const std::lock_guard<std::recursive_mutex> lock(renderLock);
 
+#ifdef SWE_SDL12
     if(winsz != rendersz)
     {
         SDL_Rect dstrt = scale.toSDLRect();
-        float zoomx = dstrt.w / static_cast<float>(rendersz.w);
-        float zoomy = dstrt.h / static_cast<float>(rendersz.h);
-        SDL_Surface* zoomsf = zoomSurface(displayTexture.toSDLTexture(), zoomx, zoomy, 1);
+        auto zoom = Surface::scale(displayTexture, scale.toSize(), true);
 
-        if(zoomsf)
+        if(zoom.isValid())
         {
-            if(0 > SDL_BlitSurface(zoomsf, nullptr, _window, & dstrt))
-                ERROR(SDL_GetError() << ", " << String::pointer(displayTexture.toSDLTexture()));
-
-            SDL_FreeSurface(zoomsf);
+            if(0 > SDL_BlitSurface(zoom.toSDLSurface(), nullptr, _window, & dstrt))
+                ERROR(SDL_GetError() << ", " << String::pointer(zoom.toSDLSurface()));
         }
-        else
-            ERROR("zoomSurface: " << SDL_GetError());
     }
 
     if(0 > SDL_Flip(_window))
         ERROR(SDL_GetError());
-
 #else
-    SDL_AtomicLock(& renderLock);
-
     if(renderReset(nullptr))
     {
         if(0 != SDL_SetRenderDrawColor(_renderer, 0, 0, 0, 0))
@@ -803,9 +773,8 @@ void SWE::Display::renderPresent(void)
 
         SDL_RenderPresent(_renderer);
     }
-
-    SDL_AtomicUnlock(& renderLock);
 #endif
+
     DisplayScene::setDirty(false);
 }
 
@@ -841,12 +810,12 @@ u32 SWE::Display::timeStart(void)
 
 SWE::Texture SWE::Display::createTexture(const Surface & sf)
 {
+    const std::lock_guard<std::recursive_mutex> lock(renderLock);
+
 #ifdef SWE_SDL12
     return Texture(sf);
 #else
-    SDL_AtomicLock(& renderLock);
     auto ptr = SDL_CreateTextureFromSurface(_renderer, sf.toSDLSurface());
-    SDL_AtomicUnlock(& renderLock);
     return Texture(ptr);
 #endif
 }
@@ -884,12 +853,12 @@ SWE::Texture SWE::Display::createTexture(const std::string & file)
 
 SWE::Texture SWE::Display::createTexture(const Size & sz, bool alpha)
 {
+    const std::lock_guard<std::recursive_mutex> lock(renderLock);
+
 #ifdef SWE_SDL12
     return Texture(Surface(sz, alpha));
 #else
-    SDL_AtomicLock(& renderLock);
     auto ptr = SDL_CreateTexture(_renderer, defPixelFormat, SDL_TEXTUREACCESS_TARGET, sz.w, sz.h);
-    SDL_AtomicUnlock(& renderLock);
     Texture res(ptr);
     renderClear(Color::Transparent, res);
     res.setBlendMode(BlendMode::Blend);
@@ -927,13 +896,14 @@ u32 SWE::Display::defaultPixelFormat(void)
 
 SWE::Surface SWE::Display::createSurface(const Texture & tx)
 {
+    const std::lock_guard<std::recursive_mutex> lock(renderLock);
+
 #ifdef SWE_SDL12
     return Texture::copy(tx);
 #else
     SDL_Surface* sf = nullptr;
     Texture tx2 = createTexture(tx, FlipNone);
 
-    SDL_AtomicLock(& renderLock);
     if(renderReset(tx2.toSDLTexture()))
     {
         SDL_Rect srt = tx2.rect().toSDLRect();
@@ -948,7 +918,6 @@ SWE::Surface SWE::Display::createSurface(const Texture & tx)
     }
     else
         FIXME(String::pointer(tx2.toSDLTexture()));
-    SDL_AtomicUnlock(& renderLock);
 
     renderReset(nullptr);
     return Surface(sf);

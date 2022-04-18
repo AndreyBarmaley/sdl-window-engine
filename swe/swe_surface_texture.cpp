@@ -283,10 +283,10 @@ namespace SWE
 #endif
     }
 
-    Texture Texture::scale(const Texture & tx, const Size & sz)
+    Texture Texture::scale(const Texture & tx, const Size & sz, bool smooth)
     {
 #ifdef SWE_SDL12
-	return Surface::scale(tx, sz);
+	return Surface::scale(tx, sz, smooth);
 #else
         Texture res = Display::createTexture(sz);
         Display::renderTexture(tx, tx.rect(), res, res.rect(), FlipNone);
